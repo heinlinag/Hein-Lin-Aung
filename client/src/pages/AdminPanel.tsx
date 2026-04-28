@@ -108,7 +108,7 @@ function WorkersTab() {
   const [addError, setAddError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
 
-  const addWorker = trpc.workers.add.useMutation();
+  const addWorker = trpc.workers.create.useMutation();
   const deleteWorker = trpc.workers.delete.useMutation();
 
   const handleAdd = async () => {
@@ -304,7 +304,7 @@ function OrdersTab() {
   const [confirmWorkerID, setConfirmWorkerID] = useState("");
   const [deleteError, setDeleteError] = useState("");
 
-  const deleteOrder = trpc.orders.delete.useMutation();
+  const deleteOrder = trpc.orders.deleteFromHistory.useMutation();
   const updateStatus = trpc.orders.updateStatus.useMutation();
 
   const handleDeleteOrder = async () => {
@@ -312,7 +312,7 @@ function OrdersTab() {
     setDeleteError("");
     if (!confirmWorkerID.trim()) { setDeleteError("Worker ID required."); return; }
     try {
-      await deleteOrder.mutateAsync({ id: deleteTarget.id, workerID: confirmWorkerID.trim(), adminPassword: ADMIN_PASSWORD });
+      await deleteOrder.mutateAsync({ id: deleteTarget.id, workerID: confirmWorkerID.trim() });
       toast.success("Order deleted.");
       utils.orders.list.invalidate();
       setDeleteTarget(null);

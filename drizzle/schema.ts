@@ -12,6 +12,22 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+
+export const deletedLogs = mysqlTable("deletedLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  orderID: varchar("orderID", { length: 64 }).notNull(),
+  fluteType: varchar("fluteType", { length: 64 }).notNull(),
+  sizeW: int("sizeW").notNull(),
+  sizeL: int("sizeL").notNull(),
+  qty: int("qty").notNull(),
+  bqComment: text("bqComment").notNull(),
+  deletedBy: varchar("deletedBy", { length: 64 }).notNull(),
+  deletedAt: timestamp("deletedAt").defaultNow().notNull(),
+});
+
+export type DeletedLog = typeof deletedLogs.$inferSelect;
+export type InsertDeletedLog = typeof deletedLogs.$inferInsert;
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 

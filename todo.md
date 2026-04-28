@@ -59,3 +59,11 @@
 - [x] Add order date/time column to Stock History and Admin Orders
 - [x] Add bulk status update: checkbox select multiple orders, toggle status in batch
 - [x] Add order search/filter: quick search by Order ID or Flute Type in Stock History
+
+
+## Latest Changes (User Feedback)
+- [ ] Remove DashboardLayout sidebar completely - use Home Dashboard as main entry point
+- [ ] Add BQ Comment filter to Stock History (separate from Order ID/Flute Type search)
+- [ ] Add Delete button to Stock History orders with Worker ID confirmation
+- [ ] Create Deleted Logs History table in Admin Panel to track deleted orders
+- [ ] Update database schema: add deletedLogs table to track deleted orders
