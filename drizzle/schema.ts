@@ -12,22 +12,6 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
-
-export const deletedLogs = mysqlTable("deletedLogs", {
-  id: int("id").autoincrement().primaryKey(),
-  orderID: varchar("orderID", { length: 64 }).notNull(),
-  fluteType: varchar("fluteType", { length: 64 }).notNull(),
-  sizeW: int("sizeW").notNull(),
-  sizeL: int("sizeL").notNull(),
-  qty: int("qty").notNull(),
-  bqComment: text("bqComment").notNull(),
-  deletedBy: varchar("deletedBy", { length: 64 }).notNull(),
-  deletedAt: timestamp("deletedAt").defaultNow().notNull(),
-});
-
-export type DeletedLog = typeof deletedLogs.$inferSelect;
-export type InsertDeletedLog = typeof deletedLogs.$inferInsert;
-
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
@@ -58,18 +42,4 @@ export const orders = mysqlTable("orders", {
 });
 
 export type Order = typeof orders.$inferSelect;
-export const usageHistory = mysqlTable("usageHistory", {
-  id: int("id").autoincrement().primaryKey(),
-  jobNo: varchar("jobNo", { length: 8 }).notNull(),
-  usedQty: int("usedQty").notNull(),
-  orderID: varchar("orderID", { length: 64 }).notNull(),
-  fluteType: varchar("fluteType", { length: 64 }).notNull(),
-  bqComment: text("bqComment").notNull(),
-  purpose: mysqlEnum("purpose", ["job", "old_stock"]).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type UsageHistory = typeof usageHistory.$inferSelect;
-export type InsertUsageHistory = typeof usageHistory.$inferInsert;
-
 export type InsertOrder = typeof orders.$inferInsert;

@@ -42,16 +42,14 @@ export default function SubmitOrder() {
   const [qty, setQty] = useState("");
   const [bqComment, setBqComment] = useState("");
 
-  const getWorkers = trpc.workers.list.useQuery();
+  const verifyWorker = trpc.workers.verify.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
 
   const handleLogin = async () => {
     setLoginError("");
     if (!loginWorkerID.trim()) { setLoginError("Please enter your Worker ID."); return; }
     try {
-      const workers = getWorkers.data || [];
-      const worker = workers.find(w => w.workerID === loginWorkerID.trim());
-      if (!worker) { setLoginError("Worker ID not found."); return; }
+      const worker = await verifyWorker.mutateAsync({ workerID: loginWorkerID.trim() });
       setWorkerSession({ workerID: worker.workerID, name: worker.name, department: worker.department });
       setShowLoginDialog(false);
       setLoginWorkerID("");
@@ -275,10 +273,10 @@ export default function SubmitOrder() {
             </div>
             <Button
               onClick={handleLogin}
-              disabled={getWorkers.isPending}
+              disabled={verifyWorker.isPending}
               className="w-full font-sans text-sm font-medium h-10 bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {getWorkers.isPending ? "Verifying…" : "Login"}
+              {verifyWorker.isPending ? "Verifying…" : "Login"}
             </Button>
           </div>
         </DialogContent>
