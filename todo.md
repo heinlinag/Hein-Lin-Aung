@@ -41,5 +41,5 @@
 - [x] Refactor Stock History page: responsive table (card view on mobile), better readability
 - [x] Refactor Admin Panel: mobile-friendly worker/order management UI
 - [x] Test on mobile (375px+) and desktop (1024px+), verify all interactions work
-- [ ] Add mobile card/list views for Admin workers and orders management
-- [ ] Verify responsive layouts work on actual mobile devices (375px+) and desktop (1024px+)
+- [x] Add mobile card/list views for Admin workers and orders management
+- [x] Verify responsive layouts work on actual mobile devices (375px+) and desktop (1024px+)

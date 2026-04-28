@@ -170,39 +170,72 @@ function WorkersTab() {
             <p className="font-serif text-base text-muted-foreground">No workers registered</p>
           </div>
         ) : (
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Worker ID</th>
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Name</th>
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Department</th>
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {workers.map(w => (
-                  <tr key={w.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                    <td className="py-3 pr-3 font-sans text-sm font-medium text-foreground">{w.workerID}</td>
-                    <td className="py-3 pr-3 font-sans text-sm text-foreground">{w.name}</td>
-                    <td className="py-3 pr-3">
-                      <Badge variant="outline" className="font-sans text-xs border-border">
-                        {w.department}
-                      </Badge>
-                    </td>
-                    <td className="py-3">
-                      <button
-                        onClick={() => setDeleteTarget(w)}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Worker ID</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Name</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Department</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {workers.map(w => (
+                    <tr key={w.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
+                      <td className="py-3 pr-3 font-sans text-sm font-medium text-foreground">{w.workerID}</td>
+                      <td className="py-3 pr-3 font-sans text-sm text-foreground">{w.name}</td>
+                      <td className="py-3 pr-3">
+                        <Badge variant="outline" className="font-sans text-xs border-border">
+                          {w.department}
+                        </Badge>
+                      </td>
+                      <td className="py-3">
+                        <button
+                          onClick={() => setDeleteTarget(w)}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile card view */}
+            <div className="md:hidden space-y-2">
+              {workers.map(w => (
+                <div key={w.id} className="p-4 bg-card border border-border rounded-md space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-sans text-xs text-muted-foreground">Worker ID</p>
+                      <p className="font-sans font-medium text-foreground text-sm">{w.workerID}</p>
+                    </div>
+                    <button
+                      onClick={() => setDeleteTarget(w)}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="flex items-start justify-between">
+                    <p className="font-sans text-xs text-muted-foreground">Name</p>
+                    <p className="font-sans text-sm text-foreground">{w.name}</p>
+                  </div>
+                  <div className="flex items-start justify-between">
+                    <p className="font-sans text-xs text-muted-foreground">Department</p>
+                    <Badge variant="outline" className="font-sans text-xs border-border">
+                      {w.department}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Add Worker Dialog */}
@@ -328,56 +361,108 @@ function OrdersTab() {
             <p className="font-serif text-base text-muted-foreground">No orders yet</p>
           </div>
         ) : (
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Order ID</th>
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Flute</th>
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Size</th>
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Qty</th>
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Status</th>
-                  <th className="font-sans text-xs font-semibold text-foreground text-left pb-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map(order => (
-                  <tr key={order.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                    <td className="py-3 pr-2 font-sans text-sm font-medium text-foreground">{order.orderID}</td>
-                    <td className="py-3 pr-2">
-                      <Badge variant="outline" className="font-sans text-xs border-border">
-                        {order.fluteType}
-                      </Badge>
-                    </td>
-                    <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL}</td>
-                    <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.qty}</td>
-                    <td className="py-3 pr-2">
-                      <button
-                        onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
-                        disabled={updateStatus.isPending}
-                        className="transition-opacity hover:opacity-70"
-                      >
-                        <Badge
-                          variant={order.status === "current" ? "default" : "secondary"}
-                          className={`font-sans text-xs cursor-pointer ${order.status === "current" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
-                        >
-                          {order.status === "current" ? "Current" : "Out"}
-                        </Badge>
-                      </button>
-                    </td>
-                    <td className="py-3">
-                      <button
-                        onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Order ID</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Flute</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Size</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Qty</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Status</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {orders.map(order => (
+                    <tr key={order.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
+                      <td className="py-3 pr-2 font-sans text-sm font-medium text-foreground">{order.orderID}</td>
+                      <td className="py-3 pr-2">
+                        <Badge variant="outline" className="font-sans text-xs border-border">
+                          {order.fluteType}
+                        </Badge>
+                      </td>
+                      <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL}</td>
+                      <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.qty}</td>
+                      <td className="py-3 pr-2">
+                        <button
+                          onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
+                          disabled={updateStatus.isPending}
+                          className="transition-opacity hover:opacity-70"
+                        >
+                          <Badge
+                            variant={order.status === "current" ? "default" : "secondary"}
+                            className={`font-sans text-xs cursor-pointer ${order.status === "current" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
+                          >
+                            {order.status === "current" ? "Current" : "Out"}
+                          </Badge>
+                        </button>
+                      </td>
+                      <td className="py-3">
+                        <button
+                          onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile card view */}
+            <div className="md:hidden space-y-2">
+              {orders.map(order => (
+                <div key={order.id} className="p-4 bg-card border border-border rounded-md space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-sans text-xs text-muted-foreground">Order ID</p>
+                      <p className="font-sans font-medium text-foreground text-sm">{order.orderID}</p>
+                    </div>
+                    <button
+                      onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="flex items-start justify-between">
+                    <p className="font-sans text-xs text-muted-foreground">Flute Type</p>
+                    <Badge variant="outline" className="font-sans text-xs border-border">
+                      {order.fluteType}
+                    </Badge>
+                  </div>
+                  <div className="flex items-start justify-between">
+                    <p className="font-sans text-xs text-muted-foreground">Size</p>
+                    <p className="font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL}</p>
+                  </div>
+                  <div className="flex items-start justify-between">
+                    <p className="font-sans text-xs text-muted-foreground">Qty</p>
+                    <p className="font-sans text-sm text-foreground">{order.qty}</p>
+                  </div>
+                  <div className="flex items-start justify-between pt-2 border-t border-border">
+                    <p className="font-sans text-xs text-muted-foreground">Status</p>
+                    <button
+                      onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
+                      disabled={updateStatus.isPending}
+                      className="transition-opacity hover:opacity-70"
+                    >
+                      <Badge
+                        variant={order.status === "current" ? "default" : "secondary"}
+                        className={`font-sans text-xs cursor-pointer ${order.status === "current" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
+                      >
+                        {order.status === "current" ? "Current" : "Out"}
+                      </Badge>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Delete Order Dialog */}
