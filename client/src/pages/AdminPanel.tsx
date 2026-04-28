@@ -32,7 +32,7 @@ const ADMIN_PASSWORD = "Qwer@7090heinann";
 type Worker = { id: number; workerID: string; name: string; department: string; createdAt: Date };
 type Order = {
   id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
-  qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string; createdAt: Date;
+  qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
 };
 
 // ─── Admin Login Gate ─────────────────────────────────────────────────────────
@@ -372,6 +372,7 @@ function OrdersTab() {
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Size</th>
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Qty</th>
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Submitted By</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Submitted</th>
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Status</th>
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3">Actions</th>
                   </tr>
@@ -388,6 +389,9 @@ function OrdersTab() {
                     <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL}</td>
                     <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.qty}</td>
                     <td className="py-3 pr-2 font-sans text-sm text-muted-foreground">{order.submittedBy}</td>
+                    <td className="py-3 pr-2 font-sans text-xs text-muted-foreground">
+                      {new Date(order.createdAt).toLocaleString()}
+                    </td>
                     <td className="py-3 pr-2">                        <button
                           onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
                           disabled={updateStatus.isPending}
@@ -448,6 +452,12 @@ function OrdersTab() {
                   <div className="flex items-start justify-between">
                     <p className="font-sans text-xs text-muted-foreground">Submitted By</p>
                     <p className="font-sans text-sm text-foreground">{order.submittedBy}</p>
+                  </div>
+                  <div className="flex items-start justify-between">
+                    <p className="font-sans text-xs text-muted-foreground">Submitted</p>
+                    <p className="font-sans text-xs text-muted-foreground">
+                      {new Date(order.createdAt).toLocaleString()}
+                    </p>
                   </div>
                   <div className="flex items-start justify-between pt-2 border-t border-border">
                     <p className="font-sans text-xs text-muted-foreground">Status</p>

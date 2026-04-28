@@ -50,3 +50,12 @@
 - [x] Remove sidebar navigation and add Home Dashboard as landing page
 - [x] Display current logged-in user in Admin Panel header
 - [x] Display "Submitted By" worker name in All Orders table
+
+
+## New Design & Feature Requests
+- [x] Update Home Dashboard design: use colored feature cards (blue, green, red) like Leave Board mockup
+- [x] Change "Corrugated" text to "Manual Slitter" throughout app
+- [x] Change title: "Stock Management" → "PP4 Manual Slitter Stock Management"
+- [x] Add order date/time column to Stock History and Admin Orders
+- [x] Add bulk status update: checkbox select multiple orders, toggle status in batch
+- [x] Add order search/filter: quick search by Order ID or Flute Type in Stock History

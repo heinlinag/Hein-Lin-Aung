@@ -95,7 +95,7 @@ export default function SubmitOrder() {
             Submit Order
           </h1>
           <p className="text-sm text-muted-foreground font-sans">
-            Register a new flute board order.
+            Register a new manual slitter order.
           </p>
           {workerSession && (
             <div className="flex items-center justify-between mt-4 p-3 bg-secondary rounded-md">
