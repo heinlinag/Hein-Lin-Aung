@@ -1,196 +1,344 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { PackageOpen, RefreshCw, Search } from "lucide-react";
+import { toast } from "sonner";
+import { useLocation } from "wouter";
+import { ArrowLeft, Search, RefreshCw, Trash2, Loader2, Package, Zap, X } from "lucide-react";
+
+const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 
 type Order = {
-  id: number;
-  orderID: string;
-  fluteType: string;
-  sizeW: number;
-  sizeL: number;
-  qty: number;
-  bqComment: string;
-  status: "current" | "out_of_stock";
-  submittedBy: string | null;
-  createdAt: Date;
+  id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
+  qty: number; bqComment: string; status: "current" | "out_of_stock";
+  submittedBy: string | null; createdAt: Date;
 };
 
-function OrderTable({ orders, loading, searchTerm }: { orders: Order[]; loading: boolean; searchTerm: string }) {
-  const filteredOrders = orders.filter(order =>
-    order.orderID.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.fluteType.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+// ─── Used Update Dialog ────────────────────────────────────────────────────────
+function UsedUpdateDialog({ order, onClose, onSuccess }: {
+  order: Order; onClose: () => void; onSuccess: () => void;
+}) {
+  const [step, setStep] = useState<"choose" | "job" | "old_stock">("choose");
+  const [jobNo, setJobNo] = useState("");
+  const [useQty, setUseQty] = useState("");
+  const [jobError, setJobError] = useState("");
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [showOldConfirm, setShowOldConfirm] = useState(false);
+  const logUsage = trpc.orders.logUsage.useMutation();
+  const utils = trpc.useUtils();
+  const availableQty = remaining !== null ? remaining : order.qty;
 
-  if (loading) {
-    return (
-      <div className="space-y-3 mt-4">
-        {[1, 2, 3].map(i => (
-          <Skeleton key={i} className="h-12 w-full rounded" />
-        ))}
-      </div>
-    );
-  }
+  const handleJobSubmit = async () => {
+    setJobError("");
+    if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
+    const qty = parseInt(useQty);
+    if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
+    if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs).`); return; }
+    const newQty = availableQty - qty;
+    try {
+      await logUsage.mutateAsync({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", orderId: order.id, newQty });
+      toast.success(`Used ${qty} pcs for Job ${jobNo}. Remaining: ${newQty} pcs.`);
+      setRemaining(newQty);
+      setJobNo(""); setUseQty("");
+      utils.orders.list.invalidate();
+      utils.orders.getUsage.invalidate();
+      if (newQty === 0) onSuccess();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setJobError(e?.message ?? "Failed to log usage.");
+    }
+  };
 
-  if (filteredOrders.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <PackageOpen className="h-10 w-10 text-muted-foreground/30 mb-3" />
-        <p className="font-serif text-base text-muted-foreground">
-          {searchTerm ? "No orders match your search" : "No orders found"}
-        </p>
-        <p className="font-sans text-xs text-muted-foreground/60 mt-1">
-          {searchTerm ? "Try a different search term" : "Orders will appear here once submitted."}
-        </p>
-      </div>
-    );
-  }
+  const handleOldStockSubmit = async () => {
+    try {
+      await logUsage.mutateAsync({ jobNo: null, usedQty: order.qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "old_stock", orderId: order.id, newQty: 0 });
+      toast.success("Order cleared and moved to Out of Stock.");
+      utils.orders.list.invalidate();
+      utils.orders.getUsage.invalidate();
+      onSuccess();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to clear order.");
+    }
+  };
 
   return (
-    <div className="mt-4 space-y-3">
-      {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Order ID</th>
-              <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Flute Type</th>
-              <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Size (W×L)</th>
-              <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Qty</th>
-              <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Submitted</th>
-              <th className="font-sans text-xs font-semibold text-foreground text-left pb-3">BQ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredOrders.map(order => (
-              <tr key={order.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                <td className="py-3 pr-3 font-sans text-sm text-foreground font-medium">{order.orderID}</td>
-                <td className="py-3 pr-3">
-                  <Badge variant="outline" className="font-sans text-xs border-border">
-                    {order.fluteType}
-                  </Badge>
-                </td>
-                <td className="py-3 pr-3 font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL} mm</td>
-                <td className="py-3 pr-3 font-sans text-sm text-foreground">{order.qty.toLocaleString()} pcs</td>
-                <td className="py-3 pr-3 font-sans text-xs text-muted-foreground">
-                  {new Date(order.createdAt).toLocaleString()}
-                </td>
-                <td className="py-3 font-sans text-xs text-muted-foreground max-w-[200px] truncate" title={order.bqComment}>
-                  {order.bqComment}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile card view */}
-      <div className="md:hidden space-y-2">
-        {filteredOrders.map(order => (
-          <div key={order.id} className="p-4 bg-card border border-border rounded-md space-y-2">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-sans text-xs text-muted-foreground">Order ID</p>
-                <p className="font-sans font-medium text-foreground text-sm">{order.orderID}</p>
-              </div>
-              <Badge variant="outline" className="font-sans text-xs border-border">
-                {order.fluteType}
-              </Badge>
-            </div>
-            <div className="flex items-start justify-between">
-              <p className="font-sans text-xs text-muted-foreground">Size</p>
-              <p className="font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL} mm</p>
-            </div>
-            <div className="flex items-start justify-between">
-              <p className="font-sans text-xs text-muted-foreground">Qty</p>
-              <p className="font-sans text-sm text-foreground">{order.qty.toLocaleString()} pcs</p>
-            </div>
-            <div className="flex items-start justify-between">
-              <p className="font-sans text-xs text-muted-foreground">Submitted</p>
-              <p className="font-sans text-xs text-muted-foreground">
-                {new Date(order.createdAt).toLocaleString()}
-              </p>
-            </div>
-            <div className="pt-2 border-t border-border">
-              <p className="font-sans text-xs text-muted-foreground">BQ</p>
-              <p className="font-sans text-xs text-foreground mt-1 break-words">{order.bqComment}</p>
-            </div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <div>
+            <h3 className="font-bold text-foreground">Used Update</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
           </div>
-        ))}
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1"><X size={18} /></button>
+        </div>
+        <div className="p-5">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Available Quantity</p>
+            <p className="text-2xl font-bold text-blue-700 mt-0.5">{availableQty} <span className="text-sm font-normal">pcs</span></p>
+          </div>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
+            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono">{order.bqComment.length > 22 ? order.bqComment.slice(0, 22) + "…" : order.bqComment}</span>
+          </div>
+
+          {step === "choose" && (
+            <div>
+              <p className="text-sm font-semibold text-foreground mb-3">What do you want to use it for?</p>
+              <div className="space-y-2">
+                <button onClick={() => setStep("job")} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-primary hover:bg-blue-50 transition-all text-left">
+                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Zap size={16} className="text-primary" /></div>
+                  <div><p className="text-sm font-semibold text-foreground">Job No</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
+                </button>
+                <button onClick={() => setStep("old_stock")} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-destructive hover:bg-red-50 transition-all text-left">
+                  <div className="w-9 h-9 bg-destructive/10 rounded-lg flex items-center justify-center"><Package size={16} className="text-destructive" /></div>
+                  <div><p className="text-sm font-semibold text-foreground">Old Stock</p><p className="text-xs text-muted-foreground">Clear entire order (move to Out of Stock)</p></div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === "job" && (
+            <div>
+              <button onClick={() => { setStep("choose"); setJobError(""); }} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Job No (8 digits)</label>
+                  <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Quantity to Use (max {availableQty} pcs)</label>
+                  <input type="number" value={useQty} onChange={e => { setUseQty(e.target.value); setJobError(""); }} placeholder="e.g. 15" min={1} max={availableQty} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  {useQty && !isNaN(parseInt(useQty)) && parseInt(useQty) > 0 && parseInt(useQty) <= availableQty && (
+                    <p className="text-xs text-green-600 mt-1 font-medium">Remaining after use: {availableQty - parseInt(useQty)} pcs</p>
+                  )}
+                </div>
+                {jobError && <p className="text-xs text-destructive">{jobError}</p>}
+                <button onClick={handleJobSubmit} disabled={logUsage.isPending} className="w-full gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                  {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+                  Submit Usage
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === "old_stock" && !showOldConfirm && (
+            <div>
+              <button onClick={() => setStep("choose")} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                <p className="text-sm font-bold text-destructive mb-1">⚠ Warning</p>
+                <p className="text-sm text-red-700">Order will be completely cleared. All {order.qty} pcs will be marked as used and the order will move to <strong>Out of Stock</strong>.</p>
+              </div>
+              <button onClick={() => setShowOldConfirm(true)} className="w-full bg-destructive text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2">
+                <Package size={14} /> Clear Order (Old Stock)
+              </button>
+            </div>
+          )}
+
+          {step === "old_stock" && showOldConfirm && (
+            <div>
+              <p className="text-sm font-semibold text-foreground mb-2">Are you absolutely sure?</p>
+              <p className="text-xs text-muted-foreground mb-4">This will set Qty to 0 and move order <strong>{order.orderID}</strong> to Out of Stock immediately.</p>
+              <div className="flex gap-2">
+                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
+                <button onClick={handleOldStockSubmit} disabled={logUsage.isPending} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                  {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                  Confirm
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-export default function StockHistory() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const currentOrders = trpc.orders.list.useQuery({ status: "current" });
-  const outOfStockOrders = trpc.orders.list.useQuery({ status: "out_of_stock" });
+// ─── Delete Confirm Dialog ─────────────────────────────────────────────────────
+function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: () => void; onSuccess: () => void; }) {
+  const [workerID, setWorkerID] = useState("");
+  const [error, setError] = useState("");
+  const deleteOrder = trpc.orders.deleteFromHistory.useMutation();
+
+  const handleDelete = async () => {
+    setError("");
+    if (!workerID.trim()) { setError("Worker ID is required."); return; }
+    try {
+      await deleteOrder.mutateAsync({ id: order.id, workerID: workerID.trim() });
+      toast.success("Order deleted.");
+      onSuccess();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setError(e?.message ?? "Invalid Worker ID or failed to delete.");
+    }
+  };
 
   return (
-    <div className="w-full">
-      <div className="px-4 py-6 md:py-8 border-b border-border">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
-            Stock History
-          </h1>
-          <p className="text-sm text-muted-foreground font-sans mt-1">
-            View all submitted orders organized by status.
-          </p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+        <h3 className="font-bold text-foreground mb-2">Delete Order</h3>
+        <p className="text-sm text-muted-foreground mb-4">Enter your Worker ID to confirm deletion of order <strong className="text-foreground">{order.orderID}</strong>.</p>
+        <input type="text" value={workerID} onChange={e => { setWorkerID(e.target.value); setError(""); }} onKeyDown={e => e.key === "Enter" && handleDelete()} placeholder="Worker ID" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive mb-1" autoFocus />
+        {error && <p className="text-xs text-destructive mb-2">{error}</p>}
+        <div className="flex gap-2 mt-3">
+          <button onClick={onClose} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
+          <button onClick={handleDelete} disabled={deleteOrder.isPending} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+            {deleteOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+            Delete
+          </button>
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div className="px-4 py-6 md:py-8">
-        <div className="max-w-5xl mx-auto">
-          {/* Search Bar */}
-          <div className="mb-6 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search by Order ID or Flute Type..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="pl-10 font-sans text-sm h-10 bg-card border-border"
-            />
+// ─── Main StockHistory ─────────────────────────────────────────────────────────
+export default function StockHistory() {
+  const [, navigate] = useLocation();
+  const [activeTab, setActiveTab] = useState<"current" | "out_of_stock">("current");
+  const [searchOrderID, setSearchOrderID] = useState("");
+  const [searchFlute, setSearchFlute] = useState("");
+  const [searchBQ, setSearchBQ] = useState("");
+  const [usedUpdateOrder, setUsedUpdateOrder] = useState<Order | null>(null);
+  const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
+
+  const ordersQuery = trpc.orders.list.useQuery({ status: activeTab });
+  const utils = trpc.useUtils();
+  const orders = (ordersQuery.data ?? []) as Order[];
+
+  const filtered = useMemo(() => orders.filter(o => {
+    const matchID = !searchOrderID || o.orderID.toLowerCase().includes(searchOrderID.toLowerCase());
+    const matchFlute = !searchFlute || o.fluteType.toLowerCase().includes(searchFlute.toLowerCase());
+    const matchBQ = !searchBQ || o.bqComment.toLowerCase().includes(searchBQ.toLowerCase());
+    return matchID && matchFlute && matchBQ;
+  }), [orders, searchOrderID, searchFlute, searchBQ]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
+        <div className="container py-3 flex items-center gap-3">
+          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground p-1"><ArrowLeft size={20} /></button>
+          <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
+          <div>
+            <h1 className="text-sm font-bold text-foreground leading-tight">Stock History</h1>
+            <p className="text-xs text-muted-foreground">PP4 Manual Slitter</p>
           </div>
-
-          <Tabs defaultValue="current">
-            <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start h-auto pb-0 gap-0 p-0">
-              <TabsTrigger
-                value="current"
-                className="font-sans text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-3 px-4 text-muted-foreground data-[state=active]:text-foreground"
-              >
-                Current Stock
-              </TabsTrigger>
-              <TabsTrigger
-                value="out_of_stock"
-                className="font-sans text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-3 px-4 text-muted-foreground data-[state=active]:text-foreground"
-              >
-                Out of Stock
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="current" className="mt-0 -mx-4 md:mx-0">
-              <OrderTable
-                orders={(currentOrders.data as Order[]) || []}
-                loading={currentOrders.isLoading}
-                searchTerm={searchTerm}
-              />
-            </TabsContent>
-
-            <TabsContent value="out_of_stock" className="mt-0 -mx-4 md:mx-0">
-              <OrderTable
-                orders={(outOfStockOrders.data as Order[]) || []}
-                loading={outOfStockOrders.isLoading}
-                searchTerm={searchTerm}
-              />
-            </TabsContent>
-          </Tabs>
+          <button onClick={() => utils.orders.list.invalidate()} className="ml-auto text-muted-foreground hover:text-foreground p-1" title="Refresh">
+            <RefreshCw size={16} />
+          </button>
         </div>
-      </div>
+      </header>
+
+      <main className="container py-5">
+        <div className="flex gap-1 mb-5 border-b border-border">
+          <button onClick={() => setActiveTab("current")} className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "current" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            Current Stock
+          </button>
+          <button onClick={() => setActiveTab("out_of_stock")} className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "out_of_stock" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            Out of Stock
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input type="text" value={searchOrderID} onChange={e => setSearchOrderID(e.target.value)} placeholder="Search Order ID…" className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white" />
+          </div>
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input type="text" value={searchFlute} onChange={e => setSearchFlute(e.target.value)} placeholder="Search Flute Type…" className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white" />
+          </div>
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input type="text" value={searchBQ} onChange={e => setSearchBQ(e.target.value)} placeholder="Search BQ Comment…" className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white" />
+          </div>
+        </div>
+
+        <p className="text-xs text-muted-foreground mb-3">{filtered.length} order{filtered.length !== 1 ? "s" : ""}</p>
+
+        {ordersQuery.isLoading ? (
+          <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Package size={40} className="text-muted-foreground/20 mb-3" />
+            <p className="text-sm text-muted-foreground">No orders found</p>
+          </div>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b-2 border-border">
+                    {["Order ID","Flute Type","Size (W×L)","Qty","BQ","Date","Actions"].map(h => (
+                      <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-4">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(order => (
+                    <tr key={order.id} className="border-b border-border hover:bg-gray-50 transition-colors">
+                      <td className="py-3 pr-4 font-bold text-primary">{order.orderID}</td>
+                      <td className="py-3 pr-4">
+                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
+                      </td>
+                      <td className="py-3 pr-4 font-mono text-sm">{order.sizeW}×{order.sizeL} mm</td>
+                      <td className="py-3 pr-4 font-semibold">{order.qty} pcs</td>
+                      <td className="py-3 pr-4 max-w-[200px]">
+                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono break-all leading-relaxed">{order.bqComment}</span>
+                      </td>
+                      <td className="py-3 pr-4 text-xs text-muted-foreground whitespace-nowrap">{new Date(order.createdAt).toLocaleString()}</td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          {activeTab === "current" && (
+                            <button onClick={() => setUsedUpdateOrder(order)} className="text-xs bg-primary text-white px-2.5 py-1 rounded-lg font-semibold hover:opacity-90 whitespace-nowrap">
+                              Used Update
+                            </button>
+                          )}
+                          <button onClick={() => setDeleteOrder(order)} className="text-muted-foreground hover:text-destructive p-1">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {filtered.map(order => (
+                <div key={order.id} className="bg-white border border-border rounded-xl shadow-sm p-4 space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Order ID</p>
+                      <p className="text-base font-bold text-primary">{order.orderID}</p>
+                    </div>
+                    <button onClick={() => setDeleteOrder(order)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 size={15} /></button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-mono">{order.sizeW}×{order.sizeL} mm</span>
+                    <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-semibold">{order.qty} pcs</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">BQ</p>
+                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono break-all leading-relaxed">{order.bqComment}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</p>
+                  {activeTab === "current" && (
+                    <button onClick={() => setUsedUpdateOrder(order)} className="w-full gspp-gradient text-white rounded-lg py-2 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2">
+                      <Zap size={14} /> Used Update
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </main>
+
+      {usedUpdateOrder && <UsedUpdateDialog order={usedUpdateOrder} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />}
+      {deleteOrder && <DeleteDialog order={deleteOrder} onClose={() => setDeleteOrder(null)} onSuccess={() => { setDeleteOrder(null); utils.orders.list.invalidate(); }} />}
     </div>
   );
 }

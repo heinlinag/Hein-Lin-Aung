@@ -1,38 +1,85 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { LogIn, Send, X } from "lucide-react";
+import { ArrowLeft, LogIn, Send, X, Loader2 } from "lucide-react";
 
+const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 const FLUTE_TYPES = ["BA", "BE", "C", "A", "B", "E", "Manual"] as const;
 
 type WorkerSession = { workerID: string; name: string; department: string };
 
-export default function SubmitOrder() {
-  const [, setLocation] = useLocation();
+// ── Worker Login Dialog ─────────────────────────────────────────────────────
+function WorkerLoginDialog({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: (session: WorkerSession) => void;
+}) {
+  const [workerID, setWorkerID] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const workers = trpc.workers.list.useQuery();
 
+  const handleLogin = () => {
+    setError("");
+    if (!workerID.trim()) { setError("Please enter your Worker ID."); return; }
+    setLoading(true);
+    const found = (workers.data || []).find(
+      (w: { workerID: string; name: string; department: string }) =>
+        w.workerID.toLowerCase() === workerID.trim().toLowerCase()
+    );
+    setLoading(false);
+    if (!found) {
+      setError("Worker ID not found. Please contact your Admin.");
+      return;
+    }
+    onSuccess({ workerID: found.workerID, name: found.name, department: found.department });
+    toast.success(`Welcome, ${found.name}!`);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
+            <h3 className="font-semibold text-foreground">Worker Login</h3>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X size={18} />
+          </button>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">Enter your Worker ID to submit orders.</p>
+        <input
+          type="text"
+          value={workerID}
+          onChange={e => { setWorkerID(e.target.value); setError(""); }}
+          onKeyDown={e => e.key === "Enter" && handleLogin()}
+          placeholder="Worker ID (e.g. DN156)"
+          className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-1"
+          autoFocus
+        />
+        {error && <p className="text-xs text-destructive mb-2">{error}</p>}
+        <button
+          onClick={handleLogin}
+          disabled={loading || workers.isLoading}
+          className="w-full mt-3 bg-primary text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+        >
+          {loading || workers.isLoading ? <Loader2 size={14} className="animate-spin" /> : <LogIn size={14} />}
+          Login
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Main SubmitOrder Page ───────────────────────────────────────────────────
+export default function SubmitOrder() {
+  const [, navigate] = useLocation();
   const [workerSession, setWorkerSession] = useState<WorkerSession | null>(null);
-  const [showLoginDialog, setShowLoginDialog] = useState(false);
-  const [loginWorkerID, setLoginWorkerID] = useState("");
-  const [loginError, setLoginError] = useState("");
+  const [showLogin, setShowLogin] = useState(false);
 
   const [orderID, setOrderID] = useState("");
   const [fluteType, setFluteType] = useState("");
@@ -42,26 +89,11 @@ export default function SubmitOrder() {
   const [qty, setQty] = useState("");
   const [bqComment, setBqComment] = useState("");
 
-  const verifyWorker = trpc.workers.verify.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
-
-  const handleLogin = async () => {
-    setLoginError("");
-    if (!loginWorkerID.trim()) { setLoginError("Please enter your Worker ID."); return; }
-    try {
-      const worker = await verifyWorker.mutateAsync({ workerID: loginWorkerID.trim() });
-      setWorkerSession({ workerID: worker.workerID, name: worker.name, department: worker.department });
-      setShowLoginDialog(false);
-      setLoginWorkerID("");
-      toast.success(`Welcome, ${worker.name}`);
-    } catch {
-      setLoginError("Worker ID not found.");
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!workerSession) { setShowLoginDialog(true); return; }
+    if (!workerSession) { setShowLogin(true); return; }
 
     const effectiveFluteType = fluteType === "Manual" ? manualFlute.trim() : fluteType;
     if (!orderID.trim() || !effectiveFluteType || !sizeW || !sizeL || !qty || !bqComment.trim()) {
@@ -79,208 +111,203 @@ export default function SubmitOrder() {
         bqComment: bqComment.trim(),
         workerID: workerSession.workerID,
       });
-      toast.success("Order submitted successfully.");
-      setLocation("/stock-history");
-    } catch (err: any) {
-      toast.error(err?.message ?? "Failed to submit order.");
+      toast.success("Order submitted successfully!");
+      navigate("/stock-history");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to submit order.");
     }
   };
 
   return (
-    <div className="w-full px-4 py-6 md:py-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 md:mb-10">
-          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-2">
-            Submit Order
-          </h1>
-          <p className="text-sm text-muted-foreground font-sans">
-            Register a new manual slitter order.
-          </p>
-          {workerSession && (
-            <div className="flex items-center justify-between mt-4 p-3 bg-secondary rounded-md">
-              <div className="text-sm">
-                <p className="font-sans text-xs text-muted-foreground">Logged in as</p>
-                <p className="font-sans font-medium text-foreground">{workerSession.name} · {workerSession.department}</p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
+        <div className="container py-3 flex items-center gap-3">
+          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground p-1">
+            <ArrowLeft size={20} />
+          </button>
+          <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
+          <div>
+            <h1 className="text-sm font-bold text-foreground leading-tight">Submit Order</h1>
+            <p className="text-xs text-muted-foreground">PP4 Manual Slitter</p>
+          </div>
+          <div className="ml-auto">
+            {workerSession ? (
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <div className="text-xs font-semibold text-foreground">{workerSession.name}</div>
+                  <div className="text-xs text-muted-foreground">{workerSession.department}</div>
+                </div>
+                <button
+                  onClick={() => setWorkerSession(null)}
+                  className="text-muted-foreground hover:text-destructive p-1 transition-colors"
+                  title="Sign out"
+                >
+                  <X size={16} />
+                </button>
               </div>
-              <button
-                onClick={() => setWorkerSession(null)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                title="Sign out"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Order ID */}
-          <div className="space-y-2">
-            <Label htmlFor="orderID" className="font-sans text-sm font-medium text-foreground">
-              Order ID <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="orderID"
-              value={orderID}
-              onChange={e => setOrderID(e.target.value)}
-              placeholder="e.g. ORD-2024-001"
-              className="font-sans text-sm h-10 bg-card border-border"
-            />
-          </div>
-
-          {/* Flute Type */}
-          <div className="space-y-2">
-            <Label className="font-sans text-sm font-medium text-foreground">
-              Flute Type <span className="text-destructive">*</span>
-            </Label>
-            <Select value={fluteType} onValueChange={setFluteType}>
-              <SelectTrigger className="font-sans text-sm h-10 bg-card border-border">
-                <SelectValue placeholder="Select flute type" />
-              </SelectTrigger>
-              <SelectContent>
-                {FLUTE_TYPES.map(ft => (
-                  <SelectItem key={ft} value={ft} className="font-sans text-sm">
-                    {ft}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {fluteType === "Manual" && (
-              <Input
-                value={manualFlute}
-                onChange={e => setManualFlute(e.target.value)}
-                placeholder="Enter custom flute type"
-                className="font-sans text-sm h-10 bg-card border-border mt-2"
-              />
-            )}
-          </div>
-
-          {/* Size W x L */}
-          <div className="space-y-2">
-            <Label className="font-sans text-sm font-medium text-foreground">
-              Size (W × L) <span className="text-destructive">*</span>
-            </Label>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="font-sans text-xs text-muted-foreground mb-1">Width (mm)</p>
-                <Input
-                  type="number"
-                  value={sizeW}
-                  onChange={e => setSizeW(e.target.value)}
-                  placeholder="1530"
-                  min={1}
-                  className="font-sans text-sm h-10 bg-card border-border"
-                />
-              </div>
-              <div>
-                <p className="font-sans text-xs text-muted-foreground mb-1">Length (mm)</p>
-                <Input
-                  type="number"
-                  value={sizeL}
-                  onChange={e => setSizeL(e.target.value)}
-                  placeholder="1800"
-                  min={1}
-                  className="font-sans text-sm h-10 bg-card border-border"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Order Qty */}
-          <div className="space-y-2">
-            <Label htmlFor="qty" className="font-sans text-sm font-medium text-foreground">
-              Order Qty (pcs) <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="qty"
-              type="number"
-              value={qty}
-              onChange={e => setQty(e.target.value)}
-              placeholder="100"
-              min={1}
-              className="font-sans text-sm h-10 bg-card border-border"
-            />
-          </div>
-
-          {/* BQ Comment */}
-          <div className="space-y-2">
-            <Label htmlFor="bqComment" className="font-sans text-sm font-medium text-foreground">
-              BQ Comment <span className="text-destructive">*</span>
-            </Label>
-            <p className="font-sans text-xs text-muted-foreground">
-              Board Quality formula string
-            </p>
-            <Textarea
-              id="bqComment"
-              value={bqComment}
-              onChange={e => setBqComment(e.target.value)}
-              placeholder="e.g. LR170MP115MP115MP115LR170"
-              rows={3}
-              className="font-sans text-sm bg-card border-border resize-none"
-            />
-          </div>
-
-          {/* Submit */}
-          <div className="pt-4 flex flex-col sm:flex-row gap-3">
-            {!workerSession ? (
-              <Button
-                type="button"
-                onClick={() => setShowLoginDialog(true)}
-                className="font-sans text-sm font-medium h-10 px-6 bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
-              >
-                <LogIn className="h-4 w-4 mr-2" />
-                Login to Submit
-              </Button>
             ) : (
-              <Button
-                type="submit"
-                disabled={submitOrder.isPending}
-                className="font-sans text-sm font-medium h-10 px-6 bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
+              <button
+                onClick={() => setShowLogin(true)}
+                className="flex items-center gap-1.5 text-xs bg-primary text-white px-3 py-1.5 rounded-lg font-medium hover:opacity-90 transition-opacity"
               >
-                <Send className="h-4 w-4 mr-2" />
-                {submitOrder.isPending ? "Submitting…" : "Submit Order"}
-              </Button>
+                <LogIn size={13} /> Login
+              </button>
             )}
           </div>
-        </form>
-      </div>
+        </div>
+      </header>
 
-      {/* Worker Login Dialog */}
-      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
-        <DialogContent className="max-w-sm bg-card">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-lg">Worker Login</DialogTitle>
-            <DialogDescription className="font-sans text-xs text-muted-foreground">
-              Enter your Worker ID to authenticate.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label className="font-sans text-sm font-medium text-foreground">Worker ID</Label>
-              <Input
-                value={loginWorkerID}
-                onChange={e => { setLoginWorkerID(e.target.value); setLoginError(""); }}
-                onKeyDown={e => { if (e.key === "Enter") handleLogin(); }}
-                placeholder="Enter your Worker ID"
-                className="font-sans text-sm h-10"
-                autoFocus
+      {/* Worker Session Banner */}
+      {workerSession && (
+        <div className="gspp-gradient text-white py-2 px-4 text-center text-xs">
+          Logged in as <strong>{workerSession.name}</strong> ({workerSession.workerID}) · {workerSession.department}
+        </div>
+      )}
+
+      <main className="container py-6">
+        <div className="max-w-lg mx-auto">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Order ID */}
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+                Order ID <span className="text-destructive">*</span>
+              </label>
+              <input
+                type="text"
+                value={orderID}
+                onChange={e => setOrderID(e.target.value)}
+                placeholder="e.g. A-203"
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
               />
-              {loginError && (
-                <p className="font-sans text-xs text-destructive">{loginError}</p>
+            </div>
+
+            {/* Flute Type */}
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+                Flute Type <span className="text-destructive">*</span>
+              </label>
+              <select
+                value={fluteType}
+                onChange={e => setFluteType(e.target.value)}
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+              >
+                <option value="">Select flute type</option>
+                {FLUTE_TYPES.map(ft => (
+                  <option key={ft} value={ft}>{ft}</option>
+                ))}
+              </select>
+              {fluteType === "Manual" && (
+                <input
+                  type="text"
+                  value={manualFlute}
+                  onChange={e => setManualFlute(e.target.value)}
+                  placeholder="Enter custom flute type"
+                  className="w-full mt-2 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                />
               )}
             </div>
-            <Button
-              onClick={handleLogin}
-              disabled={verifyWorker.isPending}
-              className="w-full font-sans text-sm font-medium h-10 bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {verifyWorker.isPending ? "Verifying…" : "Login"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
+            {/* Size W x L */}
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+                Size (W × L) <span className="text-destructive">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Width (mm)</p>
+                  <input
+                    type="number"
+                    value={sizeW}
+                    onChange={e => setSizeW(e.target.value)}
+                    placeholder="1530"
+                    min={1}
+                    className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Length (mm)</p>
+                  <input
+                    type="number"
+                    value={sizeL}
+                    onChange={e => setSizeL(e.target.value)}
+                    placeholder="1800"
+                    min={1}
+                    className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Order Qty */}
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+                Order Qty (pcs) <span className="text-destructive">*</span>
+              </label>
+              <input
+                type="number"
+                value={qty}
+                onChange={e => setQty(e.target.value)}
+                placeholder="100"
+                min={1}
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+              />
+            </div>
+
+            {/* BQ Comment */}
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+                BQ Comment <span className="text-destructive">*</span>
+              </label>
+              <p className="text-xs text-muted-foreground mb-1.5">Board Quality formula string</p>
+              <textarea
+                value={bqComment}
+                onChange={e => setBqComment(e.target.value)}
+                placeholder="e.g. LR170MP115MP115MP115LR170"
+                rows={3}
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white resize-none font-mono"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-2">
+              {!workerSession ? (
+                <button
+                  type="button"
+                  onClick={() => setShowLogin(true)}
+                  className="w-full bg-primary text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                >
+                  <LogIn size={16} /> Login to Submit
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={submitOrder.isPending}
+                  className="w-full gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {submitOrder.isPending ? (
+                    <><Loader2 size={16} className="animate-spin" /> Submitting...</>
+                  ) : (
+                    <><Send size={16} /> Submit Order</>
+                  )}
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      </main>
+
+      {/* Worker Login Dialog */}
+      {showLogin && (
+        <WorkerLoginDialog
+          onClose={() => setShowLogin(false)}
+          onSuccess={(session) => {
+            setWorkerSession(session);
+            setShowLogin(false);
+          }}
+        />
+      )}
     </div>
   );
 }

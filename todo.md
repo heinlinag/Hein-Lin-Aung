@@ -59,3 +59,20 @@
 - [x] Add order date/time column to Stock History and Admin Orders
 - [x] Add bulk status update: checkbox select multiple orders, toggle status in batch
 - [x] Add order search/filter: quick search by Order ID or Flute Type in Stock History
+
+
+## GSPP Logo + Theme + Usage History (Phase 2)
+- [x] Upload GSPP logo to static assets and use in app header
+- [x] Update theme: white background, GSPP blue (#1a7fd4) + green (#1db87e) accent colors
+- [x] Update Home Dashboard with GSPP logo and new color scheme
+- [x] Add usageHistory table to database schema and migrate
+- [x] Add logUsageHistory and getUsageHistory helpers to server/db.ts
+- [x] Add logUsage and getUsage tRPC procedures to server/routers.ts
+- [x] Add "Used Update" button to Stock History Current Stock tab
+- [x] Build UsedUpdateDialog: show available qty, Job No vs Old Stock choice
+- [x] Job No flow: 8-digit validation, qty deduction, show remaining qty
+- [x] Old Stock flow: confirmation dialog, set qty=0, move to Out of Stock
+- [x] Add Usage History page at /usage-history
+- [x] Usage History shows: Job No, Used Qty, Order ID, Flute, BQ
+- [x] Stock History Flute display: "Flute : B" format
+- [x] Stock History BQ: yellow highlight

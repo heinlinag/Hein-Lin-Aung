@@ -1,32 +1,10 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Lock, Plus, Trash2, UserCheck, PackageOpen, RefreshCw } from "lucide-react";
+import { useLocation } from "wouter";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, ShieldCheck, Users, Package } from "lucide-react";
 
+const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 const ADMIN_PASSWORD = "Qwer@7090heinann";
 
 type Worker = { id: number; workerID: string; name: string; department: string; createdAt: Date };
@@ -35,12 +13,12 @@ type Order = {
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
 };
 
-// ─── Admin Login Gate ─────────────────────────────────────────────────────────
-
+// ─── Admin Login Gate ──────────────────────────────────────────────────────────
 function AdminLoginGate({ onLogin }: { onLogin: (user: { workerID: string; name: string }) => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const loginMutation = trpc.admin.login.useMutation();
+  const [, navigate] = useLocation();
 
   const handleLogin = async () => {
     setError("");
@@ -53,55 +31,61 @@ function AdminLoginGate({ onLogin }: { onLogin: (user: { workerID: string; name:
   };
 
   return (
-    <div className="w-full px-4 py-6 md:py-8">
-      <div className="max-w-md mx-auto">
-        <div className="mb-8">
-          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-2">
-            Admin Panel
-          </h1>
-          <p className="text-sm text-muted-foreground font-sans">
-            Enter the administrator password to access user and order management.
-          </p>
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
+        <div className="container py-3 flex items-center gap-3">
+          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground p-1">
+            <ArrowLeft size={20} />
+          </button>
+          <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
+          <div>
+            <h1 className="text-sm font-bold text-foreground leading-tight">Admin Panel</h1>
+            <p className="text-xs text-muted-foreground">PP4 Manual Slitter</p>
+          </div>
         </div>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label className="font-sans text-sm font-medium text-foreground">
-              <Lock className="inline h-3.5 w-3.5 mr-1.5" />
-              Admin Password
-            </Label>
-            <Input
+      </header>
+      <main className="container py-10">
+        <div className="max-w-sm mx-auto">
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-14 h-14 rounded-full gspp-gradient flex items-center justify-center mb-4">
+              <ShieldCheck size={28} className="text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground">Administrator Access</h2>
+            <p className="text-sm text-muted-foreground mt-1 text-center">Enter the admin password to continue.</p>
+          </div>
+          <div className="space-y-3">
+            <input
               type="password"
               value={password}
               onChange={e => { setPassword(e.target.value); setError(""); }}
-              onKeyDown={e => { if (e.key === "Enter") handleLogin(); }}
-              placeholder="Enter password"
-              className="font-sans text-sm h-10 bg-card border-border"
+              onKeyDown={e => e.key === "Enter" && handleLogin()}
+              placeholder="Admin password"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
               autoFocus
             />
-            {error && <p className="font-sans text-xs text-destructive">{error}</p>}
+            {error && <p className="text-xs text-destructive">{error}</p>}
+            <button
+              onClick={handleLogin}
+              disabled={loginMutation.isPending}
+              className="w-full gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {loginMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Lock size={14} />}
+              Access Admin Panel
+            </button>
           </div>
-          <Button
-            onClick={handleLogin}
-            disabled={loginMutation.isPending}
-            className="w-full font-sans text-sm font-medium h-10 bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            {loginMutation.isPending ? "Verifying…" : "Access Admin Panel"}
-          </Button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
-// ─── Workers Tab ─────────────────────────────────────────────────────────────
-
+// ─── Workers Tab ───────────────────────────────────────────────────────────────
 function WorkersTab() {
   const utils = trpc.useUtils();
   const workersQuery = trpc.workers.list.useQuery();
   const workers = (workersQuery.data ?? []) as Worker[];
 
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
   const [newWorkerID, setNewWorkerID] = useState("");
   const [newName, setNewName] = useState("");
   const [newDept, setNewDept] = useState("");
@@ -121,10 +105,11 @@ function WorkersTab() {
       await addWorker.mutateAsync({ workerID: newWorkerID.trim(), name: newName.trim(), department: newDept.trim(), adminPassword: ADMIN_PASSWORD });
       toast.success("Worker added.");
       utils.workers.list.invalidate();
-      setShowAddDialog(false);
+      setShowAdd(false);
       setNewWorkerID(""); setNewName(""); setNewDept("");
-    } catch (err: any) {
-      setAddError(err?.message ?? "Failed to add worker.");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setAddError(e?.message ?? "Failed to add worker.");
     }
   };
 
@@ -135,166 +120,143 @@ function WorkersTab() {
       toast.success("Worker deleted.");
       utils.workers.list.invalidate();
       setDeleteTarget(null);
-    } catch (err: any) {
-      toast.error(err?.message ?? "Failed to delete worker.");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to delete worker.");
     }
   };
 
   return (
-    <div className="w-full px-4 py-6 md:py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className="font-serif text-xl font-semibold text-foreground">Workers</p>
-            <p className="font-sans text-xs text-muted-foreground mt-1">
-              {workers.length} registered worker{workers.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <Button
-            onClick={() => setShowAddDialog(true)}
-            size="sm"
-            className="font-sans text-xs font-medium h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
-            Add Worker
-          </Button>
-        </div>
-
-        {workersQuery.isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full rounded" />)}
-          </div>
-        ) : workers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <UserCheck className="h-8 w-8 text-muted-foreground/30 mb-3" />
-            <p className="font-serif text-base text-muted-foreground">No workers registered</p>
-          </div>
-        ) : (
-          <>
-            {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Worker ID</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Name</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-3">Department</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {workers.map(w => (
-                    <tr key={w.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                      <td className="py-3 pr-3 font-sans text-sm font-medium text-foreground">{w.workerID}</td>
-                      <td className="py-3 pr-3 font-sans text-sm text-foreground">{w.name}</td>
-                      <td className="py-3 pr-3">
-                        <Badge variant="outline" className="font-sans text-xs border-border">
-                          {w.department}
-                        </Badge>
-                      </td>
-                      <td className="py-3">
-                        <button
-                          onClick={() => setDeleteTarget(w)}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile card view */}
-            <div className="md:hidden space-y-2">
-              {workers.map(w => (
-                <div key={w.id} className="p-4 bg-card border border-border rounded-md space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-sans text-xs text-muted-foreground">Worker ID</p>
-                      <p className="font-sans font-medium text-foreground text-sm">{w.workerID}</p>
-                    </div>
-                    <button
-                      onClick={() => setDeleteTarget(w)}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <p className="font-sans text-xs text-muted-foreground">Name</p>
-                    <p className="font-sans text-sm text-foreground">{w.name}</p>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <p className="font-sans text-xs text-muted-foreground">Department</p>
-                    <Badge variant="outline" className="font-sans text-xs border-border">
-                      {w.department}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Add Worker Dialog */}
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogContent className="max-w-sm bg-card">
-            <DialogHeader>
-              <DialogTitle className="font-serif text-lg">Add Worker</DialogTitle>
-              <DialogDescription className="font-sans text-xs text-muted-foreground">
-                Register a new worker.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label className="font-sans text-sm font-medium text-foreground">Worker ID</Label>
-                <Input value={newWorkerID} onChange={e => { setNewWorkerID(e.target.value); setAddError(""); }} placeholder="W-001" className="font-sans text-sm h-10" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-sans text-sm font-medium text-foreground">Name</Label>
-                <Input value={newName} onChange={e => { setNewName(e.target.value); setAddError(""); }} placeholder="Full name" className="font-sans text-sm h-10" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-sans text-sm font-medium text-foreground">Department</Label>
-                <Input value={newDept} onChange={e => { setNewDept(e.target.value); setAddError(""); }} placeholder="Production" className="font-sans text-sm h-10" />
-              </div>
-              {addError && <p className="font-sans text-xs text-destructive">{addError}</p>}
-            </div>
-            <DialogFooter className="pt-2">
-              <Button variant="outline" onClick={() => setShowAddDialog(false)} className="font-sans text-xs font-medium h-9">Cancel</Button>
-              <Button onClick={handleAdd} disabled={addWorker.isPending} className="font-sans text-xs font-medium h-9 bg-primary text-primary-foreground hover:bg-primary/90">
-                {addWorker.isPending ? "Adding…" : "Add"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Delete Worker Confirm */}
-        <AlertDialog open={!!deleteTarget} onOpenChange={open => { if (!open) setDeleteTarget(null); }}>
-          <AlertDialogContent className="bg-card">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="font-serif text-lg">Delete Worker</AlertDialogTitle>
-              <AlertDialogDescription className="font-sans text-xs text-muted-foreground">
-                Are you sure you want to delete <strong>{deleteTarget?.name}</strong>?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="font-sans text-xs font-medium h-9">Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="font-sans text-xs font-medium h-9 bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                {deleteWorker.isPending ? "Deleting…" : "Delete"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-muted-foreground">{workers.length} registered worker{workers.length !== 1 ? "s" : ""}</p>
+        <button
+          onClick={() => setShowAdd(true)}
+          className="flex items-center gap-1.5 text-xs bg-primary text-white px-3 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+        >
+          <Plus size={13} /> Add Worker
+        </button>
       </div>
+
+      {workersQuery.isLoading ? (
+        <div className="space-y-2">
+          {[1,2,3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />)}
+        </div>
+      ) : workers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Users size={32} className="text-muted-foreground/30 mb-3" />
+          <p className="text-sm text-muted-foreground">No workers registered</p>
+        </div>
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Worker ID</th>
+                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Name</th>
+                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Department</th>
+                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {workers.map(w => (
+                  <tr key={w.id} className="border-b border-border hover:bg-gray-50 transition-colors">
+                    <td className="py-3 pr-4 text-sm font-semibold text-primary">{w.workerID}</td>
+                    <td className="py-3 pr-4 text-sm text-foreground">{w.name}</td>
+                    <td className="py-3 pr-4">
+                      <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
+                    </td>
+                    <td className="py-3">
+                      <button onClick={() => setDeleteTarget(w)} className="text-muted-foreground hover:text-destructive transition-colors">
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-2">
+            {workers.map(w => (
+              <div key={w.id} className="p-4 bg-white border border-border rounded-xl shadow-sm">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Worker ID</p>
+                    <p className="text-sm font-bold text-primary">{w.workerID}</p>
+                  </div>
+                  <button onClick={() => setDeleteTarget(w)} className="text-muted-foreground hover:text-destructive p-1">
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground text-xs">Name</span>
+                  <span className="text-foreground font-medium">{w.name}</span>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-muted-foreground text-xs">Department</span>
+                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Add Worker Dialog */}
+      {showAdd && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="font-bold text-foreground mb-4">Add Worker</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Worker ID</label>
+                <input type="text" value={newWorkerID} onChange={e => { setNewWorkerID(e.target.value); setAddError(""); }} placeholder="e.g. DN156" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Name</label>
+                <input type="text" value={newName} onChange={e => { setNewName(e.target.value); setAddError(""); }} placeholder="Full name" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Department</label>
+                <input type="text" value={newDept} onChange={e => { setNewDept(e.target.value); setAddError(""); }} placeholder="Production" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+              </div>
+              {addError && <p className="text-xs text-destructive">{addError}</p>}
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => { setShowAdd(false); setAddError(""); }} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
+              <button onClick={handleAdd} disabled={addWorker.isPending} className="flex-1 gspp-gradient text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                {addWorker.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="font-bold text-foreground mb-2">Delete Worker</h3>
+            <p className="text-sm text-muted-foreground mb-4">Are you sure you want to delete <strong>{deleteTarget.name}</strong> ({deleteTarget.workerID})?</p>
+            <div className="flex gap-2">
+              <button onClick={() => setDeleteTarget(null)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
+              <button onClick={handleDelete} disabled={deleteWorker.isPending} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                {deleteWorker.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Orders Tab ──────────────────────────────────────────────────────────────
-
+// ─── Orders Tab ────────────────────────────────────────────────────────────────
 function OrdersTab() {
   const utils = trpc.useUtils();
   const ordersQuery = trpc.orders.list.useQuery({});
@@ -317,8 +279,9 @@ function OrdersTab() {
       utils.orders.list.invalidate();
       setDeleteTarget(null);
       setConfirmWorkerID("");
-    } catch (err: any) {
-      setDeleteError(err?.message ?? "Failed to delete order.");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setDeleteError(e?.message ?? "Failed to delete order.");
     }
   };
 
@@ -327,266 +290,226 @@ function OrdersTab() {
       await updateStatus.mutateAsync({ id: order.id, status: newStatus, adminPassword: ADMIN_PASSWORD });
       toast.success("Status updated.");
       utils.orders.list.invalidate();
-    } catch (err: any) {
-      toast.error(err?.message ?? "Failed to update status.");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to update status.");
     }
   };
 
   return (
-    <div className="w-full px-4 py-6 md:py-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className="font-serif text-xl font-semibold text-foreground">All Orders</p>
-            <p className="font-sans text-xs text-muted-foreground mt-1">
-              {orders.length} total order{orders.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <button
-            onClick={() => utils.orders.list.invalidate()}
-            className="text-muted-foreground hover:text-foreground transition-colors p-2"
-            title="Refresh"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-muted-foreground">{orders.length} total order{orders.length !== 1 ? "s" : ""}</p>
+        <button onClick={() => utils.orders.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1 transition-colors" title="Refresh">
+          <RefreshCw size={15} />
+        </button>
+      </div>
+
+      {ordersQuery.isLoading ? (
+        <div className="space-y-2">
+          {[1,2,3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />)}
         </div>
-
-        {ordersQuery.isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full rounded" />)}
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <PackageOpen className="h-8 w-8 text-muted-foreground/30 mb-3" />
-            <p className="font-serif text-base text-muted-foreground">No orders yet</p>
-          </div>
-        ) : (
-          <>
-            {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Order ID</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Flute</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Size</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Qty</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Submitted By</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Submitted</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Status</th>
-                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map(order => (
-                    <tr key={order.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                    <td className="py-3 pr-2 font-sans text-sm font-medium text-foreground">{order.orderID}</td>
-                    <td className="py-3 pr-2">
-                      <Badge variant="outline" className="font-sans text-xs border-border">
-                        {order.fluteType}
-                      </Badge>
-                    </td>
-                    <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL}</td>
-                    <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.qty}</td>
-                    <td className="py-3 pr-2 font-sans text-sm text-muted-foreground">{order.submittedBy}</td>
-                    <td className="py-3 pr-2 font-sans text-xs text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleString()}
-                    </td>
-                    <td className="py-3 pr-2">                        <button
-                          onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
-                          disabled={updateStatus.isPending}
-                          className="transition-opacity hover:opacity-70"
-                        >
-                          <Badge
-                            variant={order.status === "current" ? "default" : "secondary"}
-                            className={`font-sans text-xs cursor-pointer ${order.status === "current" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
-                          >
-                            {order.status === "current" ? "Current" : "Out"}
-                          </Badge>
-                        </button>
-                      </td>
-                      <td className="py-3">
-                        <button
-                          onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </td>
-                    </tr>
+      ) : orders.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Package size={32} className="text-muted-foreground/30 mb-3" />
+          <p className="text-sm text-muted-foreground">No orders yet</p>
+        </div>
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  {["Order ID","Flute","Size","Qty","BQ","Submitted By","Date","Status",""].map(h => (
+                    <th key={h} className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-3">{h}</th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile card view */}
-            <div className="md:hidden space-y-2">
-              {orders.map(order => (
-                <div key={order.id} className="p-4 bg-card border border-border rounded-md space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-sans text-xs text-muted-foreground">Order ID</p>
-                      <p className="font-sans font-medium text-foreground text-sm">{order.orderID}</p>
-                    </div>
-                    <button
-                      onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <p className="font-sans text-xs text-muted-foreground">Flute Type</p>
-                    <Badge variant="outline" className="font-sans text-xs border-border">
-                      {order.fluteType}
-                    </Badge>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <p className="font-sans text-xs text-muted-foreground">Size</p>
-                    <p className="font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL}</p>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <p className="font-sans text-xs text-muted-foreground">Qty</p>
-                    <p className="font-sans text-sm text-foreground">{order.qty}</p>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <p className="font-sans text-xs text-muted-foreground">Submitted By</p>
-                    <p className="font-sans text-sm text-foreground">{order.submittedBy}</p>
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <p className="font-sans text-xs text-muted-foreground">Submitted</p>
-                    <p className="font-sans text-xs text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex items-start justify-between pt-2 border-t border-border">
-                    <p className="font-sans text-xs text-muted-foreground">Status</p>
-                    <button
-                      onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
-                      disabled={updateStatus.isPending}
-                      className="transition-opacity hover:opacity-70"
-                    >
-                      <Badge
-                        variant={order.status === "current" ? "default" : "secondary"}
-                        className={`font-sans text-xs cursor-pointer ${order.status === "current" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map(order => (
+                  <tr key={order.id} className="border-b border-border hover:bg-gray-50 transition-colors">
+                    <td className="py-3 pr-3 text-sm font-semibold text-primary">{order.orderID}</td>
+                    <td className="py-3 pr-3">
+                      <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Flute : {order.fluteType}</span>
+                    </td>
+                    <td className="py-3 pr-3 text-sm text-foreground font-mono">{order.sizeW}×{order.sizeL}</td>
+                    <td className="py-3 pr-3 text-sm text-foreground">{order.qty}</td>
+                    <td className="py-3 pr-3 max-w-[160px]">
+                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono truncate block">{order.bqComment}</span>
+                    </td>
+                    <td className="py-3 pr-3 text-xs text-muted-foreground">{order.submittedBy ?? "-"}</td>
+                    <td className="py-3 pr-3 text-xs text-muted-foreground whitespace-nowrap">{new Date(order.createdAt).toLocaleString()}</td>
+                    <td className="py-3 pr-3">
+                      <button
+                        onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
+                        disabled={updateStatus.isPending}
+                        className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-opacity hover:opacity-70 ${order.status === "current" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
                       >
                         {order.status === "current" ? "Current" : "Out"}
-                      </Badge>
-                    </button>
+                      </button>
+                    </td>
+                    <td className="py-3">
+                      <button onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }} className="text-muted-foreground hover:text-destructive transition-colors">
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-2">
+            {orders.map(order => (
+              <div key={order.id} className="p-4 bg-white border border-border rounded-xl shadow-sm space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Order ID</p>
+                    <p className="text-sm font-bold text-primary">{order.orderID}</p>
                   </div>
+                  <button onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }} className="text-muted-foreground hover:text-destructive p-1">
+                    <Trash2 size={15} />
+                  </button>
                 </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Delete Order Dialog */}
-        <Dialog open={!!deleteTarget} onOpenChange={open => { if (!open) { setDeleteTarget(null); setConfirmWorkerID(""); setDeleteError(""); } }}>
-          <DialogContent className="max-w-sm bg-card">
-            <DialogHeader>
-              <DialogTitle className="font-serif text-lg">Delete Order</DialogTitle>
-              <DialogDescription className="font-sans text-xs text-muted-foreground">
-                Enter a Worker ID to confirm deletion of order <strong>{deleteTarget?.orderID}</strong>.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label className="font-sans text-sm font-medium text-foreground">Worker ID</Label>
-                <Input
-                  value={confirmWorkerID}
-                  onChange={e => { setConfirmWorkerID(e.target.value); setDeleteError(""); }}
-                  onKeyDown={e => { if (e.key === "Enter") handleDeleteOrder(); }}
-                  placeholder="Enter Worker ID"
-                  className="font-sans text-sm h-10"
-                  autoFocus
-                />
-                {deleteError && <p className="font-sans text-xs text-destructive">{deleteError}</p>}
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Flute</span>
+                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Flute : {order.fluteType}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Size</span>
+                  <span className="text-sm font-mono text-foreground">{order.sizeW}×{order.sizeL}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Qty</span>
+                  <span className="text-sm text-foreground">{order.qty}</span>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">BQ</p>
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono break-all">{order.bqComment}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Submitted By</span>
+                  <span className="text-xs text-foreground">{order.submittedBy ?? "-"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Date</span>
+                  <span className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-border">
+                  <span className="text-xs text-muted-foreground">Status</span>
+                  <button
+                    onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
+                    disabled={updateStatus.isPending}
+                    className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-opacity hover:opacity-70 ${order.status === "current" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                  >
+                    {order.status === "current" ? "Current" : "Out"}
+                  </button>
+                </div>
               </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Delete Order Dialog */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="font-bold text-foreground mb-2">Delete Order</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Enter a Worker ID to confirm deletion of order <strong className="text-foreground">{deleteTarget.orderID}</strong>.
+            </p>
+            <input
+              type="text"
+              value={confirmWorkerID}
+              onChange={e => { setConfirmWorkerID(e.target.value); setDeleteError(""); }}
+              onKeyDown={e => e.key === "Enter" && handleDeleteOrder()}
+              placeholder="Worker ID"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive mb-1"
+              autoFocus
+            />
+            {deleteError && <p className="text-xs text-destructive mb-2">{deleteError}</p>}
+            <div className="flex gap-2 mt-3">
+              <button onClick={() => { setDeleteTarget(null); setConfirmWorkerID(""); setDeleteError(""); }} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
+              <button onClick={handleDeleteOrder} disabled={deleteOrder.isPending} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                {deleteOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                Delete
+              </button>
             </div>
-            <DialogFooter className="pt-2">
-              <Button variant="outline" onClick={() => { setDeleteTarget(null); setConfirmWorkerID(""); setDeleteError(""); }} className="font-sans text-xs font-medium h-9">
-                Cancel
-              </Button>
-              <Button
-                onClick={handleDeleteOrder}
-                disabled={deleteOrder.isPending}
-                className="font-sans text-xs font-medium h-9 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {deleteOrder.isPending ? "Deleting…" : "Delete"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Main Admin Panel ─────────────────────────────────────────────────────────
-
+// ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ workerID: string; name: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<"workers" | "orders">("workers");
+  const [, navigate] = useLocation();
 
   if (!isAuthenticated) {
-    return <AdminLoginGate onLogin={(user) => { setCurrentUser(user); setIsAuthenticated(true); }} />
+    return <AdminLoginGate onLogin={(user) => { setCurrentUser(user); setIsAuthenticated(true); }} />;
   }
 
   return (
-    <div className="w-full">
-      <div className="px-4 py-6 md:py-8 border-b border-border">
-        <div className="max-w-5xl mx-auto flex items-start justify-between">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
+        <div className="container py-3 flex items-center gap-3">
+          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground p-1">
+            <ArrowLeft size={20} />
+          </button>
+          <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
           <div>
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
-              Admin Panel
-            </h1>
-            <div className="flex items-center gap-4 mt-2">
-              <p className="text-sm text-muted-foreground font-sans">
-                Manage workers and orders.
-              </p>
-              {currentUser && (
-                <div className="px-3 py-1 bg-secondary rounded text-xs font-sans text-foreground">
-                  Logged in as: <span className="font-medium">{currentUser.name}</span>
-                </div>
-              )}
-            </div>
+            <h1 className="text-sm font-bold text-foreground leading-tight">Admin Panel</h1>
+            <p className="text-xs text-muted-foreground">PP4 Manual Slitter</p>
           </div>
+          <div className="ml-auto flex items-center gap-3">
+            {currentUser && (
+              <div className="text-right hidden sm:block">
+                <div className="text-xs font-semibold text-foreground">{currentUser.name}</div>
+                <div className="text-xs text-muted-foreground">Administrator</div>
+              </div>
+            )}
+            <button
+              onClick={() => { setIsAuthenticated(false); setCurrentUser(null); }}
+              className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg font-medium text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors"
+            >
+              <Lock size={12} /> Lock
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Admin Banner */}
+      <div className="gspp-gradient text-white py-2 px-4 text-center text-xs">
+        Logged in as <strong>{currentUser?.name ?? "Administrator"}</strong> — Admin Access
+      </div>
+
+      <main className="container py-6">
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 border-b border-border">
           <button
-            onClick={() => { setIsAuthenticated(false); setCurrentUser(null); }}
-            className="font-sans text-xs font-medium text-muted-foreground hover:text-foreground transition-colors p-2"
+            onClick={() => setActiveTab("workers")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "workers" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
           >
-            Lock
+            <Users size={15} /> Workers
+          </button>
+          <button
+            onClick={() => setActiveTab("orders")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "orders" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            <Package size={15} /> Orders
           </button>
         </div>
-      </div>
 
-      <div className="px-4 py-6 md:py-8">
-        <div className="max-w-5xl mx-auto">
-          <Tabs defaultValue="workers">
-            <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start h-auto pb-0 gap-0 p-0">
-              <TabsTrigger
-                value="workers"
-                className="font-sans text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-3 px-4 text-muted-foreground data-[state=active]:text-foreground"
-              >
-                Workers
-              </TabsTrigger>
-              <TabsTrigger
-                value="orders"
-                className="font-sans text-sm font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none pb-3 px-4 text-muted-foreground data-[state=active]:text-foreground"
-              >
-                Orders
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="workers" className="mt-0 -mx-4 md:mx-0">
-              <WorkersTab />
-            </TabsContent>
-            <TabsContent value="orders" className="mt-0 -mx-4 md:mx-0">
-              <OrdersTab />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+        {activeTab === "workers" && <WorkersTab />}
+        {activeTab === "orders" && <OrdersTab />}
+      </main>
     </div>
   );
 }

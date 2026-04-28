@@ -1,9 +1,9 @@
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { publicProcedure, router } from "./_core/trpc";
 import {
   getAllWorkers,
   getWorkerByWorkerID,
@@ -13,6 +13,8 @@ import {
   createOrder,
   updateOrderStatus,
   deleteOrder,
+  logUsageHistory,
+  getUsageHistory,
 } from "./db";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
@@ -30,9 +32,7 @@ export const appRouter = router({
   }),
 
   // ─── Workers ───────────────────────────────────────────────────────────────
-
   workers: router({
-    // Verify a worker exists by workerID (used for login + delete confirmation)
     verify: publicProcedure
       .input(z.object({ workerID: z.string().min(1) }))
       .mutation(async ({ input }) => {
@@ -40,11 +40,9 @@ export const appRouter = router({
         if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker ID not found" });
         return { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department };
       }),
-
     list: publicProcedure.query(async () => {
       return getAllWorkers();
     }),
-
     add: publicProcedure
       .input(z.object({
         workerID: z.string().min(1).max(64),
@@ -61,7 +59,6 @@ export const appRouter = router({
         await createWorker({ workerID: input.workerID, name: input.name, department: input.department });
         return { success: true };
       }),
-
     delete: publicProcedure
       .input(z.object({
         id: z.number().int().positive(),
@@ -77,14 +74,12 @@ export const appRouter = router({
   }),
 
   // ─── Orders ────────────────────────────────────────────────────────────────
-
   orders: router({
     list: publicProcedure
       .input(z.object({ status: z.enum(["current", "out_of_stock"]).optional() }))
       .query(async ({ input }) => {
         return getAllOrders(input.status);
       }),
-
     submit: publicProcedure
       .input(z.object({
         orderID: z.string().min(1).max(64),
@@ -96,10 +91,8 @@ export const appRouter = router({
         workerID: z.string().min(1),
       }))
       .mutation(async ({ input }) => {
-        // Verify worker exists
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
-
         await createOrder({
           orderID: input.orderID,
           fluteType: input.fluteType,
@@ -112,7 +105,6 @@ export const appRouter = router({
         });
         return { success: true };
       }),
-
     updateStatus: publicProcedure
       .input(z.object({
         id: z.number().int().positive(),
@@ -126,7 +118,6 @@ export const appRouter = router({
         await updateOrderStatus(input.id, input.status);
         return { success: true };
       }),
-
     delete: publicProcedure
       .input(z.object({
         id: z.number().int().positive(),
@@ -137,16 +128,62 @@ export const appRouter = router({
         if (input.adminPassword !== ADMIN_PASSWORD) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
         }
-        // Verify worker exists as confirmation
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker ID not found" });
         await deleteOrder(input.id);
         return { success: true };
       }),
+    deleteFromHistory: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        workerID: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+        await deleteOrder(input.id);
+        return { success: true };
+      }),
+    logUsage: publicProcedure
+      .input(z.object({
+        jobNo: z.string().nullable(),
+        usedQty: z.number().int().positive(),
+        orderID: z.string().min(1),
+        fluteType: z.string().min(1),
+        bqComment: z.string(),
+        purpose: z.enum(["job", "old_stock"]),
+        orderId: z.number().int().positive(),
+        newQty: z.number().int().min(0),
+      }))
+      .mutation(async ({ input }) => {
+        await logUsageHistory({
+          jobNo: input.jobNo,
+          usedQty: input.usedQty,
+          orderID: input.orderID,
+          fluteType: input.fluteType,
+          bqComment: input.bqComment,
+          purpose: input.purpose,
+        });
+        // Update the order qty or move to out_of_stock
+        if (input.newQty === 0) {
+          await updateOrderStatus(input.orderId, "out_of_stock");
+        } else {
+          // Update qty directly
+          const db = await (await import("./db")).getDb();
+          if (db) {
+            const { orders: ordersTable } = await import("../drizzle/schema");
+            const { eq } = await import("drizzle-orm");
+            await db.update(ordersTable).set({ qty: input.newQty }).where(eq(ordersTable.id, input.orderId));
+          }
+        }
+        return { success: true };
+      }),
+    getUsage: publicProcedure.query(async () => {
+      return getUsageHistory();
+    }),
   }),
 
   // ─── Admin ─────────────────────────────────────────────────────────────────
-
   admin: router({
     login: publicProcedure
       .input(z.object({ password: z.string() }))

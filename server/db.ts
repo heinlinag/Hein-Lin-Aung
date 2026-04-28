@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, InsertWorker, InsertOrder } from "../drizzle/schema";
+import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -129,4 +129,31 @@ export async function deleteOrder(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(orders).where(eq(orders.id, id));
+}
+
+// ─── Usage History ───────────────────────────────────────────────────────────
+export async function logUsageHistory(data: {
+  jobNo: string | null;
+  usedQty: number;
+  orderID: string;
+  fluteType: string;
+  bqComment: string;
+  purpose: "job" | "old_stock";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(usageHistory).values({
+    jobNo: data.jobNo,
+    usedQty: data.usedQty,
+    orderID: data.orderID,
+    fluteType: data.fluteType,
+    bqComment: data.bqComment,
+    purpose: data.purpose,
+  });
+}
+
+export async function getUsageHistory() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(usageHistory).orderBy(desc(usageHistory.createdAt));
 }

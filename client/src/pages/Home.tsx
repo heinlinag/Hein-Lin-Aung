@@ -1,90 +1,112 @@
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { FileText, Package, Settings, ArrowRight } from "lucide-react";
+import { ClipboardList, Package, Settings, History } from "lucide-react";
+
+const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
+
+const features = [
+  {
+    icon: <ClipboardList size={28} />,
+    title: "Submit Order",
+    description: "Submit a new Manual Slitter order with Flute Type, Size, Qty and BQ",
+    href: "/submit-order",
+    cardClass: "feature-card-blue",
+    btnLabel: "Submit Order",
+  },
+  {
+    icon: <Package size={28} />,
+    title: "Stock History",
+    description: "View current stock and out-of-stock orders. Update usage and filter by BQ.",
+    href: "/stock-history",
+    cardClass: "feature-card-green",
+    btnLabel: "View Stock",
+  },
+  {
+    icon: <History size={28} />,
+    title: "Usage History",
+    description: "Track how orders have been used — by Job No or Old Stock clearance.",
+    href: "/usage-history",
+    cardClass: "feature-card-purple",
+    btnLabel: "View Usage",
+  },
+  {
+    icon: <Settings size={28} />,
+    title: "Admin",
+    description: "Manage workers, view all orders, and access system administration.",
+    href: "/admin",
+    cardClass: "feature-card-red",
+    btnLabel: "Admin Login",
+  },
+];
 
 export default function Home() {
-  const [, setLocation] = useLocation();
+  const [, navigate] = useLocation();
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Hero Section */}
-      <div className="px-4 py-16 md:py-24 lg:py-32">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight">
-            PP4 Manual Slitter<br />Stock Management
-          </h1>
-          <p className="font-sans text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Manage manual slitter stock orders with ease. Submit orders, track inventory, and manage your team.
-          </p>
-        </div>
-      </div>
-
-      {/* Features Grid with Colored Cards */}
-      <div className="px-4 py-16 md:py-24">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Submit Order Card - Blue */}
-            <div 
-              onClick={() => setLocation("/submit-order")}
-              className="p-6 bg-blue-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer transform hover:scale-105"
-            >
-              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-white/20 mb-4">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="font-serif text-lg font-semibold mb-2">Submit Order</h3>
-              <p className="font-sans text-sm text-blue-100 mb-4">
-                Create new manual slitter orders with detailed specifications.
-              </p>
-              <div className="flex items-center gap-1 font-sans text-sm font-medium text-white">
-                Get Started <ArrowRight className="h-3 w-3" />
-              </div>
-            </div>
-
-            {/* Stock History Card - Green */}
-            <div 
-              onClick={() => setLocation("/stock-history")}
-              className="p-6 bg-green-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer transform hover:scale-105"
-            >
-              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-white/20 mb-4">
-                <Package className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="font-serif text-lg font-semibold mb-2">Stock History</h3>
-              <p className="font-sans text-sm text-green-100 mb-4">
-                View all submitted orders organized by status. Track current and out-of-stock items.
-              </p>
-              <div className="flex items-center gap-1 font-sans text-sm font-medium text-white">
-                View Orders <ArrowRight className="h-3 w-3" />
-              </div>
-            </div>
-
-            {/* Admin Panel Card - Red */}
-            <div 
-              onClick={() => setLocation("/admin")}
-              className="p-6 bg-red-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer transform hover:scale-105"
-            >
-              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-white/20 mb-4">
-                <Settings className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="font-serif text-lg font-semibold mb-2">Admin</h3>
-              <p className="font-sans text-sm text-red-100 mb-4">
-                Manage workers, control order status, and oversee all operations.
-              </p>
-              <div className="flex items-center gap-1 font-sans text-sm font-medium text-white">
-                Access Admin <ArrowRight className="h-3 w-3" />
-              </div>
-            </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
+        <div className="container py-3 flex items-center gap-3">
+          <img
+            src={LOGO_URL}
+            alt="GSPP Logo"
+            className="h-10 w-10 object-contain"
+          />
+          <div>
+            <h1 className="text-base font-bold text-foreground leading-tight" style={{ fontFamily: "Inter, sans-serif" }}>
+              PP4 Manual Slitter
+            </h1>
+            <p className="text-xs text-muted-foreground leading-tight">Stock Management System</p>
           </div>
         </div>
+      </header>
+
+      {/* Hero */}
+      <div className="gspp-gradient py-8 px-4 text-white text-center">
+        <img
+          src={LOGO_URL}
+          alt="GSPP"
+          className="h-16 w-16 object-contain mx-auto mb-3 bg-white rounded-full p-1 shadow-md"
+        />
+        <h2 className="text-2xl font-bold mb-1" style={{ fontFamily: "Lora, serif" }}>
+          PP4 Manual Slitter
+        </h2>
+        <p className="text-sm opacity-90">Stock Management System</p>
       </div>
 
-      {/* Footer */}
-      <div className="px-4 py-8 border-t border-border mt-16">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="font-sans text-sm text-muted-foreground">
-            PP4 Manual Slitter Stock Management System
-          </p>
+      {/* Feature Cards */}
+      <main className="container py-6 flex-1">
+        <div className="grid grid-cols-1 gap-4 max-w-lg mx-auto">
+          {features.map((f) => (
+            <div
+              key={f.href}
+              className={`rounded-xl p-5 shadow-sm ${f.cardClass}`}
+            >
+              <div className="flex items-start gap-4 mb-4">
+                <div className="bg-white/20 rounded-lg p-2 flex-shrink-0">
+                  {f.icon}
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg leading-tight" style={{ fontFamily: "Lora, serif" }}>
+                    {f.title}
+                  </h3>
+                  <p className="text-sm opacity-85 mt-0.5">{f.description}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate(f.href)}
+                className="w-full bg-white/20 hover:bg-white/30 active:bg-white/40 transition-colors rounded-lg py-2.5 text-sm font-semibold text-white border border-white/30"
+              >
+                {f.btnLabel}
+              </button>
+            </div>
+          ))}
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-4 text-center">
+        <p className="text-xs text-muted-foreground">PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()}</p>
+      </footer>
     </div>
   );
 }

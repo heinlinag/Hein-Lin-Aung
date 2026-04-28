@@ -1,12 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
-
 @custom-variant dark (&:is(.dark *));
 
-/* ─── Editorial Design Tokens ─────────────────────────────────────────────── */
-
+/* ─── GSPP Design Tokens ─────────────────────────────────────────────────── */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -47,85 +45,77 @@
 }
 
 :root {
-  /* Lagom: Minimalist Scandinavian palette */
-  --radius: 0.375rem;
-  /* Soft, neutral backgrounds */
-  --background: oklch(98% 0.002 0);
-  --foreground: oklch(28% 0.01 240);
-  --card: oklch(99% 0 0);
-  --card-foreground: oklch(28% 0.01 240);
-  --popover: oklch(99% 0 0);
-  --popover-foreground: oklch(28% 0.01 240);
-  /* Primary: soft blue-gray */
-  --primary: oklch(42% 0.04 240);
-  --primary-foreground: oklch(98% 0.002 0);
-  /* Secondary: light gray */
-  --secondary: oklch(93% 0.01 240);
-  --secondary-foreground: oklch(35% 0.02 240);
-  /* Muted: very soft gray */
-  --muted: oklch(90% 0.008 240);
-  --muted-foreground: oklch(55% 0.01 240);
-  /* Accent: warm minimal accent */
-  --accent: oklch(88% 0.02 60);
-  --accent-foreground: oklch(28% 0.01 240);
-  /* Destructive: muted red */
-  --destructive: oklch(48% 0.12 25);
-  --destructive-foreground: oklch(98% 0.002 0);
-  /* Borders: very subtle */
-  --border: oklch(92% 0.005 240);
-  --input: oklch(92% 0.005 240);
-  --ring: oklch(50% 0.02 240);
-  /* Charts: muted tones */
-  --chart-1: oklch(60% 0.05 240);
-  --chart-2: oklch(55% 0.04 200);
-  --chart-3: oklch(50% 0.04 150);
-  --chart-4: oklch(65% 0.05 60);
-  --chart-5: oklch(45% 0.04 280);
-  /* Sidebar: light gray (not dark) */
-  --sidebar: oklch(96% 0.003 240);
-  --sidebar-foreground: oklch(28% 0.01 240);
-  --sidebar-primary: oklch(42% 0.04 240);
-  --sidebar-primary-foreground: oklch(98% 0.002 0);
-  --sidebar-accent: oklch(88% 0.02 60);
-  --sidebar-accent-foreground: oklch(28% 0.01 240);
-  --sidebar-border: oklch(90% 0.008 240);
-  --sidebar-ring: oklch(50% 0.02 240);
+  --radius: 0.5rem;
+  /* Pure white background */
+  --background: oklch(100% 0 0);
+  --foreground: oklch(18% 0.01 240);
+  --card: oklch(99% 0.002 240);
+  --card-foreground: oklch(18% 0.01 240);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: oklch(18% 0.01 240);
+  /* GSPP Blue: #1a7fd4 */
+  --primary: oklch(54% 0.175 240);
+  --primary-foreground: oklch(100% 0 0);
+  /* GSPP Green: #1db87e */
+  --secondary: oklch(65% 0.16 162);
+  --secondary-foreground: oklch(100% 0 0);
+  --muted: oklch(96% 0.005 240);
+  --muted-foreground: oklch(52% 0.02 240);
+  --accent: oklch(94% 0.025 240);
+  --accent-foreground: oklch(25% 0.05 240);
+  --destructive: oklch(57% 0.22 25);
+  --destructive-foreground: oklch(100% 0 0);
+  --border: oklch(91% 0.01 240);
+  --input: oklch(91% 0.01 240);
+  --ring: oklch(54% 0.175 240);
+  --chart-1: oklch(54% 0.175 240);
+  --chart-2: oklch(65% 0.16 162);
+  --chart-3: oklch(60% 0.14 200);
+  --chart-4: oklch(70% 0.12 90);
+  --chart-5: oklch(55% 0.18 290);
+  --sidebar: oklch(97% 0.003 240);
+  --sidebar-foreground: oklch(18% 0.01 240);
+  --sidebar-primary: oklch(54% 0.175 240);
+  --sidebar-primary-foreground: oklch(100% 0 0);
+  --sidebar-accent: oklch(94% 0.025 240);
+  --sidebar-accent-foreground: oklch(25% 0.05 240);
+  --sidebar-border: oklch(91% 0.01 240);
+  --sidebar-ring: oklch(54% 0.175 240);
 }
 
-/* Dark mode kept minimal — editorial is light-first */
 .dark {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.85 0.005 65);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.85 0.005 65);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.85 0.005 65);
-  --secondary: oklch(0.24 0.006 286.033);
-  --secondary-foreground: oklch(0.7 0.005 65);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground:  oklch(0.92 0.005 65);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.85 0.005 65);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  --background: oklch(14% 0.005 240);
+  --foreground: oklch(92% 0.005 240);
+  --card: oklch(18% 0.006 240);
+  --card-foreground: oklch(92% 0.005 240);
+  --popover: oklch(18% 0.006 240);
+  --popover-foreground: oklch(92% 0.005 240);
+  --primary: oklch(60% 0.175 240);
+  --primary-foreground: oklch(100% 0 0);
+  --secondary: oklch(70% 0.16 162);
+  --secondary-foreground: oklch(100% 0 0);
+  --muted: oklch(25% 0.006 240);
+  --muted-foreground: oklch(65% 0.015 240);
+  --accent: oklch(25% 0.006 240);
+  --accent-foreground: oklch(92% 0.005 240);
+  --destructive: oklch(65% 0.22 25);
+  --destructive-foreground: oklch(100% 0 0);
+  --border: oklch(100% 0 0 / 10%);
+  --input: oklch(100% 0 0 / 15%);
+  --ring: oklch(60% 0.175 240);
+  --chart-1: oklch(60% 0.175 240);
+  --chart-2: oklch(70% 0.16 162);
+  --chart-3: oklch(65% 0.14 200);
+  --chart-4: oklch(75% 0.12 90);
+  --chart-5: oklch(60% 0.18 290);
+  --sidebar: oklch(18% 0.006 240);
+  --sidebar-foreground: oklch(92% 0.005 240);
+  --sidebar-primary: oklch(60% 0.175 240);
+  --sidebar-primary-foreground: oklch(100% 0 0);
+  --sidebar-accent: oklch(25% 0.006 240);
+  --sidebar-accent-foreground: oklch(92% 0.005 240);
+  --sidebar-border: oklch(100% 0 0 / 10%);
+  --sidebar-ring: oklch(60% 0.175 240);
 }
 
 @layer base {
@@ -135,38 +125,21 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'EB Garamond', Georgia, serif;
+    font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3 {
     font-family: 'Lora', Georgia, serif;
-    letter-spacing: 0;
-    line-height: 1.25;
     font-weight: 600;
+    line-height: 1.25;
   }
   .font-sans { font-family: 'Inter', system-ui, sans-serif !important; }
   .font-serif { font-family: 'Lora', Georgia, serif !important; }
-  .font-body { font-family: 'Inter', system-ui, sans-serif !important; }
-  .editorial-label {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--muted-foreground);
-  }
-  .sidebar-nav-item {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    letter-spacing: 0;
-    text-transform: none;
-  }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
   [type="submit"]:not(:disabled),
-  [type="reset"]:not(:disabled),
   a[href],
   select:not(:disabled),
   input[type="checkbox"]:not(:disabled),
@@ -176,44 +149,65 @@
 }
 
 @layer components {
-  /**
-   * Custom container utility that centers content and adds responsive padding.
-   *
-   * This overrides Tailwind's default container behavior to:
-   * - Auto-center content (mx-auto)
-   * - Add responsive horizontal padding
-   * - Set max-width for large screens
-   *
-   * Usage: <div className="container">...</div>
-   *
-   * For custom widths, use max-w-* utilities directly:
-   * <div className="max-w-6xl mx-auto px-4">...</div>
-   */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
+    padding-left: 1rem;
     padding-right: 1rem;
   }
-
   .flex {
     min-height: 0;
     min-width: 0;
   }
-
   @media (min-width: 640px) {
-    .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
-      padding-right: 1.5rem;
-    }
+    .container { padding-left: 1.5rem; padding-right: 1.5rem; }
+  }
+  @media (min-width: 1024px) {
+    .container { padding-left: 2rem; padding-right: 2rem; max-width: 1280px; }
   }
 
-  @media (min-width: 1024px) {
-    .container {
-      padding-left: 2rem; /* 32px - desktop padding */
-      padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
-    }
+  /* ── GSPP Brand Gradient ── */
+  .gspp-gradient {
+    background: linear-gradient(135deg, oklch(54% 0.175 240) 0%, oklch(65% 0.16 162) 100%);
+  }
+  .gspp-gradient-text {
+    background: linear-gradient(135deg, oklch(54% 0.175 240) 0%, oklch(65% 0.16 162) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── BQ Highlight ── */
+  .bq-highlight {
+    background: oklch(97% 0.09 90);
+    color: oklch(38% 0.14 90);
+    border: 1px solid oklch(88% 0.12 90);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    word-break: break-all;
+    line-height: 1.5;
+    display: inline-block;
+  }
+
+  /* ── Feature Cards ── */
+  .feature-card-blue { background: oklch(54% 0.175 240); color: white; }
+  .feature-card-green { background: oklch(65% 0.16 162); color: white; }
+  .feature-card-purple { background: oklch(55% 0.18 290); color: white; }
+  .feature-card-red { background: oklch(57% 0.22 25); color: white; }
+
+  /* ── Mobile touch targets ── */
+  @media (max-width: 768px) {
+    button, .btn, [role="button"] { min-height: 44px; }
+    input, select, textarea { font-size: 16px !important; }
   }
 }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: oklch(96% 0.005 240); }
+::-webkit-scrollbar-thumb { background: oklch(75% 0.05 240); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: oklch(54% 0.175 240); }

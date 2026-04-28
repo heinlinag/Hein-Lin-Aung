@@ -11,7 +11,6 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
-
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
@@ -23,7 +22,6 @@ export const workers = mysqlTable("workers", {
   department: varchar("department", { length: 128 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
-
 export type Worker = typeof workers.$inferSelect;
 export type InsertWorker = typeof workers.$inferInsert;
 
@@ -40,6 +38,19 @@ export const orders = mysqlTable("orders", {
   submittedBy: varchar("submittedBy", { length: 64 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
-
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
+
+// Usage History table — tracks how orders are used (Job No or Old Stock)
+export const usageHistory = mysqlTable("usageHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  jobNo: varchar("jobNo", { length: 8 }),
+  usedQty: int("usedQty").notNull(),
+  orderID: varchar("orderID", { length: 64 }).notNull(),
+  fluteType: varchar("fluteType", { length: 64 }).notNull(),
+  bqComment: text("bqComment").notNull(),
+  purpose: mysqlEnum("purpose", ["job", "old_stock"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type UsageHistory = typeof usageHistory.$inferSelect;
+export type InsertUsageHistory = typeof usageHistory.$inferInsert;
