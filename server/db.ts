@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory } from "../drizzle/schema";
+import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -156,4 +156,25 @@ export async function getUsageHistory() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(usageHistory).orderBy(desc(usageHistory.createdAt));
+}
+
+// ─── Deleted Logs ─────────────────────────────────────────────────────────────
+export async function logDeletedOrder(data: {
+  orderID: string;
+  fluteType: string;
+  sizeW: number;
+  sizeL: number;
+  qty: number;
+  bqComment: string;
+  deletedBy: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(deletedLogs).values(data);
+}
+
+export async function getDeletedLogs() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(deletedLogs).orderBy(desc(deletedLogs.deletedAt));
 }

@@ -15,6 +15,8 @@ import {
   deleteOrder,
   logUsageHistory,
   getUsageHistory,
+  logDeletedOrder,
+  getDeletedLogs,
 } from "./db";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
@@ -121,6 +123,12 @@ export const appRouter = router({
     delete: publicProcedure
       .input(z.object({
         id: z.number().int().positive(),
+        orderID: z.string().min(1),
+        fluteType: z.string().min(1),
+        sizeW: z.number().int(),
+        sizeL: z.number().int(),
+        qty: z.number().int(),
+        bqComment: z.string(),
         workerID: z.string().min(1),
         adminPassword: z.string(),
       }))
@@ -130,20 +138,47 @@ export const appRouter = router({
         }
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker ID not found" });
+        await logDeletedOrder({
+          orderID: input.orderID,
+          fluteType: input.fluteType,
+          sizeW: input.sizeW,
+          sizeL: input.sizeL,
+          qty: input.qty,
+          bqComment: input.bqComment,
+          deletedBy: worker.name,
+        });
         await deleteOrder(input.id);
         return { success: true };
       }),
     deleteFromHistory: publicProcedure
       .input(z.object({
         id: z.number().int().positive(),
+        orderID: z.string().min(1),
+        fluteType: z.string().min(1),
+        sizeW: z.number().int(),
+        sizeL: z.number().int(),
+        qty: z.number().int(),
+        bqComment: z.string(),
         workerID: z.string().min(1),
       }))
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+        await logDeletedOrder({
+          orderID: input.orderID,
+          fluteType: input.fluteType,
+          sizeW: input.sizeW,
+          sizeL: input.sizeL,
+          qty: input.qty,
+          bqComment: input.bqComment,
+          deletedBy: worker.name,
+        });
         await deleteOrder(input.id);
         return { success: true };
       }),
+    getDeletedLogs: publicProcedure.query(async () => {
+      return getDeletedLogs();
+    }),
     logUsage: publicProcedure
       .input(z.object({
         jobNo: z.string().nullable(),

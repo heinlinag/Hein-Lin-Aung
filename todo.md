@@ -90,3 +90,9 @@
 - [x] Fix main.tsx: disable OAuth redirect logic (redirectToLoginIfUnauthorized → Manus OAuth)
 - [x] Fix AdminPanel.tsx: remove internal AdminLoginGate conflicting with app-level LoginGate
 - [x] Fix main.tsx: disable OAuth redirect logic (redirectToLoginIfUnauthorized → Manus OAuth)
+
+## New Feature Requests (Round 3)
+- [x] Move all toast notifications to top of screen (top-center position)
+- [ ] Low-stock alert: highlight orders with qty < 50 pcs in Stock History (yellow/orange warning)
+- [ ] Admin Panel: add Deleted Logs History tab showing audit trail (who deleted, when, order details)
+- [ ] Deleted Logs tab: show deletedLogs table data via tRPC procedure

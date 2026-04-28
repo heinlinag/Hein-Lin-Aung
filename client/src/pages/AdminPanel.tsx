@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
@@ -209,7 +209,7 @@ function OrdersTab() {
     setDeleteError("");
     if (!confirmWorkerID.trim()) { setDeleteError("Worker ID required."); return; }
     try {
-      await deleteOrder.mutateAsync({ id: deleteTarget.id, workerID: confirmWorkerID.trim(), adminPassword: ADMIN_PASSWORD });
+      await deleteOrder.mutateAsync({ id: deleteTarget.id, orderID: deleteTarget.orderID, fluteType: deleteTarget.fluteType, sizeW: deleteTarget.sizeW, sizeL: deleteTarget.sizeL, qty: deleteTarget.qty, bqComment: deleteTarget.bqComment, workerID: confirmWorkerID.trim(), adminPassword: ADMIN_PASSWORD });
       toast.success("Order deleted.");
       utils.orders.list.invalidate();
       setDeleteTarget(null);
@@ -379,10 +379,107 @@ function OrdersTab() {
   );
 }
 
+// ─── Deleted Logs Tab ─────────────────────────────────────────────────────────
+type DeletedLog = {
+  id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
+  qty: number; bqComment: string; deletedBy: string; deletedAt: Date;
+};
+
+function DeletedLogsTab() {
+  const utils = trpc.useUtils();
+  const logsQuery = trpc.orders.getDeletedLogs.useQuery();
+  const logs = (logsQuery.data ?? []) as DeletedLog[];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-muted-foreground">{logs.length} deleted record{logs.length !== 1 ? "s" : ""}</p>
+        <button onClick={() => utils.orders.getDeletedLogs.invalidate()} className="text-muted-foreground hover:text-foreground p-1 transition-colors" title="Refresh">
+          <RefreshCw size={15} />
+        </button>
+      </div>
+
+      {logsQuery.isLoading ? (
+        <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />)}</div>
+      ) : logs.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <History size={32} className="text-muted-foreground/30 mb-3" />
+          <p className="text-sm text-muted-foreground">No deleted records yet</p>
+        </div>
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  {["Order ID","Flute","Size","Qty","BQ","Deleted By","Deleted At"].map(h => (
+                    <th key={h} className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-3">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map(log => (
+                  <tr key={log.id} className="border-b border-border hover:bg-gray-50 transition-colors">
+                    <td className="py-3 pr-3 text-sm font-semibold text-red-600">{log.orderID}</td>
+                    <td className="py-3 pr-3">
+                      <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Flute : {log.fluteType}</span>
+                    </td>
+                    <td className="py-3 pr-3 text-sm font-mono">{log.sizeW}×{log.sizeL}</td>
+                    <td className="py-3 pr-3 text-sm">{log.qty} pcs</td>
+                    <td className="py-3 pr-3 max-w-[160px]">
+                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono truncate block">{log.bqComment}</span>
+                    </td>
+                    <td className="py-3 pr-3 text-xs font-semibold text-foreground">{log.deletedBy}</td>
+                    <td className="py-3 pr-3 text-xs text-muted-foreground whitespace-nowrap">{new Date(log.deletedAt).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-2">
+            {logs.map(log => (
+              <div key={log.id} className="p-4 bg-red-50 border border-red-100 rounded-xl shadow-sm space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Order ID</p>
+                    <p className="text-sm font-bold text-red-600">{log.orderID}</p>
+                  </div>
+                  <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold">Deleted</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Flute : {log.fluteType}</span>
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-mono">{log.sizeW}×{log.sizeL} mm</span>
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{log.qty} pcs</span>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">BQ</p>
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono break-all">{log.bqComment}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-red-100">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Deleted By</p>
+                    <p className="text-xs font-semibold text-foreground">{log.deletedBy}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Deleted At</p>
+                    <p className="text-xs text-muted-foreground">{new Date(log.deletedAt).toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { logoutAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<"workers" | "orders">("workers");
+  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs">("workers");
   const [, navigate] = useLocation();
 
   return (
@@ -433,10 +530,17 @@ export default function AdminPanel() {
           >
             <Package size={15} /> Orders
           </button>
+          <button
+            onClick={() => setActiveTab("deleted_logs")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "deleted_logs" ? "border-red-500 text-red-600" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            <History size={15} /> Deleted Logs
+          </button>
         </div>
 
         {activeTab === "workers" && <WorkersTab />}
         {activeTab === "orders" && <OrdersTab />}
+        {activeTab === "deleted_logs" && <DeletedLogsTab />}
       </main>
     </div>
   );

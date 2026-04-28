@@ -2,8 +2,11 @@ import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X } from "lucide-react";
+import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle } from "lucide-react";
+
 import PageHeader from "@/components/PageHeader";
+
+const LOW_STOCK_THRESHOLD = 50;
 
 type Order = {
   id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
@@ -161,7 +164,7 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
     setError("");
     if (!workerID.trim()) { setError("Worker ID is required."); return; }
     try {
-      await deleteOrder.mutateAsync({ id: order.id, workerID: workerID.trim() });
+      await deleteOrder.mutateAsync({ id: order.id, orderID: order.orderID, fluteType: order.fluteType, sizeW: order.sizeW, sizeL: order.sizeL, qty: order.qty, bqComment: order.bqComment, workerID: workerID.trim() });
       toast.success("Order deleted.");
       onSuccess();
     } catch (err: unknown) {
@@ -245,7 +248,15 @@ export default function StockHistory() {
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground mb-3">{filtered.length} order{filtered.length !== 1 ? "s" : ""}</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-muted-foreground">{filtered.length} order{filtered.length !== 1 ? "s" : ""}</p>
+          {activeTab === "current" && filtered.some(o => o.qty < LOW_STOCK_THRESHOLD) && (
+            <div className="flex items-center gap-1.5 text-xs text-orange-600 font-semibold bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-lg">
+              <AlertTriangle size={12} />
+              {filtered.filter(o => o.qty < LOW_STOCK_THRESHOLD).length} low stock
+            </div>
+          )}
+        </div>
 
         {ordersQuery.isLoading ? (
           <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />)}</div>
@@ -267,14 +278,24 @@ export default function StockHistory() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(order => (
-                    <tr key={order.id} className="border-b border-border hover:bg-gray-50 transition-colors">
-                      <td className="py-3 pr-4 font-bold text-primary">{order.orderID}</td>
+                  {filtered.map(order => {
+                    const isLowStock = activeTab === "current" && order.qty < LOW_STOCK_THRESHOLD;
+                    return (
+                    <tr key={order.id} className={`border-b border-border hover:bg-gray-50 transition-colors ${isLowStock ? "bg-orange-50/40" : ""}`}>
+                      <td className="py-3 pr-4 font-bold text-primary">
+                        <div className="flex items-center gap-1.5">
+                          {isLowStock && <AlertTriangle size={13} className="text-orange-500 flex-shrink-0" />}
+                          {order.orderID}
+                        </div>
+                      </td>
                       <td className="py-3 pr-4">
                         <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
                       </td>
                       <td className="py-3 pr-4 font-mono text-sm">{order.sizeW}×{order.sizeL} mm</td>
-                      <td className="py-3 pr-4 font-semibold">{order.qty} pcs</td>
+                      <td className="py-3 pr-4">
+                        <span className={`font-semibold ${isLowStock ? "text-orange-600" : ""}`}>{order.qty} pcs</span>
+                        {isLowStock && <p className="text-xs text-orange-500 font-medium">Low stock</p>}
+                      </td>
                       <td className="py-3 pr-4 max-w-[200px]">
                         <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono break-all leading-relaxed">{order.bqComment}</span>
                       </td>
@@ -292,26 +313,32 @@ export default function StockHistory() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile cards */}
             <div className="md:hidden space-y-3">
-              {filtered.map(order => (
-                <div key={order.id} className="bg-white border border-border rounded-xl shadow-sm p-4 space-y-2">
+              {filtered.map(order => {
+                const isLowStock = activeTab === "current" && order.qty < LOW_STOCK_THRESHOLD;
+                return (
+                <div key={order.id} className={`border rounded-xl shadow-sm p-4 space-y-2 ${isLowStock ? "bg-orange-50 border-orange-200" : "bg-white border-border"}`}>
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground">Order ID</p>
-                      <p className="text-base font-bold text-primary">{order.orderID}</p>
+                      <div className="flex items-center gap-1.5">
+                        {isLowStock && <AlertTriangle size={14} className="text-orange-500" />}
+                        <p className="text-base font-bold text-primary">{order.orderID}</p>
+                      </div>
+                      {isLowStock && <p className="text-xs text-orange-600 font-semibold mt-0.5">⚠ Low Stock</p>}
                     </div>
                     <button onClick={() => setDeleteOrder(order)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 size={15} /></button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
                     <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-mono">{order.sizeW}×{order.sizeL} mm</span>
-                    <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-semibold">{order.qty} pcs</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${isLowStock ? "bg-orange-100 text-orange-700" : "bg-green-50 text-green-700"}`}>{order.qty} pcs</span>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">BQ</p>
@@ -324,7 +351,7 @@ export default function StockHistory() {
                     </button>
                   )}
                 </div>
-              ))}
+              )})}
             </div>
           </>
         )}

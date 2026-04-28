@@ -41,6 +41,21 @@ export const orders = mysqlTable("orders", {
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
 
+// Deleted Logs table — audit trail of deleted orders
+export const deletedLogs = mysqlTable("deletedLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  orderID: varchar("orderID", { length: 64 }).notNull(),
+  fluteType: varchar("fluteType", { length: 64 }).notNull(),
+  sizeW: int("sizeW").notNull(),
+  sizeL: int("sizeL").notNull(),
+  qty: int("qty").notNull(),
+  bqComment: text("bqComment").notNull(),
+  deletedBy: varchar("deletedBy", { length: 64 }).notNull(),
+  deletedAt: timestamp("deletedAt").defaultNow().notNull(),
+});
+export type DeletedLog = typeof deletedLogs.$inferSelect;
+export type InsertDeletedLog = typeof deletedLogs.$inferInsert;
+
 // Usage History table — tracks how orders are used (Job No or Old Stock)
 export const usageHistory = mysqlTable("usageHistory", {
   id: int("id").autoincrement().primaryKey(),
