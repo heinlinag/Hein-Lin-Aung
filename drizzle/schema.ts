@@ -58,4 +58,18 @@ export const orders = mysqlTable("orders", {
 });
 
 export type Order = typeof orders.$inferSelect;
+export const usageHistory = mysqlTable("usageHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  jobNo: varchar("jobNo", { length: 8 }).notNull(),
+  usedQty: int("usedQty").notNull(),
+  orderID: varchar("orderID", { length: 64 }).notNull(),
+  fluteType: varchar("fluteType", { length: 64 }).notNull(),
+  bqComment: text("bqComment").notNull(),
+  purpose: mysqlEnum("purpose", ["job", "old_stock"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UsageHistory = typeof usageHistory.$inferSelect;
+export type InsertUsageHistory = typeof usageHistory.$inferInsert;
+
 export type InsertOrder = typeof orders.$inferInsert;

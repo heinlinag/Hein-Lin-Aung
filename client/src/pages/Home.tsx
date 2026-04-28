@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { FileText, Package, Settings, ArrowRight } from "lucide-react";
+import { FileText, Package, Settings, ArrowRight, History } from "lucide-react";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -21,8 +21,8 @@ export default function Home() {
 
       {/* Features Grid with Colored Cards */}
       <div className="px-4 py-16 md:py-24">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Submit Order Card - Blue */}
             <div 
               onClick={() => setLocation("/submit-order")}
@@ -71,6 +71,23 @@ export default function Home() {
               </p>
               <div className="flex items-center gap-1 font-sans text-sm font-medium text-white">
                 Access Admin <ArrowRight className="h-3 w-3" />
+              </div>
+            </div>
+
+            {/* Usage History Card - Purple */}
+            <div 
+              onClick={() => setLocation("/stock-history?tab=usage")}
+              className="p-6 bg-purple-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer transform hover:scale-105"
+            >
+              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-white/20 mb-4">
+                <History className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="font-serif text-lg font-semibold mb-2">Usage History</h3>
+              <p className="font-sans text-sm text-purple-100 mb-4">
+                Track all order usage and job assignments for audit trail.
+              </p>
+              <div className="flex items-center gap-1 font-sans text-sm font-medium text-white">
+                View Usage <ArrowRight className="h-3 w-3" />
               </div>
             </div>
           </div>

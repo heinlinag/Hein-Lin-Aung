@@ -77,18 +77,18 @@ function OrderTable({ orders, loading, searchTerm, bqFilter, onDelete }: { order
             {filteredOrders.map(order => (
               <tr key={order.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
                 <td className="py-3 pr-3 font-sans text-sm text-foreground font-medium">{order.orderID}</td>
-                <td className="py-3 pr-3">
-                  <Badge variant="outline" className="font-sans text-xs border-border">
-                    {order.fluteType}
-                  </Badge>
+                <td className="py-3 pr-3 font-sans text-sm text-foreground">
+                  <span className="font-medium">Flute : {order.fluteType}</span>
                 </td>
                 <td className="py-3 pr-3 font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL} mm</td>
                 <td className="py-3 pr-3 font-sans text-sm text-foreground">{order.qty.toLocaleString()} pcs</td>
                 <td className="py-3 pr-3 font-sans text-xs text-muted-foreground">
                   {new Date(order.createdAt).toLocaleString()}
                 </td>
-                <td className="py-3 pr-3 font-sans text-xs text-muted-foreground max-w-[150px] truncate" title={order.bqComment}>
-                  {order.bqComment}
+                <td className="py-3 pr-3 font-sans text-xs max-w-[150px] truncate" title={order.bqComment}>
+                  <span className="bg-yellow-100 text-yellow-900 px-2 py-1 rounded inline-block">
+                    {order.bqComment}
+                  </span>
                 </td>
                 <td className="py-3">
                   <button
@@ -114,9 +114,7 @@ function OrderTable({ orders, loading, searchTerm, bqFilter, onDelete }: { order
                 <p className="font-sans text-xs text-muted-foreground">Order ID</p>
                 <p className="font-sans font-medium text-foreground text-sm">{order.orderID}</p>
               </div>
-              <Badge variant="outline" className="font-sans text-xs border-border">
-                {order.fluteType}
-              </Badge>
+              <span className="font-sans font-medium text-foreground">Flute : {order.fluteType}</span>
             </div>
             <div className="flex items-start justify-between">
               <p className="font-sans text-xs text-muted-foreground">Size</p>
@@ -134,7 +132,7 @@ function OrderTable({ orders, loading, searchTerm, bqFilter, onDelete }: { order
             </div>
             <div className="pt-2 border-t border-border">
               <p className="font-sans text-xs text-muted-foreground">BQ</p>
-              <p className="font-sans text-xs text-foreground mt-1 break-words">{order.bqComment}</p>
+              <p className="font-sans text-xs mt-1 break-words bg-yellow-100 text-yellow-900 px-2 py-1 rounded inline-block">{order.bqComment}</p>
             </div>
             <div className="flex justify-end pt-2">
               <button

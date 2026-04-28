@@ -1,6 +1,7 @@
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, deletedLogs, InsertWorker, InsertOrder, InsertDeletedLog } from "../drizzle/schema";
+import { InsertUser, users, workers, orders, deletedLogs, usageHistory, InsertUsageHistory, InsertWorker, InsertOrder, InsertDeletedLog } from "../drizzle/schema";
+
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -141,5 +142,35 @@ export async function getDeletedLogs() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(deletedLogs).orderBy(desc(deletedLogs.deletedAt));
+}
+
+export async function logUsageHistory(usage: InsertUsageHistory): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot log usage: database not available");
+    return;
+  }
+
+  try {
+    await db.insert(usageHistory).values(usage);
+  } catch (error) {
+    console.error("[Database] Failed to log usage:", error);
+    throw error;
+  }
+}
+
+export async function getUsageHistory(): Promise<any[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get usage history: database not available");
+    return [];
+  }
+
+  try {
+    return await db.select().from(usageHistory).orderBy(desc(usageHistory.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to get usage history:", error);
+    return [];
+  }
 }
 

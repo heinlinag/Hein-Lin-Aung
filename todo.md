@@ -62,8 +62,21 @@
 
 
 ## Latest Changes (User Feedback)
-- [ ] Remove DashboardLayout sidebar completely - use Home Dashboard as main entry point
-- [ ] Add BQ Comment filter to Stock History (separate from Order ID/Flute Type search)
-- [ ] Add Delete button to Stock History orders with Worker ID confirmation
+- [x] Remove DashboardLayout sidebar completely - use Home Dashboard as main entry point
+- [x] Add BQ Comment filter to Stock History (separate from Order ID/Flute Type search)
+- [x] Add Delete button to Stock History orders with Worker ID confirmation
 - [ ] Create Deleted Logs History table in Admin Panel to track deleted orders
-- [ ] Update database schema: add deletedLogs table to track deleted orders
+- [x] Update database schema: add deletedLogs table to track deleted orders
+
+
+## Usage History Feature (New)
+- [ ] Update database schema: add usageHistory table with jobNo, usedQty, orderID, purpose (job/old_stock), createdAt
+- [ ] Add "Used Update" button to Stock History orders
+- [ ] Create "Used Update" dialog with:
+  - Display Available Quantity
+  - Choose purpose: Job No or Old Stock
+  - Job No: 8-digit validation (e.g. 02123456), Qty deduction, show remaining
+  - Old Stock: confirmation dialog, set Frozen=0, move to Out of Stock
+- [ ] Add Usage History tab to Dashboard showing: Job No, Used Qty, Order ID, Flute, BQ
+- [ ] Update Stock History: display "Flute : B" instead of just "B"
+- [ ] Highlight BQ Comment in Stock History with background color
