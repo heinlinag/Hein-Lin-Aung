@@ -37,7 +37,7 @@ type Order = {
 
 // ─── Admin Login Gate ─────────────────────────────────────────────────────────
 
-function AdminLoginGate({ onLogin }: { onLogin: () => void }) {
+function AdminLoginGate({ onLogin }: { onLogin: (user: { workerID: string; name: string }) => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const loginMutation = trpc.admin.login.useMutation();
@@ -46,7 +46,7 @@ function AdminLoginGate({ onLogin }: { onLogin: () => void }) {
     setError("");
     try {
       await loginMutation.mutateAsync({ password });
-      onLogin();
+      onLogin({ workerID: "admin", name: "Administrator" });
     } catch {
       setError("Incorrect password.");
     }
@@ -371,6 +371,7 @@ function OrdersTab() {
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Flute</th>
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Size</th>
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Qty</th>
+                    <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Submitted By</th>
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3 pr-2">Status</th>
                     <th className="font-sans text-xs font-semibold text-foreground text-left pb-3">Actions</th>
                   </tr>
@@ -378,16 +379,16 @@ function OrdersTab() {
                 <tbody>
                   {orders.map(order => (
                     <tr key={order.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                      <td className="py-3 pr-2 font-sans text-sm font-medium text-foreground">{order.orderID}</td>
-                      <td className="py-3 pr-2">
-                        <Badge variant="outline" className="font-sans text-xs border-border">
-                          {order.fluteType}
-                        </Badge>
-                      </td>
-                      <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL}</td>
-                      <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.qty}</td>
-                      <td className="py-3 pr-2">
-                        <button
+                    <td className="py-3 pr-2 font-sans text-sm font-medium text-foreground">{order.orderID}</td>
+                    <td className="py-3 pr-2">
+                      <Badge variant="outline" className="font-sans text-xs border-border">
+                        {order.fluteType}
+                      </Badge>
+                    </td>
+                    <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.sizeW}×{order.sizeL}</td>
+                    <td className="py-3 pr-2 font-sans text-sm text-foreground">{order.qty}</td>
+                    <td className="py-3 pr-2 font-sans text-sm text-muted-foreground">{order.submittedBy}</td>
+                    <td className="py-3 pr-2">                        <button
                           onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
                           disabled={updateStatus.isPending}
                           className="transition-opacity hover:opacity-70"
@@ -443,6 +444,10 @@ function OrdersTab() {
                   <div className="flex items-start justify-between">
                     <p className="font-sans text-xs text-muted-foreground">Qty</p>
                     <p className="font-sans text-sm text-foreground">{order.qty}</p>
+                  </div>
+                  <div className="flex items-start justify-between">
+                    <p className="font-sans text-xs text-muted-foreground">Submitted By</p>
+                    <p className="font-sans text-sm text-foreground">{order.submittedBy}</p>
                   </div>
                   <div className="flex items-start justify-between pt-2 border-t border-border">
                     <p className="font-sans text-xs text-muted-foreground">Status</p>
@@ -511,9 +516,10 @@ function OrdersTab() {
 
 export default function AdminPanel() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ workerID: string; name: string } | null>(null);
 
   if (!isAuthenticated) {
-    return <AdminLoginGate onLogin={() => setIsAuthenticated(true)} />;
+    return <AdminLoginGate onLogin={(user) => { setCurrentUser(user); setIsAuthenticated(true); }} />
   }
 
   return (
@@ -524,12 +530,19 @@ export default function AdminPanel() {
             <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
               Admin Panel
             </h1>
-            <p className="text-sm text-muted-foreground font-sans mt-1">
-              Manage workers and orders.
-            </p>
+            <div className="flex items-center gap-4 mt-2">
+              <p className="text-sm text-muted-foreground font-sans">
+                Manage workers and orders.
+              </p>
+              {currentUser && (
+                <div className="px-3 py-1 bg-secondary rounded text-xs font-sans text-foreground">
+                  Logged in as: <span className="font-medium">{currentUser.name}</span>
+                </div>
+              )}
+            </div>
           </div>
           <button
-            onClick={() => setIsAuthenticated(false)}
+            onClick={() => { setIsAuthenticated(false); setCurrentUser(null); }}
             className="font-sans text-xs font-medium text-muted-foreground hover:text-foreground transition-colors p-2"
           >
             Lock

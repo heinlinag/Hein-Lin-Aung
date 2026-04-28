@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { LogIn, Send, X } from "lucide-react";
 
-const FLUTE_TYPES = ["AB", "BE", "C", "A", "B", "E", "Manual"] as const;
+const FLUTE_TYPES = ["BA", "BE", "C", "A", "B", "E", "Manual"] as const;
 
 type WorkerSession = { workerID: string; name: string; department: string };
 

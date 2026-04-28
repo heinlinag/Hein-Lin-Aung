@@ -43,3 +43,10 @@
 - [x] Test on mobile (375px+) and desktop (1024px+), verify all interactions work
 - [x] Add mobile card/list views for Admin workers and orders management
 - [x] Verify responsive layouts work on actual mobile devices (375px+) and desktop (1024px+)
+
+
+## Change Requests (User Feedback)
+- [x] Change Flute Type "AB" to "BA" in all dropdowns and database
+- [x] Remove sidebar navigation and add Home Dashboard as landing page
+- [x] Display current logged-in user in Admin Panel header
+- [x] Display "Submitted By" worker name in All Orders table

@@ -88,10 +88,29 @@ export async function deleteWorker(id: number) {
 export async function getAllOrders(status?: "current" | "out_of_stock") {
   const db = await getDb();
   if (!db) return [];
+  
+  const baseQuery = db
+    .select({
+      id: orders.id,
+      orderID: orders.orderID,
+      fluteType: orders.fluteType,
+      sizeW: orders.sizeW,
+      sizeL: orders.sizeL,
+      qty: orders.qty,
+      bqComment: orders.bqComment,
+      status: orders.status,
+      submittedBy: workers.name,
+      workerID: orders.submittedBy,
+      createdAt: orders.createdAt,
+    })
+    .from(orders)
+    .leftJoin(workers, eq(orders.submittedBy, workers.workerID));
+  
   if (status) {
-    return db.select().from(orders).where(eq(orders.status, status)).orderBy(desc(orders.createdAt));
+    return baseQuery.where(eq(orders.status, status)).orderBy(desc(orders.createdAt));
   }
-  return db.select().from(orders).orderBy(desc(orders.createdAt));
+  
+  return baseQuery.orderBy(desc(orders.createdAt));
 }
 
 export async function createOrder(data: InsertOrder) {
