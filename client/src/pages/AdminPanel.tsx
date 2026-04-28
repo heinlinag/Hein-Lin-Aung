@@ -2,7 +2,8 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, ShieldCheck, Users, Package } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 const ADMIN_PASSWORD = "Qwer@7090heinann";
@@ -12,72 +13,6 @@ type Order = {
   id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
 };
-
-// ─── Admin Login Gate ──────────────────────────────────────────────────────────
-function AdminLoginGate({ onLogin }: { onLogin: (user: { workerID: string; name: string }) => void }) {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const loginMutation = trpc.admin.login.useMutation();
-  const [, navigate] = useLocation();
-
-  const handleLogin = async () => {
-    setError("");
-    try {
-      await loginMutation.mutateAsync({ password });
-      onLogin({ workerID: "admin", name: "Administrator" });
-    } catch {
-      setError("Incorrect password.");
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
-        <div className="container py-3 flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground p-1">
-            <ArrowLeft size={20} />
-          </button>
-          <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
-          <div>
-            <h1 className="text-sm font-bold text-foreground leading-tight">Admin Panel</h1>
-            <p className="text-xs text-muted-foreground">PP4 Manual Slitter</p>
-          </div>
-        </div>
-      </header>
-      <main className="container py-10">
-        <div className="max-w-sm mx-auto">
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-14 h-14 rounded-full gspp-gradient flex items-center justify-center mb-4">
-              <ShieldCheck size={28} className="text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-foreground">Administrator Access</h2>
-            <p className="text-sm text-muted-foreground mt-1 text-center">Enter the admin password to continue.</p>
-          </div>
-          <div className="space-y-3">
-            <input
-              type="password"
-              value={password}
-              onChange={e => { setPassword(e.target.value); setError(""); }}
-              onKeyDown={e => e.key === "Enter" && handleLogin()}
-              placeholder="Admin password"
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
-              autoFocus
-            />
-            {error && <p className="text-xs text-destructive">{error}</p>}
-            <button
-              onClick={handleLogin}
-              disabled={loginMutation.isPending}
-              className="w-full gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {loginMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Lock size={14} />}
-              Access Admin Panel
-            </button>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
 
 // ─── Workers Tab ───────────────────────────────────────────────────────────────
 function WorkersTab() {
@@ -221,7 +156,7 @@ function WorkersTab() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Department</label>
-                <input type="text" value={newDept} onChange={e => { setNewDept(e.target.value); setAddError(""); }} placeholder="Production" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                <input type="text" value={newDept} onChange={e => { setNewDept(e.target.value); setAddError(""); }} placeholder="e.g. Production" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
               {addError && <p className="text-xs text-destructive">{addError}</p>}
             </div>
@@ -446,14 +381,9 @@ function OrdersTab() {
 
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ workerID: string; name: string } | null>(null);
+  const { logoutAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<"workers" | "orders">("workers");
   const [, navigate] = useLocation();
-
-  if (!isAuthenticated) {
-    return <AdminLoginGate onLogin={(user) => { setCurrentUser(user); setIsAuthenticated(true); }} />;
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -469,14 +399,12 @@ export default function AdminPanel() {
             <p className="text-xs text-muted-foreground">PP4 Manual Slitter</p>
           </div>
           <div className="ml-auto flex items-center gap-3">
-            {currentUser && (
-              <div className="text-right hidden sm:block">
-                <div className="text-xs font-semibold text-foreground">{currentUser.name}</div>
-                <div className="text-xs text-muted-foreground">Administrator</div>
-              </div>
-            )}
+            <div className="text-right hidden sm:block">
+              <div className="text-xs font-semibold text-foreground">Administrator</div>
+              <div className="text-xs text-muted-foreground">Admin Access</div>
+            </div>
             <button
-              onClick={() => { setIsAuthenticated(false); setCurrentUser(null); }}
+              onClick={() => { logoutAdmin(); navigate("/login?tab=admin"); }}
               className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg font-medium text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors"
             >
               <Lock size={12} /> Lock
@@ -487,7 +415,7 @@ export default function AdminPanel() {
 
       {/* Admin Banner */}
       <div className="gspp-gradient text-white py-2 px-4 text-center text-xs">
-        Logged in as <strong>{currentUser?.name ?? "Administrator"}</strong> — Admin Access
+        Logged in as <strong>Administrator</strong> — Admin Access
       </div>
 
       <main className="container py-6">

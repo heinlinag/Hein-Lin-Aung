@@ -76,3 +76,17 @@
 - [x] Usage History shows: Job No, Used Qty, Order ID, Flute, BQ
 - [x] Stock History Flute display: "Flute : B" format
 - [x] Stock History BQ: yellow highlight
+
+## Login Access System
+- [x] Create LoginGate context (AuthContext) with worker session (1hr) and admin session (one-time)
+- [x] Create Login page: Worker ID input + Admin password input, GSPP theme
+- [x] Worker login: validate Worker ID against database, store session in localStorage with 1hr expiry
+- [x] Admin login: validate password (Qwer@7090heinann), store one-time flag in sessionStorage (cleared on page close/refresh)
+- [x] Wrap all pages with LoginGate - redirect to login if not authenticated
+- [x] Admin Panel: require admin password every time (sessionStorage, not localStorage)
+- [x] Show logged-in worker name in header after login
+- [x] Add logout button to header
+- [x] Fix AdminPanel.tsx: remove internal AdminLoginGate conflicting with app-level LoginGate
+- [x] Fix main.tsx: disable OAuth redirect logic (redirectToLoginIfUnauthorized → Manus OAuth)
+- [x] Fix AdminPanel.tsx: remove internal AdminLoginGate conflicting with app-level LoginGate
+- [x] Fix main.tsx: disable OAuth redirect logic (redirectToLoginIfUnauthorized → Manus OAuth)

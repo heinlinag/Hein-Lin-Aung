@@ -2,9 +2,8 @@ import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Search, RefreshCw, Trash2, Loader2, Package, Zap, X } from "lucide-react";
-
-const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
+import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 type Order = {
   id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
@@ -193,6 +192,7 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
 // ─── Main StockHistory ─────────────────────────────────────────────────────────
 export default function StockHistory() {
   const [, navigate] = useLocation();
+  void navigate; // used for back navigation via PageHeader
   const [activeTab, setActiveTab] = useState<"current" | "out_of_stock">("current");
   const [searchOrderID, setSearchOrderID] = useState("");
   const [searchFlute, setSearchFlute] = useState("");
@@ -213,19 +213,12 @@ export default function StockHistory() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
-        <div className="container py-3 flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground p-1"><ArrowLeft size={20} /></button>
-          <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
-          <div>
-            <h1 className="text-sm font-bold text-foreground leading-tight">Stock History</h1>
-            <p className="text-xs text-muted-foreground">PP4 Manual Slitter</p>
-          </div>
-          <button onClick={() => utils.orders.list.invalidate()} className="ml-auto text-muted-foreground hover:text-foreground p-1" title="Refresh">
-            <RefreshCw size={16} />
-          </button>
-        </div>
-      </header>
+      <PageHeader showBack backHref="/" />
+      <div className="flex justify-end px-4 pt-3">
+        <button onClick={() => utils.orders.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100" title="Refresh">
+          <RefreshCw size={16} />
+        </button>
+      </div>
 
       <main className="container py-5">
         <div className="flex gap-1 mb-5 border-b border-border">

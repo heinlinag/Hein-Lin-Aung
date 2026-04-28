@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, Settings, History } from "lucide-react";
+import { ClipboardList, Package, Settings, History, LogOut, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 
@@ -40,6 +41,12 @@ const features = [
 
 export default function Home() {
   const [, navigate] = useLocation();
+  const { worker, logoutWorker } = useAuth();
+
+  const handleLogout = () => {
+    logoutWorker();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -51,12 +58,27 @@ export default function Home() {
             alt="GSPP Logo"
             className="h-10 w-10 object-contain"
           />
-          <div>
+          <div className="flex-1">
             <h1 className="text-base font-bold text-foreground leading-tight" style={{ fontFamily: "Inter, sans-serif" }}>
               PP4 Manual Slitter
             </h1>
             <p className="text-xs text-muted-foreground leading-tight">Stock Management System</p>
           </div>
+          {worker && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-xs font-medium">
+                <User size={12} />
+                <span>{worker.name}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1 text-gray-400 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50"
+                title="Logout"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          )}
         </div>
       </header>
 

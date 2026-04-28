@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { useLocation } from "wouter";
-import { ArrowLeft, Search, Loader2, History } from "lucide-react";
-
-const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
+import { Search, Loader2, History } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 type UsageEntry = {
   id: number;
@@ -21,7 +19,6 @@ function BQBadge({ value }: { value: string }) {
 }
 
 export default function UsageHistory() {
-  const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
 
   const usageHistory = trpc.orders.getUsage.useQuery();
@@ -40,19 +37,7 @@ export default function UsageHistory() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
-        <div className="container py-3 flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground p-1">
-            <ArrowLeft size={20} />
-          </button>
-          <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
-          <div>
-            <h1 className="text-sm font-bold text-foreground leading-tight">Usage History</h1>
-            <p className="text-xs text-muted-foreground">PP4 Manual Slitter</p>
-          </div>
-        </div>
-      </header>
+      <PageHeader showBack backHref="/" />
 
       <main className="container py-4">
         {/* Search */}
