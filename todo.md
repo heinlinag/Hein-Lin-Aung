@@ -98,14 +98,20 @@
 - [x] Deleted Logs tab: show deletedLogs table data via tRPC procedure
 
 ## User Level System (Approval Workflow)
-- [ ] Schema: add userLevel (1|2) column to workers table
-- [ ] Schema: create pendingRequests table (id, type, orderId, orderSnapshot, requestedBy, workerName, status, createdAt)
-- [ ] DB helpers: createPendingRequest, getPendingRequests, updatePendingRequestStatus
-- [ ] Router: pendingRequests.submit, pendingRequests.list, pendingRequests.approve, pendingRequests.cancel
-- [ ] Admin Panel: add User Level (1/2) selector to Add Worker form
-- [ ] Auth: expose userLevel in worker session (localStorage)
-- [ ] StockHistory: Level 1 workers - delete sends pending request instead of direct delete
-- [ ] StockHistory: Level 1 workers - Used Update sends pending request instead of direct update
-- [ ] StockHistory: Level 2 workers - keep current direct action behavior
-- [ ] Approval Center page: Level 2 workers can see pending requests and approve/cancel
-- [ ] Home page: show Approval Center link for Level 2 workers
+- [x] Schema: add userLevel (1|2) column to workers table
+- [x] Schema: create pendingRequests table (id, type, orderId, orderSnapshot, requestedBy, workerName, status, createdAt)
+- [x] DB helpers: createPendingRequest, getPendingRequests, updatePendingRequestStatus
+- [x] Router: pendingRequests.submit, pendingRequests.list, pendingRequests.approve, pendingRequests.cancel
+- [x] Admin Panel: add User Level (1/2) selector to Add Worker form
+- [x] Auth: expose userLevel in worker session (localStorage)
+- [x] StockHistory: Level 1 workers - delete sends pending request instead of direct delete
+- [x] StockHistory: Level 1 workers - Used Update sends pending request instead of direct update
+- [x] StockHistory: Level 2 workers - keep current direct action behavior
+- [x] Approval Center page: Level 2 workers can see pending requests and approve/cancel
+- [x] Home page: show Approval Center link for Level 2 workers
+
+## Approval Center & Notification Badge Updates
+- [x] Show Approval Center card for both Level 1 and Level 2 users on Home page
+- [x] Add bell icon with pending request count badge in Home hero section (top-right)
+- [x] Level 1 users in Approval Center: can view and cancel their own requests only (no Approve button)
+- [x] Level 2 users in Approval Center: can both Approve and Cancel all requests

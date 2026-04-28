@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, Settings, History, LogOut, User, CheckCircle2 } from "lucide-react";
+import { ClipboardList, Package, Settings, History, LogOut, User, CheckCircle2, Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { trpc } from "@/lib/trpc";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 
@@ -12,7 +13,6 @@ const baseFeatures = [
     href: "/submit-order",
     cardClass: "feature-card-blue",
     btnLabel: "Submit Order",
-    levels: ["1", "2"] as ("1" | "2")[],
   },
   {
     icon: <Package size={28} />,
@@ -21,7 +21,6 @@ const baseFeatures = [
     href: "/stock-history",
     cardClass: "feature-card-green",
     btnLabel: "View Stock",
-    levels: ["1", "2"] as ("1" | "2")[],
   },
   {
     icon: <History size={28} />,
@@ -30,16 +29,14 @@ const baseFeatures = [
     href: "/usage-history",
     cardClass: "feature-card-purple",
     btnLabel: "View Usage",
-    levels: ["1", "2"] as ("1" | "2")[],
   },
   {
     icon: <CheckCircle2 size={28} />,
     title: "Approval Center",
-    description: "Review and approve Level 1 worker requests for delete and used-update actions.",
+    description: "Review pending requests for delete and used-update actions.",
     href: "/approval-center",
     cardClass: "feature-card-orange",
     btnLabel: "Open Approval Center",
-    levels: ["2"] as ("1" | "2")[],
   },
   {
     icon: <Settings size={28} />,
@@ -48,7 +45,6 @@ const baseFeatures = [
     href: "/admin",
     cardClass: "feature-card-red",
     btnLabel: "Admin Login",
-    levels: ["1", "2"] as ("1" | "2")[],
   },
 ];
 
@@ -57,12 +53,17 @@ export default function Home() {
   const { worker, logoutWorker } = useAuth();
   const userLevel = worker?.userLevel ?? "2";
 
+  // Fetch pending request count for bell badge
+  const pendingQuery = trpc.pendingRequests.list.useQuery(
+    { status: "pending" },
+    { refetchInterval: 30000 }
+  );
+  const pendingCount = (pendingQuery.data ?? []).length;
+
   const handleLogout = () => {
     logoutWorker();
     navigate("/login");
   };
-
-  const features = baseFeatures.filter(f => f.levels.includes(userLevel));
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -102,7 +103,21 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <div className="gspp-gradient py-8 px-4 text-white text-center">
+      <div className="gspp-gradient py-8 px-4 text-white text-center relative">
+        {/* Bell notification badge — top-right of hero */}
+        <button
+          onClick={() => navigate("/approval-center")}
+          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+          title="Approval Center"
+        >
+          <Bell size={20} className="text-white" />
+          {pendingCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow">
+              {pendingCount > 99 ? "99+" : pendingCount}
+            </span>
+          )}
+        </button>
+
         <img
           src={LOGO_URL}
           alt="GSPP"
@@ -125,18 +140,31 @@ export default function Home() {
       {/* Feature Cards */}
       <main className="container py-6 flex-1">
         <div className="grid grid-cols-1 gap-4 max-w-lg mx-auto">
-          {features.map((f) => (
+          {baseFeatures.map((f) => (
             <div
               key={f.href}
-              className={`rounded-xl p-5 shadow-sm ${f.cardClass}`}
+              className={`rounded-xl p-5 shadow-sm ${f.cardClass} relative`}
             >
+              {/* Bell badge on Approval Center card */}
+              {f.href === "/approval-center" && pendingCount > 0 && (
+                <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow">
+                  {pendingCount > 99 ? "99+" : pendingCount}
+                </span>
+              )}
               <div className="flex items-start gap-4 mb-4">
                 <div className="bg-white/20 rounded-lg p-2 flex-shrink-0">
-                  {f.icon}
+                  {f.href === "/approval-center" ? (
+                    <div className="relative">
+                      <CheckCircle2 size={28} />
+                    </div>
+                  ) : f.icon}
                 </div>
                 <div>
                   <h3 className="font-bold text-lg leading-tight" style={{ fontFamily: "Lora, serif" }}>
                     {f.title}
+                    {f.href === "/approval-center" && userLevel === "1" && (
+                      <span className="ml-2 text-xs font-normal opacity-80">(View & Cancel)</span>
+                    )}
                   </h3>
                   <p className="text-sm opacity-85 mt-0.5">{f.description}</p>
                 </div>

@@ -2,8 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "wouter";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Package, Trash2, Zap, ShieldAlert } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 
 type PendingRequest = {
@@ -36,11 +35,18 @@ type ActionData = {
   newQty: number;
 };
 
-function RequestCard({ req, onApprove, onCancel, isProcessing }: {
+function RequestCard({
+  req,
+  onApprove,
+  onCancel,
+  isProcessing,
+  canApprove,
+}: {
   req: PendingRequest;
   onApprove: (id: number) => void;
   onCancel: (id: number) => void;
   isProcessing: boolean;
+  canApprove: boolean;
 }) {
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
@@ -141,14 +147,16 @@ function RequestCard({ req, onApprove, onCancel, isProcessing }: {
           >
             <XCircle size={14} /> Cancel
           </button>
-          <button
-            onClick={() => onApprove(req.id)}
-            disabled={isProcessing}
-            className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-          >
-            {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-            Approve
-          </button>
+          {canApprove && (
+            <button
+              onClick={() => onApprove(req.id)}
+              disabled={isProcessing}
+              className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+              Approve
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -157,38 +165,24 @@ function RequestCard({ req, onApprove, onCancel, isProcessing }: {
 
 export default function ApprovalCenter() {
   const { worker } = useAuth();
-  const [, navigate] = useLocation();
   const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "cancelled" | undefined>("pending");
   const [processingId, setProcessingId] = useState<number | null>(null);
 
   const userLevel = worker?.userLevel ?? "2";
+  const canApprove = userLevel === "2";
 
-  const requestsQuery = trpc.pendingRequests.list.useQuery({ status: statusFilter });
+  const requestsQuery = trpc.pendingRequests.list.useQuery(
+    { status: statusFilter },
+    { refetchInterval: 15000 }
+  );
   const utils = trpc.useUtils();
   const approveMutation = trpc.pendingRequests.approve.useMutation();
   const cancelMutation = trpc.pendingRequests.cancel.useMutation();
 
-  // Redirect Level 1 users away
-  if (userLevel !== "2") {
-    return (
-      <div className="min-h-screen bg-background">
-        <PageHeader showBack backHref="/" />
-        <div className="flex flex-col items-center justify-center py-24 text-center px-4">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <ShieldAlert size={32} className="text-red-500" />
-          </div>
-          <h2 className="text-lg font-bold text-foreground mb-2">Access Restricted</h2>
-          <p className="text-sm text-muted-foreground mb-4">Approval Center is only accessible to Level 2 users.</p>
-          <button onClick={() => navigate("/")} className="text-sm text-primary font-semibold hover:underline">← Back to Home</button>
-        </div>
-      </div>
-    );
-  }
-
   const requests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
 
   const handleApprove = async (id: number) => {
-    if (!worker) return;
+    if (!worker || !canApprove) return;
     setProcessingId(id);
     try {
       await approveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID });
@@ -225,24 +219,42 @@ export default function ApprovalCenter() {
       <PageHeader showBack backHref="/" />
 
       <main className="container py-5">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-foreground">Approval Center</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Review and approve Level 1 worker requests</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {canApprove
+                ? "Review and approve Level 1 worker requests"
+                : "View your submitted requests"}
+            </p>
           </div>
-          <button onClick={() => utils.pendingRequests.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100" title="Refresh">
+          <button
+            onClick={() => utils.pendingRequests.list.invalidate()}
+            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100"
+            title="Refresh"
+          >
             <RefreshCw size={16} />
           </button>
         </div>
 
+        {/* Level 1 info banner */}
+        {!canApprove && (
+          <div className="flex items-start gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+            <Info size={14} className="text-orange-600 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-orange-700">
+              You are a <strong>Level 1</strong> user. You can view all pending requests and cancel your own. Only Level 2 users can approve requests.
+            </p>
+          </div>
+        )}
+
         {/* Status filter tabs */}
         <div className="flex gap-1 mb-5 border-b border-border">
           {([
-            { key: "pending", label: "Pending" },
-            { key: "approved", label: "Approved" },
-            { key: "cancelled", label: "Cancelled" },
+            { key: "pending" as const, label: "Pending" },
+            { key: "approved" as const, label: "Approved" },
+            { key: "cancelled" as const, label: "Cancelled" },
             { key: undefined, label: "All" },
-          ] as const).map(({ key, label }) => (
+          ]).map(({ key, label }) => (
             <button
               key={label}
               onClick={() => setStatusFilter(key)}
@@ -257,7 +269,11 @@ export default function ApprovalCenter() {
         </div>
 
         {requestsQuery.isLoading ? (
-          <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse" />
+            ))}
+          </div>
         ) : requests.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
@@ -274,6 +290,7 @@ export default function ApprovalCenter() {
                 onApprove={handleApprove}
                 onCancel={handleCancel}
                 isProcessing={processingId === req.id}
+                canApprove={canApprove}
               />
             ))}
           </div>
