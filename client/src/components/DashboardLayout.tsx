@@ -11,7 +11,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/useMobile";
-import { ClipboardList, History, Settings2, PanelLeft } from "lucide-react";
+import { ClipboardList, History, Settings2, Menu } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -25,7 +25,7 @@ const menuItems = [
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 240;
 const MIN_WIDTH = 180;
-const MAX_WIDTH = 360;
+const MAX_WIDTH = 320;
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -94,28 +94,26 @@ function DashboardLayoutContent({
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
-          className="border-r-0"
+          className="border-r border-border"
           disableTransition={isResizing}
-          style={{ background: "var(--sidebar)", color: "var(--sidebar-foreground)" }}
         >
           {/* Header */}
-          <SidebarHeader className="h-16 justify-center border-b" style={{ borderColor: "var(--sidebar-border)" }}>
-            <div className="flex items-center gap-3 px-3">
+          <SidebarHeader className="h-14 justify-center border-b border-border px-4">
+            <div className="flex items-center gap-3 w-full">
               <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center rounded transition-colors focus:outline-none shrink-0"
-                style={{ color: "var(--sidebar-foreground)" }}
+                className="h-8 w-8 flex items-center justify-center rounded hover:bg-secondary transition-colors focus:outline-none"
                 aria-label="Toggle navigation"
               >
-                <PanelLeft className="h-4 w-4" />
+                <Menu className="h-4 w-4 text-foreground" />
               </button>
               {!isCollapsed && (
                 <div className="min-w-0">
-                  <p className="font-serif text-sm font-bold tracking-tight truncate" style={{ color: "var(--sidebar-foreground)" }}>
-                    Stock Mgmt
+                  <p className="font-serif text-sm font-semibold text-foreground truncate">
+                    Stock
                   </p>
-                  <p className="editorial-label truncate" style={{ color: "var(--sidebar-muted, oklch(65% 0.01 60))" }}>
-                    System
+                  <p className="editorial-label text-xs truncate">
+                    Management
                   </p>
                 </div>
               )}
@@ -123,13 +121,13 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           {/* Nav */}
-          <SidebarContent className="gap-0 pt-4">
+          <SidebarContent className="gap-0 pt-3">
             {!isCollapsed && (
-              <p className="editorial-label px-5 pb-3" style={{ color: "oklch(55% 0.01 60)" }}>
-                Navigation
+              <p className="editorial-label px-4 pb-2 text-xs">
+                Pages
               </p>
             )}
-            <SidebarMenu className="px-2">
+            <SidebarMenu className="px-2 gap-1">
               {menuItems.map(item => {
                 const isActive = location === item.path;
                 return (
@@ -138,14 +136,14 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className="h-10 transition-all sidebar-nav-item"
+                      className="h-9 transition-colors sidebar-nav-item"
                       style={{
-                        color: isActive ? "var(--sidebar-foreground)" : "oklch(65% 0.01 60)",
-                        background: isActive ? "var(--sidebar-accent)" : "transparent",
+                        color: isActive ? "var(--primary)" : "var(--foreground)",
+                        background: isActive ? "var(--accent)" : "transparent",
                       }}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
-                      <span>{item.label}</span>
+                      <span className="text-sm">{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -153,41 +151,44 @@ function DashboardLayoutContent({
             </SidebarMenu>
           </SidebarContent>
 
-          {/* Footer branding */}
+          {/* Footer */}
           {!isCollapsed && (
-            <div className="p-4 border-t" style={{ borderColor: "var(--sidebar-border)" }}>
-              <p className="editorial-label" style={{ color: "oklch(40% 0.01 60)" }}>
+            <div className="p-3 border-t border-border text-center">
+              <p className="editorial-label text-xs">
                 Corrugated Board
               </p>
-              <p className="editorial-label" style={{ color: "oklch(40% 0.01 60)" }}>
-                Flute Management
+              <p className="editorial-label text-xs">
+                Management
               </p>
             </div>
           )}
         </Sidebar>
 
-        {/* Resize handle */}
-        <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors ${isCollapsed ? "hidden" : ""}`}
-          onMouseDown={() => { if (!isCollapsed) setIsResizing(true); }}
-          style={{ zIndex: 50, background: "transparent" }}
-          onMouseEnter={e => (e.currentTarget.style.background = "oklch(40% 0.01 60 / 30%)")}
-          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-        />
+        {/* Resize handle (desktop only) */}
+        {!isMobile && (
+          <div
+            className="absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors hover:bg-primary/20"
+            onMouseDown={() => { if (!isCollapsed) setIsResizing(true); }}
+            style={{ zIndex: 50 }}
+          />
+        )}
       </div>
 
       <SidebarInset>
+        {/* Mobile header */}
         {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger className="h-9 w-9 rounded" />
-              <span className="font-serif text-sm font-semibold">
-                {activeMenuItem?.label ?? "Stock Management"}
-              </span>
-            </div>
+          <div className="flex border-b border-border h-14 items-center justify-between bg-background px-4 sticky top-0 z-40">
+            <SidebarTrigger className="h-8 w-8 rounded" />
+            <span className="font-serif text-sm font-semibold text-foreground">
+              {activeMenuItem?.label ?? "Stock Management"}
+            </span>
+            <div className="w-8" />
           </div>
         )}
-        <main className="flex-1 p-6 md:p-8">{children}</main>
+        {/* Main content */}
+        <main className="flex-1 bg-background">
+          {children}
+        </main>
       </SidebarInset>
     </>
   );

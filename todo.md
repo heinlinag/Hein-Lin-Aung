@@ -32,3 +32,14 @@
 - [x] Order submission procedure test
 - [x] Worker authentication test
 - [x] Admin authentication test
+
+
+## Lagom Style Redesign (Responsive Mobile + Desktop)
+- [x] Update CSS: Lagom palette (soft grays, whites, minimal accents), responsive typography
+- [x] Redesign DashboardLayout: mobile-first collapsible sidebar, hamburger menu on mobile
+- [x] Refactor Submit Order page: mobile-optimized form layout, larger touch targets
+- [x] Refactor Stock History page: responsive table (card view on mobile), better readability
+- [x] Refactor Admin Panel: mobile-friendly worker/order management UI
+- [x] Test on mobile (375px+) and desktop (1024px+), verify all interactions work
+- [ ] Add mobile card/list views for Admin workers and orders management
+- [ ] Verify responsive layouts work on actual mobile devices (375px+) and desktop (1024px+)
