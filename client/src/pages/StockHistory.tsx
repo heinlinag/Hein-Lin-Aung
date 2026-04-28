@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle } from "lucide-react";
+import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 import PageHeader from "@/components/PageHeader";
 
@@ -14,7 +15,7 @@ type Order = {
   submittedBy: string | null; createdAt: Date;
 };
 
-// ─── Used Update Dialog ────────────────────────────────────────────────────────
+// ─── Used Update Dialog (Level 2: direct action) ───────────────────────────────
 function UsedUpdateDialog({ order, onClose, onSuccess }: {
   order: Order; onClose: () => void; onSuccess: () => void;
 }) {
@@ -154,7 +155,154 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   );
 }
 
-// ─── Delete Confirm Dialog ─────────────────────────────────────────────────────
+// ─── Level 1: Used Update Request Dialog (sends to approval queue) ─────────────
+function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
+  order: Order; workerID: string; onClose: () => void; onSuccess: () => void;
+}) {
+  const [step, setStep] = useState<"choose" | "job" | "old_stock">("choose");
+  const [jobNo, setJobNo] = useState("");
+  const [useQty, setUseQty] = useState("");
+  const [jobError, setJobError] = useState("");
+  const [showOldConfirm, setShowOldConfirm] = useState(false);
+  const submitRequest = trpc.pendingRequests.submit.useMutation();
+
+  const handleJobRequest = async () => {
+    setJobError("");
+    if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
+    const qty = parseInt(useQty);
+    if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
+    if (qty > order.qty) { setJobError(`Cannot exceed available quantity (${order.qty} pcs).`); return; }
+    const newQty = order.qty - qty;
+    try {
+      await submitRequest.mutateAsync({
+        type: "used_update",
+        orderId: order.id,
+        orderSnapshot: JSON.stringify(order),
+        requestedBy: workerID,
+        actionData: JSON.stringify({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", newQty }),
+      });
+      toast.success("Request submitted! Awaiting Level 2 approval.");
+      onSuccess();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setJobError(e?.message ?? "Failed to submit request.");
+    }
+  };
+
+  const handleOldStockRequest = async () => {
+    try {
+      await submitRequest.mutateAsync({
+        type: "used_update",
+        orderId: order.id,
+        orderSnapshot: JSON.stringify(order),
+        requestedBy: workerID,
+        actionData: JSON.stringify({ jobNo: null, usedQty: order.qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "old_stock", newQty: 0 }),
+      });
+      toast.success("Request submitted! Awaiting Level 2 approval.");
+      onSuccess();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to submit request.");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <div>
+            <h3 className="font-bold text-foreground">Used Update Request</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1"><X size={18} /></button>
+        </div>
+        <div className="p-5">
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+            <Clock size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-orange-700">Your request will be sent to a <strong>Level 2 user</strong> for approval before taking effect.</p>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Available Quantity</p>
+            <p className="text-2xl font-bold text-blue-700 mt-0.5">{order.qty} <span className="text-sm font-normal">pcs</span></p>
+          </div>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
+            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono">{order.bqComment.length > 22 ? order.bqComment.slice(0, 22) + "…" : order.bqComment}</span>
+          </div>
+
+          {step === "choose" && (
+            <div>
+              <p className="text-sm font-semibold text-foreground mb-3">What do you want to use it for?</p>
+              <div className="space-y-2">
+                <button onClick={() => setStep("job")} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-primary hover:bg-blue-50 transition-all text-left">
+                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Zap size={16} className="text-primary" /></div>
+                  <div><p className="text-sm font-semibold text-foreground">Job No</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
+                </button>
+                <button onClick={() => setStep("old_stock")} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-destructive hover:bg-red-50 transition-all text-left">
+                  <div className="w-9 h-9 bg-destructive/10 rounded-lg flex items-center justify-center"><Package size={16} className="text-destructive" /></div>
+                  <div><p className="text-sm font-semibold text-foreground">Old Stock</p><p className="text-xs text-muted-foreground">Clear entire order (move to Out of Stock)</p></div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === "job" && (
+            <div>
+              <button onClick={() => { setStep("choose"); setJobError(""); }} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Job No (8 digits)</label>
+                  <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Quantity to Use (max {order.qty} pcs)</label>
+                  <input type="number" value={useQty} onChange={e => { setUseQty(e.target.value); setJobError(""); }} placeholder="e.g. 15" min={1} max={order.qty} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  {useQty && !isNaN(parseInt(useQty)) && parseInt(useQty) > 0 && parseInt(useQty) <= order.qty && (
+                    <p className="text-xs text-green-600 mt-1 font-medium">Remaining after use: {order.qty - parseInt(useQty)} pcs</p>
+                  )}
+                </div>
+                {jobError && <p className="text-xs text-destructive">{jobError}</p>}
+                <button onClick={handleJobRequest} disabled={submitRequest.isPending} className="w-full bg-orange-500 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                  {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
+                  Submit for Approval
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === "old_stock" && !showOldConfirm && (
+            <div>
+              <button onClick={() => setStep("choose")} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                <p className="text-sm font-bold text-destructive mb-1">⚠ Warning</p>
+                <p className="text-sm text-red-700">Request to clear all {order.qty} pcs and move to Out of Stock will be sent for approval.</p>
+              </div>
+              <button onClick={() => setShowOldConfirm(true)} className="w-full bg-orange-500 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2">
+                <Package size={14} /> Request Old Stock Clear
+              </button>
+            </div>
+          )}
+
+          {step === "old_stock" && showOldConfirm && (
+            <div>
+              <p className="text-sm font-semibold text-foreground mb-2">Confirm request?</p>
+              <p className="text-xs text-muted-foreground mb-4">This request will be sent to a Level 2 user for approval before clearing order <strong>{order.orderID}</strong>.</p>
+              <div className="flex gap-2">
+                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
+                <button onClick={handleOldStockRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                  {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                  Submit Request
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Delete Confirm Dialog (Level 2: direct delete) ───────────────────────────
 function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: () => void; onSuccess: () => void; }) {
   const [workerID, setWorkerID] = useState("");
   const [error, setError] = useState("");
@@ -192,10 +340,57 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
   );
 }
 
+// ─── Level 1: Delete Request Dialog (sends to approval queue) ─────────────────
+function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: Order; workerID: string; onClose: () => void; onSuccess: () => void; }) {
+  const [error, setError] = useState("");
+  const submitRequest = trpc.pendingRequests.submit.useMutation();
+
+  const handleRequest = async () => {
+    setError("");
+    try {
+      await submitRequest.mutateAsync({
+        type: "delete",
+        orderId: order.id,
+        orderSnapshot: JSON.stringify(order),
+        requestedBy: workerID,
+      });
+      toast.success("Delete request submitted! Awaiting Level 2 approval.");
+      onSuccess();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setError(e?.message ?? "Failed to submit request.");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+        <h3 className="font-bold text-foreground mb-2">Request Delete</h3>
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+          <Clock size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-orange-700">Your delete request will be sent to a <strong>Level 2 user</strong> for approval.</p>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">Request deletion of order <strong className="text-foreground">{order.orderID}</strong>?</p>
+        {error && <p className="text-xs text-destructive mb-2">{error}</p>}
+        <div className="flex gap-2 mt-3">
+          <button onClick={onClose} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
+          <button onClick={handleRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+            {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
+            Submit Request
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main StockHistory ─────────────────────────────────────────────────────────
 export default function StockHistory() {
   const [, navigate] = useLocation();
-  void navigate; // used for back navigation via PageHeader
+  void navigate;
+  const { worker } = useAuth();
+  const userLevel = worker?.userLevel ?? "2";
+
   const [activeTab, setActiveTab] = useState<"current" | "out_of_stock">("current");
   const [searchOrderID, setSearchOrderID] = useState("");
   const [searchFlute, setSearchFlute] = useState("");
@@ -217,8 +412,18 @@ export default function StockHistory() {
   return (
     <div className="min-h-screen bg-background">
       <PageHeader showBack backHref="/" />
-      <div className="flex justify-end px-4 pt-3">
-        <button onClick={() => utils.orders.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100" title="Refresh">
+      <div className="flex justify-between items-center px-4 pt-3">
+        {userLevel === "1" && (
+          <div className="flex items-center gap-1.5 text-xs text-orange-600 font-semibold bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-lg">
+            <Clock size={12} /> Level 1 — Actions require approval
+          </div>
+        )}
+        {userLevel === "2" && (
+          <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold bg-green-50 border border-green-200 px-2.5 py-1 rounded-lg">
+            Level 2 — Direct actions enabled
+          </div>
+        )}
+        <button onClick={() => utils.orders.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100 ml-auto" title="Refresh">
           <RefreshCw size={16} />
         </button>
       </div>
@@ -303,8 +508,11 @@ export default function StockHistory() {
                       <td className="py-3">
                         <div className="flex items-center gap-2">
                           {activeTab === "current" && (
-                            <button onClick={() => setUsedUpdateOrder(order)} className="text-xs bg-primary text-white px-2.5 py-1 rounded-lg font-semibold hover:opacity-90 whitespace-nowrap">
-                              Used Update
+                            <button
+                              onClick={() => setUsedUpdateOrder(order)}
+                              className={`text-xs px-2.5 py-1 rounded-lg font-semibold hover:opacity-90 whitespace-nowrap ${userLevel === "1" ? "bg-orange-500 text-white" : "bg-primary text-white"}`}
+                            >
+                              {userLevel === "1" ? "Request Use" : "Used Update"}
                             </button>
                           )}
                           <button onClick={() => setDeleteOrder(order)} className="text-muted-foreground hover:text-destructive p-1">
@@ -346,8 +554,11 @@ export default function StockHistory() {
                   </div>
                   <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</p>
                   {activeTab === "current" && (
-                    <button onClick={() => setUsedUpdateOrder(order)} className="w-full gspp-gradient text-white rounded-lg py-2 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2">
-                      <Zap size={14} /> Used Update
+                    <button
+                      onClick={() => setUsedUpdateOrder(order)}
+                      className={`w-full text-white rounded-lg py-2 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2 ${userLevel === "1" ? "bg-orange-500" : "gspp-gradient"}`}
+                    >
+                      {userLevel === "1" ? <><Clock size={14} /> Request Use</> : <><Zap size={14} /> Used Update</>}
                     </button>
                   )}
                 </div>
@@ -357,8 +568,19 @@ export default function StockHistory() {
         )}
       </main>
 
-      {usedUpdateOrder && <UsedUpdateDialog order={usedUpdateOrder} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />}
-      {deleteOrder && <DeleteDialog order={deleteOrder} onClose={() => setDeleteOrder(null)} onSuccess={() => { setDeleteOrder(null); utils.orders.list.invalidate(); }} />}
+      {/* Dialogs: Level 1 gets request dialogs, Level 2 gets direct action dialogs */}
+      {usedUpdateOrder && userLevel === "2" && (
+        <UsedUpdateDialog order={usedUpdateOrder} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />
+      )}
+      {usedUpdateOrder && userLevel === "1" && worker && (
+        <UsedUpdateRequestDialog order={usedUpdateOrder} workerID={worker.workerID} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />
+      )}
+      {deleteOrder && userLevel === "2" && (
+        <DeleteDialog order={deleteOrder} onClose={() => setDeleteOrder(null)} onSuccess={() => { setDeleteOrder(null); utils.orders.list.invalidate(); }} />
+      )}
+      {deleteOrder && userLevel === "1" && worker && (
+        <DeleteRequestDialog order={deleteOrder} workerID={worker.workerID} onClose={() => setDeleteOrder(null)} onSuccess={() => { setDeleteOrder(null); }} />
+      )}
     </div>
   );
 }

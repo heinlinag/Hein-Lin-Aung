@@ -198,6 +198,7 @@
   .feature-card-green { background: oklch(65% 0.16 162); color: white; }
   .feature-card-purple { background: oklch(55% 0.18 290); color: white; }
   .feature-card-red { background: oklch(57% 0.22 25); color: white; }
+  .feature-card-orange { background: oklch(65% 0.18 55); color: white; }
 
   /* ── Mobile touch targets ── */
   @media (max-width: 768px) {

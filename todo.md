@@ -93,6 +93,19 @@
 
 ## New Feature Requests (Round 3)
 - [x] Move all toast notifications to top of screen (top-center position)
-- [ ] Low-stock alert: highlight orders with qty < 50 pcs in Stock History (yellow/orange warning)
-- [ ] Admin Panel: add Deleted Logs History tab showing audit trail (who deleted, when, order details)
-- [ ] Deleted Logs tab: show deletedLogs table data via tRPC procedure
+- [x] Low-stock alert: highlight orders with qty < 50 pcs in Stock History (yellow/orange warning)
+- [x] Admin Panel: add Deleted Logs History tab showing audit trail (who deleted, when, order details)
+- [x] Deleted Logs tab: show deletedLogs table data via tRPC procedure
+
+## User Level System (Approval Workflow)
+- [ ] Schema: add userLevel (1|2) column to workers table
+- [ ] Schema: create pendingRequests table (id, type, orderId, orderSnapshot, requestedBy, workerName, status, createdAt)
+- [ ] DB helpers: createPendingRequest, getPendingRequests, updatePendingRequestStatus
+- [ ] Router: pendingRequests.submit, pendingRequests.list, pendingRequests.approve, pendingRequests.cancel
+- [ ] Admin Panel: add User Level (1/2) selector to Add Worker form
+- [ ] Auth: expose userLevel in worker session (localStorage)
+- [ ] StockHistory: Level 1 workers - delete sends pending request instead of direct delete
+- [ ] StockHistory: Level 1 workers - Used Update sends pending request instead of direct update
+- [ ] StockHistory: Level 2 workers - keep current direct action behavior
+- [ ] Approval Center page: Level 2 workers can see pending requests and approve/cancel
+- [ ] Home page: show Approval Center link for Level 2 workers

@@ -40,7 +40,7 @@ export default function Login() {
         setLoading(false);
         return;
       }
-      loginWorker(found.workerID, found.name, found.department);
+      loginWorker(found.workerID, found.name, found.department, (found.userLevel as "1" | "2") ?? "2");
       navigate("/");
     } catch {
       setError("Login failed. Please try again.");

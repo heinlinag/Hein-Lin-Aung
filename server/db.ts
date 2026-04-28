@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs } from "../drizzle/schema";
+import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -177,4 +177,46 @@ export async function getDeletedLogs() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(deletedLogs).orderBy(desc(deletedLogs.deletedAt));
+}
+
+// ─── Pending Requests ─────────────────────────────────────────────────────────
+export async function createPendingRequest(data: {
+  type: "delete" | "used_update";
+  orderId: number;
+  orderSnapshot: string;
+  requestedBy: string;
+  workerName: string;
+  actionData?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(pendingRequests).values(data);
+}
+
+export async function getPendingRequests(status?: "pending" | "approved" | "cancelled") {
+  const db = await getDb();
+  if (!db) return [];
+  if (status) {
+    return db.select().from(pendingRequests).where(eq(pendingRequests.status, status)).orderBy(desc(pendingRequests.createdAt));
+  }
+  return db.select().from(pendingRequests).orderBy(desc(pendingRequests.createdAt));
+}
+
+export async function getPendingRequestById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(pendingRequests).where(eq(pendingRequests.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updatePendingRequestStatus(
+  id: number,
+  status: "approved" | "cancelled",
+  reviewedBy: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(pendingRequests)
+    .set({ status, reviewedBy, reviewedAt: new Date() })
+    .where(eq(pendingRequests.id, id));
 }

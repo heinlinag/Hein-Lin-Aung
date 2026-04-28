@@ -17,6 +17,10 @@ import {
   getUsageHistory,
   logDeletedOrder,
   getDeletedLogs,
+  createPendingRequest,
+  getPendingRequests,
+  getPendingRequestById,
+  updatePendingRequestStatus,
 } from "./db";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
@@ -40,7 +44,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker ID not found" });
-        return { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department };
+        return { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel };
       }),
     list: publicProcedure.query(async () => {
       return getAllWorkers();
@@ -50,6 +54,7 @@ export const appRouter = router({
         workerID: z.string().min(1).max(64),
         name: z.string().min(1).max(128),
         department: z.string().min(1).max(128),
+        userLevel: z.enum(["1", "2"]).default("2"),
         adminPassword: z.string(),
       }))
       .mutation(async ({ input }) => {
@@ -58,7 +63,7 @@ export const appRouter = router({
         }
         const existing = await getWorkerByWorkerID(input.workerID);
         if (existing) throw new TRPCError({ code: "CONFLICT", message: "Worker ID already exists" });
-        await createWorker({ workerID: input.workerID, name: input.name, department: input.department });
+        await createWorker({ workerID: input.workerID, name: input.name, department: input.department, userLevel: input.userLevel });
         return { success: true };
       }),
     delete: publicProcedure
@@ -218,7 +223,101 @@ export const appRouter = router({
     }),
   }),
 
-  // ─── Admin ─────────────────────────────────────────────────────────────────
+  // ─── Pending Requests ──────────────────────────────────────────────────────────────────────────────
+  pendingRequests: router({
+    submit: publicProcedure
+      .input(z.object({
+        type: z.enum(["delete", "used_update"]),
+        orderId: z.number().int().positive(),
+        orderSnapshot: z.string(), // JSON
+        requestedBy: z.string().min(1), // workerID
+        actionData: z.string().optional(), // JSON for used_update
+      }))
+      .mutation(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.requestedBy);
+        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+        if (worker.userLevel !== "1") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1 workers submit requests" });
+        await createPendingRequest({
+          type: input.type,
+          orderId: input.orderId,
+          orderSnapshot: input.orderSnapshot,
+          requestedBy: input.requestedBy,
+          workerName: worker.name,
+          actionData: input.actionData,
+        });
+        return { success: true };
+      }),
+    list: publicProcedure
+      .input(z.object({ status: z.enum(["pending", "approved", "cancelled"]).optional() }))
+      .query(async ({ input }) => {
+        return getPendingRequests(input.status);
+      }),
+    approve: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        reviewerWorkerID: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
+        if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+        if (reviewer.userLevel !== "2") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 2 workers can approve requests" });
+        const req = await getPendingRequestById(input.id);
+        if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+        if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
+        // Execute the action
+        if (req.type === "delete") {
+          const snapshot = JSON.parse(req.orderSnapshot);
+          await logDeletedOrder({
+            orderID: snapshot.orderID,
+            fluteType: snapshot.fluteType,
+            sizeW: snapshot.sizeW,
+            sizeL: snapshot.sizeL,
+            qty: snapshot.qty,
+            bqComment: snapshot.bqComment,
+            deletedBy: req.workerName,
+          });
+          await deleteOrder(req.orderId);
+        } else if (req.type === "used_update" && req.actionData) {
+          const action = JSON.parse(req.actionData);
+          await logUsageHistory({
+            jobNo: action.jobNo ?? null,
+            usedQty: action.usedQty,
+            orderID: action.orderID,
+            fluteType: action.fluteType,
+            bqComment: action.bqComment,
+            purpose: action.purpose,
+          });
+          if (action.newQty === 0) {
+            await updateOrderStatus(req.orderId, "out_of_stock");
+          } else {
+            const db = await (await import("./db")).getDb();
+            if (db) {
+              const { orders: ordersTable } = await import("../drizzle/schema");
+              const { eq } = await import("drizzle-orm");
+              await db.update(ordersTable).set({ qty: action.newQty }).where(eq(ordersTable.id, req.orderId));
+            }
+          }
+        }
+        await updatePendingRequestStatus(input.id, "approved", reviewer.name);
+        return { success: true };
+      }),
+    cancel: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        reviewerWorkerID: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
+        if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+        if (reviewer.userLevel !== "2") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 2 workers can cancel requests" });
+        const req = await getPendingRequestById(input.id);
+        if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+        if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
+        await updatePendingRequestStatus(input.id, "cancelled", reviewer.name);
+        return { success: true };
+      }),
+  }),
+  // ─── Admin ──────────────────────────────────────────────────────────────────────────────
   admin: router({
     login: publicProcedure
       .input(z.object({ password: z.string() }))
@@ -230,5 +329,4 @@ export const appRouter = router({
       }),
   }),
 });
-
 export type AppRouter = typeof appRouter;

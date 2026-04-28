@@ -12,6 +12,7 @@ import StockHistory from "./pages/StockHistory";
 import AdminPanel from "./pages/AdminPanel";
 import UsageHistory from "./pages/UsageHistory";
 import Login from "./pages/Login";
+import ApprovalCenter from "./pages/ApprovalCenter";
 
 function Router() {
   return (
@@ -38,6 +39,13 @@ function Router() {
       <Route path="/usage-history">
         <LoginGate>
           <UsageHistory />
+        </LoginGate>
+      </Route>
+
+      {/* Approval Center: Level 2 workers only */}
+      <Route path="/approval-center">
+        <LoginGate>
+          <ApprovalCenter />
         </LoginGate>
       </Route>
 

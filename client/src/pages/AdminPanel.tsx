@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 const ADMIN_PASSWORD = "Qwer@7090heinann";
 
-type Worker = { id: number; workerID: string; name: string; department: string; createdAt: Date };
+type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "2"; createdAt: Date };
 type Order = {
   id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
@@ -24,6 +24,7 @@ function WorkersTab() {
   const [newWorkerID, setNewWorkerID] = useState("");
   const [newName, setNewName] = useState("");
   const [newDept, setNewDept] = useState("");
+  const [newUserLevel, setNewUserLevel] = useState<"1" | "2">("2");
   const [addError, setAddError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
 
@@ -37,11 +38,11 @@ function WorkersTab() {
       return;
     }
     try {
-      await addWorker.mutateAsync({ workerID: newWorkerID.trim(), name: newName.trim(), department: newDept.trim(), adminPassword: ADMIN_PASSWORD });
+      await addWorker.mutateAsync({ workerID: newWorkerID.trim(), name: newName.trim(), department: newDept.trim(), userLevel: newUserLevel, adminPassword: ADMIN_PASSWORD });
       toast.success("Worker added.");
       utils.workers.list.invalidate();
       setShowAdd(false);
-      setNewWorkerID(""); setNewName(""); setNewDept("");
+      setNewWorkerID(""); setNewName(""); setNewDept(""); setNewUserLevel("2");
     } catch (err: unknown) {
       const e = err as { message?: string };
       setAddError(e?.message ?? "Failed to add worker.");
@@ -92,6 +93,7 @@ function WorkersTab() {
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Worker ID</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Name</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Department</th>
+                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Level</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3">Action</th>
                 </tr>
               </thead>
@@ -102,6 +104,9 @@ function WorkersTab() {
                     <td className="py-3 pr-4 text-sm text-foreground">{w.name}</td>
                     <td className="py-3 pr-4">
                       <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"}`}>Lv.{w.userLevel}</span>
                     </td>
                     <td className="py-3">
                       <button onClick={() => setDeleteTarget(w)} className="text-muted-foreground hover:text-destructive transition-colors">
@@ -134,6 +139,10 @@ function WorkersTab() {
                   <span className="text-muted-foreground text-xs">Department</span>
                   <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
                 </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-muted-foreground text-xs">User Level</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"}`}>Level {w.userLevel}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -157,6 +166,26 @@ function WorkersTab() {
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Department</label>
                 <input type="text" value={newDept} onChange={e => { setNewDept(e.target.value); setAddError(""); }} placeholder="e.g. Production" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">User Level</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewUserLevel("1")}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${newUserLevel === "1" ? "bg-orange-100 border-orange-400 text-orange-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}
+                  >
+                    Level 1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewUserLevel("2")}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${newUserLevel === "2" ? "bg-green-100 border-green-400 text-green-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}
+                  >
+                    Level 2
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{newUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : "Level 2: Can approve/cancel Level 1 requests"}</p>
               </div>
               {addError && <p className="text-xs text-destructive">{addError}</p>}
             </div>

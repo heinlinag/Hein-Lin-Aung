@@ -1,10 +1,10 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, Settings, History, LogOut, User } from "lucide-react";
+import { ClipboardList, Package, Settings, History, LogOut, User, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 
-const features = [
+const baseFeatures = [
   {
     icon: <ClipboardList size={28} />,
     title: "Submit Order",
@@ -12,6 +12,7 @@ const features = [
     href: "/submit-order",
     cardClass: "feature-card-blue",
     btnLabel: "Submit Order",
+    levels: ["1", "2"] as ("1" | "2")[],
   },
   {
     icon: <Package size={28} />,
@@ -20,6 +21,7 @@ const features = [
     href: "/stock-history",
     cardClass: "feature-card-green",
     btnLabel: "View Stock",
+    levels: ["1", "2"] as ("1" | "2")[],
   },
   {
     icon: <History size={28} />,
@@ -28,6 +30,16 @@ const features = [
     href: "/usage-history",
     cardClass: "feature-card-purple",
     btnLabel: "View Usage",
+    levels: ["1", "2"] as ("1" | "2")[],
+  },
+  {
+    icon: <CheckCircle2 size={28} />,
+    title: "Approval Center",
+    description: "Review and approve Level 1 worker requests for delete and used-update actions.",
+    href: "/approval-center",
+    cardClass: "feature-card-orange",
+    btnLabel: "Open Approval Center",
+    levels: ["2"] as ("1" | "2")[],
   },
   {
     icon: <Settings size={28} />,
@@ -36,17 +48,21 @@ const features = [
     href: "/admin",
     cardClass: "feature-card-red",
     btnLabel: "Admin Login",
+    levels: ["1", "2"] as ("1" | "2")[],
   },
 ];
 
 export default function Home() {
   const [, navigate] = useLocation();
   const { worker, logoutWorker } = useAuth();
+  const userLevel = worker?.userLevel ?? "2";
 
   const handleLogout = () => {
     logoutWorker();
     navigate("/login");
   };
+
+  const features = baseFeatures.filter(f => f.levels.includes(userLevel));
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -69,6 +85,9 @@ export default function Home() {
               <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-xs font-medium">
                 <User size={12} />
                 <span>{worker.name}</span>
+                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold ${worker.userLevel === "1" ? "bg-orange-200 text-orange-700" : "bg-green-200 text-green-700"}`}>
+                  Lv.{worker.userLevel}
+                </span>
               </div>
               <button
                 onClick={handleLogout}
@@ -93,6 +112,14 @@ export default function Home() {
           PP4 Manual Slitter
         </h2>
         <p className="text-sm opacity-90">Stock Management System</p>
+        {worker && (
+          <div className="mt-2 inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-xs font-medium">
+            <span>Welcome, {worker.name}</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${worker.userLevel === "1" ? "bg-orange-400 text-white" : "bg-green-400 text-white"}`}>
+              Level {worker.userLevel}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Feature Cards */}

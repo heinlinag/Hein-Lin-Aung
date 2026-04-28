@@ -20,6 +20,7 @@ export const workers = mysqlTable("workers", {
   workerID: varchar("workerID", { length: 64 }).notNull().unique(),
   name: varchar("name", { length: 128 }).notNull(),
   department: varchar("department", { length: 128 }).notNull(),
+  userLevel: mysqlEnum("userLevel", ["1", "2"]).default("2").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type Worker = typeof workers.$inferSelect;
@@ -40,6 +41,23 @@ export const orders = mysqlTable("orders", {
 });
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
+
+// Pending Requests table — approval workflow for Level 1 worker actions
+export const pendingRequests = mysqlTable("pendingRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  type: mysqlEnum("type", ["delete", "used_update"]).notNull(),
+  orderId: int("orderId").notNull(),
+  orderSnapshot: text("orderSnapshot").notNull(), // JSON snapshot of order at request time
+  requestedBy: varchar("requestedBy", { length: 64 }).notNull(), // workerID
+  workerName: varchar("workerName", { length: 128 }).notNull(),
+  actionData: text("actionData"), // JSON: for used_update: { jobNo, usedQty, purpose, newQty }
+  status: mysqlEnum("status", ["pending", "approved", "cancelled"]).default("pending").notNull(),
+  reviewedBy: varchar("reviewedBy", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  reviewedAt: timestamp("reviewedAt"),
+});
+export type PendingRequest = typeof pendingRequests.$inferSelect;
+export type InsertPendingRequest = typeof pendingRequests.$inferInsert;
 
 // Deleted Logs table — audit trail of deleted orders
 export const deletedLogs = mysqlTable("deletedLogs", {
