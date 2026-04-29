@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { ClipboardList, Package, Settings, History, LogOut, User, CheckCircle2, Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
@@ -51,6 +52,7 @@ const baseFeatures = [
 export default function Home() {
   const [, navigate] = useLocation();
   const { worker, logoutWorker } = useAuth();
+  usePushNotifications(worker?.workerID ?? null);
   const userLevel = worker?.userLevel ?? "2";
 
   // Fetch pending request count for bell badge

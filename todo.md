@@ -115,3 +115,27 @@
 - [x] Add bell icon with pending request count badge in Home hero section (top-right)
 - [x] Level 1 users in Approval Center: can view and cancel their own requests only (no Approve button)
 - [x] Level 2 users in Approval Center: can both Approve and Cancel all requests
+
+## Advanced Approval & Notification Features
+- [x] Server: add pendingRequests.getPendingUsedQty procedure (returns total pending used qty for a given orderId)
+- [ ] StockHistory: Used Update dialog shows "Available Qty" = current qty minus pending used qty
+- [x] StockHistory: warn if requested used qty exceeds available qty
+- [ ] Server: pendingRequests.cancel - restrict Level 1 users to cancel own requests only
+- [x] ApprovalCenter: Level 1 users see Cancel button only on their own requests
+- [x] Admin Panel: add Pending Requests tab (list all pending/approved/cancelled, approve/cancel actions)
+- [ ] Push Notifications: implement Web Push API (VAPID keys, service worker, subscription storage)
+- [ ] Push Notifications: notify Level 2 users when Level 1 submits a new pending request
+- [ ] Push Notifications: notify all users when a new order is submitted
+- [ ] Push Notifications: notify admin when a user logs in
+
+## Advanced Approval & Notification Features
+- [x] Server: add pendingRequests.getPendingUsedQty procedure
+- [x] StockHistory: Used Update dialog shows Available Qty = current qty minus pending used qty
+- [x] StockHistory: warn if requested used qty exceeds available qty
+- [x] Server: pendingRequests.cancel - restrict Level 1 to cancel own requests only
+- [x] ApprovalCenter: Level 1 users see Cancel button only on their own requests
+- [x] Admin Panel: add Pending Requests tab
+- [x] Push Notifications: Web Push API with VAPID keys and service worker
+- [x] Push Notifications: notify Level 2 users on new pending request
+- [x] Push Notifications: notify all users on new order submitted
+- [x] Push Notifications: notify admin on user login

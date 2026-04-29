@@ -21,6 +21,7 @@ export default function Login() {
   const [, navigate] = useLocation();
 
   const workersQuery = trpc.workers.list.useQuery();
+  const notifyLogin = trpc.push.sendToAll.useMutation();
 
   const handleWorkerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +42,7 @@ export default function Login() {
         return;
       }
       loginWorker(found.workerID, found.name, found.department, (found.userLevel as "1" | "2") ?? "2");
+      notifyLogin.mutate({ title: "Worker Login", body: found.name + " (" + found.workerID + ") logged in", tag: "worker-login" });
       navigate("/");
     } catch {
       setError("Login failed. Please try again.");

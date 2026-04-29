@@ -20,6 +20,7 @@ export default function SubmitOrder() {
   const [qty, setQty] = useState("");
   const [bqComment, setBqComment] = useState("");
 
+  const notifyAll = trpc.push.sendToAll.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,6 +48,7 @@ export default function SubmitOrder() {
         workerID: worker.workerID,
       });
       toast.success("Order submitted successfully!");
+      notifyAll.mutate({ title: "New Order Submitted", body: "Order " + orderID.trim() + " (" + (fluteType === "Manual" ? manualFlute.trim() : fluteType) + ") submitted by " + (worker?.name ?? "Worker"), tag: "new-order" });
       navigate("/stock-history");
     } catch (err: unknown) {
       const e = err as { message?: string };

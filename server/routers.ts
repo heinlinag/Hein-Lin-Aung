@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { saveSubscription, sendPushNotification, getAllSubscriptions, getSubscriptionsForWorkers } from "./push";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -20,6 +21,7 @@ import {
   createPendingRequest,
   getPendingRequests,
   getPendingRequestById,
+  getPendingUsedQtyForOrder,
   updatePendingRequestStatus,
 } from "./db";
 
@@ -252,15 +254,26 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return getPendingRequests(input.status);
       }),
+    getPendingUsedQty: publicProcedure
+      .input(z.object({ orderId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const pendingUsedQty = await getPendingUsedQtyForOrder(input.orderId);
+        return { pendingUsedQty };
+      }),
     approve: publicProcedure
       .input(z.object({
         id: z.number().int().positive(),
         reviewerWorkerID: z.string().min(1),
       }))
       .mutation(async ({ input }) => {
-        const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
-        if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
-        if (reviewer.userLevel !== "2") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 2 workers can approve requests" });
+        const isAdmin = input.reviewerWorkerID === "ADMIN";
+        let reviewerName = "Administrator";
+        if (!isAdmin) {
+          const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
+          if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+          if (reviewer.userLevel !== "2") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 2 workers can approve requests" });
+          reviewerName = reviewer.name;
+        }
         const req = await getPendingRequestById(input.id);
         if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
         if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
@@ -298,7 +311,7 @@ export const appRouter = router({
             }
           }
         }
-        await updatePendingRequestStatus(input.id, "approved", reviewer.name);
+        await updatePendingRequestStatus(input.id, "approved", reviewerName);
         return { success: true };
       }),
     cancel: publicProcedure
@@ -307,13 +320,27 @@ export const appRouter = router({
         reviewerWorkerID: z.string().min(1),
       }))
       .mutation(async ({ input }) => {
-        const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
-        if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
-        if (reviewer.userLevel !== "2") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 2 workers can cancel requests" });
+        const isAdminCancel = input.reviewerWorkerID === "ADMIN";
+        let cancellerName = "Administrator";
+        if (!isAdminCancel) {
+          const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
+          if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+          const req2 = await getPendingRequestById(input.id);
+          if (!req2) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+          if (req2.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
+          // Level 1 can only cancel their own requests; Level 2 can cancel any
+          if (reviewer.userLevel === "1" && req2.requestedBy !== reviewer.workerID) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Level 1 users can only cancel their own requests" });
+          }
+          if (reviewer.userLevel !== "1" && reviewer.userLevel !== "2") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
+          }
+          cancellerName = reviewer.name;
+        }
         const req = await getPendingRequestById(input.id);
         if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
         if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
-        await updatePendingRequestStatus(input.id, "cancelled", reviewer.name);
+        await updatePendingRequestStatus(input.id, "cancelled", cancellerName);
         return { success: true };
       }),
   }),
@@ -325,6 +352,48 @@ export const appRouter = router({
         if (input.password !== ADMIN_PASSWORD) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid admin password" });
         }
+        return { success: true };
+      }),
+  }),
+  // ─── Push Notifications ─────────────────────────────────────────────────────────────────
+  push: router({
+    getVapidKey: publicProcedure.query(() => {
+      return { publicKey: "BAQN0wvOeqzGaDPxLZm76ZG6Iw2L1IfRZ8h5GzcxYJFFm4AT3RybTyiM0r8825pWeKZJ7MOSz9yZwBZ-_AI1q-g" };
+    }),
+    subscribe: publicProcedure
+      .input(z.object({
+        workerID: z.string().min(1),
+        subscription: z.object({
+          endpoint: z.string(),
+          keys: z.object({ p256dh: z.string(), auth: z.string() }),
+        }),
+      }))
+      .mutation(async ({ input }) => {
+        await saveSubscription(input.workerID, input.subscription);
+        return { success: true };
+      }),
+    sendToAll: publicProcedure
+      .input(z.object({
+        title: z.string(),
+        body: z.string(),
+        tag: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const subs = await getAllSubscriptions();
+        await sendPushNotification(subs, { title: input.title, body: input.body, tag: input.tag });
+        return { success: true };
+      }),
+    sendToLevel2: publicProcedure
+      .input(z.object({
+        title: z.string(),
+        body: z.string(),
+        tag: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const allWorkers = await (await import("./db")).getAllWorkers();
+        const level2IDs = allWorkers.filter((w: { userLevel: string }) => w.userLevel === "2").map((w: { workerID: string }) => w.workerID);
+        const subs = await getSubscriptionsForWorkers(level2IDs);
+        await sendPushNotification(subs, { title: input.title, body: input.body, tag: input.tag });
         return { success: true };
       }),
   }),

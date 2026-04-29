@@ -165,13 +165,17 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
   const [jobError, setJobError] = useState("");
   const [showOldConfirm, setShowOldConfirm] = useState(false);
   const submitRequest = trpc.pendingRequests.submit.useMutation();
+  const notifyLevel2 = trpc.push.sendToLevel2.useMutation();
+  const pendingUsedQtyQuery = trpc.pendingRequests.getPendingUsedQty.useQuery({ orderId: order.id });
+  const pendingUsedQty = pendingUsedQtyQuery.data?.pendingUsedQty ?? 0;
+  const availableQty = Math.max(0, order.qty - pendingUsedQty);
 
   const handleJobRequest = async () => {
     setJobError("");
     if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
     const qty = parseInt(useQty);
     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
-    if (qty > order.qty) { setJobError(`Cannot exceed available quantity (${order.qty} pcs).`); return; }
+    if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs after pending requests).`); return; }
     const newQty = order.qty - qty;
     try {
       await submitRequest.mutateAsync({
@@ -182,6 +186,7 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
         actionData: JSON.stringify({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", newQty }),
       });
       toast.success("Request submitted! Awaiting Level 2 approval.");
+      notifyLevel2.mutate({ title: "New Approval Request", body: `${workerID} submitted a Used Update request. Please review in Approval Center.`, tag: "pending-request" });
       onSuccess();
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -223,7 +228,15 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
             <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Available Quantity</p>
-            <p className="text-2xl font-bold text-blue-700 mt-0.5">{order.qty} <span className="text-sm font-normal">pcs</span></p>
+            <p className="text-2xl font-bold text-blue-700 mt-0.5">{availableQty} <span className="text-sm font-normal">pcs</span></p>
+            {pendingUsedQty > 0 && (
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <span className="text-xs text-orange-600">Stock: {order.qty} pcs</span>
+                <span className="text-xs text-muted-foreground">−</span>
+                <span className="text-xs text-orange-600 font-semibold">Pending: {pendingUsedQty} pcs</span>
+                <span className="text-xs text-muted-foreground">= Available: {availableQty} pcs</span>
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap gap-2 mb-4">
             <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
@@ -255,10 +268,10 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
                   <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Quantity to Use (max {order.qty} pcs)</label>
-                  <input type="number" value={useQty} onChange={e => { setUseQty(e.target.value); setJobError(""); }} placeholder="e.g. 15" min={1} max={order.qty} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                  {useQty && !isNaN(parseInt(useQty)) && parseInt(useQty) > 0 && parseInt(useQty) <= order.qty && (
-                    <p className="text-xs text-green-600 mt-1 font-medium">Remaining after use: {order.qty - parseInt(useQty)} pcs</p>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Quantity to Use (max {availableQty} pcs)</label>
+                  <input type="number" value={useQty} onChange={e => { setUseQty(e.target.value); setJobError(""); }} placeholder="e.g. 15" min={1} max={availableQty} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  {useQty && !isNaN(parseInt(useQty)) && parseInt(useQty) > 0 && parseInt(useQty) <= availableQty && (
+                    <p className="text-xs text-green-600 mt-1 font-medium">Remaining after use: {availableQty - parseInt(useQty)} pcs</p>
                   )}
                 </div>
                 {jobError && <p className="text-xs text-destructive">{jobError}</p>}
@@ -275,7 +288,7 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
               <button onClick={() => setStep("choose")} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
                 <p className="text-sm font-bold text-destructive mb-1">⚠ Warning</p>
-                <p className="text-sm text-red-700">Request to clear all {order.qty} pcs and move to Out of Stock will be sent for approval.</p>
+                <p className="text-sm text-red-700">Request to clear all {availableQty} pcs and move to Out of Stock will be sent for approval.</p>
               </div>
               <button onClick={() => setShowOldConfirm(true)} className="w-full bg-orange-500 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2">
                 <Package size={14} /> Request Old Stock Clear

@@ -41,12 +41,14 @@ function RequestCard({
   onCancel,
   isProcessing,
   canApprove,
+  canCancel,
 }: {
   req: PendingRequest;
   onApprove: (id: number) => void;
   onCancel: (id: number) => void;
   isProcessing: boolean;
   canApprove: boolean;
+  canCancel: boolean;
 }) {
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
@@ -138,15 +140,17 @@ function RequestCard({
       </p>
 
       {/* Actions */}
-      {isPending && (
+      {isPending && (canCancel || canApprove) && (
         <div className="flex gap-2 pt-1">
-          <button
-            onClick={() => onCancel(req.id)}
-            disabled={isProcessing}
-            className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-          >
-            <XCircle size={14} /> Cancel
-          </button>
+          {canCancel && (
+            <button
+              onClick={() => onCancel(req.id)}
+              disabled={isProcessing}
+              className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              <XCircle size={14} /> Cancel
+            </button>
+          )}
           {canApprove && (
             <button
               onClick={() => onApprove(req.id)}
@@ -291,6 +295,7 @@ export default function ApprovalCenter() {
                 onCancel={handleCancel}
                 isProcessing={processingId === req.id}
                 canApprove={canApprove}
+                canCancel={canApprove || req.requestedBy === worker?.workerID}
               />
             ))}
           </div>

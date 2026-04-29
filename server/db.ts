@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -207,6 +207,24 @@ export async function getPendingRequestById(id: number) {
   if (!db) return undefined;
   const result = await db.select().from(pendingRequests).where(eq(pendingRequests.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+// Returns total pending used qty for a given orderId (used_update requests still pending)
+export async function getPendingUsedQtyForOrder(orderId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db
+    .select()
+    .from(pendingRequests)
+    .where(and(eq(pendingRequests.orderId, orderId), eq(pendingRequests.status, "pending"), eq(pendingRequests.type, "used_update")));
+  let total = 0;
+  for (const row of rows) {
+    try {
+      const action = JSON.parse(row.actionData ?? "{}");
+      if (typeof action.usedQty === "number") total += action.usedQty;
+    } catch { /* ignore */ }
+  }
+  return total;
 }
 
 export async function updatePendingRequestStatus(

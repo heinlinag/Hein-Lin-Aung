@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
@@ -505,10 +505,112 @@ function DeletedLogsTab() {
   );
 }
 
+// ─── Pending Requests Tab ─────────────────────────────────────────────────────
+type PendingReq = {
+  id: number; type: "delete" | "used_update"; orderId: number; orderSnapshot: string;
+  requestedBy: string; workerName: string; actionData: string | null;
+  status: "pending" | "approved" | "cancelled"; reviewedBy: string | null;
+  reviewedAt: Date | null; createdAt: Date;
+};
+function PendingRequestsTab() {
+  const utils = trpc.useUtils();
+  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "cancelled">("pending");
+  const [processingId, setProcessingId] = useState<number | null>(null);
+  const listQuery = trpc.pendingRequests.list.useQuery({ status: statusFilter });
+  const requests = (listQuery.data ?? []) as PendingReq[];
+  const approveMut = trpc.pendingRequests.approve.useMutation({
+    onSuccess: () => { utils.pendingRequests.list.invalidate(); toast.success("Request approved!"); },
+    onError: (e) => toast.error(e.message),
+  });
+  const cancelMut = trpc.pendingRequests.cancel.useMutation({
+    onSuccess: () => { utils.pendingRequests.list.invalidate(); toast.success("Request cancelled."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const handleApprove = async (id: number) => {
+    setProcessingId(id);
+    try { await approveMut.mutateAsync({ id, reviewerWorkerID: "ADMIN" }); } finally { setProcessingId(null); }
+  };
+  const handleCancel = async (id: number) => {
+    setProcessingId(id);
+    try { await cancelMut.mutateAsync({ id, reviewerWorkerID: "ADMIN" }); } finally { setProcessingId(null); }
+  };
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-bold text-foreground">Pending Requests</h2>
+        <button onClick={() => utils.pendingRequests.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1"><RefreshCw size={15} /></button>
+      </div>
+      {/* Status filter */}
+      <div className="flex gap-2 mb-4">
+        {(["pending", "approved", "cancelled"] as const).map(s => (
+          <button key={s} onClick={() => setStatusFilter(s)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-colors ${statusFilter === s ? (s === "pending" ? "bg-orange-500 text-white" : s === "approved" ? "bg-green-600 text-white" : "bg-gray-500 text-white") : "bg-gray-100 text-muted-foreground hover:bg-gray-200"}`}
+          >{s}</button>
+        ))}
+      </div>
+      {listQuery.isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-muted-foreground" /></div>
+      ) : requests.length === 0 ? (
+        <div className="text-center py-10 text-muted-foreground text-sm">No {statusFilter} requests</div>
+      ) : (
+        <div className="space-y-3">
+          {requests.map(req => {
+            const snapshot = (() => { try { return JSON.parse(req.orderSnapshot); } catch { return {}; } })();
+            const action = (() => { try { return req.actionData ? JSON.parse(req.actionData) : {}; } catch { return {}; } })();
+            const isPending = req.status === "pending";
+            return (
+              <div key={req.id} className="border border-border rounded-xl p-4 bg-white shadow-sm">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${req.type === "delete" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
+                      {req.type === "delete" ? <Trash2 size={10} /> : <RefreshCw size={10} />}
+                      {req.type === "delete" ? "Delete" : "Used Update"}
+                    </span>
+                    <span className={`ml-2 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${req.status === "pending" ? "bg-orange-100 text-orange-700" : req.status === "approved" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                      {req.status === "pending" ? <Clock size={10} /> : req.status === "approved" ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
+                      {req.status}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{new Date(req.createdAt).toLocaleString()}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-2">
+                  <div><span className="text-muted-foreground">Order ID: </span><span className="font-semibold">{snapshot.orderID ?? "—"}</span></div>
+                  <div><span className="text-muted-foreground">Requested by: </span><span className="font-semibold">{req.workerName} ({req.requestedBy})</span></div>
+                  {req.type === "used_update" && action.usedQty && (
+                    <div><span className="text-muted-foreground">Use Qty: </span><span className="font-semibold text-blue-700">{action.usedQty} pcs</span></div>
+                  )}
+                  {req.type === "used_update" && action.jobNo && (
+                    <div><span className="text-muted-foreground">Job No: </span><span className="font-semibold font-mono">{action.jobNo}</span></div>
+                  )}
+                  {req.reviewedBy && (
+                    <div className="col-span-2"><span className="text-muted-foreground">Reviewed by: </span><span className="font-semibold">{req.reviewedBy}</span></div>
+                  )}
+                </div>
+                {isPending && (
+                  <div className="flex gap-2 pt-1">
+                    <button onClick={() => handleCancel(req.id)} disabled={processingId === req.id}
+                      className="flex-1 border border-border rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
+                      <XCircle size={12} /> Cancel
+                    </button>
+                    <button onClick={() => handleApprove(req.id)} disabled={processingId === req.id}
+                      className="flex-1 bg-green-600 text-white rounded-lg py-2 text-xs font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
+                      {processingId === req.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                      Approve
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { logoutAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs">("workers");
+  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests">("workers");
   const [, navigate] = useLocation();
 
   return (
@@ -565,11 +667,18 @@ export default function AdminPanel() {
           >
             <History size={15} /> Deleted Logs
           </button>
+          <button
+            onClick={() => setActiveTab("pending_requests")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "pending_requests" ? "border-orange-500 text-orange-600" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            <ClipboardList size={15} /> Requests
+          </button>
         </div>
 
         {activeTab === "workers" && <WorkersTab />}
         {activeTab === "orders" && <OrdersTab />}
         {activeTab === "deleted_logs" && <DeletedLogsTab />}
+        {activeTab === "pending_requests" && <PendingRequestsTab />}
       </main>
     </div>
   );

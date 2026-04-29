@@ -87,3 +87,15 @@ export const usageHistory = mysqlTable("usageHistory", {
 });
 export type UsageHistory = typeof usageHistory.$inferSelect;
 export type InsertUsageHistory = typeof usageHistory.$inferInsert;
+
+// Push Subscriptions table — stores Web Push API subscriptions per worker
+export const pushSubscriptions = mysqlTable("pushSubscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  workerID: varchar("workerID", { length: 64 }).notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
