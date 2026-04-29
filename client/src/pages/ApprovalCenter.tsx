@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 
 type PendingRequest = {
   id: number;
@@ -177,13 +178,26 @@ export default function ApprovalCenter() {
 
   const requestsQuery = trpc.pendingRequests.list.useQuery(
     { status: statusFilter },
-    { refetchInterval: 15000 }
+    { refetchInterval: 10000 }
   );
   const utils = trpc.useUtils();
   const approveMutation = trpc.pendingRequests.approve.useMutation();
   const cancelMutation = trpc.pendingRequests.cancel.useMutation();
 
   const requests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
+
+  // Notification sound when new pending requests arrive
+  const { playChime } = useNotificationSound();
+  const prevPendingCountRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (statusFilter !== "pending") return;
+    const currentCount = requests.filter(r => r.status === "pending").length;
+    if (prevPendingCountRef.current !== null && currentCount > prevPendingCountRef.current) {
+      playChime();
+      toast.info(`${currentCount - prevPendingCountRef.current} new pending request(s) arrived.`);
+    }
+    prevPendingCountRef.current = currentCount;
+  }, [requests, statusFilter]);
 
   const handleApprove = async (id: number) => {
     if (!worker || !canApprove) return;

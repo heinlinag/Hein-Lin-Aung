@@ -149,3 +149,7 @@
 ## Order ID Duplicate Check
 - [x] Server: add checkOrderId procedure to orders router
 - [x] SubmitOrder: real-time duplicate warning with debounce
+
+## Approval Center Notification Sound
+- [x] Create useNotificationSound hook using Web Audio API
+- [x] Wire sound to new pending request detection in ApprovalCenter.tsx
