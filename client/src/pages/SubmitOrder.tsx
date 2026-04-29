@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -23,6 +23,18 @@ export default function SubmitOrder() {
   const notifyAll = trpc.push.sendToAll.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
 
+  // Debounced Order ID duplicate check
+  const [debouncedOrderID, setDebouncedOrderID] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedOrderID(orderID.trim()), 500);
+    return () => clearTimeout(t);
+  }, [orderID]);
+  const duplicateCheck = trpc.orders.checkOrderId.useQuery(
+    { orderID: debouncedOrderID },
+    { enabled: debouncedOrderID.length > 0 }
+  );
+  const isDuplicate = duplicateCheck.data?.exists === true;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!worker) {
@@ -34,6 +46,10 @@ export default function SubmitOrder() {
     const effectiveFluteType = fluteType === "Manual" ? manualFlute.trim() : fluteType;
     if (!orderID.trim() || !effectiveFluteType || !sizeW || !sizeL || !qty || !bqComment.trim()) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (isDuplicate) {
+      toast.error(`Order ID "${orderID.trim()}" already exists. Please use a different Order ID.`);
       return;
     }
 
@@ -88,8 +104,18 @@ export default function SubmitOrder() {
                   value={orderID}
                   onChange={e => setOrderID(e.target.value.toUpperCase())}
                   placeholder="e.g. A-203"
-                  className={inputCls}
+                  className={`${inputCls} ${isDuplicate ? "border-red-400 focus:ring-red-400" : ""}`}
                 />
+                {isDuplicate && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                    <span>⚠</span> Order ID <strong>{debouncedOrderID}</strong> already exists in the system.
+                  </p>
+                )}
+                {!isDuplicate && debouncedOrderID && duplicateCheck.data && (
+                  <p className="mt-1 text-xs text-green-600 flex items-center gap-1">
+                    <span>✓</span> Order ID is available.
+                  </p>
+                )}
               </div>
 
               {/* Flute Type */}

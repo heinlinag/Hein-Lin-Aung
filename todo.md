@@ -145,3 +145,7 @@
 - [x] SubmitOrder: BQ Comment shortcut buttons (LR, MP, KL, LP, KC, WT)
 - [x] Admin Panel: Export Orders to PDF and Excel
 - [x] Desktop responsive redesign: sidebar navigation, wider layout, proper spacing
+
+## Order ID Duplicate Check
+- [x] Server: add checkOrderId procedure to orders router
+- [x] SubmitOrder: real-time duplicate warning with debounce

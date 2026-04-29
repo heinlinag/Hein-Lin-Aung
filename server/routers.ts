@@ -12,6 +12,7 @@ import {
   deleteWorker,
   getAllOrders,
   createOrder,
+  getOrderByOrderID,
   updateOrderStatus,
   deleteOrder,
   logUsageHistory,
@@ -84,6 +85,12 @@ export const appRouter = router({
 
   // ─── Orders ────────────────────────────────────────────────────────────────
   orders: router({
+    checkOrderId: publicProcedure
+      .input(z.object({ orderID: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const existing = await getOrderByOrderID(input.orderID.trim());
+        return { exists: !!existing };
+      }),
     list: publicProcedure
       .input(z.object({ status: z.enum(["current", "out_of_stock"]).optional() }))
       .query(async ({ input }) => {

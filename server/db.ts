@@ -113,6 +113,14 @@ export async function getAllOrders(status?: "current" | "out_of_stock") {
   return baseQuery.orderBy(desc(orders.createdAt));
 }
 
+export async function getOrderByOrderID(orderID: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const { orders } = await import("../drizzle/schema");
+  const result = await db.select().from(orders).where(eq(orders.orderID, orderID)).limit(1);
+  return result[0] ?? null;
+}
+
 export async function createOrder(data: InsertOrder) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
