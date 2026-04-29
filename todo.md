@@ -118,15 +118,15 @@
 
 ## Advanced Approval & Notification Features
 - [x] Server: add pendingRequests.getPendingUsedQty procedure (returns total pending used qty for a given orderId)
-- [ ] StockHistory: Used Update dialog shows "Available Qty" = current qty minus pending used qty
+- [x] StockHistory: Used Update dialog shows "Available Qty" = current qty minus pending used qty
 - [x] StockHistory: warn if requested used qty exceeds available qty
-- [ ] Server: pendingRequests.cancel - restrict Level 1 users to cancel own requests only
+- [x] Server: pendingRequests.cancel - restrict Level 1 users to cancel own requests only
 - [x] ApprovalCenter: Level 1 users see Cancel button only on their own requests
 - [x] Admin Panel: add Pending Requests tab (list all pending/approved/cancelled, approve/cancel actions)
-- [ ] Push Notifications: implement Web Push API (VAPID keys, service worker, subscription storage)
-- [ ] Push Notifications: notify Level 2 users when Level 1 submits a new pending request
-- [ ] Push Notifications: notify all users when a new order is submitted
-- [ ] Push Notifications: notify admin when a user logs in
+- [x] Push Notifications: implement Web Push API (VAPID keys, service worker, subscription storage)
+- [x] Push Notifications: notify Level 2 users when Level 1 submits a new pending request
+- [x] Push Notifications: notify all users when a new order is submitted
+- [x] Push Notifications: notify admin when a user logs in
 
 ## Advanced Approval & Notification Features
 - [x] Server: add pendingRequests.getPendingUsedQty procedure

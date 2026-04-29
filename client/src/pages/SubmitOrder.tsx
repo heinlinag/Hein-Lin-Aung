@@ -168,7 +168,7 @@ export default function SubmitOrder() {
               <p className="text-xs text-muted-foreground mb-1.5">Board Quality formula string</p>
               <textarea
                 value={bqComment}
-                onChange={e => setBqComment(e.target.value)}
+                onChange={e => setBqComment(e.target.value.toUpperCase())}
                 placeholder="e.g. LR170MP115MP115MP115LR170"
                 rows={3}
                 className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white resize-none font-mono"
