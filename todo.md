@@ -153,3 +153,7 @@
 ## Approval Center Notification Sound
 - [x] Create useNotificationSound hook using Web Audio API
 - [x] Wire sound to new pending request detection in ApprovalCenter.tsx
+
+## Admin Dashboard Summary Stats
+- [x] Server: add system.adminStats procedure (total orders, pending requests, low-stock count)
+- [x] AdminPanel: add summary stat cards in header area

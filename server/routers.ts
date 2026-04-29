@@ -85,6 +85,24 @@ export const appRouter = router({
 
   // ─── Orders ────────────────────────────────────────────────────────────────
   orders: router({
+    adminStats: publicProcedure
+      .query(async () => {
+        const LOW_STOCK_THRESHOLD = 50;
+        const [allOrders, pendingReqs] = await Promise.all([
+          getAllOrders(),
+          getPendingRequests("pending"),
+        ]);
+        const currentOrders = allOrders.filter(o => o.status === "current");
+        const outOfStockOrders = allOrders.filter(o => o.status === "out_of_stock");
+        const lowStockOrders = currentOrders.filter(o => o.qty <= LOW_STOCK_THRESHOLD);
+        return {
+          totalCurrent: currentOrders.length,
+          totalOutOfStock: outOfStockOrders.length,
+          pendingRequests: pendingReqs.length,
+          lowStockCount: lowStockOrders.length,
+          lowStockThreshold: LOW_STOCK_THRESHOLD,
+        };
+      }),
     checkOrderId: publicProcedure
       .input(z.object({ orderID: z.string().min(1) }))
       .query(async ({ input }) => {

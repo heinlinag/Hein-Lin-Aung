@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
@@ -681,6 +681,9 @@ export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests">("workers");
   const [, navigate] = useLocation();
 
+  const statsQuery = trpc.orders.adminStats.useQuery(undefined, { refetchInterval: 30000 });
+  const stats = statsQuery.data;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -712,6 +715,68 @@ export default function AdminPanel() {
       {/* Admin Banner */}
       <div className="gspp-gradient text-white py-2 px-4 text-center text-xs">
         Logged in as <strong>Administrator</strong> — Admin Access
+      </div>
+
+      {/* Summary Stats */}
+      <div className="bg-gray-50 border-b border-border">
+        <div className="container lg:max-w-none lg:px-8 py-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Current Orders */}
+            <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm">
+              <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <Package size={18} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Current Orders</p>
+                <p className="text-2xl font-bold text-foreground leading-none mt-0.5">
+                  {statsQuery.isLoading ? <span className="text-base text-muted-foreground">…</span> : (stats?.totalCurrent ?? 0)}
+                </p>
+              </div>
+            </div>
+            {/* Out of Stock */}
+            <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm">
+              <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <Inbox size={18} className="text-gray-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Out of Stock</p>
+                <p className="text-2xl font-bold text-foreground leading-none mt-0.5">
+                  {statsQuery.isLoading ? <span className="text-base text-muted-foreground">…</span> : (stats?.totalOutOfStock ?? 0)}
+                </p>
+              </div>
+            </div>
+            {/* Pending Requests */}
+            <div
+              className="bg-white rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm cursor-pointer hover:border-orange-300 transition-colors"
+              onClick={() => setActiveTab("pending_requests")}
+            >
+              <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${(stats?.pendingRequests ?? 0) > 0 ? "bg-orange-100" : "bg-gray-100"}`}>
+                <ClipboardList size={18} className={(stats?.pendingRequests ?? 0) > 0 ? "text-orange-600" : "text-gray-500"} />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Pending Requests</p>
+                <p className={`text-2xl font-bold leading-none mt-0.5 ${(stats?.pendingRequests ?? 0) > 0 ? "text-orange-600" : "text-foreground"}`}>
+                  {statsQuery.isLoading ? <span className="text-base text-muted-foreground">…</span> : (stats?.pendingRequests ?? 0)}
+                </p>
+              </div>
+            </div>
+            {/* Low Stock */}
+            <div
+              className="bg-white rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm cursor-pointer hover:border-amber-300 transition-colors"
+              onClick={() => setActiveTab("orders")}
+            >
+              <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${(stats?.lowStockCount ?? 0) > 0 ? "bg-amber-100" : "bg-gray-100"}`}>
+                <AlertTriangle size={18} className={(stats?.lowStockCount ?? 0) > 0 ? "text-amber-600" : "text-gray-500"} />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Low Stock (≤{stats?.lowStockThreshold ?? 50})</p>
+                <p className={`text-2xl font-bold leading-none mt-0.5 ${(stats?.lowStockCount ?? 0) > 0 ? "text-amber-600" : "text-foreground"}`}>
+                  {statsQuery.isLoading ? <span className="text-base text-muted-foreground">…</span> : (stats?.lowStockCount ?? 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <main className="container lg:max-w-none lg:px-8 py-6">
