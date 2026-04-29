@@ -90,7 +90,7 @@ function WorkersTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Worker ID</th>
+                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Employee ID</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Name</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Department</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Level</th>
@@ -124,7 +124,7 @@ function WorkersTab() {
               <div key={w.id} className="p-4 bg-white border border-border rounded-xl shadow-sm">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="text-xs text-muted-foreground">Worker ID</p>
+                    <p className="text-xs text-muted-foreground">Employee ID</p>
                     <p className="text-sm font-bold text-primary">{w.workerID}</p>
                   </div>
                   <button onClick={() => setDeleteTarget(w)} className="text-muted-foreground hover:text-destructive p-1">
@@ -156,7 +156,7 @@ function WorkersTab() {
             <h3 className="font-bold text-foreground mb-4">Add Worker</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Worker ID</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Employee ID</label>
                 <input type="text" value={newWorkerID} onChange={e => { setNewWorkerID(e.target.value); setAddError(""); }} placeholder="e.g. DN156" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
               <div>
@@ -286,7 +286,7 @@ function OrdersTab() {
   const handleDeleteOrder = async () => {
     if (!deleteTarget) return;
     setDeleteError("");
-    if (!confirmWorkerID.trim()) { setDeleteError("Worker ID required."); return; }
+    if (!confirmWorkerID.trim()) { setDeleteError("Employee ID required."); return; }
     try {
       await deleteOrder.mutateAsync({ id: deleteTarget.id, orderID: deleteTarget.orderID, fluteType: deleteTarget.fluteType, sizeW: deleteTarget.sizeW, sizeL: deleteTarget.sizeL, qty: deleteTarget.qty, bqComment: deleteTarget.bqComment, workerID: confirmWorkerID.trim(), adminPassword: ADMIN_PASSWORD });
       toast.success("Order deleted.");
@@ -450,14 +450,14 @@ function OrdersTab() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
             <h3 className="font-bold text-foreground mb-2">Delete Order</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Enter a Worker ID to confirm deletion of order <strong className="text-foreground">{deleteTarget.orderID}</strong>.
+              Enter an Employee ID to confirm deletion of order <strong className="text-foreground">{deleteTarget.orderID}</strong>.
             </p>
             <input
               type="text"
               value={confirmWorkerID}
               onChange={e => { setConfirmWorkerID(e.target.value); setDeleteError(""); }}
               onKeyDown={e => e.key === "Enter" && handleDeleteOrder()}
-              placeholder="Worker ID"
+              placeholder="Employee ID"
               className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive mb-1"
               autoFocus
             />

@@ -27,7 +27,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     if (!workerID.trim()) {
-      setError("Please enter your Worker ID.");
+      setError("Please enter your Employee ID.");
       return;
     }
     setLoading(true);
@@ -37,12 +37,12 @@ export default function Login() {
         (w) => w.workerID.toLowerCase() === workerID.trim().toLowerCase()
       );
       if (!found) {
-        setError("Worker ID not found. Please check your ID or contact Admin.");
+        setError("Employee ID not found. Please check your ID or contact Admin.");
         setLoading(false);
         return;
       }
       loginWorker(found.workerID, found.name, found.department, (found.userLevel as "1" | "2") ?? "2");
-      notifyLogin.mutate({ title: "Worker Login", body: found.name + " (" + found.workerID + ") logged in", tag: "worker-login" });
+      notifyLogin.mutate({ title: "Employee Login", body: found.name + " (" + found.workerID + ") logged in", tag: "worker-login" });
       navigate("/");
     } catch {
       setError("Login failed. Please try again.");
@@ -95,7 +95,7 @@ export default function Login() {
             }`}
           >
             <User size={16} />
-            Worker Login
+            Employee Login
           </button>
           <button
             onClick={() => { setTab("admin"); setError(""); }}
@@ -110,7 +110,7 @@ export default function Login() {
           </button>
         </div>
 
-        {/* Worker Login Form */}
+        {/* Employee Login Form */}
         {tab === "worker" && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center gap-3 mb-5">
@@ -118,7 +118,7 @@ export default function Login() {
                 <User size={20} className="text-blue-600" />
               </div>
               <div>
-                <h2 className="font-bold text-gray-900">Worker Login</h2>
+                <h2 className="font-bold text-gray-900">Employee Login</h2>
                 <p className="text-xs text-gray-500">Session valid for 1 hour</p>
               </div>
             </div>
@@ -126,13 +126,13 @@ export default function Login() {
             <form onSubmit={handleWorkerLogin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Worker ID
+                  Employee ID
                 </label>
                 <input
                   type="text"
                   value={workerID}
                   onChange={(e) => setWorkerID(e.target.value)}
-                  placeholder="Enter your Worker ID"
+                  placeholder="Enter your Employee ID"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   autoFocus
                 />
@@ -152,12 +152,12 @@ export default function Login() {
                 {loading || workersQuery.isLoading ? (
                   <Loader2 size={16} className="animate-spin" />
                 ) : null}
-                Login with Worker ID
+                Login with Employee ID
               </button>
             </form>
 
             <p className="text-xs text-gray-400 text-center mt-4">
-              Don't have a Worker ID? Contact your Administrator.
+              Don't have an Employee ID? Contact your Administrator.
             </p>
           </div>
         )}

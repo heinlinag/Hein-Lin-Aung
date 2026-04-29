@@ -46,7 +46,7 @@ export const appRouter = router({
       .input(z.object({ workerID: z.string().min(1) }))
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
-        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker ID not found" });
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
         return { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel };
       }),
     list: publicProcedure.query(async () => {
@@ -65,7 +65,7 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
         }
         const existing = await getWorkerByWorkerID(input.workerID);
-        if (existing) throw new TRPCError({ code: "CONFLICT", message: "Worker ID already exists" });
+        if (existing) throw new TRPCError({ code: "CONFLICT", message: "Employee ID already exists" });
         await createWorker({ workerID: input.workerID, name: input.name, department: input.department, userLevel: input.userLevel });
         return { success: true };
       }),
@@ -126,7 +126,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
-        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
         await createOrder({
           orderID: input.orderID,
           fluteType: input.fluteType,
@@ -169,7 +169,7 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
         }
         const worker = await getWorkerByWorkerID(input.workerID);
-        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker ID not found" });
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
         await logDeletedOrder({
           orderID: input.orderID,
           fluteType: input.fluteType,
@@ -195,7 +195,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
-        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
         await logDeletedOrder({
           orderID: input.orderID,
           fluteType: input.fluteType,
@@ -262,7 +262,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.requestedBy);
-        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
         if (worker.userLevel !== "1") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1 workers submit requests" });
         await createPendingRequest({
           type: input.type,
@@ -295,7 +295,7 @@ export const appRouter = router({
         let reviewerName = "Administrator";
         if (!isAdmin) {
           const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
-          if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+          if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
           if (reviewer.userLevel !== "2") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 2 workers can approve requests" });
           reviewerName = reviewer.name;
         }
@@ -349,7 +349,7 @@ export const appRouter = router({
         let cancellerName = "Administrator";
         if (!isAdminCancel) {
           const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
-          if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Worker ID" });
+          if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
           const req2 = await getPendingRequestById(input.id);
           if (!req2) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
           if (req2.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });

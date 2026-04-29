@@ -323,14 +323,14 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
 
   const handleDelete = async () => {
     setError("");
-    if (!workerID.trim()) { setError("Worker ID is required."); return; }
+    if (!workerID.trim()) { setError("Employee ID is required."); return; }
     try {
       await deleteOrder.mutateAsync({ id: order.id, orderID: order.orderID, fluteType: order.fluteType, sizeW: order.sizeW, sizeL: order.sizeL, qty: order.qty, bqComment: order.bqComment, workerID: workerID.trim() });
       toast.success("Order deleted.");
       onSuccess();
     } catch (err: unknown) {
       const e = err as { message?: string };
-      setError(e?.message ?? "Invalid Worker ID or failed to delete.");
+      setError(e?.message ?? "Invalid Employee ID or failed to delete.");
     }
   };
 
@@ -338,8 +338,8 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
         <h3 className="font-bold text-foreground mb-2">Delete Order</h3>
-        <p className="text-sm text-muted-foreground mb-4">Enter your Worker ID to confirm deletion of order <strong className="text-foreground">{order.orderID}</strong>.</p>
-        <input type="text" value={workerID} onChange={e => { setWorkerID(e.target.value); setError(""); }} onKeyDown={e => e.key === "Enter" && handleDelete()} placeholder="Worker ID" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive mb-1" autoFocus />
+        <p className="text-sm text-muted-foreground mb-4">Enter your Employee ID to confirm deletion of order <strong className="text-foreground">{order.orderID}</strong>.</p>
+        <input type="text" value={workerID} onChange={e => { setWorkerID(e.target.value); setError(""); }} onKeyDown={e => e.key === "Enter" && handleDelete()} placeholder="Employee ID" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive mb-1" autoFocus />
         {error && <p className="text-xs text-destructive mb-2">{error}</p>}
         <div className="flex gap-2 mt-3">
           <button onClick={onClose} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
