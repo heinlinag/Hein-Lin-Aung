@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info } from "lucide-react";
-import PageHeader from "@/components/PageHeader";
+import AppLayout from "@/components/AppLayout";
 
 type PendingRequest = {
   id: number;
@@ -219,10 +219,8 @@ export default function ApprovalCenter() {
   const pendingCount = statusFilter === "pending" ? requests.length : undefined;
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader showBack backHref="/" />
-
-      <main className="container py-5">
+    <AppLayout pageTitle="Approval Center">
+      <main className="container lg:max-w-none lg:px-8 py-5">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-foreground">Approval Center</h1>
@@ -301,6 +299,6 @@ export default function ApprovalCenter() {
           </div>
         )}
       </main>
-    </div>
+    </AppLayout>
   );
 }

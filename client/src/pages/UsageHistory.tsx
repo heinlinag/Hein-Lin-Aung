@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Search, Loader2, History } from "lucide-react";
-import PageHeader from "@/components/PageHeader";
+import AppLayout from "@/components/AppLayout";
 
 type UsageEntry = {
   id: number;
@@ -36,10 +36,8 @@ export default function UsageHistory() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader showBack backHref="/" />
-
-      <main className="container py-4">
+    <AppLayout pageTitle="Usage History">
+      <main className="container lg:max-w-none lg:px-8 py-4">
         {/* Search */}
         <div className="relative mb-4">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -160,6 +158,6 @@ export default function UsageHistory() {
           </>
         )}
       </main>
-    </div>
+    </AppLayout>
   );
 }

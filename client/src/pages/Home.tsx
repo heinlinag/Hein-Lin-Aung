@@ -1,22 +1,23 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, Settings, History, LogOut, User, CheckCircle2, Bell } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
+import AppLayout from "@/components/AppLayout";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 
 const baseFeatures = [
   {
-    icon: <ClipboardList size={28} />,
+    icon: <ClipboardList size={32} />,
     title: "Submit Order",
-    description: "Submit a new Manual Slitter order with Flute Type, Size, Qty and BQ",
+    description: "Submit a new Manual Slitter order with Flute Type, Size, Qty and BQ comment.",
     href: "/submit-order",
     cardClass: "feature-card-blue",
     btnLabel: "Submit Order",
   },
   {
-    icon: <Package size={28} />,
+    icon: <Package size={32} />,
     title: "Stock History",
     description: "View current stock and out-of-stock orders. Update usage and filter by BQ.",
     href: "/stock-history",
@@ -24,7 +25,7 @@ const baseFeatures = [
     btnLabel: "View Stock",
   },
   {
-    icon: <History size={28} />,
+    icon: <History size={32} />,
     title: "Usage History",
     description: "Track how orders have been used — by Job No or Old Stock clearance.",
     href: "/usage-history",
@@ -32,17 +33,18 @@ const baseFeatures = [
     btnLabel: "View Usage",
   },
   {
-    icon: <CheckCircle2 size={28} />,
+    icon: <CheckCircle2 size={32} />,
     title: "Approval Center",
-    description: "Review pending requests for delete and used-update actions.",
+    description: "Review and manage pending requests for delete and used-update actions.",
     href: "/approval-center",
     cardClass: "feature-card-orange",
     btnLabel: "Open Approval Center",
+    showBadge: true,
   },
   {
-    icon: <Settings size={28} />,
-    title: "Admin",
-    description: "Manage workers, view all orders, and access system administration.",
+    icon: <Settings size={32} />,
+    title: "Admin Panel",
+    description: "Manage workers, view all orders, export reports, and system administration.",
     href: "/admin",
     cardClass: "feature-card-red",
     btnLabel: "Admin Login",
@@ -51,75 +53,33 @@ const baseFeatures = [
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const { worker, logoutWorker } = useAuth();
+  const { worker } = useAuth();
   usePushNotifications(worker?.workerID ?? null);
   const userLevel = worker?.userLevel ?? "2";
 
-  // Fetch pending request count for bell badge
   const pendingQuery = trpc.pendingRequests.list.useQuery(
     { status: "pending" },
     { refetchInterval: 30000 }
   );
   const pendingCount = (pendingQuery.data ?? []).length;
 
-  const handleLogout = () => {
-    logoutWorker();
-    navigate("/login");
-  };
-
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
-        <div className="container py-3 flex items-center gap-3">
-          <img
-            src={LOGO_URL}
-            alt="GSPP Logo"
-            className="h-10 w-10 object-contain"
-          />
-          <div className="flex-1">
-            <h1 className="text-base font-bold text-foreground leading-tight" style={{ fontFamily: "Inter, sans-serif" }}>
-              PP4 Manual Slitter
-            </h1>
-            <p className="text-xs text-muted-foreground leading-tight">Stock Management System</p>
-          </div>
-          {worker && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-xs font-medium">
-                <User size={12} />
-                <span>{worker.name}</span>
-                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold ${worker.userLevel === "1" ? "bg-orange-200 text-orange-700" : "bg-green-200 text-green-700"}`}>
-                  Lv.{worker.userLevel}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1 text-gray-400 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50"
-                title="Logout"
-              >
-                <LogOut size={16} />
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Hero */}
-      <div className="gspp-gradient py-8 px-4 text-white text-center relative">
-        {/* Bell notification badge — top-right of hero */}
+    <AppLayout>
+      {/* Hero banner */}
+      <div className="gspp-gradient py-10 px-4 text-white text-center relative">
+        {/* Bell badge (mobile only — desktop uses sidebar) */}
         <button
           onClick={() => navigate("/approval-center")}
-          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+          className="lg:hidden absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
           title="Approval Center"
         >
-          <Bell size={20} className="text-white" />
+          <CheckCircle2 size={20} className="text-white" />
           {pendingCount > 0 && (
             <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow">
               {pendingCount > 99 ? "99+" : pendingCount}
             </span>
           )}
         </button>
-
         <img
           src={LOGO_URL}
           alt="GSPP"
@@ -132,43 +92,41 @@ export default function Home() {
         {worker && (
           <div className="mt-2 inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-xs font-medium">
             <span>Welcome, {worker.name}</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${worker.userLevel === "1" ? "bg-orange-400 text-white" : "bg-green-400 text-white"}`}>
-              Level {worker.userLevel}
+            <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${
+              userLevel === "1" ? "bg-orange-400 text-white" : "bg-green-400 text-white"
+            }`}>
+              Level {userLevel}
             </span>
           </div>
         )}
       </div>
 
-      {/* Feature Cards */}
-      <main className="container py-6 flex-1">
-        <div className="grid grid-cols-1 gap-4 max-w-lg mx-auto">
+      {/* Feature cards grid */}
+      <div className="px-4 lg:px-8 py-6 lg:py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 max-w-5xl mx-auto lg:mx-0">
           {baseFeatures.map((f) => (
             <div
               key={f.href}
-              className={`rounded-xl p-5 shadow-sm ${f.cardClass} relative`}
+              className={`rounded-xl p-5 shadow-sm ${f.cardClass} relative flex flex-col`}
             >
-              {/* Bell badge on Approval Center card */}
-              {f.href === "/approval-center" && pendingCount > 0 && (
+              {/* Badge on Approval Center */}
+              {f.showBadge && pendingCount > 0 && (
                 <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow">
                   {pendingCount > 99 ? "99+" : pendingCount}
                 </span>
               )}
-              <div className="flex items-start gap-4 mb-4">
-                <div className="bg-white/20 rounded-lg p-2 flex-shrink-0">
-                  {f.href === "/approval-center" ? (
-                    <div className="relative">
-                      <CheckCircle2 size={28} />
-                    </div>
-                  ) : f.icon}
+              <div className="flex items-start gap-4 mb-4 flex-1">
+                <div className="bg-white/20 rounded-lg p-2.5 flex-shrink-0">
+                  {f.icon}
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg leading-tight" style={{ fontFamily: "Lora, serif" }}>
+                  <h3 className="font-bold text-lg leading-tight text-white" style={{ fontFamily: "Lora, serif" }}>
                     {f.title}
                     {f.href === "/approval-center" && userLevel === "1" && (
                       <span className="ml-2 text-xs font-normal opacity-80">(View & Cancel)</span>
                     )}
                   </h3>
-                  <p className="text-sm opacity-85 mt-0.5">{f.description}</p>
+                  <p className="text-sm opacity-85 mt-0.5 text-white/90">{f.description}</p>
                 </div>
               </div>
               <button
@@ -180,12 +138,14 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </main>
+      </div>
 
       {/* Footer */}
-      <footer className="border-t border-border py-4 text-center">
-        <p className="text-xs text-muted-foreground">PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()}</p>
+      <footer className="border-t border-border py-4 text-center px-4">
+        <p className="text-xs text-muted-foreground">
+          PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()}
+        </p>
       </footer>
-    </div>
+    </AppLayout>
   );
 }

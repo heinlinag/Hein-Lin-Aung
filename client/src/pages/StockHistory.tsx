@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-import PageHeader from "@/components/PageHeader";
+import AppLayout from "@/components/AppLayout";
 
 const LOW_STOCK_THRESHOLD = 50;
 
@@ -423,9 +423,8 @@ export default function StockHistory() {
   }), [orders, searchOrderID, searchFlute, searchBQ]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader showBack backHref="/" />
-      <div className="flex justify-between items-center px-4 pt-3">
+    <AppLayout pageTitle="Stock History">
+      <div className="flex justify-between items-center px-4 lg:px-8 pt-4">
         {userLevel === "1" && (
           <div className="flex items-center gap-1.5 text-xs text-orange-600 font-semibold bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-lg">
             <Clock size={12} /> Level 1 — Actions require approval
@@ -441,7 +440,7 @@ export default function StockHistory() {
         </button>
       </div>
 
-      <main className="container py-5">
+      <main className="container lg:max-w-none lg:px-8 py-5">
         <div className="flex gap-1 mb-5 border-b border-border">
           <button onClick={() => setActiveTab("current")} className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "current" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             Current Stock
@@ -594,6 +593,6 @@ export default function StockHistory() {
       {deleteOrder && userLevel === "1" && worker && (
         <DeleteRequestDialog order={deleteOrder} workerID={worker.workerID} onClose={() => setDeleteOrder(null)} onSuccess={() => { setDeleteOrder(null); }} />
       )}
-    </div>
+    </AppLayout>
   );
 }

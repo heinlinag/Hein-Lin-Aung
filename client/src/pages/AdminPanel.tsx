@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
@@ -220,6 +220,56 @@ function WorkersTab() {
   );
 }
 
+// ─── Export Helpers ───────────────────────────────────────────────────────────
+function exportToExcel(orders: Order[]) {
+  import("xlsx").then(XLSX => {
+    const data = orders.map(o => ({
+      "Order ID": o.orderID,
+      "Flute Type": o.fluteType,
+      "Width (mm)": o.sizeW,
+      "Length (mm)": o.sizeL,
+      "Qty (pcs)": o.qty,
+      "BQ Comment": o.bqComment,
+      "Status": o.status === "current" ? "Current Stock" : "Out of Stock",
+      "Submitted By": o.submittedBy ?? "-",
+      "Date": new Date(o.createdAt).toLocaleString(),
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
+    XLSX.writeFile(wb, `PP4_Orders_${new Date().toISOString().slice(0,10)}.xlsx`);
+  });
+}
+
+function exportToPDF(orders: Order[]) {
+  import("jspdf").then(({ jsPDF }) => {
+    import("jspdf-autotable").then(() => {
+      const doc = new jsPDF({ orientation: "landscape" });
+      doc.setFontSize(14);
+      doc.text("PP4 Manual Slitter — Orders Report", 14, 15);
+      doc.setFontSize(9);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
+      (doc as unknown as { autoTable: (opts: unknown) => void }).autoTable({
+        startY: 27,
+        head: [["Order ID", "Flute", "W×L (mm)", "Qty", "BQ Comment", "Status", "Submitted By", "Date"]],
+        body: orders.map(o => [
+          o.orderID,
+          o.fluteType,
+          `${o.sizeW}×${o.sizeL}`,
+          o.qty,
+          o.bqComment,
+          o.status === "current" ? "Current" : "Out of Stock",
+          o.submittedBy ?? "-",
+          new Date(o.createdAt).toLocaleDateString(),
+        ]),
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [37, 99, 235] },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+      });
+      doc.save(`PP4_Orders_${new Date().toISOString().slice(0,10)}.pdf`);
+    });
+  });
+}
 // ─── Orders Tab ────────────────────────────────────────────────────────────────
 function OrdersTab() {
   const utils = trpc.useUtils();
@@ -264,9 +314,27 @@ function OrdersTab() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">{orders.length} total order{orders.length !== 1 ? "s" : ""}</p>
-        <button onClick={() => utils.orders.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1 transition-colors" title="Refresh">
-          <RefreshCw size={15} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportToExcel(orders)}
+            disabled={orders.length === 0}
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-green-600 text-green-700 hover:bg-green-50 transition-colors disabled:opacity-40"
+            title="Export to Excel"
+          >
+            <FileSpreadsheet size={13} /> Excel
+          </button>
+          <button
+            onClick={() => exportToPDF(orders)}
+            disabled={orders.length === 0}
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-500 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+            title="Export to PDF"
+          >
+            <FileDown size={13} /> PDF
+          </button>
+          <button onClick={() => utils.orders.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1 transition-colors" title="Refresh">
+            <RefreshCw size={15} />
+          </button>
+        </div>
       </div>
 
       {ordersQuery.isLoading ? (
@@ -646,7 +714,7 @@ export default function AdminPanel() {
         Logged in as <strong>Administrator</strong> — Admin Access
       </div>
 
-      <main className="container py-6">
+      <main className="container lg:max-w-none lg:px-8 py-6">
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-border">
           <button

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { Send, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import PageHeader from "@/components/PageHeader";
+import AppLayout from "@/components/AppLayout";
 
 const FLUTE_TYPES = ["BA", "BE", "C", "A", "B", "E", "Manual"] as const;
 
@@ -48,7 +48,7 @@ export default function SubmitOrder() {
         workerID: worker.workerID,
       });
       toast.success("Order submitted successfully!");
-      notifyAll.mutate({ title: "New Order Submitted", body: "Order " + orderID.trim() + " (" + (fluteType === "Manual" ? manualFlute.trim() : fluteType) + ") submitted by " + (worker?.name ?? "Worker"), tag: "new-order" });
+      notifyAll.mutate({ title: "New Order Submitted", body: "Order " + orderID.trim() + " (" + effectiveFluteType + ") submitted by " + (worker?.name ?? "Worker"), tag: "new-order" });
       navigate("/stock-history");
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -56,10 +56,11 @@ export default function SubmitOrder() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <PageHeader showBack backHref="/" />
+  const inputCls = "w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white";
+  const labelCls = "block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5";
 
+  return (
+    <AppLayout pageTitle="Submit Order">
       {/* Worker Banner */}
       {worker && (
         <div className="gspp-gradient text-white py-2 px-4 text-center text-xs">
@@ -67,111 +68,138 @@ export default function SubmitOrder() {
         </div>
       )}
 
-      <main className="container py-6">
-        <div className="max-w-lg mx-auto">
-          <h2 className="text-lg font-bold text-foreground mb-5" style={{ fontFamily: "Lora, serif" }}>
+      <div className="px-4 lg:px-8 py-6 lg:py-8">
+        <div className="max-w-2xl mx-auto lg:mx-0">
+          {/* Page heading (mobile only — desktop uses AppLayout pageTitle bar) */}
+          <h2 className="lg:hidden text-lg font-bold text-foreground mb-5" style={{ fontFamily: "Lora, serif" }}>
             Submit Order
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Order ID */}
-            <div>
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
-                Order ID <span className="text-destructive">*</span>
-              </label>
-              <input
-                type="text"
-                value={orderID}
-                onChange={e => setOrderID(e.target.value)}
-                placeholder="e.g. A-203"
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
-              />
-            </div>
-
-            {/* Flute Type */}
-            <div>
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
-                Flute Type <span className="text-destructive">*</span>
-              </label>
-              <select
-                value={fluteType}
-                onChange={e => setFluteType(e.target.value)}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
-              >
-                <option value="">Select flute type</option>
-                {FLUTE_TYPES.map(ft => (
-                  <option key={ft} value={ft}>{ft}</option>
-                ))}
-              </select>
-              {fluteType === "Manual" && (
+            {/* Row 1: Order ID + Flute Type */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Order ID */}
+              <div>
+                <label className={labelCls}>
+                  Order ID <span className="text-destructive">*</span>
+                </label>
                 <input
                   type="text"
-                  value={manualFlute}
-                  onChange={e => setManualFlute(e.target.value)}
-                  placeholder="Enter custom flute type"
-                  className="w-full mt-2 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                  value={orderID}
+                  onChange={e => setOrderID(e.target.value.toUpperCase())}
+                  placeholder="e.g. A-203"
+                  className={inputCls}
                 />
-              )}
-            </div>
+              </div>
 
-            {/* Size W x L */}
-            <div>
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
-                Size (W × L) <span className="text-destructive">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Width (mm)</p>
+              {/* Flute Type */}
+              <div>
+                <label className={labelCls}>
+                  Flute Type <span className="text-destructive">*</span>
+                </label>
+                <select
+                  value={fluteType}
+                  onChange={e => setFluteType(e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">Select flute type</option>
+                  {FLUTE_TYPES.map(ft => (
+                    <option key={ft} value={ft}>{ft}</option>
+                  ))}
+                </select>
+                {fluteType === "Manual" && (
                   <input
-                    type="number"
-                    value={sizeW}
-                    onChange={e => setSizeW(e.target.value)}
-                    placeholder="1530"
-                    min={1}
-                    className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                    type="text"
+                    value={manualFlute}
+                    onChange={e => setManualFlute(e.target.value)}
+                    placeholder="Enter custom flute type"
+                    className={`${inputCls} mt-2`}
                   />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Length (mm)</p>
-                  <input
-                    type="number"
-                    value={sizeL}
-                    onChange={e => setSizeL(e.target.value)}
-                    placeholder="1800"
-                    min={1}
-                    className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
-                  />
-                </div>
+                )}
               </div>
             </div>
 
-            {/* Order Qty */}
-            <div>
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
-                Order Qty (pcs) <span className="text-destructive">*</span>
-              </label>
-              <input
-                type="number"
-                value={qty}
-                onChange={e => setQty(e.target.value)}
-                placeholder="100"
-                min={1}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
-              />
+            {/* Row 2: Size W x L + Qty */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Size */}
+              <div>
+                <label className={labelCls}>
+                  Size (W × L) <span className="text-destructive">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Width (mm)</p>
+                    <input
+                      type="number"
+                      value={sizeW}
+                      onChange={e => setSizeW(e.target.value)}
+                      placeholder="1530"
+                      min={1}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Length (mm)</p>
+                    <input
+                      type="number"
+                      value={sizeL}
+                      onChange={e => setSizeL(e.target.value)}
+                      placeholder="1800"
+                      min={1}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Qty */}
+              <div>
+                <label className={labelCls}>
+                  Order Qty (pcs) <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={qty}
+                  onChange={e => setQty(e.target.value)}
+                  placeholder="100"
+                  min={1}
+                  className={inputCls}
+                />
+              </div>
             </div>
 
             {/* BQ Comment */}
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+              <label className={labelCls}>
                 BQ Comment <span className="text-destructive">*</span>
               </label>
               <p className="text-xs text-muted-foreground mb-1.5">Board Quality formula string</p>
+              {/* BQ Shortcut Buttons */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {["LR", "MP", "KL", "LP", "KC", "WT"].map(prefix => (
+                  <button
+                    key={prefix}
+                    type="button"
+                    onClick={() => setBqComment(prev => prev + prefix)}
+                    className="px-2.5 py-1 text-xs font-bold rounded-md border border-primary text-primary hover:bg-primary hover:text-white transition-colors font-mono"
+                  >
+                    {prefix}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setBqComment("")}
+                  className="px-2.5 py-1 text-xs font-bold rounded-md border border-destructive text-destructive hover:bg-destructive hover:text-white transition-colors ml-auto"
+                >
+                  Clear
+                </button>
+              </div>
               <textarea
                 value={bqComment}
                 onChange={e => setBqComment(e.target.value.toUpperCase())}
                 placeholder="e.g. LR170MP115MP115MP115LR170"
                 rows={3}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white resize-none font-mono"
+                className={`${inputCls} resize-none font-mono`}
               />
             </div>
 
@@ -180,7 +208,7 @@ export default function SubmitOrder() {
               <button
                 type="submit"
                 disabled={submitOrder.isPending}
-                className="w-full gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+                className="w-full lg:w-auto lg:px-10 gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {submitOrder.isPending ? (
                   <><Loader2 size={16} className="animate-spin" /> Submitting...</>
@@ -191,7 +219,7 @@ export default function SubmitOrder() {
             </div>
           </form>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
