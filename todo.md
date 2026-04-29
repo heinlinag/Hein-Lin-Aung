@@ -141,7 +141,7 @@
 - [x] Push Notifications: notify admin on user login
 
 ## UX & Desktop Improvements (Round 4)
-- [ ] SubmitOrder: Order ID field auto-uppercase
-- [ ] SubmitOrder: BQ Comment shortcut buttons (LR, MP, KL, LP, KC, WT)
-- [ ] Admin Panel: Export Orders to PDF and Excel
-- [ ] Desktop responsive redesign: sidebar navigation, wider layout, proper spacing
+- [x] SubmitOrder: Order ID field auto-uppercase
+- [x] SubmitOrder: BQ Comment shortcut buttons (LR, MP, KL, LP, KC, WT)
+- [x] Admin Panel: Export Orders to PDF and Excel
+- [x] Desktop responsive redesign: sidebar navigation, wider layout, proper spacing

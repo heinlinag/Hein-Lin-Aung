@@ -4,7 +4,7 @@
  * Desktop : fixed left sidebar (240px) + scrollable main content
  */
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Settings, LogOut, User, Bell } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Settings, LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
 
@@ -129,18 +129,6 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
             </div>
             {worker && (
               <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => navigate("/approval-center")}
-                  className="relative p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  title="Approval Center"
-                >
-                  <Bell size={18} className="text-muted-foreground" />
-                  {pendingCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                      {pendingCount > 99 ? "99+" : pendingCount}
-                    </span>
-                  )}
-                </button>
                 <div className="flex items-center gap-1 bg-blue-50 text-blue-700 rounded-full px-2.5 py-1 text-xs font-medium max-w-[90px] truncate">
                   <User size={11} className="shrink-0" />
                   <span className="truncate">{worker.name}</span>
