@@ -180,7 +180,7 @@
 - [ ] System status page: replace hardcoded maintenance schedule with database-backed entries
 - [ ] System status page: integrate real-time system metrics from server monitoring
 - [ ] Video tutorials: create demo videos for Login, Submit Order, Approval Center workflows
-- [ ] Video tutorials: embed videos in Documentation page
+- [x] Video tutorials: embed videos in Documentation page
 - [ ] Notification system: add email notifications for maintenance windows
 - [ ] Analytics dashboard: add usage statistics and performance metrics
 
