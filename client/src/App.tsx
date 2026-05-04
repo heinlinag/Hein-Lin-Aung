@@ -13,6 +13,7 @@ import AdminPanel from "./pages/AdminPanel";
 import UsageHistory from "./pages/UsageHistory";
 import Login from "./pages/Login";
 import ApprovalCenter from "./pages/ApprovalCenter";
+import Documentation from "./pages/Documentation";
 
 function Router() {
   return (
@@ -48,6 +49,9 @@ function Router() {
           <ApprovalCenter />
         </LoginGate>
       </Route>
+
+      {/* Public: Documentation */}
+      <Route path="/docs" component={Documentation} />
 
       {/* Admin-protected page (one-time per visit) */}
       <Route path="/admin">

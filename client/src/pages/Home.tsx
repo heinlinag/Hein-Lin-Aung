@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Settings } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Settings, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
@@ -48,6 +48,14 @@ const baseFeatures = [
     href: "/admin",
     cardClass: "feature-card-red",
     btnLabel: "Admin Login",
+  },
+  {
+    icon: <BookOpen size={32} />,
+    title: "Documentation",
+    description: "Access user guides and admin documentation for the system.",
+    href: "/docs",
+    cardClass: "feature-card-indigo",
+    btnLabel: "View Docs",
   },
 ];
 
