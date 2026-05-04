@@ -1,12 +1,13 @@
 import { useState } from "react";
 import AppLayout from "@/components/AppLayout";
-import { FileText, Download, BookOpen, Shield, HelpCircle } from "lucide-react";
+import { FileText, Download, BookOpen, Shield, HelpCircle, Play } from "lucide-react";
 import FAQ from "./FAQ";
+import VideoTutorials from "@/components/VideoTutorials";
 
 const EMPLOYEE_GUIDE_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663608581478/AzwFmHviKQDRtTtP.pdf";
 const ADMIN_GUIDE_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663608581478/rJZMrLLFokwcBZDz.pdf";
 
-type Tab = "employee" | "admin" | "faq";
+type Tab = "employee" | "admin" | "faq" | "videos";
 
 export default function Documentation() {
   const [activeTab, setActiveTab] = useState<Tab>("employee");
@@ -122,12 +123,36 @@ export default function Documentation() {
               <HelpCircle size={20} />
               FAQ
             </button>
+            <button
+              onClick={() => setActiveTab("videos")}
+              className={`flex items-center gap-2 px-6 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === "videos"
+                  ? "border-red-600 text-red-600"
+                  : "border-transparent text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <Play size={20} />
+              Video Tutorials
+            </button>
           </div>
 
           {/* FAQ Tab */}
           {activeTab === "faq" && (
             <div className="-mx-4 -my-12">
               <FAQ />
+            </div>
+          )}
+
+          {/* Video Tutorials Tab */}
+          {activeTab === "videos" && (
+            <div className="space-y-8">
+              <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 md:p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Video Tutorials</h2>
+                <p className="text-gray-600">
+                  Watch step-by-step video tutorials to learn how to use all features of the Stock Management System. Click on any video to watch it in full screen.
+                </p>
+              </div>
+              <VideoTutorials />
             </div>
           )}
 

@@ -163,7 +163,12 @@
 - [x] FAQ page: include Employee ID format, BQ Comment examples, Level 1/2 role differences
 - [x] FAQ page: integrate into Documentation page with tab navigation
 - [x] FAQ page: responsive design for mobile and desktop
-- [ ] Video tutorials: integrate demo videos for Login, Submit Order, Approval Center
+- [x] Video tutorials: integrate demo videos for Login, Submit Order, Approval Center
+- [x] Video tutorials: create VideoTutorials component with 6 tutorial videos
+- [x] Video tutorials: add category filters (All, Getting Started, Order Management, Approval, Admin)
+- [x] Video tutorials: integrate into Documentation page with Video Tutorials tab
+- [x] Video tutorials: add video modal with YouTube embed functionality
+- [x] Video tutorials: responsive grid layout for mobile and desktop
 - [x] System status page: show server uptime, maintenance schedules, recent updates
 - [x] System status page: display system components status (Web Server, Database, API Gateway, etc.)
 - [x] System status page: add to home page feature cards
@@ -178,3 +183,17 @@
 - [ ] Video tutorials: embed videos in Documentation page
 - [ ] Notification system: add email notifications for maintenance windows
 - [ ] Analytics dashboard: add usage statistics and performance metrics
+
+
+## Implementation Notes
+
+### Video Tutorials - Placeholder URLs
+The Video Tutorials component currently uses placeholder YouTube URLs (dQw4w9WgXcQ - Rick Roll video) for demonstration purposes. In production, these should be replaced with actual demo videos:
+- Login tutorial video
+- Submit Order tutorial video  
+- Approval Center tutorial video
+- Stock History tutorial video
+- Admin Panel tutorial video
+- Order Usage tutorial video
+
+To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `videoUrl` field in each tutorial object with the actual YouTube embed URL.
