@@ -70,7 +70,7 @@ function ConfirmDialog({
               onClick={onCancel}
               className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              မဟုတ်ဘူး
+              No, Cancel
             </button>
             <button
               onClick={onConfirm}
@@ -219,9 +219,9 @@ function RequestCard({
       {/* Approve Confirmation Dialog */}
       <ConfirmDialog
         open={confirmApprove}
-        title="Request ကို Approve လုပ်မည်"
-        message={`Order ${snapshot?.orderID ?? ""} အတွက် ${isDelete ? "ဖျက်ခြင်း" : "Usage Update"} request ကို Approve လုပ်မည်မှာ သေချာပါသလား? ဤ action သည် ပြောင်းလဲ၍ မရပါ။`}
-        confirmLabel="ဟုတ်ကဲ့ Approve လုပ်မည်"
+        title="Approve Request"
+        message={`Are you sure you want to approve the ${isDelete ? "delete" : "usage update"} request for order ${snapshot?.orderID ?? ""}? This action cannot be undone.`}
+        confirmLabel="Yes, Approve"
         confirmClassName="bg-green-600 hover:bg-green-700"
         onConfirm={() => { setConfirmApprove(false); onApprove(req.id); }}
         onCancel={() => setConfirmApprove(false)}
@@ -230,9 +230,9 @@ function RequestCard({
       {/* Cancel Confirmation Dialog */}
       <ConfirmDialog
         open={confirmCancel}
-        title="Request ကို Cancel လုပ်မည်"
-        message={`Order ${snapshot?.orderID ?? ""} အတွက် ${isDelete ? "ဖျက်ခြင်း" : "Usage Update"} request ကို Cancel လုပ်မည်မှာ သေချာပါသလား? Cancel လုပ်ပါက မည်သည့် ပြောင်းလဲမှုမျှ မဖြစ်ပါ။`}
-        confirmLabel="ဟုတ်ကဲ့ Cancel လုပ်မည်"
+        title="Cancel Request"
+        message={`Are you sure you want to cancel the ${isDelete ? "delete" : "usage update"} request for order ${snapshot?.orderID ?? ""}? No changes will be made.`}
+        confirmLabel="Yes, Cancel Request"
         confirmClassName="bg-red-600 hover:bg-red-700"
         onConfirm={() => { setConfirmCancel(false); onCancel(req.id); }}
         onCancel={() => setConfirmCancel(false)}

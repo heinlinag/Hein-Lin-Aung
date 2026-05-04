@@ -131,13 +131,13 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3">
                       <AlertTriangle size={16} className="text-orange-600 flex-shrink-0" />
-                      <p className="text-xs text-orange-700">Job <strong>{jobNo}</strong> အတွက် <strong>{useQty} pcs</strong> သုံးသုံးပြက်မည်မှာ သေချာပါသလား?</p>
+                      <p className="text-xs text-orange-700">Use <strong>{useQty} pcs</strong> for Job <strong>{jobNo}</strong>? This action cannot be undone.</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
                       <button onClick={handleJobSubmit} disabled={logUsage.isPending} className="flex-1 gspp-gradient text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                         {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
-                        ဟုတ်ကဲ့
+                        Yes, Confirm
                       </button>
                     </div>
                   </div>
@@ -165,14 +165,14 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                 <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                   <AlertTriangle size={18} className="text-red-600" />
                 </div>
-                <p className="text-sm font-bold text-gray-900">သေချာပါသလား?</p>
+                <p className="text-sm font-bold text-gray-900">Are you sure?</p>
               </div>
-              <p className="text-xs text-muted-foreground mb-4">Order <strong>{order.orderID}</strong> ကို Qty 0 သတ်ပြီး Out of Stock သို့ပြောင်းမည်။ ဤ action သည် ပြောင်းလဲ၍ မရပါ။</p>
+              <p className="text-xs text-muted-foreground mb-4">Order <strong>{order.orderID}</strong> will be set to Qty 0 and moved to Out of Stock. This action cannot be undone.</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
                 <button onClick={handleOldStockSubmit} disabled={logUsage.isPending} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                   {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
-                  ဟုတ်ကဲ့ Clear
+                  Yes, Clear
                 </button>
               </div>
             </div>
@@ -319,13 +319,13 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3">
                       <AlertTriangle size={16} className="text-orange-600 flex-shrink-0" />
-                      <p className="text-xs text-orange-700">Job <strong>{jobNo}</strong> အတွက် <strong>{useQty} pcs</strong> သုံးသုံးပြက်မည်မှာ Approval တောင်းပို့ပြက်မည်မှာ သေချာပါသလား?</p>
+                      <p className="text-xs text-orange-700">Submit request to use <strong>{useQty} pcs</strong> for Job <strong>{jobNo}</strong>? This will be sent to a Level 2 user for approval.</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
                       <button onClick={handleJobRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                         {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
-                        ဟုတ်ကဲ့
+                        Yes, Submit
                       </button>
                     </div>
                   </div>
@@ -353,14 +353,14 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
                 <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                   <AlertTriangle size={18} className="text-orange-600" />
                 </div>
-                <p className="text-sm font-bold text-gray-900">Request အတွက်ပြက်မည်</p>
+                <p className="text-sm font-bold text-gray-900">Confirm Request</p>
               </div>
-              <p className="text-xs text-muted-foreground mb-4">Order <strong>{order.orderID}</strong> ကို Old Stock Clear လုပ်မည်မှာ Level 2 ကို Approval လုပ်မည်မှာ သေချာပါသလား?</p>
+              <p className="text-xs text-muted-foreground mb-4">Submit a request to clear order <strong>{order.orderID}</strong> as Old Stock? A Level 2 user must approve before it takes effect.</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
                 <button onClick={handleOldStockRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                   {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
-                  ဟုတ်ကဲ့ Submit Request
+                  Yes, Submit Request
                 </button>
               </div>
             </div>
@@ -440,11 +440,11 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
           <Clock size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
           <p className="text-xs text-orange-700">Your delete request will be sent to a <strong>Level 2 user</strong> for approval.</p>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">Order <strong className="text-foreground">{order.orderID}</strong> ကို Delete Request လုပ်မည်မှာ သေချာပါသလား?</p>
+        <p className="text-sm text-muted-foreground mb-4">Are you sure you want to request deletion of order <strong className="text-foreground">{order.orderID}</strong>?</p>
         {error && <p className="text-xs text-destructive mb-2">{error}</p>}
         {!showConfirm ? (
           <div className="flex gap-2 mt-3">
-            <button onClick={onClose} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+            <button onClick={onClose} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
             <button onClick={() => setShowConfirm(true)} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2">
               <Clock size={14} /> Submit Request
             </button>
@@ -453,13 +453,13 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
           <div className="space-y-3 mt-3">
             <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3">
               <AlertTriangle size={16} className="text-orange-600 flex-shrink-0" />
-              <p className="text-xs text-orange-700">Order <strong>{order.orderID}</strong> ကို Delete Request လုပ်မည်မှာ Level 2 ကို ပို့ပို့ပို့ပို့ Approval တောင်းပို့ပြက်မည်။ သေချာပါသလား?</p>
+              <p className="text-xs text-orange-700">A delete request for order <strong>{order.orderID}</strong> will be sent to a Level 2 user for approval. Are you sure?</p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setShowConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+              <button onClick={() => setShowConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
               <button onClick={handleRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                 {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
-                ဟုတ်ကဲ့ Submit
+                Yes, Submit
               </button>
             </div>
           </div>

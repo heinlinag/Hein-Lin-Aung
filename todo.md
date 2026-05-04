@@ -204,3 +204,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Usage Update (Level 2 Job No): add confirmation dialog before confirming Job No usage
 - [x] Level 1 Request (Job No): add confirmation step before submitting Job No usage request
 - [x] Level 1 Request (Delete): add confirmation step before submitting delete request
+
+## Language Fix
+- [x] Replace all Myanmar text in Login welcome message with English
+- [x] Replace all Myanmar text in SubmitOrder confirmation dialog with English
+- [x] Replace all Myanmar text in StockHistory dialogs (UsedUpdateDialog, UsedUpdateRequestDialog, DeleteRequestDialog) with English
+- [x] Replace all Myanmar text in ApprovalCenter confirmation dialogs with English

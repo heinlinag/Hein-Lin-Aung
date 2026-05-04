@@ -264,7 +264,7 @@ export default function SubmitOrder() {
                 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                   <AlertTriangle size={20} className="text-orange-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-base">Order Submit အတွက်ပြက်မည်</h3>
+                <h3 className="font-bold text-gray-900 text-base">Confirm Order Submission</h3>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-1.5">
                 <div className="flex justify-between text-sm">
@@ -284,13 +284,13 @@ export default function SubmitOrder() {
                   <span className="font-semibold">{qty} pcs</span>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-5">ဤ Order ကို Submit လုပ်မည်မှာ သေချာပါသလား?</p>
+              <p className="text-sm text-gray-600 mb-5">Are you sure you want to submit this order?</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowConfirm(false)}
                   className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
                 >
-                  မဟုတ်ဘူး
+                  No, Cancel
                 </button>
                 <button
                   onClick={handleConfirmedSubmit}
@@ -298,7 +298,7 @@ export default function SubmitOrder() {
                   className="flex-1 gspp-gradient rounded-lg py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {submitOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                  ဟုတ်ကဲ့ Submit
+                  Yes, Submit
                 </button>
               </div>
             </div>
