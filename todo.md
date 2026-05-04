@@ -210,3 +210,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Replace all Myanmar text in SubmitOrder confirmation dialog with English
 - [x] Replace all Myanmar text in StockHistory dialogs (UsedUpdateDialog, UsedUpdateRequestDialog, DeleteRequestDialog) with English
 - [x] Replace all Myanmar text in ApprovalCenter confirmation dialogs with English
+
+## Login Page - Admin Contact
+- [x] Add admin contact section to Login page (Employee Login tab)
+- [x] Show Admin Name: HEiNANN and Contact No: 01159225408
+- [x] Add WhatsApp direct link button (wa.me link) that opens WhatsApp chat directly
+- [x] Guide users without Employee ID to contact admin
