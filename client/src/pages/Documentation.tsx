@@ -1,11 +1,12 @@
 import { useState } from "react";
 import AppLayout from "@/components/AppLayout";
-import { FileText, Download, BookOpen, Shield } from "lucide-react";
+import { FileText, Download, BookOpen, Shield, HelpCircle } from "lucide-react";
+import FAQ from "./FAQ";
 
 const EMPLOYEE_GUIDE_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663608581478/AzwFmHviKQDRtTtP.pdf";
 const ADMIN_GUIDE_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663608581478/rJZMrLLFokwcBZDz.pdf";
 
-type Tab = "employee" | "admin";
+type Tab = "employee" | "admin" | "faq";
 
 export default function Documentation() {
   const [activeTab, setActiveTab] = useState<Tab>("employee");
@@ -87,10 +88,10 @@ export default function Documentation() {
         {/* Main Content */}
         <div className="max-w-5xl mx-auto px-4 py-12">
           {/* Tab Switcher */}
-          <div className="flex gap-2 mb-8 border-b border-gray-200">
+          <div className="flex gap-2 mb-8 border-b border-gray-200 overflow-x-auto">
             <button
               onClick={() => setActiveTab("employee")}
-              className={`flex items-center gap-2 px-6 py-3 font-semibold border-b-2 transition-colors ${
+              className={`flex items-center gap-2 px-6 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === "employee"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
@@ -101,7 +102,7 @@ export default function Documentation() {
             </button>
             <button
               onClick={() => setActiveTab("admin")}
-              className={`flex items-center gap-2 px-6 py-3 font-semibold border-b-2 transition-colors ${
+              className={`flex items-center gap-2 px-6 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === "admin"
                   ? "border-green-600 text-green-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
@@ -110,7 +111,25 @@ export default function Documentation() {
               <Shield size={20} />
               Admin Guide
             </button>
+            <button
+              onClick={() => setActiveTab("faq")}
+              className={`flex items-center gap-2 px-6 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === "faq"
+                  ? "border-purple-600 text-purple-600"
+                  : "border-transparent text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <HelpCircle size={20} />
+              FAQ
+            </button>
           </div>
+
+          {/* FAQ Tab */}
+          {activeTab === "faq" && (
+            <div className="-mx-4 -my-12">
+              <FAQ />
+            </div>
+          )}
 
           {/* Employee Guide Tab */}
           {activeTab === "employee" && (

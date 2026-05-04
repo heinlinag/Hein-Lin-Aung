@@ -157,3 +157,11 @@
 ## Admin Dashboard Summary Stats
 - [x] Server: add system.adminStats procedure (total orders, pending requests, low-stock count)
 - [x] AdminPanel: add summary stat cards in header area
+
+## Documentation & Support Features
+- [x] FAQ page: create dedicated FAQ component with common questions and answers
+- [x] FAQ page: include Employee ID format, BQ Comment examples, Level 1/2 role differences
+- [x] FAQ page: integrate into Documentation page with tab navigation
+- [x] FAQ page: responsive design for mobile and desktop
+- [ ] Video tutorials: integrate demo videos for Login, Submit Order, Approval Center
+- [ ] System status page: show server uptime, maintenance schedules, recent updates
