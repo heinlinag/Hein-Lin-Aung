@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Settings, BookOpen } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Settings, BookOpen, Activity } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
@@ -57,6 +57,14 @@ const baseFeatures = [
     cardClass: "feature-card-indigo",
     btnLabel: "View Docs",
   },
+  {
+    icon: <Activity size={32} />,
+    title: "System Status",
+    description: "Monitor system uptime, recent updates, and maintenance schedules.",
+    href: "/status",
+    cardClass: "feature-card-teal",
+    btnLabel: "View Status",
+  },
 ];
 
 export default function Home() {
@@ -111,18 +119,12 @@ export default function Home() {
 
       {/* Feature cards grid */}
       <div className="px-4 lg:px-8 py-6 lg:py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 max-w-5xl mx-auto lg:mx-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 max-w-6xl mx-auto lg:mx-0">
           {baseFeatures.map((f) => (
             <div
               key={f.href}
               className={`rounded-xl p-5 shadow-sm ${f.cardClass} relative flex flex-col`}
             >
-              {/* Badge on Approval Center */}
-              {f.showBadge && pendingCount > 0 && (
-                <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow">
-                  {pendingCount > 99 ? "99+" : pendingCount}
-                </span>
-              )}
               <div className="flex items-start gap-4 mb-4 flex-1">
                 <div className="bg-white/20 rounded-lg p-2.5 flex-shrink-0">
                   {f.icon}
@@ -137,6 +139,12 @@ export default function Home() {
                   <p className="text-sm opacity-85 mt-0.5 text-white/90">{f.description}</p>
                 </div>
               </div>
+              {/* Badge on Approval Center - moved inside loop */}
+              {f.showBadge && pendingCount > 0 && (
+                <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow">
+                  {pendingCount > 99 ? "99+" : pendingCount}
+                </span>
+              )}
               <button
                 onClick={() => navigate(f.href)}
                 className="w-full bg-white/20 hover:bg-white/30 active:bg-white/40 transition-colors rounded-lg py-2.5 text-sm font-semibold text-white border border-white/30"

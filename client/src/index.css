@@ -200,6 +200,7 @@
   .feature-card-red { background: oklch(57% 0.22 25); color: white; }
   .feature-card-orange { background: oklch(65% 0.18 55); color: white; }
   .feature-card-indigo { background: oklch(52% 0.16 270); color: white; }
+  .feature-card-teal { background: oklch(60% 0.14 200); color: white; }
 
   /* ── Mobile touch targets ── */
   @media (max-width: 768px) {
