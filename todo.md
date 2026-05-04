@@ -216,3 +216,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Show Admin Name: HEiNANN and Contact No: 01159225408
 - [x] Add WhatsApp direct link button (wa.me link) that opens WhatsApp chat directly
 - [x] Guide users without Employee ID to contact admin
+
+## Geo-Restriction Feature
+- [x] Create useGeoCheck hook to detect user country via ipapi.co API
+- [x] Create GeoRestricted component with bilingual notice (Myanmar + English)
+- [x] Integrate geo-check into App.tsx to wrap all routes
+- [x] Allow Malaysia (MY) and Myanmar (MM) only; show notice for all other countries
+- [x] Include VPN warning message in bilingual notice

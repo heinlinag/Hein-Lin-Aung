@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import LoginGate from "./components/LoginGate";
+import GeoGuard from "./components/GeoRestricted";
 import Home from "./pages/Home";
 import SubmitOrder from "./pages/SubmitOrder";
 import StockHistory from "./pages/StockHistory";
@@ -77,7 +78,9 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
-            <Router />
+            <GeoGuard>
+              <Router />
+            </GeoGuard>
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>
