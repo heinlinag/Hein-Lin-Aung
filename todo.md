@@ -163,12 +163,7 @@
 - [x] FAQ page: include Employee ID format, BQ Comment examples, Level 1/2 role differences
 - [x] FAQ page: integrate into Documentation page with tab navigation
 - [x] FAQ page: responsive design for mobile and desktop
-- [x] Video tutorials: integrate demo videos for Login, Submit Order, Approval Center
-- [x] Video tutorials: create VideoTutorials component with 6 tutorial videos
-- [x] Video tutorials: add category filters (All, Getting Started, Order Management, Approval, Admin)
-- [x] Video tutorials: integrate into Documentation page with Video Tutorials tab
-- [x] Video tutorials: add video modal with YouTube embed functionality
-- [x] Video tutorials: responsive grid layout for mobile and desktop
+- [ ] Video tutorials: integrate demo videos for Login, Submit Order, Approval Center (removed - placeholder videos not suitable)
 - [x] System status page: show server uptime, maintenance schedules, recent updates
 - [x] System status page: display system components status (Web Server, Database, API Gateway, etc.)
 - [x] System status page: add to home page feature cards
@@ -180,7 +175,6 @@
 - [ ] System status page: replace hardcoded maintenance schedule with database-backed entries
 - [ ] System status page: integrate real-time system metrics from server monitoring
 - [ ] Video tutorials: create demo videos for Login, Submit Order, Approval Center workflows
-- [x] Video tutorials: embed videos in Documentation page
 - [ ] Notification system: add email notifications for maintenance windows
 - [ ] Analytics dashboard: add usage statistics and performance metrics
 
