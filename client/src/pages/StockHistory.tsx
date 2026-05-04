@@ -25,6 +25,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   const [jobError, setJobError] = useState("");
   const [remaining, setRemaining] = useState<number | null>(null);
   const [showOldConfirm, setShowOldConfirm] = useState(false);
+  const [showJobConfirm, setShowJobConfirm] = useState(false);
   const logUsage = trpc.orders.logUsage.useMutation();
   const utils = trpc.useUtils();
   const availableQty = remaining !== null ? remaining : order.qty;
@@ -115,10 +116,32 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                   )}
                 </div>
                 {jobError && <p className="text-xs text-destructive">{jobError}</p>}
-                <button onClick={handleJobSubmit} disabled={logUsage.isPending} className="w-full gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
-                  {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
-                  Submit Usage
-                </button>
+                {!showJobConfirm ? (
+                  <button onClick={() => {
+                    setJobError("");
+                    if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
+                    const qty = parseInt(useQty);
+                    if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
+                    if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs).`); return; }
+                    setShowJobConfirm(true);
+                  }} className="w-full gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                    <Zap size={14} /> Submit Usage
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3">
+                      <AlertTriangle size={16} className="text-orange-600 flex-shrink-0" />
+                      <p className="text-xs text-orange-700">Job <strong>{jobNo}</strong> အတွက် <strong>{useQty} pcs</strong> သုံးသုံးပြက်မည်မှာ သေချာပါသလား?</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+                      <button onClick={handleJobSubmit} disabled={logUsage.isPending} className="flex-1 gspp-gradient text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                        {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+                        ဟုတ်ကဲ့
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -138,13 +161,18 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
 
           {step === "old_stock" && showOldConfirm && (
             <div>
-              <p className="text-sm font-semibold text-foreground mb-2">Are you absolutely sure?</p>
-              <p className="text-xs text-muted-foreground mb-4">This will set Qty to 0 and move order <strong>{order.orderID}</strong> to Out of Stock immediately.</p>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={18} className="text-red-600" />
+                </div>
+                <p className="text-sm font-bold text-gray-900">သေချာပါသလား?</p>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">Order <strong>{order.orderID}</strong> ကို Qty 0 သတ်ပြီး Out of Stock သို့ပြောင်းမည်။ ဤ action သည် ပြောင်းလဲ၍ မရပါ။</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
+                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
                 <button onClick={handleOldStockSubmit} disabled={logUsage.isPending} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                   {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
-                  Confirm
+                  ဟုတ်ကဲ့ Clear
                 </button>
               </div>
             </div>
@@ -164,6 +192,7 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
   const [useQty, setUseQty] = useState("");
   const [jobError, setJobError] = useState("");
   const [showOldConfirm, setShowOldConfirm] = useState(false);
+  const [showJobConfirm, setShowJobConfirm] = useState(false);
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyLevel2 = trpc.push.sendToLevel2.useMutation();
   const pendingUsedQtyQuery = trpc.pendingRequests.getPendingUsedQty.useQuery({ orderId: order.id });
@@ -275,10 +304,32 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
                   )}
                 </div>
                 {jobError && <p className="text-xs text-destructive">{jobError}</p>}
-                <button onClick={handleJobRequest} disabled={submitRequest.isPending} className="w-full bg-orange-500 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
-                  {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
-                  Submit for Approval
-                </button>
+                {!showJobConfirm ? (
+                  <button onClick={() => {
+                    setJobError("");
+                    if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
+                    const qty = parseInt(useQty);
+                    if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
+                    if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs after pending requests).`); return; }
+                    setShowJobConfirm(true);
+                  }} className="w-full bg-orange-500 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                    <Clock size={14} /> Submit for Approval
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3">
+                      <AlertTriangle size={16} className="text-orange-600 flex-shrink-0" />
+                      <p className="text-xs text-orange-700">Job <strong>{jobNo}</strong> အတွက် <strong>{useQty} pcs</strong> သုံးသုံးပြက်မည်မှာ Approval တောင်းပို့ပြက်မည်မှာ သေချာပါသလား?</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+                      <button onClick={handleJobRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                        {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
+                        ဟုတ်ကဲ့
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -298,13 +349,18 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
 
           {step === "old_stock" && showOldConfirm && (
             <div>
-              <p className="text-sm font-semibold text-foreground mb-2">Confirm request?</p>
-              <p className="text-xs text-muted-foreground mb-4">This request will be sent to a Level 2 user for approval before clearing order <strong>{order.orderID}</strong>.</p>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={18} className="text-orange-600" />
+                </div>
+                <p className="text-sm font-bold text-gray-900">Request အတွက်ပြက်မည်</p>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">Order <strong>{order.orderID}</strong> ကို Old Stock Clear လုပ်မည်မှာ Level 2 ကို Approval လုပ်မည်မှာ သေချာပါသလား?</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
+                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
                 <button onClick={handleOldStockRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                   {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
-                  Submit Request
+                  ဟုတ်ကဲ့ Submit Request
                 </button>
               </div>
             </div>
@@ -353,9 +409,10 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
   );
 }
 
-// ─── Level 1: Delete Request Dialog (sends to approval queue) ─────────────────
+// ─// ─── Level 1: Delete Request Dialog (sends to approval queue) ─────────────
 function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: Order; workerID: string; onClose: () => void; onSuccess: () => void; }) {
   const [error, setError] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
   const submitRequest = trpc.pendingRequests.submit.useMutation();
 
   const handleRequest = async () => {
@@ -383,15 +440,30 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
           <Clock size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
           <p className="text-xs text-orange-700">Your delete request will be sent to a <strong>Level 2 user</strong> for approval.</p>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">Request deletion of order <strong className="text-foreground">{order.orderID}</strong>?</p>
+        <p className="text-sm text-muted-foreground mb-4">Order <strong className="text-foreground">{order.orderID}</strong> ကို Delete Request လုပ်မည်မှာ သေချာပါသလား?</p>
         {error && <p className="text-xs text-destructive mb-2">{error}</p>}
-        <div className="flex gap-2 mt-3">
-          <button onClick={onClose} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
-          <button onClick={handleRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
-            {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
-            Submit Request
-          </button>
-        </div>
+        {!showConfirm ? (
+          <div className="flex gap-2 mt-3">
+            <button onClick={onClose} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+            <button onClick={() => setShowConfirm(true)} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2">
+              <Clock size={14} /> Submit Request
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3 mt-3">
+            <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3">
+              <AlertTriangle size={16} className="text-orange-600 flex-shrink-0" />
+              <p className="text-xs text-orange-700">Order <strong>{order.orderID}</strong> ကို Delete Request လုပ်မည်မှာ Level 2 ကို ပို့ပို့ပို့ပို့ Approval တောင်းပို့ပြက်မည်။ သေချာပါသလား?</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setShowConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">မဟုတ်ဘူး</button>
+              <button onClick={handleRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
+                ဟုတ်ကဲ့ Submit
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

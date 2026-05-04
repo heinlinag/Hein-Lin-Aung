@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 import { Loader2, User, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
 const GSPP_LOGO = "/manus-storage/gspp-logo_988a5ce5.png";
@@ -43,6 +44,10 @@ export default function Login() {
       }
       loginWorker(found.workerID, found.name, found.department, (found.userLevel as "1" | "2") ?? "2");
       notifyLogin.mutate({ title: "Employee Login", body: found.name + " (" + found.workerID + ") logged in", tag: "worker-login" });
+      toast.success(
+        `Welcome, ${found.name}! You are now logged in to access the PP4 Slitter Stock Board.`,
+        { duration: 4000, icon: "👋" }
+      );
       navigate("/");
     } catch {
       setError("Login failed. Please try again.");

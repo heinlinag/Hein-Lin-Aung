@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
@@ -36,6 +36,55 @@ type ActionData = {
   newQty: number;
 };
 
+function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel,
+  confirmClassName,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel: string;
+  confirmClassName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div className="p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle size={20} className="text-orange-600" />
+            </div>
+            <h3 className="font-bold text-gray-900 text-base">{title}</h3>
+          </div>
+          <p className="text-sm text-gray-600 mb-5 leading-relaxed">{message}</p>
+          <div className="flex gap-3">
+            <button
+              onClick={onCancel}
+              className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              မဟုတ်ဘူး
+            </button>
+            <button
+              onClick={onConfirm}
+              className={`flex-1 rounded-lg py-2.5 text-sm font-semibold text-white transition-colors ${confirmClassName}`}
+            >
+              {confirmLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RequestCard({
   req,
   onApprove,
@@ -51,6 +100,8 @@ function RequestCard({
   canApprove: boolean;
   canCancel: boolean;
 }) {
+  const [confirmApprove, setConfirmApprove] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
   try { snapshot = JSON.parse(req.orderSnapshot); } catch { /* ignore */ }
@@ -145,7 +196,7 @@ function RequestCard({
         <div className="flex gap-2 pt-1">
           {canCancel && (
             <button
-              onClick={() => onCancel(req.id)}
+              onClick={() => setConfirmCancel(true)}
               disabled={isProcessing}
               className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
@@ -154,7 +205,7 @@ function RequestCard({
           )}
           {canApprove && (
             <button
-              onClick={() => onApprove(req.id)}
+              onClick={() => setConfirmApprove(true)}
               disabled={isProcessing}
               className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
@@ -164,6 +215,28 @@ function RequestCard({
           )}
         </div>
       )}
+
+      {/* Approve Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmApprove}
+        title="Request ကို Approve လုပ်မည်"
+        message={`Order ${snapshot?.orderID ?? ""} အတွက် ${isDelete ? "ဖျက်ခြင်း" : "Usage Update"} request ကို Approve လုပ်မည်မှာ သေချာပါသလား? ဤ action သည် ပြောင်းလဲ၍ မရပါ။`}
+        confirmLabel="ဟုတ်ကဲ့ Approve လုပ်မည်"
+        confirmClassName="bg-green-600 hover:bg-green-700"
+        onConfirm={() => { setConfirmApprove(false); onApprove(req.id); }}
+        onCancel={() => setConfirmApprove(false)}
+      />
+
+      {/* Cancel Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmCancel}
+        title="Request ကို Cancel လုပ်မည်"
+        message={`Order ${snapshot?.orderID ?? ""} အတွက် ${isDelete ? "ဖျက်ခြင်း" : "Usage Update"} request ကို Cancel လုပ်မည်မှာ သေချာပါသလား? Cancel လုပ်ပါက မည်သည့် ပြောင်းလဲမှုမျှ မဖြစ်ပါ။`}
+        confirmLabel="ဟုတ်ကဲ့ Cancel လုပ်မည်"
+        confirmClassName="bg-red-600 hover:bg-red-700"
+        onConfirm={() => { setConfirmCancel(false); onCancel(req.id); }}
+        onCancel={() => setConfirmCancel(false)}
+      />
     </div>
   );
 }

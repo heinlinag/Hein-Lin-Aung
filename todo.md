@@ -191,3 +191,16 @@ The Video Tutorials component currently uses placeholder YouTube URLs (dQw4w9WgX
 - Order Usage tutorial video
 
 To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `videoUrl` field in each tutorial object with the actual YouTube embed URL.
+
+## UX Improvements - Confirmation & Welcome Messages
+- [x] Login: show welcome message with employee name after successful login
+- [x] Approval Center: add confirmation dialog before approving a request
+- [x] Approval Center: add confirmation dialog before cancelling a request
+- [x] Submit Order: add confirmation dialog before submitting a new order
+- [x] Usage Update: add confirmation dialog before updating usage (Old Stock clear)
+- [x] Level 1 Request (delete/usage): add confirmation dialog before sending request
+
+## UX Improvements - Additional Confirmations (Gaps)
+- [x] Usage Update (Level 2 Job No): add confirmation dialog before confirming Job No usage
+- [x] Level 1 Request (Job No): add confirmation step before submitting Job No usage request
+- [x] Level 1 Request (Delete): add confirmation step before submitting delete request

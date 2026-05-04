@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 
@@ -19,6 +19,7 @@ export default function SubmitOrder() {
   const [sizeL, setSizeL] = useState("");
   const [qty, setQty] = useState("");
   const [bqComment, setBqComment] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const notifyAll = trpc.push.sendToAll.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
@@ -35,7 +36,7 @@ export default function SubmitOrder() {
   );
   const isDuplicate = duplicateCheck.data?.exists === true;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!worker) {
       toast.error("Please login first.");
@@ -52,7 +53,14 @@ export default function SubmitOrder() {
       toast.error(`Order ID "${orderID.trim()}" already exists. Please use a different Order ID.`);
       return;
     }
+    // Show confirmation dialog before submitting
+    setShowConfirm(true);
+  };
 
+  const handleConfirmedSubmit = async () => {
+    setShowConfirm(false);
+    if (!worker) return;
+    const effectiveFluteType = fluteType === "Manual" ? manualFlute.trim() : fluteType;
     try {
       await submitOrder.mutateAsync({
         orderID: orderID.trim(),
@@ -246,6 +254,57 @@ export default function SubmitOrder() {
           </form>
         </div>
       </div>
+
+      {/* Submit Order Confirmation Dialog */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={20} className="text-orange-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">Order Submit အတွက်ပြက်မည်</h3>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Order ID</span>
+                  <span className="font-bold text-blue-700">{orderID.trim()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Flute Type</span>
+                  <span className="font-semibold">{fluteType === "Manual" ? manualFlute.trim() : fluteType}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Size</span>
+                  <span className="font-mono">{sizeW} × {sizeL} mm</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Qty</span>
+                  <span className="font-semibold">{qty} pcs</span>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mb-5">ဤ Order ကို Submit လုပ်မည်မှာ သေချာပါသလား?</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  မဟုတ်ဘူး
+                </button>
+                <button
+                  onClick={handleConfirmedSubmit}
+                  disabled={submitOrder.isPending}
+                  className="flex-1 gspp-gradient rounded-lg py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {submitOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                  ဟုတ်ကဲ့ Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
