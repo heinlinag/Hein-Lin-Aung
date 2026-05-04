@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
@@ -28,8 +28,65 @@ function WorkersTab() {
   const [addError, setAddError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
 
+  // Edit state
+  const [editTarget, setEditTarget] = useState<Worker | null>(null);
+  const [editWorkerID, setEditWorkerID] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editDept, setEditDept] = useState("");
+  const [editUserLevel, setEditUserLevel] = useState<"1" | "2">("2");
+  const [editConfirmID, setEditConfirmID] = useState("");
+  const [editStep, setEditStep] = useState<"form" | "confirm">("form");
+  const [editError, setEditError] = useState("");
+
   const addWorker = trpc.workers.add.useMutation();
   const deleteWorker = trpc.workers.delete.useMutation();
+  const updateWorker = trpc.workers.update.useMutation();
+
+  const openEdit = (w: Worker) => {
+    setEditTarget(w);
+    setEditWorkerID(w.workerID);
+    setEditName(w.name);
+    setEditDept(w.department);
+    setEditUserLevel(w.userLevel);
+    setEditConfirmID("");
+    setEditStep("form");
+    setEditError("");
+  };
+
+  const handleEditSave = async () => {
+    if (!editTarget) return;
+    if (editStep === "form") {
+      if (!editWorkerID.trim() || !editName.trim() || !editDept.trim()) {
+        setEditError("All fields are required.");
+        return;
+      }
+      setEditStep("confirm");
+      setEditError("");
+      return;
+    }
+    // Confirm step
+    if (editConfirmID.trim() !== editWorkerID.trim()) {
+      setEditError("Employee ID does not match. Please re-enter the Employee ID to confirm.");
+      return;
+    }
+    try {
+      await updateWorker.mutateAsync({
+        id: editTarget.id,
+        workerID: editWorkerID.trim(),
+        name: editName.trim(),
+        department: editDept.trim(),
+        userLevel: editUserLevel,
+        confirmWorkerID: editConfirmID.trim(),
+        adminPassword: ADMIN_PASSWORD,
+      });
+      toast.success("Worker updated successfully.");
+      utils.workers.list.invalidate();
+      setEditTarget(null);
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setEditError(e?.message ?? "Failed to update worker.");
+    }
+  };
 
   const handleAdd = async () => {
     setAddError("");
@@ -109,9 +166,14 @@ function WorkersTab() {
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"}`}>Lv.{w.userLevel}</span>
                     </td>
                     <td className="py-3">
-                      <button onClick={() => setDeleteTarget(w)} className="text-muted-foreground hover:text-destructive transition-colors">
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => openEdit(w)} className="text-muted-foreground hover:text-primary transition-colors" title="Edit worker">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => setDeleteTarget(w)} className="text-muted-foreground hover:text-destructive transition-colors" title="Delete worker">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -127,9 +189,14 @@ function WorkersTab() {
                     <p className="text-xs text-muted-foreground">Employee ID</p>
                     <p className="text-sm font-bold text-primary">{w.workerID}</p>
                   </div>
-                  <button onClick={() => setDeleteTarget(w)} className="text-muted-foreground hover:text-destructive p-1">
-                    <Trash2 size={15} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => openEdit(w)} className="text-muted-foreground hover:text-primary p-1" title="Edit">
+                      <Pencil size={15} />
+                    </button>
+                    <button onClick={() => setDeleteTarget(w)} className="text-muted-foreground hover:text-destructive p-1" title="Delete">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground text-xs">Name</span>
@@ -196,6 +263,75 @@ function WorkersTab() {
                 Add
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Worker Dialog */}
+      {editTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            {editStep === "form" ? (
+              <>
+                <h3 className="font-bold text-foreground mb-1">Edit Worker</h3>
+                <p className="text-xs text-muted-foreground mb-4">Update details for <strong>{editTarget.workerID}</strong></p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Employee ID</label>
+                    <input type="text" value={editWorkerID} onChange={e => { setEditWorkerID(e.target.value.toUpperCase()); setEditError(""); }} placeholder="e.g. DN156" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Name</label>
+                    <input type="text" value={editName} onChange={e => { setEditName(e.target.value); setEditError(""); }} placeholder="Full name" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Department</label>
+                    <input type="text" value={editDept} onChange={e => { setEditDept(e.target.value); setEditError(""); }} placeholder="e.g. Production" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">User Level</label>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => setEditUserLevel("1")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "1" ? "bg-orange-100 border-orange-400 text-orange-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 1</button>
+                      <button type="button" onClick={() => setEditUserLevel("2")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "2" ? "bg-green-100 border-green-400 text-green-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 2</button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{editUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : "Level 2: Can approve/cancel Level 1 requests"}</p>
+                  </div>
+                  {editError && <p className="text-xs text-destructive">{editError}</p>}
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button onClick={() => setEditTarget(null)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
+                  <button onClick={handleEditSave} className="flex-1 gspp-gradient text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90">Next →</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="font-bold text-foreground mb-1">Confirm Update</h3>
+                <p className="text-sm text-muted-foreground mb-4">To confirm, please re-enter the Employee ID <strong className="text-primary">{editWorkerID}</strong> below.</p>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Re-enter Employee ID</label>
+                  <input
+                    type="text"
+                    value={editConfirmID}
+                    onChange={e => { setEditConfirmID(e.target.value.toUpperCase()); setEditError(""); }}
+                    placeholder={`Type ${editWorkerID} to confirm`}
+                    className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    autoFocus
+                  />
+                  {editError && <p className="text-xs text-destructive mt-2">{editError}</p>}
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button onClick={() => { setEditStep("form"); setEditError(""); }} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">← Back</button>
+                  <button
+                    onClick={handleEditSave}
+                    disabled={updateWorker.isPending || editConfirmID.trim() !== editWorkerID.trim()}
+                    className="flex-1 gspp-gradient text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {updateWorker.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                    Save Changes
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

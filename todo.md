@@ -241,3 +241,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Schema: change actionType to varchar(64) to support direct_used_update and direct_old_stock types
 - [x] Server: extend pendingRequests.actionLog to include direct Level 2 actions via same table
 - [x] UI: Approval Center History tab shows both request reviews and direct Level 2 actions
+
+## Admin Panel - Worker Edit Feature
+- [x] Server: add updateWorker procedure to update Employee ID, name, department, and User Level
+- [x] Server: validate that new Employee ID does not conflict with existing workers
+- [x] UI: add Edit button to each worker row in Admin Panel Workers tab
+- [x] UI: edit dialog with fields for Employee ID, name, department, and User Level
+- [x] UI: confirmation step requiring user to re-enter the (new) Employee ID before saving
+- [x] UI: show success toast after successful update

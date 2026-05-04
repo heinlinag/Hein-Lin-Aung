@@ -83,6 +83,12 @@ export async function deleteWorker(id: number) {
   await db.delete(workers).where(eq(workers.id, id));
 }
 
+export async function updateWorkerById(id: number, data: Partial<InsertWorker>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(workers).set(data).where(eq(workers.id, id));
+}
+
 // ─── Orders ──────────────────────────────────────────────────────────────────
 
 export async function getAllOrders(status?: "current" | "out_of_stock") {

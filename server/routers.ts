@@ -10,6 +10,7 @@ import {
   getWorkerByWorkerID,
   createWorker,
   deleteWorker,
+  updateWorkerById,
   getAllOrders,
   createOrder,
   getOrderByOrderID,
@@ -81,6 +82,36 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
         }
         await deleteWorker(input.id);
+        return { success: true };
+      }),
+    update: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        workerID: z.string().min(1).max(64),
+        name: z.string().min(1).max(128),
+        department: z.string().min(1).max(128),
+        userLevel: z.enum(["1", "2"]),
+        confirmWorkerID: z.string().min(1), // must match the new workerID
+        adminPassword: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        if (input.adminPassword !== ADMIN_PASSWORD) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
+        }
+        if (input.confirmWorkerID !== input.workerID) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Employee ID confirmation does not match" });
+        }
+        // Check if new workerID conflicts with another worker (excluding current)
+        const existing = await getWorkerByWorkerID(input.workerID);
+        if (existing && existing.id !== input.id) {
+          throw new TRPCError({ code: "CONFLICT", message: "Employee ID already used by another worker" });
+        }
+        await updateWorkerById(input.id, {
+          workerID: input.workerID,
+          name: input.name,
+          department: input.department,
+          userLevel: input.userLevel,
+        });
         return { success: true };
       }),
   }),
