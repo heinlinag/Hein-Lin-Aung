@@ -64,6 +64,20 @@
       "when": 1777421629062,
       "tag": "0008_lowly_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1777875579161,
+      "tag": "0009_strange_silver_fox",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1777878459765,
+      "tag": "0010_gigantic_maximus",
+      "breakpoints": true
     }
   ]
 }

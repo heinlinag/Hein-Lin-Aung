@@ -223,3 +223,21 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Integrate geo-check into App.tsx to wrap all routes
 - [x] Allow Malaysia (MY) and Myanmar (MM) only; show notice for all other countries
 - [x] Include VPN warning message in bilingual notice
+
+## Approval Center Enhancements
+- [x] DB: add cancel_reason column to pending_requests table
+- [x] DB: add approved_qty column to pending_requests table (Level 2 can edit qty before approving)
+- [x] DB: create approval_action_log table to record Level 2 actions (approve/cancel/direct actions)
+- [x] Server: update approveRequest procedure to accept approved_qty and log the action
+- [x] Server: update cancelRequest procedure to require cancel_reason and log the action
+- [x] Server: add getActionLog procedure to fetch Level 2 action history
+- [x] UI: add qty edit input in approve confirmation dialog
+- [x] UI: add cancel reason textarea in cancel confirmation dialog (required)
+- [x] UI: add History tab in Approval Center showing Level 2 action log
+
+## Approval Center Enhancements - Direct Action Logging
+- [x] Server: log direct Level 2 actions (used update, old stock clear) into approval_action_log
+- [x] Schema: add details column to approvalActionLog for human-readable descriptions
+- [x] Schema: change actionType to varchar(64) to support direct_used_update and direct_old_stock types
+- [x] Server: extend pendingRequests.actionLog to include direct Level 2 actions via same table
+- [x] UI: Approval Center History tab shows both request reviews and direct Level 2 actions

@@ -584,6 +584,13 @@ function PendingRequestsTab() {
   const utils = trpc.useUtils();
   const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "cancelled">("pending");
   const [processingId, setProcessingId] = useState<number | null>(null);
+  // Cancel reason dialog
+  const [cancelDialog, setCancelDialog] = useState<{ id: number } | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  // Approve with qty dialog
+  const [approveDialog, setApproveDialog] = useState<{ id: number; requestedQty: number | null; isDelete: boolean } | null>(null);
+  const [approvedQtyInput, setApprovedQtyInput] = useState("");
+
   const listQuery = trpc.pendingRequests.list.useQuery({ status: statusFilter });
   const requests = (listQuery.data ?? []) as PendingReq[];
   const approveMut = trpc.pendingRequests.approve.useMutation({
@@ -594,13 +601,13 @@ function PendingRequestsTab() {
     onSuccess: () => { utils.pendingRequests.list.invalidate(); toast.success("Request cancelled."); },
     onError: (e) => toast.error(e.message),
   });
-  const handleApprove = async (id: number) => {
+  const handleApprove = async (id: number, approvedQty?: number) => {
     setProcessingId(id);
-    try { await approveMut.mutateAsync({ id, reviewerWorkerID: "ADMIN" }); } finally { setProcessingId(null); }
+    try { await approveMut.mutateAsync({ id, reviewerWorkerID: "ADMIN", approvedQty }); } finally { setProcessingId(null); }
   };
-  const handleCancel = async (id: number) => {
+  const handleCancel = async (id: number, reason: string) => {
     setProcessingId(id);
-    try { await cancelMut.mutateAsync({ id, reviewerWorkerID: "ADMIN" }); } finally { setProcessingId(null); }
+    try { await cancelMut.mutateAsync({ id, reviewerWorkerID: "ADMIN", cancelReason: reason }); } finally { setProcessingId(null); }
   };
   return (
     <div>
@@ -656,11 +663,11 @@ function PendingRequestsTab() {
                 </div>
                 {isPending && (
                   <div className="flex gap-2 pt-1">
-                    <button onClick={() => handleCancel(req.id)} disabled={processingId === req.id}
+                    <button onClick={() => { setCancelDialog({ id: req.id }); setCancelReason(""); }} disabled={processingId === req.id}
                       className="flex-1 border border-border rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
                       <XCircle size={12} /> Cancel
                     </button>
-                    <button onClick={() => handleApprove(req.id)} disabled={processingId === req.id}
+                    <button onClick={() => { const aq = req.type === "used_update" ? (action.usedQty ?? null) : null; setApproveDialog({ id: req.id, requestedQty: aq, isDelete: req.type === "delete" }); setApprovedQtyInput(aq ? String(aq) : ""); }} disabled={processingId === req.id}
                       className="flex-1 bg-green-600 text-white rounded-lg py-2 text-xs font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
                       {processingId === req.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
                       Approve
@@ -670,6 +677,76 @@ function PendingRequestsTab() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Cancel Reason Dialog */}
+      {cancelDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <XCircle size={20} className="text-red-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">Cancel Request</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">Please provide a reason for cancelling this request.</p>
+              <textarea
+                value={cancelReason}
+                onChange={e => setCancelReason(e.target.value)}
+                placeholder="Enter cancel reason..."
+                rows={3}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300 mb-4"
+              />
+              <div className="flex gap-3">
+                <button onClick={() => setCancelDialog(null)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                <button
+                  onClick={async () => { if (!cancelReason.trim()) { toast.error("Cancel reason is required."); return; } const id = cancelDialog.id; setCancelDialog(null); await handleCancel(id, cancelReason.trim()); }}
+                  disabled={!cancelReason.trim()}
+                  className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-red-700 disabled:opacity-50"
+                >Confirm Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve with Qty Dialog */}
+      {approveDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 size={20} className="text-green-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">Approve Request</h3>
+              </div>
+              {!approveDialog.isDelete && approveDialog.requestedQty !== null && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-2">Requested Qty: <strong>{approveDialog.requestedQty} pcs</strong></p>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Approved Qty (optional — leave blank to use requested)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={approvedQtyInput}
+                    onChange={e => setApprovedQtyInput(e.target.value)}
+                    placeholder={String(approveDialog.requestedQty)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                  />
+                </div>
+              )}
+              {approveDialog.isDelete && <p className="text-sm text-gray-600 mb-4">Are you sure you want to approve this delete request? This action cannot be undone.</p>}
+              <div className="flex gap-3">
+                <button onClick={() => setApproveDialog(null)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                <button
+                  onClick={async () => { const id = approveDialog.id; const aq = approvedQtyInput ? parseInt(approvedQtyInput) : undefined; setApproveDialog(null); await handleApprove(id, aq); }}
+                  className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700"
+                >Confirm Approve</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

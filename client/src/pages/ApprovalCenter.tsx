@@ -94,14 +94,19 @@ function RequestCard({
   canCancel,
 }: {
   req: PendingRequest;
-  onApprove: (id: number) => void;
-  onCancel: (id: number) => void;
+  onApprove: (id: number, approvedQty?: number) => void;
+  onCancel: (id: number, reason: string) => void;
   isProcessing: boolean;
   canApprove: boolean;
   canCancel: boolean;
 }) {
-  const [confirmApprove, setConfirmApprove] = useState(false);
-  const [confirmCancel, setConfirmCancel] = useState(false);
+  // Cancel reason dialog state (local to card)
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReasonLocal, setCancelReasonLocal] = useState("");
+  // Approve with qty dialog state (local to card)
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [approvedQtyLocal, setApprovedQtyLocal] = useState("");
+
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
   try { snapshot = JSON.parse(req.orderSnapshot); } catch { /* ignore */ }
@@ -196,7 +201,7 @@ function RequestCard({
         <div className="flex gap-2 pt-1">
           {canCancel && (
             <button
-              onClick={() => setConfirmCancel(true)}
+              onClick={() => { setShowCancelDialog(true); setCancelReasonLocal(""); }}
               disabled={isProcessing}
               className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
@@ -205,7 +210,7 @@ function RequestCard({
           )}
           {canApprove && (
             <button
-              onClick={() => setConfirmApprove(true)}
+              onClick={() => { setShowApproveDialog(true); setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : ""); }}
               disabled={isProcessing}
               className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
@@ -216,27 +221,75 @@ function RequestCard({
         </div>
       )}
 
-      {/* Approve Confirmation Dialog */}
-      <ConfirmDialog
-        open={confirmApprove}
-        title="Approve Request"
-        message={`Are you sure you want to approve the ${isDelete ? "delete" : "usage update"} request for order ${snapshot?.orderID ?? ""}? This action cannot be undone.`}
-        confirmLabel="Yes, Approve"
-        confirmClassName="bg-green-600 hover:bg-green-700"
-        onConfirm={() => { setConfirmApprove(false); onApprove(req.id); }}
-        onCancel={() => setConfirmApprove(false)}
-      />
+      {/* Approve with Qty Dialog */}
+      {showApproveDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 size={20} className="text-green-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">Approve Request</h3>
+              </div>
+              {!isDelete && action && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-2">Requested Qty: <strong>{action.usedQty} pcs</strong></p>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Approved Qty (optional — leave blank to use requested)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={approvedQtyLocal}
+                    onChange={e => setApprovedQtyLocal(e.target.value)}
+                    placeholder={String(action.usedQty)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                  />
+                </div>
+              )}
+              {isDelete && <p className="text-sm text-gray-600 mb-4">Are you sure you want to approve this delete request? This action cannot be undone.</p>}
+              <div className="flex gap-3">
+                <button onClick={() => setShowApproveDialog(false)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                <button
+                  onClick={() => { const aq = approvedQtyLocal ? parseInt(approvedQtyLocal) : undefined; setShowApproveDialog(false); onApprove(req.id, aq); }}
+                  className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700"
+                >Confirm Approve</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Cancel Confirmation Dialog */}
-      <ConfirmDialog
-        open={confirmCancel}
-        title="Cancel Request"
-        message={`Are you sure you want to cancel the ${isDelete ? "delete" : "usage update"} request for order ${snapshot?.orderID ?? ""}? No changes will be made.`}
-        confirmLabel="Yes, Cancel Request"
-        confirmClassName="bg-red-600 hover:bg-red-700"
-        onConfirm={() => { setConfirmCancel(false); onCancel(req.id); }}
-        onCancel={() => setConfirmCancel(false)}
-      />
+      {/* Cancel with Reason Dialog */}
+      {showCancelDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <XCircle size={20} className="text-red-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">Cancel Request</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">Please provide a reason for cancelling this request.</p>
+              <textarea
+                value={cancelReasonLocal}
+                onChange={e => setCancelReasonLocal(e.target.value)}
+                placeholder="Enter cancel reason..."
+                rows={3}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300 mb-4"
+              />
+              <div className="flex gap-3">
+                <button onClick={() => setShowCancelDialog(false)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                <button
+                  onClick={() => { if (!cancelReasonLocal.trim()) return; setShowCancelDialog(false); onCancel(req.id, cancelReasonLocal.trim()); }}
+                  disabled={!cancelReasonLocal.trim()}
+                  className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-red-700 disabled:opacity-50"
+                >Confirm Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -244,7 +297,14 @@ function RequestCard({
 export default function ApprovalCenter() {
   const { worker } = useAuth();
   const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "cancelled" | undefined>("pending");
+  const [activeTab, setActiveTab] = useState<"requests" | "history">("requests");
   const [processingId, setProcessingId] = useState<number | null>(null);
+  // Cancel reason dialog
+  const [cancelDialog, setCancelDialog] = useState<{ id: number } | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  // Approve with qty dialog
+  const [approveDialog, setApproveDialog] = useState<{ id: number; requestedQty: number | null; isDelete: boolean } | null>(null);
+  const [approvedQtyInput, setApprovedQtyInput] = useState("");
 
   const userLevel = worker?.userLevel ?? "2";
   const canApprove = userLevel === "2";
@@ -252,6 +312,10 @@ export default function ApprovalCenter() {
   const requestsQuery = trpc.pendingRequests.list.useQuery(
     { status: statusFilter },
     { refetchInterval: 10000 }
+  );
+  const actionLogQuery = trpc.pendingRequests.actionLog.useQuery(
+    { limit: 100 },
+    { enabled: activeTab === "history" }
   );
   const utils = trpc.useUtils();
   const approveMutation = trpc.pendingRequests.approve.useMutation();
@@ -272,14 +336,15 @@ export default function ApprovalCenter() {
     prevPendingCountRef.current = currentCount;
   }, [requests, statusFilter]);
 
-  const handleApprove = async (id: number) => {
+  const handleApprove = async (id: number, approvedQty?: number) => {
     if (!worker || !canApprove) return;
     setProcessingId(id);
     try {
-      await approveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID });
+      await approveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, approvedQty });
       toast.success("Request approved and action executed.");
       utils.pendingRequests.list.invalidate();
       utils.orders.list.invalidate();
+      if (activeTab === "history") utils.pendingRequests.actionLog.invalidate();
     } catch (err: unknown) {
       const e = err as { message?: string };
       toast.error(e?.message ?? "Failed to approve request.");
@@ -288,13 +353,14 @@ export default function ApprovalCenter() {
     }
   };
 
-  const handleCancel = async (id: number) => {
+  const handleCancel = async (id: number, reason: string) => {
     if (!worker) return;
     setProcessingId(id);
     try {
-      await cancelMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID });
+      await cancelMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, cancelReason: reason });
       toast.success("Request cancelled. No changes made.");
       utils.pendingRequests.list.invalidate();
+      if (activeTab === "history") utils.pendingRequests.actionLog.invalidate();
     } catch (err: unknown) {
       const e = err as { message?: string };
       toast.error(e?.message ?? "Failed to cancel request.");
@@ -336,54 +402,140 @@ export default function ApprovalCenter() {
           </div>
         )}
 
-        {/* Status filter tabs */}
-        <div className="flex gap-1 mb-5 border-b border-border">
-          {([
-            { key: "pending" as const, label: "Pending" },
-            { key: "approved" as const, label: "Approved" },
-            { key: "cancelled" as const, label: "Cancelled" },
-            { key: undefined, label: "All" },
-          ]).map(({ key, label }) => (
+        {/* Main tab: Requests / History */}
+        <div className="flex gap-1 mb-4 border-b border-border">
+          <button
+            onClick={() => setActiveTab("requests")}
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "requests" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            Requests
+            {pendingCount !== undefined && pendingCount > 0 && (
+              <span className="ml-1.5 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">{pendingCount}</span>
+            )}
+          </button>
+          {canApprove && (
             <button
-              key={label}
-              onClick={() => setStatusFilter(key)}
-              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${statusFilter === key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setActiveTab("history")}
+              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "history" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
             >
-              {label}
-              {key === "pending" && pendingCount !== undefined && pendingCount > 0 && (
-                <span className="ml-1.5 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">{pendingCount}</span>
-              )}
+              My Action History
             </button>
-          ))}
+          )}
         </div>
 
-        {requestsQuery.isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse" />
-            ))}
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-              <Clock size={28} className="text-muted-foreground/40" />
+        {activeTab === "requests" && (
+          <>
+            {/* Status filter sub-tabs */}
+            <div className="flex gap-1 mb-5">
+              {([
+                { key: "pending" as const, label: "Pending" },
+                { key: "approved" as const, label: "Approved" },
+                { key: "cancelled" as const, label: "Cancelled" },
+                { key: undefined, label: "All" },
+              ]).map(({ key, label }) => (
+                <button
+                  key={label}
+                  onClick={() => setStatusFilter(key)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    statusFilter === key
+                      ? key === "pending" ? "bg-orange-500 text-white" : key === "approved" ? "bg-green-600 text-white" : key === "cancelled" ? "bg-gray-500 text-white" : "bg-primary text-white"
+                      : "bg-gray-100 text-muted-foreground hover:bg-gray-200"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
-            <p className="text-sm text-muted-foreground">No {statusFilter ?? ""} requests found</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {requests.map(req => (
-              <RequestCard
-                key={req.id}
-                req={req}
-                onApprove={handleApprove}
-                onCancel={handleCancel}
-                isProcessing={processingId === req.id}
-                canApprove={canApprove}
-                canCancel={canApprove || req.requestedBy === worker?.workerID}
-              />
-            ))}
-          </div>
+
+            {requestsQuery.isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : requests.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <Clock size={28} className="text-muted-foreground/40" />
+                </div>
+                <p className="text-sm text-muted-foreground">No {statusFilter ?? ""} requests found</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {requests.map(req => (
+                  <RequestCard
+                    key={req.id}
+                    req={req}
+                    onApprove={handleApprove}
+                    onCancel={handleCancel}
+                    isProcessing={processingId === req.id}
+                    canApprove={canApprove}
+                    canCancel={canApprove || req.requestedBy === worker?.workerID}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === "history" && canApprove && (
+          <>
+            {actionLogQuery.isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />)}
+              </div>
+            ) : !actionLogQuery.data || actionLogQuery.data.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <Clock size={28} className="text-muted-foreground/40" />
+                </div>
+                <p className="text-sm text-muted-foreground">No action history yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(actionLogQuery.data as unknown as Array<{id:number;actionType:string;requestId:number;requestType:"delete"|"used_update";orderID:string;requestedBy:string;reviewedBy:string;approvedQty:number|null;requestedQty:number|null;cancelReason:string|null;details:string|null;createdAt:Date}>).map(log => {
+                  const isDirect = log.actionType.startsWith("direct_");
+                  const isApprove = log.actionType === "approve";
+                  const isCancel = log.actionType === "cancel";
+                  const iconBg = isApprove ? "bg-green-100" : isCancel ? "bg-red-100" : "bg-blue-100";
+                  const iconColor = isApprove ? "text-green-600" : isCancel ? "text-red-600" : "text-blue-600";
+                  const actionLabel = isApprove ? "Approved Request" : isCancel ? "Cancelled Request" :
+                    log.actionType === "direct_used_update" ? "Direct: Used Update" :
+                    log.actionType === "direct_old_stock" ? "Direct: Old Stock Clear" :
+                    log.actionType === "direct_delete" ? "Direct: Deleted Order" :
+                    log.actionType.replace(/_/g, " ");
+                  return (
+                    <div key={log.id} className="border border-border rounded-xl p-4 bg-white shadow-sm">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+                            {isApprove ? <CheckCircle2 size={13} className={iconColor} /> : isCancel ? <XCircle size={13} className={iconColor} /> : <Zap size={13} className={iconColor} />}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{actionLabel}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Order <strong>{log.orderID}</strong>
+                              {isDirect ? ` · By ${log.reviewedBy}` : ` · Requested by ${log.requestedBy} · Reviewed by ${log.reviewedBy}`}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-xs text-muted-foreground flex-shrink-0">{new Date(log.createdAt).toLocaleString()}</span>
+                      </div>
+                      {log.details && (
+                        <p className="text-xs text-muted-foreground mt-2 bg-gray-50 rounded-lg p-2">{log.details}</p>
+                      )}
+                      {isApprove && log.approvedQty !== null && log.requestedQty !== null && log.approvedQty !== log.requestedQty && (
+                        <p className="text-xs text-orange-600 mt-2 bg-orange-50 rounded-lg p-2">Qty adjusted: {log.requestedQty} → {log.approvedQty} pcs</p>
+                      )}
+                      {isCancel && log.cancelReason && (
+                        <p className="text-xs text-muted-foreground mt-2 bg-gray-50 rounded-lg p-2">Cancel reason: {log.cancelReason}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </main>
     </AppLayout>

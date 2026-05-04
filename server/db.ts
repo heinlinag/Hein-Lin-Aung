@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests } from "../drizzle/schema";
+import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -238,11 +238,27 @@ export async function getPendingUsedQtyForOrder(orderId: number): Promise<number
 export async function updatePendingRequestStatus(
   id: number,
   status: "approved" | "cancelled",
-  reviewedBy: string
+  reviewedBy: string,
+  opts?: { cancelReason?: string; approvedQty?: number }
 ) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(pendingRequests)
-    .set({ status, reviewedBy, reviewedAt: new Date() })
-    .where(eq(pendingRequests.id, id));
+  const updateData: Record<string, unknown> = { status, reviewedBy, reviewedAt: new Date() };
+  if (opts?.cancelReason !== undefined) updateData.cancelReason = opts.cancelReason;
+  if (opts?.approvedQty !== undefined) updateData.approvedQty = opts.approvedQty;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await db.update(pendingRequests).set(updateData as any).where(eq(pendingRequests.id, id));
+}
+
+// ─── Approval Action Log ──────────────────────────────────────────────────────
+export async function createApprovalActionLog(data: InsertApprovalActionLog) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(approvalActionLog).values(data);
+}
+
+export async function getApprovalActionLog(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(approvalActionLog).orderBy(desc(approvalActionLog.createdAt)).limit(limit);
 }

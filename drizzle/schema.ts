@@ -53,11 +53,31 @@ export const pendingRequests = mysqlTable("pendingRequests", {
   actionData: text("actionData"), // JSON: for used_update: { jobNo, usedQty, purpose, newQty }
   status: mysqlEnum("status", ["pending", "approved", "cancelled"]).default("pending").notNull(),
   reviewedBy: varchar("reviewedBy", { length: 128 }),
+  cancelReason: text("cancelReason"), // required when status = cancelled
+  approvedQty: int("approvedQty"),    // Level 2 can override requested qty before approving
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   reviewedAt: timestamp("reviewedAt"),
 });
 export type PendingRequest = typeof pendingRequests.$inferSelect;
 export type InsertPendingRequest = typeof pendingRequests.$inferInsert;
+
+// Approval Action Log — records every Level 2 action in Approval Center
+export const approvalActionLog = mysqlTable("approvalActionLog", {
+  id: int("id").autoincrement().primaryKey(),
+  actionType: varchar("actionType", { length: 64 }).notNull(), // approve | cancel | direct_used_update | direct_old_stock | direct_delete
+  requestId: int("requestId").notNull(),       // references pendingRequests.id (0 for direct actions)
+  requestType: mysqlEnum("requestType", ["delete", "used_update"]).notNull(),
+  orderID: varchar("orderID", { length: 64 }).notNull(),
+  requestedBy: varchar("requestedBy", { length: 128 }).notNull(), // Level 1 worker name or Level 2 for direct
+  reviewedBy: varchar("reviewedBy", { length: 128 }).notNull(),   // Level 2 worker name/ID
+  approvedQty: int("approvedQty"),    // final approved qty (may differ from requested)
+  requestedQty: int("requestedQty"), // original requested qty
+  cancelReason: text("cancelReason"), // populated when actionType = cancel
+  details: text("details"),           // human-readable description of the action
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ApprovalActionLog = typeof approvalActionLog.$inferSelect;
+export type InsertApprovalActionLog = typeof approvalActionLog.$inferInsert;
 
 // Deleted Logs table — audit trail of deleted orders
 export const deletedLogs = mysqlTable("deletedLogs", {

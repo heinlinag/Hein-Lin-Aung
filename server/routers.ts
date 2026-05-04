@@ -24,6 +24,8 @@ import {
   getPendingRequestById,
   getPendingUsedQtyForOrder,
   updatePendingRequestStatus,
+  createApprovalActionLog,
+  getApprovalActionLog,
 } from "./db";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
@@ -221,6 +223,7 @@ export const appRouter = router({
         purpose: z.enum(["job", "old_stock"]),
         orderId: z.number().int().positive(),
         newQty: z.number().int().min(0),
+        performedBy: z.string().optional(), // workerID of Level 2 who did the direct action
       }))
       .mutation(async ({ input }) => {
         await logUsageHistory({
@@ -231,6 +234,25 @@ export const appRouter = router({
           bqComment: input.bqComment,
           purpose: input.purpose,
         });
+        // Log direct Level 2 action into approval_action_log
+        if (input.performedBy) {
+          const actionType = input.purpose === "old_stock" ? "direct_old_stock" : "direct_used_update";
+          const details = input.purpose === "old_stock"
+            ? `Direct: Cleared stock to 0 (Out of Stock) for Order ${input.orderID}`
+            : `Direct: Used ${input.usedQty} pcs for Job No ${input.jobNo ?? "N/A"} on Order ${input.orderID}. Remaining: ${input.newQty} pcs`;
+          await createApprovalActionLog({
+            actionType: actionType as "approve" | "cancel",
+            requestId: 0,
+            requestType: "used_update",
+            orderID: input.orderID,
+            requestedBy: input.performedBy,
+            reviewedBy: input.performedBy,
+            approvedQty: input.usedQty,
+            requestedQty: input.usedQty,
+            cancelReason: null,
+            details,
+          });
+        }
         // Update the order qty or move to out_of_stock
         if (input.newQty === 0) {
           await updateOrderStatus(input.orderId, "out_of_stock");
@@ -289,6 +311,7 @@ export const appRouter = router({
       .input(z.object({
         id: z.number().int().positive(),
         reviewerWorkerID: z.string().min(1),
+        approvedQty: z.number().int().positive().optional(), // Level 2 can override qty
       }))
       .mutation(async ({ input }) => {
         const isAdmin = input.reviewerWorkerID === "ADMIN";
@@ -302,6 +325,10 @@ export const appRouter = router({
         const req = await getPendingRequestById(input.id);
         if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
         if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
+
+        let requestedQty: number | undefined;
+        let finalApprovedQty: number | undefined;
+
         // Execute the action
         if (req.type === "delete") {
           const snapshot = JSON.parse(req.orderSnapshot);
@@ -317,32 +344,52 @@ export const appRouter = router({
           await deleteOrder(req.orderId);
         } else if (req.type === "used_update" && req.actionData) {
           const action = JSON.parse(req.actionData);
+          requestedQty = action.usedQty;
+          // Use approvedQty override if provided, otherwise use requested qty
+          const usedQtyFinal = input.approvedQty ?? action.usedQty;
+          finalApprovedQty = usedQtyFinal;
+          const snapshot = JSON.parse(req.orderSnapshot);
+          const newQty = Math.max(0, (snapshot.qty ?? action.newQty + action.usedQty) - usedQtyFinal);
           await logUsageHistory({
             jobNo: action.jobNo ?? null,
-            usedQty: action.usedQty,
+            usedQty: usedQtyFinal,
             orderID: action.orderID,
             fluteType: action.fluteType,
             bqComment: action.bqComment,
             purpose: action.purpose,
           });
-          if (action.newQty === 0) {
+          if (newQty === 0) {
             await updateOrderStatus(req.orderId, "out_of_stock");
           } else {
             const db = await (await import("./db")).getDb();
             if (db) {
               const { orders: ordersTable } = await import("../drizzle/schema");
               const { eq } = await import("drizzle-orm");
-              await db.update(ordersTable).set({ qty: action.newQty }).where(eq(ordersTable.id, req.orderId));
+              await db.update(ordersTable).set({ qty: newQty }).where(eq(ordersTable.id, req.orderId));
             }
           }
         }
-        await updatePendingRequestStatus(input.id, "approved", reviewerName);
+        await updatePendingRequestStatus(input.id, "approved", reviewerName, { approvedQty: finalApprovedQty });
+        // Log the action
+        const snapshot = JSON.parse(req.orderSnapshot);
+        await createApprovalActionLog({
+          actionType: "approve",
+          requestId: req.id,
+          requestType: req.type,
+          orderID: snapshot.orderID ?? "",
+          requestedBy: req.workerName,
+          reviewedBy: reviewerName,
+          approvedQty: finalApprovedQty ?? null,
+          requestedQty: requestedQty ?? null,
+          cancelReason: null,
+        });
         return { success: true };
       }),
     cancel: publicProcedure
       .input(z.object({
         id: z.number().int().positive(),
         reviewerWorkerID: z.string().min(1),
+        cancelReason: z.string().min(1, "Cancel reason is required").max(500),
       }))
       .mutation(async ({ input }) => {
         const isAdminCancel = input.reviewerWorkerID === "ADMIN";
@@ -365,8 +412,27 @@ export const appRouter = router({
         const req = await getPendingRequestById(input.id);
         if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
         if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
-        await updatePendingRequestStatus(input.id, "cancelled", cancellerName);
+        await updatePendingRequestStatus(input.id, "cancelled", cancellerName, { cancelReason: input.cancelReason });
+        // Log the action (only for Level 2 cancels — Level 1 cancels their own request)
+        const snapshot = JSON.parse(req.orderSnapshot);
+        const action = req.actionData ? JSON.parse(req.actionData) : null;
+        await createApprovalActionLog({
+          actionType: "cancel",
+          requestId: req.id,
+          requestType: req.type,
+          orderID: snapshot.orderID ?? "",
+          requestedBy: req.workerName,
+          reviewedBy: cancellerName,
+          approvedQty: null,
+          requestedQty: action?.usedQty ?? null,
+          cancelReason: input.cancelReason,
+        });
         return { success: true };
+      }),
+    actionLog: publicProcedure
+      .input(z.object({ limit: z.number().int().positive().max(200).default(100) }))
+      .query(async ({ input }) => {
+        return getApprovalActionLog(input.limit);
       }),
   }),
   // ─── Admin ──────────────────────────────────────────────────────────────────────────────
