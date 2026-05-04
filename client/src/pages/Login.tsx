@@ -172,12 +172,12 @@ export default function Login() {
                   <p className="text-sm font-bold text-gray-900">HEiNANN</p>
                   <p className="text-xs text-gray-500 flex items-center gap-1">
                     <Phone size={11} />
-                    01159225408
+                    +601159225408
                   </p>
                 </div>
               </div>
               <a
-                href="https://wa.me/959159225408"
+                href="https://wa.me/601159225408"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition-colors"
