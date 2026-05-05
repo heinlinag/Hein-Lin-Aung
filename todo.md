@@ -267,3 +267,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Remove "(optional)" text from MasterCard and Modify Board Size labels
 - [x] Compact Board Size WxL inputs so they fit on mobile without overflow
 - [x] Improve overall Used Update dialog styling for mobile and desktop
+
+## Used Update - Required Fields Fix
+- [x] MasterCard: make required (red * asterisk), add validation
+- [x] Board Size WxL: make required (red * asterisk), add validation
+- [x] Scores: keep as optional with "(optional)" label

@@ -37,6 +37,8 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   const handleJobSubmit = async () => {
     setJobError("");
     if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
+    if (!masterCard.trim()) { setJobError("MasterCard is required."); return; }
+    if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
     const qty = parseInt(useQty);
     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
     if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs).`); return; }
@@ -118,11 +120,11 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                 {/* Row 2: MasterCard + Board Size side by side on desktop, stacked on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">MasterCard</label>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">MasterCard <span className="text-destructive">*</span></label>
                     <input type="text" value={masterCard} onChange={e => setMasterCard(e.target.value.toUpperCase())} placeholder="e.g. PABC00001A" className="w-full border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Board Size (W × L)</label>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Board Size (W × L) <span className="text-destructive">*</span></label>
                     <div className="flex items-center gap-1.5">
                       <input type="number" value={boardSizeW} onChange={e => setBoardSizeW(e.target.value)} placeholder="W" min={1} className="w-0 flex-1 border border-border rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary" />
                       <span className="text-muted-foreground text-xs font-bold shrink-0">×</span>
@@ -133,7 +135,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                 {/* Row 3: Scores + Qty side by side on desktop, stacked on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Scores</label>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Scores <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span></label>
                     <input type="text" value={scores} onChange={e => setScores(e.target.value)} placeholder="e.g. 184 275 184" className="w-full border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
                   </div>
                   <div>
@@ -149,6 +151,8 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                   <button onClick={() => {
                     setJobError("");
                     if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
+                    if (!masterCard.trim()) { setJobError("MasterCard is required."); return; }
+                    if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
                     const qty = parseInt(useQty);
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
                     if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs).`); return; }
