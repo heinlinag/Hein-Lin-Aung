@@ -572,9 +572,9 @@ export default function StockHistory() {
   return (
     <AppLayout pageTitle="Stock History">
       <div className="flex justify-between items-center px-4 lg:px-8 pt-4">
-        {userLevel === "1" && (
+        {(userLevel === "1" || userLevel === "1.1") && (
           <div className="flex items-center gap-1.5 text-xs text-orange-600 font-semibold bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-lg">
-            <Clock size={12} /> Level 1 — Actions require approval
+            <Clock size={12} /> {userLevel === "1.1" ? "Level 1.1 — Requests auto process-approved, awaiting Level 2" : "Level 1 — Actions require approval"}
           </div>
         )}
         {userLevel === "2" && (
@@ -669,9 +669,9 @@ export default function StockHistory() {
                           {activeTab === "current" && (
                             <button
                               onClick={() => setUsedUpdateOrder(order)}
-                              className={`text-xs px-2.5 py-1 rounded-lg font-semibold hover:opacity-90 whitespace-nowrap ${userLevel === "1" ? "bg-orange-500 text-white" : "bg-primary text-white"}`}
+                              className={`text-xs px-2.5 py-1 rounded-lg font-semibold hover:opacity-90 whitespace-nowrap ${(userLevel === "1" || userLevel === "1.1") ? "bg-orange-500 text-white" : "bg-primary text-white"}`}
                             >
-                              {userLevel === "1" ? "Request Use" : "Used Update"}
+                              {(userLevel === "1" || userLevel === "1.1") ? "Request Use" : "Used Update"}
                             </button>
                           )}
                           <button onClick={() => setDeleteOrder(order)} className="text-muted-foreground hover:text-destructive p-1">
@@ -715,9 +715,9 @@ export default function StockHistory() {
                   {activeTab === "current" && (
                     <button
                       onClick={() => setUsedUpdateOrder(order)}
-                      className={`w-full text-white rounded-lg py-2 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2 ${userLevel === "1" ? "bg-orange-500" : "gspp-gradient"}`}
+                      className={`w-full text-white rounded-lg py-2 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2 ${(userLevel === "1" || userLevel === "1.1") ? "bg-orange-500" : "gspp-gradient"}`}
                     >
-                      {userLevel === "1" ? <><Clock size={14} /> Request Use</> : <><Zap size={14} /> Used Update</>}
+                      {(userLevel === "1" || userLevel === "1.1") ? <><Clock size={14} /> Request Use</> : <><Zap size={14} /> Used Update</>}
                     </button>
                   )}
                 </div>
@@ -731,13 +731,13 @@ export default function StockHistory() {
       {usedUpdateOrder && userLevel === "2" && (
         <UsedUpdateDialog order={usedUpdateOrder} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />
       )}
-      {usedUpdateOrder && userLevel === "1" && worker && (
+      {usedUpdateOrder && (userLevel === "1" || userLevel === "1.1") && worker && (
         <UsedUpdateRequestDialog order={usedUpdateOrder} workerID={worker.workerID} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />
       )}
       {deleteOrder && userLevel === "2" && (
         <DeleteDialog order={deleteOrder} onClose={() => setDeleteOrder(null)} onSuccess={() => { setDeleteOrder(null); utils.orders.list.invalidate(); }} />
       )}
-      {deleteOrder && userLevel === "1" && worker && (
+      {deleteOrder && (userLevel === "1" || userLevel === "1.1") && worker && (
         <DeleteRequestDialog order={deleteOrder} workerID={worker.workerID} onClose={() => setDeleteOrder(null)} onSuccess={() => { setDeleteOrder(null); }} />
       )}
     </AppLayout>
