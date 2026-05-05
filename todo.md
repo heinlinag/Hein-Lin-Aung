@@ -283,3 +283,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Level 1 Used Update Request - Server-Side Handling (Gaps)
 - [x] Server: update pendingRequests.approve to parse and persist masterCard, boardSizeW, boardSizeL, scores from Level 1 request actionData
 - [x] Server: ensure Level 2 can edit these fields when approving (already implemented for direct Level 2 actions)
+
+## Level 1 Used Update Request - Layout Fix
+- [x] Compact Board Size WxL inputs so they fit on mobile without overflow
+- [x] Improve overall Used Update Request dialog styling for mobile and desktop
+- [x] Add scrollable container (max-h-[90vh]) for long content

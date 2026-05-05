@@ -281,15 +281,15 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between p-5 border-b border-border">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div>
             <h3 className="font-bold text-foreground">Used Update Request</h3>
             <p className="text-xs text-muted-foreground mt-0.5">Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1"><X size={18} /></button>
         </div>
-        <div className="p-5">
+        <div className="p-4 overflow-y-auto flex-1">
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 flex items-start gap-2">
             <Clock size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-orange-700">Your request will be sent to a <strong>Level 2 user</strong> for approval before taking effect.</p>
