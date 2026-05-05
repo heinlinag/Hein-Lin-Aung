@@ -396,6 +396,10 @@ export const appRouter = router({
             fluteType: action.fluteType,
             bqComment: action.bqComment,
             purpose: action.purpose,
+            masterCard: action.masterCard ?? null,
+            boardSizeW: action.boardSizeW ?? null,
+            boardSizeL: action.boardSizeL ?? null,
+            scores: action.scores ?? null,
           });
           if (newQty === 0) {
             await updateOrderStatus(req.orderId, "out_of_stock");

@@ -272,3 +272,14 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] MasterCard: make required (red * asterisk), add validation
 - [x] Board Size WxL: make required (red * asterisk), add validation
 - [x] Scores: keep as optional with "(optional)" label
+
+## Level 1 Used Update Request - Extra Fields
+- [x] UI: add MasterCard field to Level 1 UsedUpdateRequestDialog
+- [x] UI: add Board Size (W × L) field to Level 1 UsedUpdateRequestDialog
+- [x] UI: add Scores field (optional) to Level 1 UsedUpdateRequestDialog
+- [x] Server: update Level 1 request procedure to accept and store masterCard, boardSizeW, boardSizeL, scores
+- [x] UI: validate MasterCard and Board Size as required before Submit for Approval
+
+## Level 1 Used Update Request - Server-Side Handling (Gaps)
+- [x] Server: update pendingRequests.approve to parse and persist masterCard, boardSizeW, boardSizeL, scores from Level 1 request actionData
+- [x] Server: ensure Level 2 can edit these fields when approving (already implemented for direct Level 2 actions)
