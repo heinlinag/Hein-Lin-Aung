@@ -322,3 +322,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Approval Center - Show Extra Fields in Used Update Requests
 - [x] ApprovalCenter: Show Master Card, Board Size (W×L), Scores in Job Usage section
+
+## Level 1.1 Auto Process-Approve on Submit
+- [x] Server: pendingRequests.submit — if worker is Level 1.1, auto call processApprovePendingRequest after creating request
+- [x] StockHistory: Level 1.1 user sees same Used Update / Delete dialogs as Level 1
+- [x] StockHistory: After Level 1.1 submits, show toast "Request submitted & auto process-approved"

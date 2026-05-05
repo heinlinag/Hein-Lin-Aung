@@ -209,10 +209,14 @@ export async function createPendingRequest(data: {
   requestedBy: string;
   workerName: string;
   actionData?: string;
-}) {
+}): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.insert(pendingRequests).values(data);
+  const result = await db.insert(pendingRequests).values(data);
+  // Drizzle MySQL returns insertId in result[0]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const insertId = (result as any)[0]?.insertId ?? 0;
+  return insertId;
 }
 
 export async function getPendingRequests(status?: "pending" | "approved" | "cancelled") {

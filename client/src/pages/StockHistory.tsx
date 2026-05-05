@@ -246,14 +246,18 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
     if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs after pending requests).`); return; }
     const newQty = order.qty - qty;
     try {
-      await submitRequest.mutateAsync({
+      const jobResult = await submitRequest.mutateAsync({
         type: "used_update",
         orderId: order.id,
         orderSnapshot: JSON.stringify(order),
         requestedBy: workerID,
         actionData: JSON.stringify({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null }),
       });
-      toast.success("Request submitted! Awaiting Level 2 approval.");
+      if (jobResult.autoProcessApproved) {
+        toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");
+      } else {
+        toast.success("Request submitted! Awaiting Level 2 approval.");
+      }
       notifyLevel2.mutate({ title: "New Approval Request", body: `${workerID} submitted a Used Update request. Please review in Approval Center.`, tag: "pending-request" });
       onSuccess();
     } catch (err: unknown) {
@@ -264,14 +268,18 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
 
   const handleOldStockRequest = async () => {
     try {
-      await submitRequest.mutateAsync({
+      const oldResult = await submitRequest.mutateAsync({
         type: "used_update",
         orderId: order.id,
         orderSnapshot: JSON.stringify(order),
         requestedBy: workerID,
         actionData: JSON.stringify({ jobNo: null, usedQty: order.qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "old_stock", newQty: 0 }),
       });
-      toast.success("Request submitted! Awaiting Level 2 approval.");
+      if (oldResult.autoProcessApproved) {
+        toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");
+      } else {
+        toast.success("Request submitted! Awaiting Level 2 approval.");
+      }
       onSuccess();
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -481,13 +489,17 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
   const handleRequest = async () => {
     setError("");
     try {
-      await submitRequest.mutateAsync({
+      const delResult = await submitRequest.mutateAsync({
         type: "delete",
         orderId: order.id,
         orderSnapshot: JSON.stringify(order),
         requestedBy: workerID,
       });
-      toast.success("Delete request submitted! Awaiting Level 2 approval.");
+      if (delResult.autoProcessApproved) {
+        toast.success("Delete request submitted & auto process-approved! Awaiting Level 2 final approval.");
+      } else {
+        toast.success("Delete request submitted! Awaiting Level 2 approval.");
+      }
       onSuccess();
     } catch (err: unknown) {
       const e = err as { message?: string };

@@ -326,7 +326,7 @@ export const appRouter = router({
         const worker = await getWorkerByWorkerID(input.requestedBy);
         if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
         if (worker.userLevel !== "1" && worker.userLevel !== "1.1") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1 and Level 1.1 workers submit requests" });
-        await createPendingRequest({
+        const insertedId = await createPendingRequest({
           type: input.type,
           orderId: input.orderId,
           orderSnapshot: input.orderSnapshot,
@@ -334,7 +334,11 @@ export const appRouter = router({
           workerName: worker.name,
           actionData: input.actionData,
         });
-        return { success: true };
+        // Level 1.1: auto process-approve immediately after submission
+        if (worker.userLevel === "1.1" && insertedId) {
+          await processApprovePendingRequest(insertedId, worker.name);
+        }
+        return { success: true, autoProcessApproved: worker.userLevel === "1.1" };
       }),
     list: publicProcedure
       .input(z.object({ status: z.enum(["pending", "approved", "cancelled"]).optional() }))
