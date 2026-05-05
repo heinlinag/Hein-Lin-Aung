@@ -45,47 +45,65 @@ export default function SystemStatus() {
 
   const recentUpdates: StatusUpdate[] = [
     {
+      date: 'May 5, 2026',
+      title: 'Level 1.1 User Role Released',
+      description: 'New intermediate user role Level 1.1 added. Requests submitted by Level 1.1 users are automatically process-approved (In Process) upon submission. Level 1.1 users can also manually process-approve Level 1 requests from the Approval Center.',
+      type: 'update',
+    },
+    {
+      date: 'May 5, 2026',
+      title: 'Approval Center — Extra Fields Display',
+      description: 'Used Update request cards in the Approval Center now display Master Card, Board Size (W×L mm), and Scores fields for full job traceability.',
+      type: 'update',
+    },
+    {
+      date: 'May 5, 2026',
+      title: 'FAQ Updated to v2',
+      description: 'FAQ page fully rewritten with 42 Q&A pairs across 8 categories. Added search bar and category filter. Covers Level 1.1, Process Approve workflow, Master Card, Board Size, Scores, and all latest features.',
+      type: 'update',
+    },
+    {
       date: 'May 3, 2026',
-      title: 'Documentation Page Added',
-      description: 'Added comprehensive FAQ page with 35 Q&A pairs covering all system features.',
+      title: 'Master Card, Board Size & Scores Fields',
+      description: 'Used Update dialog now includes Master Card, Board Size (W×L mm), and Scores input fields. These are recorded in Usage History and shown in Approval Center request cards.',
       type: 'update',
     },
     {
       date: 'May 1, 2026',
-      title: 'System Optimization',
-      description: 'Improved database query performance and reduced response times by 20%.',
+      title: 'Process Approve System (Level 1.1)',
+      description: 'Level 1.1 users can process-approve Level 1 requests from the Approval Center. Process Approve dialog supports optional quantity override. Approved quantity is shown on request cards.',
       type: 'update',
     },
     {
       date: 'April 28, 2026',
-      title: 'Admin Dashboard Stats',
-      description: 'Added real-time summary statistics cards to the Admin Panel.',
+      title: 'Admin Dashboard Stats & Export',
+      description: 'Admin Panel now shows real-time summary statistics. Orders can be exported to PDF or Excel directly from the Orders tab.',
       type: 'update',
     },
     {
       date: 'April 25, 2026',
       title: 'Push Notifications Enabled',
-      description: 'Browser push notifications now active for order submissions and approvals.',
+      description: 'Browser push notifications now active for new pending requests (Level 2 users), new order submissions, and admin login events.',
       type: 'update',
     },
     {
       date: 'April 20, 2026',
-      title: 'Approval Workflow Released',
-      description: 'Two-level approval system (Level 1 & Level 2) now fully operational.',
+      title: 'Two-Level Approval Workflow Released',
+      description: 'Level 1 & Level 2 approval system fully operational. Level 1 users submit requests; Level 2 users approve or cancel from the Approval Center.',
       type: 'update',
     },
   ];
 
   const maintenanceSchedule = [
     {
-      date: 'May 10, 2026',
-      time: '02:00 - 04:00 UTC',
-      description: 'Scheduled database maintenance',
+      date: 'May 12, 2026',
+      time: '02:00 - 03:00 UTC',
+      description: 'Scheduled database optimization',
     },
     {
-      date: 'May 17, 2026',
-      time: '03:00 - 05:00 UTC',
-      description: 'Server updates and patches',
+      date: 'May 19, 2026',
+      time: '03:00 - 04:00 UTC',
+      description: 'Server security patches and updates',
     },
   ];
 
@@ -242,6 +260,8 @@ export default function SystemStatus() {
                 { name: 'Authentication Service', status: 'operational' },
                 { name: 'Push Notifications', status: 'operational' },
                 { name: 'File Storage', status: 'operational' },
+                { name: 'Approval Workflow Engine', status: 'operational' },
+                { name: 'Level 1.1 Process Approve', status: 'operational' },
               ].map((component, idx) => (
                 <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
                   <span className="font-semibold text-gray-900">{component.name}</span>
