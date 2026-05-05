@@ -262,3 +262,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Server: update logUsageHistory db helper to accept and store new fields
 - [x] UI: show MasterCard, Modify Board Size (WxL), Scores fields in Used Update dialog when Job No is selected (Level 2)
 - [x] UI: all new fields are optional but shown only for Job No usage type
+
+## Used Update Dialog - Layout Fix
+- [x] Remove "(optional)" text from MasterCard and Modify Board Size labels
+- [x] Compact Board Size WxL inputs so they fit on mobile without overflow
+- [x] Improve overall Used Update dialog styling for mobile and desktop

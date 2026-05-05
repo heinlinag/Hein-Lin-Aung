@@ -69,23 +69,25 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between p-5 border-b border-border">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
           <div>
-            <h3 className="font-bold text-foreground">Used Update</h3>
+            <h3 className="font-bold text-foreground text-base">Used Update</h3>
             <p className="text-xs text-muted-foreground mt-0.5">Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1"><X size={18} /></button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-gray-100"><X size={18} /></button>
         </div>
-        <div className="p-5">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-            <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Available Quantity</p>
-            <p className="text-2xl font-bold text-blue-700 mt-0.5">{availableQty} <span className="text-sm font-normal">pcs</span></p>
-          </div>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
-            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono">{order.bqComment.length > 22 ? order.bqComment.slice(0, 22) + "…" : order.bqComment}</span>
+        <div className="p-4 overflow-y-auto flex-1">
+          <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5 mb-3">
+            <div className="shrink-0">
+              <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide leading-none">Available</p>
+              <p className="text-xl font-bold text-blue-700 leading-tight">{availableQty} <span className="text-xs font-normal">pcs</span></p>
+            </div>
+            <div className="flex flex-wrap gap-1.5 ml-auto">
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono">{order.bqComment.length > 18 ? order.bqComment.slice(0, 18) + "…" : order.bqComment}</span>
+            </div>
           </div>
 
           {step === "choose" && (
@@ -107,34 +109,41 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
           {step === "job" && (
             <div>
               <button onClick={() => { setStep("choose"); setJobError(""); }} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
-              <div className="space-y-3">
+              <div className="space-y-2.5">
+                {/* Row 1: Job No */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Job No (8 digits)</label>
-                  <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
+                  <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">MasterCard <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span></label>
-                  <input type="text" value={masterCard} onChange={e => setMasterCard(e.target.value.toUpperCase())} placeholder="e.g. PABC00001A" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Modify Board Size (WxL) <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span></label>
-                  <div className="flex items-center gap-2">
-                    <input type="number" value={boardSizeW} onChange={e => setBoardSizeW(e.target.value)} placeholder="W (e.g. 643)" min={1} className="flex-1 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <span className="text-muted-foreground text-sm font-semibold">×</span>
-                    <input type="number" value={boardSizeL} onChange={e => setBoardSizeL(e.target.value)} placeholder="L (e.g. 1522)" min={1} className="flex-1 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                {/* Row 2: MasterCard + Board Size side by side on desktop, stacked on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">MasterCard</label>
+                    <input type="text" value={masterCard} onChange={e => setMasterCard(e.target.value.toUpperCase())} placeholder="e.g. PABC00001A" className="w-full border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Board Size (W × L)</label>
+                    <div className="flex items-center gap-1.5">
+                      <input type="number" value={boardSizeW} onChange={e => setBoardSizeW(e.target.value)} placeholder="W" min={1} className="w-0 flex-1 border border-border rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary" />
+                      <span className="text-muted-foreground text-xs font-bold shrink-0">×</span>
+                      <input type="number" value={boardSizeL} onChange={e => setBoardSizeL(e.target.value)} placeholder="L" min={1} className="w-0 flex-1 border border-border rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Scores <span className="text-muted-foreground/60 normal-case font-normal">(optional, e.g. 184 275 184)</span></label>
-                  <input type="text" value={scores} onChange={e => setScores(e.target.value)} placeholder="e.g. 184 275 184" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                {/* Row 3: Scores + Qty side by side on desktop, stacked on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Scores</label>
+                    <input type="text" value={scores} onChange={e => setScores(e.target.value)} placeholder="e.g. 184 275 184" className="w-full border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Qty to Use (max {availableQty})</label>
+                    <input type="number" value={useQty} onChange={e => { setUseQty(e.target.value); setJobError(""); }} placeholder="e.g. 15" min={1} max={availableQty} className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Quantity to Use (max {availableQty} pcs)</label>
-                  <input type="number" value={useQty} onChange={e => { setUseQty(e.target.value); setJobError(""); }} placeholder="e.g. 15" min={1} max={availableQty} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                  {useQty && !isNaN(parseInt(useQty)) && parseInt(useQty) > 0 && parseInt(useQty) <= availableQty && (
-                    <p className="text-xs text-green-600 mt-1 font-medium">Remaining after use: {availableQty - parseInt(useQty)} pcs</p>
-                  )}
-                </div>
+                {useQty && !isNaN(parseInt(useQty)) && parseInt(useQty) > 0 && parseInt(useQty) <= availableQty && (
+                  <p className="text-xs text-green-600 font-medium">Remaining after use: {availableQty - parseInt(useQty)} pcs</p>
+                )}
                 {jobError && <p className="text-xs text-destructive">{jobError}</p>}
                 {!showJobConfirm ? (
                   <button onClick={() => {
