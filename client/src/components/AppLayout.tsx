@@ -74,7 +74,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
                 <div className="text-[10px] text-muted-foreground truncate">{worker.workerID} · {worker.department}</div>
               </div>
               <span className={`ml-auto shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                userLevel === "1" ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
+                userLevel === "1" ? "bg-orange-100 text-orange-700" : userLevel === "1.1" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"
               }`}>Lv.{userLevel}</span>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
                   <User size={11} className="shrink-0" />
                   <span className="truncate">{worker.name}</span>
                   <span className={`ml-0.5 text-[9px] font-bold px-1 py-0.5 rounded-full ${
-                    userLevel === "1" ? "bg-orange-200 text-orange-700" : "bg-green-200 text-green-700"
+                    userLevel === "1" ? "bg-orange-200 text-orange-700" : userLevel === "1.1" ? "bg-purple-200 text-purple-700" : "bg-green-200 text-green-700"
                   }`}>Lv.{userLevel}</span>
                 </div>
                 <button

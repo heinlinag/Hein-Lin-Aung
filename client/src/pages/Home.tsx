@@ -109,7 +109,7 @@ export default function Home() {
           <div className="mt-2 inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-xs font-medium">
             <span>Welcome, {worker.name}</span>
             <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${
-              userLevel === "1" ? "bg-orange-400 text-white" : "bg-green-400 text-white"
+              userLevel === "1" ? "bg-orange-400 text-white" : userLevel === "1.1" ? "bg-purple-500 text-white" : "bg-green-400 text-white"
             }`}>
               Level {userLevel}
             </span>
@@ -132,8 +132,8 @@ export default function Home() {
                 <div>
                   <h3 className="font-bold text-lg leading-tight text-white" style={{ fontFamily: "Lora, serif" }}>
                     {f.title}
-                    {f.href === "/approval-center" && userLevel === "1" && (
-                      <span className="ml-2 text-xs font-normal opacity-80">(View & Cancel)</span>
+                    {f.href === "/approval-center" && (userLevel === "1" || userLevel === "1.1") && (
+                      <span className="ml-2 text-xs font-normal opacity-80">{userLevel === "1.1" ? "(View & Process)" : "(View & Cancel)"}</span>
                     )}
                   </h3>
                   <p className="text-sm opacity-85 mt-0.5 text-white/90">{f.description}</p>

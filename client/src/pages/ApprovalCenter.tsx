@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
@@ -16,6 +16,9 @@ type PendingRequest = {
   actionData: string | null;
   status: "pending" | "approved" | "cancelled";
   reviewedBy: string | null;
+  processApprovedBy: string | null;
+  processApprovedQty: number | null;
+  processApprovedAt: Date | null;
   createdAt: Date;
   reviewedAt: Date | null;
 };
@@ -34,71 +37,30 @@ type ActionData = {
   usedQty: number;
   purpose: "job" | "old_stock";
   newQty: number;
+  masterCard?: string | null;
+  boardSizeW?: number | null;
+  boardSizeL?: number | null;
+  scores?: string | null;
 };
-
-function ConfirmDialog({
-  open,
-  title,
-  message,
-  confirmLabel,
-  confirmClassName,
-  onConfirm,
-  onCancel,
-}: {
-  open: boolean;
-  title: string;
-  message: string;
-  confirmLabel: string;
-  confirmClassName: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
-        <div className="p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle size={20} className="text-orange-600" />
-            </div>
-            <h3 className="font-bold text-gray-900 text-base">{title}</h3>
-          </div>
-          <p className="text-sm text-gray-600 mb-5 leading-relaxed">{message}</p>
-          <div className="flex gap-3">
-            <button
-              onClick={onCancel}
-              className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              No, Cancel
-            </button>
-            <button
-              onClick={onConfirm}
-              className={`flex-1 rounded-lg py-2.5 text-sm font-semibold text-white transition-colors ${confirmClassName}`}
-            >
-              {confirmLabel}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function RequestCard({
   req,
   onApprove,
   onCancel,
+  onProcessApprove,
   isProcessing,
   canApprove,
   canCancel,
+  canProcessApprove,
 }: {
   req: PendingRequest;
   onApprove: (id: number, approvedQty?: number) => void;
   onCancel: (id: number, reason: string) => void;
+  onProcessApprove: (id: number, processApprovedQty?: number) => void;
   isProcessing: boolean;
   canApprove: boolean;
   canCancel: boolean;
+  canProcessApprove: boolean;
 }) {
   // Cancel reason dialog state (local to card)
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -106,6 +68,9 @@ function RequestCard({
   // Approve with qty dialog state (local to card)
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [approvedQtyLocal, setApprovedQtyLocal] = useState("");
+  // Process Approve dialog state (local to card)
+  const [showProcessApproveDialog, setShowProcessApproveDialog] = useState(false);
+  const [processApprovedQtyLocal, setProcessApprovedQtyLocal] = useState("");
 
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
@@ -114,6 +79,7 @@ function RequestCard({
 
   const isDelete = req.type === "delete";
   const isPending = req.status === "pending";
+  const isProcessApproved = !!req.processApprovedBy;
 
   return (
     <div className={`border rounded-xl p-4 space-y-3 ${
@@ -136,14 +102,34 @@ function RequestCard({
             </p>
           </div>
         </div>
-        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${
-          req.status === "pending" ? "bg-orange-100 text-orange-700" :
-          req.status === "approved" ? "bg-green-100 text-green-700" :
-          "bg-gray-200 text-gray-600"
-        }`}>
-          {req.status === "pending" ? "Pending" : req.status === "approved" ? "Approved" : "Cancelled"}
-        </span>
+        <div className="flex flex-col items-end gap-1">
+          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${
+            req.status === "pending" ? "bg-orange-100 text-orange-700" :
+            req.status === "approved" ? "bg-green-100 text-green-700" :
+            "bg-gray-200 text-gray-600"
+          }`}>
+            {req.status === "pending" ? "Pending" : req.status === "approved" ? "Approved" : "Cancelled"}
+          </span>
+          {/* Process Approved badge */}
+          {isProcessApproved && req.status === "pending" && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-100 text-purple-700 flex-shrink-0">
+              In Process
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Process Approved info */}
+      {isProcessApproved && req.status === "pending" && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-2.5 flex items-start gap-2">
+          <PlayCircle size={13} className="text-purple-600 mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-purple-700">
+            <span className="font-semibold">Process Approved</span> by {req.processApprovedBy}
+            {req.processApprovedQty && <span> · Qty: {req.processApprovedQty} pcs</span>}
+            {req.processApprovedAt && <span> · {new Date(req.processApprovedAt).toLocaleString()}</span>}
+          </div>
+        </div>
+      )}
 
       {/* Order info */}
       {snapshot && (
@@ -187,6 +173,29 @@ function RequestCard({
             <span className="text-xs text-muted-foreground">Remaining After</span>
             <span className="text-sm font-semibold text-green-700">{action.newQty} pcs</span>
           </div>
+          {/* Extra fields: MasterCard, Board Size, Scores */}
+          {action.purpose === "job" && (
+            <>
+              {action.masterCard && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Master Card</span>
+                  <span className="text-xs font-mono font-semibold">{action.masterCard}</span>
+                </div>
+              )}
+              {(action.boardSizeW || action.boardSizeL) && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Board Size</span>
+                  <span className="text-xs font-mono">{action.boardSizeW ?? "—"}×{action.boardSizeL ?? "—"} mm</span>
+                </div>
+              )}
+              {action.scores && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Scores</span>
+                  <span className="text-xs font-mono">{action.scores}</span>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -197,27 +206,78 @@ function RequestCard({
       </p>
 
       {/* Actions */}
-      {isPending && (canCancel || canApprove) && (
-        <div className="flex gap-2 pt-1">
+      {isPending && (canCancel || canApprove || canProcessApprove) && (
+        <div className="flex gap-2 pt-1 flex-wrap">
           {canCancel && (
             <button
               onClick={() => { setShowCancelDialog(true); setCancelReasonLocal(""); }}
               disabled={isProcessing}
-              className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+              className="flex-1 min-w-[80px] border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
               <XCircle size={14} /> Cancel
+            </button>
+          )}
+          {canProcessApprove && !isProcessApproved && (
+            <button
+              onClick={() => { setShowProcessApproveDialog(true); setProcessApprovedQtyLocal(""); }}
+              disabled={isProcessing}
+              className="flex-1 min-w-[80px] bg-purple-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />}
+              Process
             </button>
           )}
           {canApprove && (
             <button
               onClick={() => { setShowApproveDialog(true); setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : ""); }}
               disabled={isProcessing}
-              className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+              className="flex-1 min-w-[80px] bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
               {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
               Approve
             </button>
           )}
+        </div>
+      )}
+
+      {/* Process Approve Dialog */}
+      {showProcessApproveDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                  <PlayCircle size={20} className="text-purple-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">Approve Request (process approved request)</h3>
+              </div>
+              {!isDelete && action && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-2">Requested Qty: <strong>{action.usedQty} pcs</strong></p>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Approved Qty (optional — leave blank to use requested)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={processApprovedQtyLocal}
+                    onChange={e => setProcessApprovedQtyLocal(e.target.value)}
+                    placeholder={String(action.usedQty)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                  />
+                </div>
+              )}
+              {isDelete && <p className="text-sm text-gray-600 mb-4">Mark this delete request as currently being processed. Level 2 must still give final approval.</p>}
+              <p className="text-xs text-purple-700 bg-purple-50 rounded-lg p-2 mb-4">
+                This marks the request as "In Process". Level 2 must still give final Approve or Cancel.
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowProcessApproveDialog(false)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                <button
+                  onClick={() => { const pq = processApprovedQtyLocal ? parseInt(processApprovedQtyLocal) : undefined; setShowProcessApproveDialog(false); onProcessApprove(req.id, pq); }}
+                  className="flex-1 bg-purple-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-purple-700"
+                >Confirm Process</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -299,15 +359,11 @@ export default function ApprovalCenter() {
   const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "cancelled" | undefined>("pending");
   const [activeTab, setActiveTab] = useState<"requests" | "history">("requests");
   const [processingId, setProcessingId] = useState<number | null>(null);
-  // Cancel reason dialog
-  const [cancelDialog, setCancelDialog] = useState<{ id: number } | null>(null);
-  const [cancelReason, setCancelReason] = useState("");
-  // Approve with qty dialog
-  const [approveDialog, setApproveDialog] = useState<{ id: number; requestedQty: number | null; isDelete: boolean } | null>(null);
-  const [approvedQtyInput, setApprovedQtyInput] = useState("");
 
   const userLevel = worker?.userLevel ?? "2";
   const canApprove = userLevel === "2";
+  const canProcessApprove = userLevel === "1.1";
+  const isLevel1 = userLevel === "1";
 
   const requestsQuery = trpc.pendingRequests.list.useQuery(
     { status: statusFilter },
@@ -320,6 +376,7 @@ export default function ApprovalCenter() {
   const utils = trpc.useUtils();
   const approveMutation = trpc.pendingRequests.approve.useMutation();
   const cancelMutation = trpc.pendingRequests.cancel.useMutation();
+  const processApproveMutation = trpc.pendingRequests.processApprove.useMutation();
 
   const requests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
 
@@ -369,6 +426,21 @@ export default function ApprovalCenter() {
     }
   };
 
+  const handleProcessApprove = async (id: number, processApprovedQty?: number) => {
+    if (!worker || !canProcessApprove) return;
+    setProcessingId(id);
+    try {
+      await processApproveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, processApprovedQty });
+      toast.success("Request marked as In Process. Level 2 will give final approval.");
+      utils.pendingRequests.list.invalidate();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to process-approve request.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const pendingCount = statusFilter === "pending" ? requests.length : undefined;
 
   return (
@@ -380,6 +452,8 @@ export default function ApprovalCenter() {
             <p className="text-xs text-muted-foreground mt-0.5">
               {canApprove
                 ? "Review and approve Level 1 worker requests"
+                : canProcessApprove
+                ? "View requests and mark them as In Process"
                 : "View your submitted requests"}
             </p>
           </div>
@@ -392,12 +466,20 @@ export default function ApprovalCenter() {
           </button>
         </div>
 
-        {/* Level 1 info banner */}
-        {!canApprove && (
+        {/* Level info banner */}
+        {isLevel1 && (
           <div className="flex items-start gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
             <Info size={14} className="text-orange-600 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-orange-700">
               You are a <strong>Level 1</strong> user. You can view all pending requests and cancel your own. Only Level 2 users can approve requests.
+            </p>
+          </div>
+        )}
+        {canProcessApprove && (
+          <div className="flex items-start gap-2 bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+            <Info size={14} className="text-purple-600 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-purple-700">
+              You are a <strong>Level 1.1</strong> user. You can mark Level 1 requests as <strong>In Process</strong> (currently being processed). Level 2 must still give final Approve or Cancel.
             </p>
           </div>
         )}
@@ -466,9 +548,11 @@ export default function ApprovalCenter() {
                     req={req}
                     onApprove={handleApprove}
                     onCancel={handleCancel}
+                    onProcessApprove={handleProcessApprove}
                     isProcessing={processingId === req.id}
                     canApprove={canApprove}
-                    canCancel={canApprove || req.requestedBy === worker?.workerID}
+                    canCancel={canApprove || canProcessApprove || req.requestedBy === worker?.workerID}
+                    canProcessApprove={canProcessApprove}
                   />
                 ))}
               </div>
@@ -501,7 +585,7 @@ export default function ApprovalCenter() {
                     log.actionType === "direct_used_update" ? "Direct: Used Update" :
                     log.actionType === "direct_old_stock" ? "Direct: Old Stock Clear" :
                     log.actionType === "direct_delete" ? "Direct: Deleted Order" :
-                    log.actionType.replace(/_/g, " ");
+                    log.actionType;
                   return (
                     <div key={log.id} className="border border-border rounded-xl p-4 bg-white shadow-sm">
                       <div className="flex items-start justify-between gap-2">

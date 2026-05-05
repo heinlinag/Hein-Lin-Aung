@@ -264,6 +264,23 @@ export async function updatePendingRequestStatus(
   await db.update(pendingRequests).set(updateData as any).where(eq(pendingRequests.id, id));
 }
 
+// Process-approve a pending request (Level 1.1 intermediate action)
+export async function processApprovePendingRequest(
+  id: number,
+  processApprovedBy: string,
+  processApprovedQty?: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: Record<string, unknown> = {
+    processApprovedBy,
+    processApprovedAt: new Date(),
+  };
+  if (processApprovedQty !== undefined) updateData.processApprovedQty = processApprovedQty;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await db.update(pendingRequests).set(updateData as any).where(eq(pendingRequests.id, id));
+}
+
 // ─── Approval Action Log ──────────────────────────────────────────────────────
 export async function createApprovalActionLog(data: InsertApprovalActionLog) {
   const db = await getDb();

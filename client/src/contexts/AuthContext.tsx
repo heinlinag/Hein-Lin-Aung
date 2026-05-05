@@ -8,14 +8,14 @@ interface WorkerSession {
   workerID: string;
   name: string;
   department: string;
-  userLevel: "1" | "2";
+  userLevel: "1" | "1.1" | "2";
   expiresAt: number;
 }
 
 interface AuthState {
   worker: WorkerSession | null;
   isAdminAuthenticated: boolean;
-  loginWorker: (workerID: string, name: string, department: string, userLevel: "1" | "2") => void;
+  loginWorker: (workerID: string, name: string, department: string, userLevel: "1" | "1.1" | "2") => void;
   loginAdmin: () => void;
   logoutWorker: () => void;
   logoutAdmin: () => void;
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const loginWorker = (workerID: string, name: string, department: string, userLevel: "1" | "2" = "2") => {
+  const loginWorker = (workerID: string, name: string, department: string, userLevel: "1" | "1.1" | "2" = "2") => {
     const session: WorkerSession = {
       workerID,
       name,

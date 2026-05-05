@@ -42,7 +42,7 @@ export default function Login() {
         setLoading(false);
         return;
       }
-      loginWorker(found.workerID, found.name, found.department, (found.userLevel as "1" | "2") ?? "2");
+      loginWorker(found.workerID, found.name, found.department, (found.userLevel as "1" | "1.1" | "2") ?? "2");
       notifyLogin.mutate({ title: "Employee Login", body: found.name + " (" + found.workerID + ") logged in", tag: "worker-login" });
       toast.success(
         `Welcome, ${found.name}! You are now logged in to access the PP4 Slitter Stock Board.`,

@@ -25,6 +25,7 @@ import {
   getPendingRequestById,
   getPendingUsedQtyForOrder,
   updatePendingRequestStatus,
+  processApprovePendingRequest,
   createApprovalActionLog,
   getApprovalActionLog,
 } from "./db";
@@ -60,7 +61,7 @@ export const appRouter = router({
         workerID: z.string().min(1).max(64),
         name: z.string().min(1).max(128),
         department: z.string().min(1).max(128),
-        userLevel: z.enum(["1", "2"]).default("2"),
+        userLevel: z.enum(["1", "1.1", "2"]).default("2"),
         adminPassword: z.string(),
       }))
       .mutation(async ({ input }) => {
@@ -90,7 +91,7 @@ export const appRouter = router({
         workerID: z.string().min(1).max(64),
         name: z.string().min(1).max(128),
         department: z.string().min(1).max(128),
-        userLevel: z.enum(["1", "2"]),
+        userLevel: z.enum(["1", "1.1", "2"]),
         confirmWorkerID: z.string().min(1), // must match the new workerID
         adminPassword: z.string(),
       }))
@@ -324,7 +325,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.requestedBy);
         if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
-        if (worker.userLevel !== "1") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1 workers submit requests" });
+        if (worker.userLevel !== "1" && worker.userLevel !== "1.1") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1 and Level 1.1 workers submit requests" });
         await createPendingRequest({
           type: input.type,
           orderId: input.orderId,
@@ -444,10 +445,10 @@ export const appRouter = router({
           if (!req2) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
           if (req2.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
           // Level 1 can only cancel their own requests; Level 2 can cancel any
-          if (reviewer.userLevel === "1" && req2.requestedBy !== reviewer.workerID) {
+          if ((reviewer.userLevel === "1" || reviewer.userLevel === "1.1") && req2.requestedBy !== reviewer.workerID) {
             throw new TRPCError({ code: "FORBIDDEN", message: "Level 1 users can only cancel their own requests" });
           }
-          if (reviewer.userLevel !== "1" && reviewer.userLevel !== "2") {
+          if (reviewer.userLevel !== "1" && reviewer.userLevel !== "1.1" && reviewer.userLevel !== "2") {
             throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
           }
           cancellerName = reviewer.name;
@@ -470,6 +471,22 @@ export const appRouter = router({
           requestedQty: action?.usedQty ?? null,
           cancelReason: input.cancelReason,
         });
+        return { success: true };
+      }),
+    processApprove: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        reviewerWorkerID: z.string().min(1),
+        processApprovedQty: z.number().int().positive().optional(), // Level 1.1 optional qty override
+      }))
+      .mutation(async ({ input }) => {
+        const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
+        if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
+        if (reviewer.userLevel !== "1.1") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1.1 workers can process-approve requests" });
+        const req = await getPendingRequestById(input.id);
+        if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+        if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
+        await processApprovePendingRequest(input.id, reviewer.name, input.processApprovedQty);
         return { success: true };
       }),
     actionLog: publicProcedure

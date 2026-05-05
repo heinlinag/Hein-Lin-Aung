@@ -20,7 +20,7 @@ export const workers = mysqlTable("workers", {
   workerID: varchar("workerID", { length: 64 }).notNull().unique(),
   name: varchar("name", { length: 128 }).notNull(),
   department: varchar("department", { length: 128 }).notNull(),
-  userLevel: mysqlEnum("userLevel", ["1", "2"]).default("2").notNull(),
+  userLevel: mysqlEnum("userLevel", ["1", "1.1", "2"]).default("2").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type Worker = typeof workers.$inferSelect;
@@ -55,6 +55,9 @@ export const pendingRequests = mysqlTable("pendingRequests", {
   reviewedBy: varchar("reviewedBy", { length: 128 }),
   cancelReason: text("cancelReason"), // required when status = cancelled
   approvedQty: int("approvedQty"),    // Level 2 can override requested qty before approving
+  processApprovedQty: int("processApprovedQty"),   // Level 1.1 process-approved qty (optional override)
+  processApprovedBy: varchar("processApprovedBy", { length: 128 }), // Level 1.1 worker name/ID
+  processApprovedAt: timestamp("processApprovedAt"), // when Level 1.1 process-approved
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   reviewedAt: timestamp("reviewedAt"),
 });

@@ -288,3 +288,37 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Compact Board Size WxL inputs so they fit on mobile without overflow
 - [x] Improve overall Used Update Request dialog styling for mobile and desktop
 - [x] Add scrollable container (max-h-[90vh]) for long content
+
+## Show Extra Fields in Approval Center Request Cards (Used Update Type)
+- [x] ApprovalCenter.tsx: Show MasterCard, Board Size (W×L), Scores in JOB USAGE section for used_update requests
+- [x] Parse actionData JSON to extract masterCard, boardSizeW, boardSizeL, scores fields
+
+## User Level 1.1 Implementation
+- [ ] Schema: add process_approved_qty, process_approved_by, process_approved_at fields to pendingRequests table
+- [ ] Run drizzle-kit generate and apply migration SQL
+- [ ] Server: add pendingRequests.processApprove procedure (Level 1.1 only)
+- [ ] UI: ApprovalCenter.tsx — Level 1.1 sees "Process Approve" button on Level 1 pending requests
+- [ ] UI: Process Approve dialog — title "Approve Request (process approved request)", shows Requested Qty, optional Approved Qty input
+- [ ] UI: Show "Process Approved" badge/indicator on request cards when process_approved_by is set
+- [ ] UI: AdminPanel.tsx — add "1.1" option to worker level dropdown in Add Worker and Edit Worker dialogs
+- [ ] UI: ApprovalCenter — Level 1.1 info banner explaining their role
+
+## User Level 1.1 (Process Approve)
+- [x] Schema: Add `processApprovedQty`, `processApprovedBy`, `processApprovedAt` columns to `pendingRequests`
+- [x] Schema: Add `"1.1"` to workers `userLevel` enum
+- [x] DB: Add `processApprovePendingRequest` helper in `server/db.ts`
+- [x] Router: Add `pendingRequests.processApprove` procedure (Level 1.1 only)
+- [x] Router: Update `workers.add` and `workers.update` to accept `"1.1"` level
+- [x] Router: Allow Level 1.1 workers to submit requests and cancel their own
+- [x] AuthContext: Widen `userLevel` type to include `"1.1"`
+- [x] Login.tsx: Update type cast for `userLevel`
+- [x] ApprovalCenter: Show `Process` button for Level 1.1 users
+- [x] ApprovalCenter: Show `processApprovedBy` info banner on cards
+- [x] ApprovalCenter: Process Approve dialog with optional qty override
+- [x] AdminPanel: Add Level 1.1 button in Add/Edit worker dialogs
+- [x] AdminPanel: Show purple badge for Level 1.1 workers
+- [x] AppLayout: Show purple badge for Level 1.1 workers
+- [x] Home.tsx: Show `(View & Process)` label for Level 1.1 on Approval Center card
+
+## Approval Center - Show Extra Fields in Used Update Requests
+- [x] ApprovalCenter: Show Master Card, Board Size (W×L), Scores in Job Usage section

@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 const ADMIN_PASSWORD = "Qwer@7090heinann";
 
-type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "2"; createdAt: Date };
+type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; createdAt: Date };
 type Order = {
   id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
@@ -24,7 +24,7 @@ function WorkersTab() {
   const [newWorkerID, setNewWorkerID] = useState("");
   const [newName, setNewName] = useState("");
   const [newDept, setNewDept] = useState("");
-  const [newUserLevel, setNewUserLevel] = useState<"1" | "2">("2");
+  const [newUserLevel, setNewUserLevel] = useState<"1" | "1.1" | "2">("2");
   const [addError, setAddError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
 
@@ -33,7 +33,7 @@ function WorkersTab() {
   const [editWorkerID, setEditWorkerID] = useState("");
   const [editName, setEditName] = useState("");
   const [editDept, setEditDept] = useState("");
-  const [editUserLevel, setEditUserLevel] = useState<"1" | "2">("2");
+  const [editUserLevel, setEditUserLevel] = useState<"1" | "1.1" | "2">("2");
   const [editConfirmID, setEditConfirmID] = useState("");
   const [editStep, setEditStep] = useState<"form" | "confirm">("form");
   const [editError, setEditError] = useState("");
@@ -163,7 +163,7 @@ function WorkersTab() {
                       <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
                     </td>
                     <td className="py-3 pr-4">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"}`}>Lv.{w.userLevel}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : w.userLevel === "1.1" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>Lv.{w.userLevel}</span>
                     </td>
                     <td className="py-3">
                       <div className="flex items-center gap-2">
@@ -208,7 +208,7 @@ function WorkersTab() {
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   <span className="text-muted-foreground text-xs">User Level</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"}`}>Level {w.userLevel}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : w.userLevel === "1.1" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>Level {w.userLevel}</span>
                 </div>
               </div>
             ))}
@@ -246,13 +246,20 @@ function WorkersTab() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setNewUserLevel("1.1")}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${newUserLevel === "1.1" ? "bg-purple-100 border-purple-400 text-purple-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}
+                  >
+                    Level 1.1
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setNewUserLevel("2")}
                     className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${newUserLevel === "2" ? "bg-green-100 border-green-400 text-green-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}
                   >
                     Level 2
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{newUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : "Level 2: Can approve/cancel Level 1 requests"}</p>
+                <p className="text-xs text-muted-foreground mt-1">{newUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : newUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
               </div>
               {addError && <p className="text-xs text-destructive">{addError}</p>}
             </div>
@@ -292,9 +299,10 @@ function WorkersTab() {
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">User Level</label>
                     <div className="flex gap-2">
                       <button type="button" onClick={() => setEditUserLevel("1")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "1" ? "bg-orange-100 border-orange-400 text-orange-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 1</button>
+                      <button type="button" onClick={() => setEditUserLevel("1.1")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "1.1" ? "bg-purple-100 border-purple-400 text-purple-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 1.1</button>
                       <button type="button" onClick={() => setEditUserLevel("2")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "2" ? "bg-green-100 border-green-400 text-green-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 2</button>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">{editUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : "Level 2: Can approve/cancel Level 1 requests"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{editUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : editUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
                   </div>
                   {editError && <p className="text-xs text-destructive">{editError}</p>}
                 </div>
