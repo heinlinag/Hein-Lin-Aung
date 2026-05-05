@@ -249,3 +249,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] UI: edit dialog with fields for Employee ID, name, department, and User Level
 - [x] UI: confirmation step requiring user to re-enter the (new) Employee ID before saving
 - [x] UI: show success toast after successful update
+
+## Approval Center - Action History Fix
+- [x] Rename "My Action History" tab to "Action History" in Approval Center
+- [x] Make Action History tab visible to both Level 1 and Level 2 users
+- [x] Server: actionLog procedure already returns all history (no filter by user)

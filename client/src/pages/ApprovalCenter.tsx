@@ -413,14 +413,12 @@ export default function ApprovalCenter() {
               <span className="ml-1.5 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">{pendingCount}</span>
             )}
           </button>
-          {canApprove && (
-            <button
-              onClick={() => setActiveTab("history")}
-              className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "history" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-            >
-              My Action History
-            </button>
-          )}
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "history" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          >
+            Action History
+          </button>
         </div>
 
         {activeTab === "requests" && (
@@ -478,7 +476,7 @@ export default function ApprovalCenter() {
           </>
         )}
 
-        {activeTab === "history" && canApprove && (
+        {activeTab === "history" && (
           <>
             {actionLogQuery.isLoading ? (
               <div className="space-y-3">
