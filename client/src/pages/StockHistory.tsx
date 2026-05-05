@@ -26,6 +26,10 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   const [remaining, setRemaining] = useState<number | null>(null);
   const [showOldConfirm, setShowOldConfirm] = useState(false);
   const [showJobConfirm, setShowJobConfirm] = useState(false);
+  const [masterCard, setMasterCard] = useState("");
+  const [boardSizeW, setBoardSizeW] = useState("");
+  const [boardSizeL, setBoardSizeL] = useState("");
+  const [scores, setScores] = useState("");
   const logUsage = trpc.orders.logUsage.useMutation();
   const utils = trpc.useUtils();
   const availableQty = remaining !== null ? remaining : order.qty;
@@ -38,10 +42,10 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
     if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs).`); return; }
     const newQty = availableQty - qty;
     try {
-      await logUsage.mutateAsync({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", orderId: order.id, newQty });
+      await logUsage.mutateAsync({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", orderId: order.id, newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null });
       toast.success(`Used ${qty} pcs for Job ${jobNo}. Remaining: ${newQty} pcs.`);
       setRemaining(newQty);
-      setJobNo(""); setUseQty("");
+      setJobNo(""); setUseQty(""); setMasterCard(""); setBoardSizeW(""); setBoardSizeL(""); setScores("");
       utils.orders.list.invalidate();
       utils.orders.getUsage.invalidate();
       if (newQty === 0) onSuccess();
@@ -107,6 +111,22 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Job No (8 digits)</label>
                   <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">MasterCard <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span></label>
+                  <input type="text" value={masterCard} onChange={e => setMasterCard(e.target.value.toUpperCase())} placeholder="e.g. PABC00001A" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Modify Board Size (WxL) <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span></label>
+                  <div className="flex items-center gap-2">
+                    <input type="number" value={boardSizeW} onChange={e => setBoardSizeW(e.target.value)} placeholder="W (e.g. 643)" min={1} className="flex-1 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <span className="text-muted-foreground text-sm font-semibold">×</span>
+                    <input type="number" value={boardSizeL} onChange={e => setBoardSizeL(e.target.value)} placeholder="L (e.g. 1522)" min={1} className="flex-1 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Scores <span className="text-muted-foreground/60 normal-case font-normal">(optional, e.g. 184 275 184)</span></label>
+                  <input type="text" value={scores} onChange={e => setScores(e.target.value)} placeholder="e.g. 184 275 184" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Quantity to Use (max {availableQty} pcs)</label>

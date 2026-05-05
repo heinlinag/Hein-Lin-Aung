@@ -254,3 +254,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Rename "My Action History" tab to "Action History" in Approval Center
 - [x] Make Action History tab visible to both Level 1 and Level 2 users
 - [x] Server: actionLog procedure already returns all history (no filter by user)
+
+## Used Update - Job No Extra Fields
+- [x] Schema: add masterCard, boardSizeW, boardSizeL, scores columns to usageHistory table
+- [x] Schema: run drizzle-kit generate and apply migration SQL
+- [x] Server: update orders.logUsage procedure to accept and store masterCard, boardSizeW, boardSizeL, scores
+- [x] Server: update logUsageHistory db helper to accept and store new fields
+- [x] UI: show MasterCard, Modify Board Size (WxL), Scores fields in Used Update dialog when Job No is selected (Level 2)
+- [x] UI: all new fields are optional but shown only for Job No usage type

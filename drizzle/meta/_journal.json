@@ -78,6 +78,13 @@
       "when": 1777878459765,
       "tag": "0010_gigantic_maximus",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1777964891833,
+      "tag": "0011_careless_miracleman",
+      "breakpoints": true
     }
   ]
 }

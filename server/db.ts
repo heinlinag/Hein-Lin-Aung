@@ -153,6 +153,10 @@ export async function logUsageHistory(data: {
   fluteType: string;
   bqComment: string;
   purpose: "job" | "old_stock";
+  masterCard?: string | null;
+  boardSizeW?: number | null;
+  boardSizeL?: number | null;
+  scores?: string | null;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -163,6 +167,10 @@ export async function logUsageHistory(data: {
     fluteType: data.fluteType,
     bqComment: data.bqComment,
     purpose: data.purpose,
+    masterCard: data.masterCard ?? null,
+    boardSizeW: data.boardSizeW ?? null,
+    boardSizeL: data.boardSizeL ?? null,
+    scores: data.scores ?? null,
   });
 }
 

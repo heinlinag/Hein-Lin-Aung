@@ -103,6 +103,10 @@ export const usageHistory = mysqlTable("usageHistory", {
   fluteType: varchar("fluteType", { length: 64 }).notNull(),
   bqComment: text("bqComment").notNull(),
   purpose: mysqlEnum("purpose", ["job", "old_stock"]).notNull(),
+  masterCard: varchar("masterCard", { length: 64 }),   // e.g. PABC00001A
+  boardSizeW: int("boardSizeW"),                        // Modify Board Size width
+  boardSizeL: int("boardSizeL"),                        // Modify Board Size length
+  scores: varchar("scores", { length: 128 }),           // e.g. 184 275 184
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type UsageHistory = typeof usageHistory.$inferSelect;

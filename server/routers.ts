@@ -255,6 +255,10 @@ export const appRouter = router({
         orderId: z.number().int().positive(),
         newQty: z.number().int().min(0),
         performedBy: z.string().optional(), // workerID of Level 2 who did the direct action
+        masterCard: z.string().optional().nullable(),
+        boardSizeW: z.number().int().positive().optional().nullable(),
+        boardSizeL: z.number().int().positive().optional().nullable(),
+        scores: z.string().optional().nullable(),
       }))
       .mutation(async ({ input }) => {
         await logUsageHistory({
@@ -264,6 +268,10 @@ export const appRouter = router({
           fluteType: input.fluteType,
           bqComment: input.bqComment,
           purpose: input.purpose,
+          masterCard: input.masterCard ?? null,
+          boardSizeW: input.boardSizeW ?? null,
+          boardSizeL: input.boardSizeL ?? null,
+          scores: input.scores ?? null,
         });
         // Log direct Level 2 action into approval_action_log
         if (input.performedBy) {
