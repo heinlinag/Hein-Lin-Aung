@@ -388,3 +388,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Profile panel: quick links to Admin Panel (admin/level 2 only), Documentation, System Status
 - [x] Profile panel: show logout button
 - [x] Profile panel: close on outside click or Escape key
+
+## Header / Home / Pages Fixes
+- [x] AppLayout: remove standalone Logout button from mobile header (logout is already inside profile dropdown)
+- [x] AppLayout: rename badge text from "H... Lv.X" to "User Profile"
+- [x] Home: remove Admin Panel, Documentation, System Status quick-access cards
+- [x] Documentation page: verify it works and has real content (routes /docs confirmed working)
+- [x] System Status page: verify it works and has real content (routes /status confirmed working)

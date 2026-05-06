@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Settings, BookOpen, Activity } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
@@ -41,30 +41,7 @@ const baseFeatures = [
     btnLabel: "Open Approval Center",
     showBadge: true,
   },
-  {
-    icon: <Settings size={32} />,
-    title: "Admin Panel",
-    description: "Manage workers, view all orders, export reports, and system administration.",
-    href: "/admin",
-    cardClass: "feature-card-red",
-    btnLabel: "Admin Login",
-  },
-  {
-    icon: <BookOpen size={32} />,
-    title: "Documentation",
-    description: "Access user guides and admin documentation for the system.",
-    href: "/docs",
-    cardClass: "feature-card-indigo",
-    btnLabel: "View Docs",
-  },
-  {
-    icon: <Activity size={32} />,
-    title: "System Status",
-    description: "Monitor system uptime, recent updates, and maintenance schedules.",
-    href: "/status",
-    cardClass: "feature-card-teal",
-    btnLabel: "View Status",
-  },
+
 ];
 
 export default function Home() {

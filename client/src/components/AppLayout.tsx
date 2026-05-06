@@ -140,7 +140,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
         )}
 
         <button
-          onClick={() => goTo("/documentation")}
+          onClick={() => goTo("/docs")}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-gray-100 transition-colors"
         >
           <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
@@ -151,7 +151,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
         </button>
 
         <button
-          onClick={() => goTo("/system-status")}
+          onClick={() => goTo("/status")}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-gray-100 transition-colors"
         >
           <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
@@ -265,21 +265,13 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(v => !v)}
-                    className="flex items-center gap-1 bg-blue-50 text-blue-700 rounded-full px-2.5 py-1 text-xs font-medium max-w-[110px] hover:bg-blue-100 transition-colors"
+                    className="flex items-center gap-1.5 bg-blue-50 text-blue-700 rounded-full px-3 py-1.5 text-xs font-semibold hover:bg-blue-100 transition-colors"
                   >
                     <User size={11} className="shrink-0" />
-                    <span className="truncate">{worker.name}</span>
-                    <span className={`ml-0.5 text-[9px] font-bold px-1 py-0.5 rounded-full ${lv.badge}`}>Lv.{userLevel}</span>
+                    <span>User Profile</span>
                   </button>
                   {profileOpen && <ProfileDropdown />}
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-400 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50"
-                  title="Logout"
-                >
-                  <LogOut size={15} />
-                </button>
               </div>
             )}
           </div>
