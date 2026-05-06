@@ -334,9 +334,20 @@ export const appRouter = router({
           workerName: worker.name,
           actionData: input.actionData,
         });
-        // Level 1.1: auto process-approve immediately after submission
+        // Level 1.1: auto process-approve immediately after submission (preview only, no stock deduction)
+        // Actual stock deduction happens when Level 2 final-approves
         if (worker.userLevel === "1.1" && insertedId) {
-          await processApprovePendingRequest(insertedId, worker.name);
+          // Extract qty from actionData for used_update requests
+          let selfProcessQty: number | undefined;
+          if (input.type === "used_update" && input.actionData) {
+            const action = JSON.parse(input.actionData);
+            selfProcessQty = action.usedQty as number | undefined;
+          }
+          if (!selfProcessQty || selfProcessQty <= 0) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Please enter how many pcs you used from this order." });
+          }
+          // Just record the process-approval metadata, no stock changes
+          await processApprovePendingRequest(insertedId, worker.name, selfProcessQty);
         }
         return { success: true, autoProcessApproved: worker.userLevel === "1.1" };
       }),
@@ -389,31 +400,63 @@ export const appRouter = router({
         } else if (req.type === "used_update" && req.actionData) {
           const action = JSON.parse(req.actionData);
           requestedQty = action.usedQty;
-          // Use approvedQty override if provided, otherwise use requested qty
-          const usedQtyFinal = input.approvedQty ?? action.usedQty;
-          finalApprovedQty = usedQtyFinal;
-          const snapshot = JSON.parse(req.orderSnapshot);
-          const newQty = Math.max(0, (snapshot.qty ?? action.newQty + action.usedQty) - usedQtyFinal);
-          await logUsageHistory({
-            jobNo: action.jobNo ?? null,
-            usedQty: usedQtyFinal,
-            orderID: action.orderID,
-            fluteType: action.fluteType,
-            bqComment: action.bqComment,
-            purpose: action.purpose,
-            masterCard: action.masterCard ?? null,
-            boardSizeW: action.boardSizeW ?? null,
-            boardSizeL: action.boardSizeL ?? null,
-            scores: action.scores ?? null,
-          });
-          if (newQty === 0) {
-            await updateOrderStatus(req.orderId, "out_of_stock");
+          // If Level 1.1 already process-approved (stock already deducted), skip stock deduction
+          const alreadyProcessed = !!(req as { processApprovedBy?: string | null }).processApprovedBy;
+          if (!alreadyProcessed) {
+            // Level 1 direct path: Level 2 approves without Level 1.1 processing
+            const usedQtyFinal = input.approvedQty ?? action.usedQty;
+            finalApprovedQty = usedQtyFinal;
+            const snapshot = JSON.parse(req.orderSnapshot);
+            const newQty = Math.max(0, (snapshot.qty ?? action.newQty + action.usedQty) - usedQtyFinal);
+            await logUsageHistory({
+              jobNo: action.jobNo ?? null,
+              usedQty: usedQtyFinal,
+              orderID: action.orderID,
+              fluteType: action.fluteType,
+              bqComment: action.bqComment,
+              purpose: action.purpose,
+              masterCard: action.masterCard ?? null,
+              boardSizeW: action.boardSizeW ?? null,
+              boardSizeL: action.boardSizeL ?? null,
+              scores: action.scores ?? null,
+            });
+            if (newQty === 0) {
+              await updateOrderStatus(req.orderId, "out_of_stock");
+            } else {
+              const db = await (await import("./db")).getDb();
+              if (db) {
+                const { orders: ordersTable } = await import("../drizzle/schema");
+                const { eq } = await import("drizzle-orm");
+                await db.update(ordersTable).set({ qty: newQty }).where(eq(ordersTable.id, req.orderId));
+              }
+            }
           } else {
-            const db = await (await import("./db")).getDb();
-            if (db) {
-              const { orders: ordersTable } = await import("../drizzle/schema");
-              const { eq } = await import("drizzle-orm");
-              await db.update(ordersTable).set({ qty: newQty }).where(eq(ordersTable.id, req.orderId));
+            // Level 1.1 already process-approved — Level 2 now deducts stock based on processApprovedQty
+            const processApprovedQty = (req as { processApprovedQty?: number | null }).processApprovedQty ?? action.usedQty;
+            finalApprovedQty = processApprovedQty;
+            const snapshot = JSON.parse(req.orderSnapshot);
+            const newQty = Math.max(0, snapshot.qty - processApprovedQty);
+            await logUsageHistory({
+              jobNo: action.jobNo ?? null,
+              usedQty: processApprovedQty,
+              orderID: action.orderID,
+              fluteType: action.fluteType,
+              bqComment: action.bqComment,
+              purpose: action.purpose,
+              masterCard: action.masterCard ?? null,
+              boardSizeW: action.boardSizeW ?? null,
+              boardSizeL: action.boardSizeL ?? null,
+              scores: action.scores ?? null,
+            });
+            if (newQty === 0) {
+              await updateOrderStatus(req.orderId, "out_of_stock");
+            } else {
+              const db = await (await import("./db")).getDb();
+              if (db) {
+                const { orders: ordersTable } = await import("../drizzle/schema");
+                const { eq } = await import("drizzle-orm");
+                await db.update(ordersTable).set({ qty: newQty }).where(eq(ordersTable.id, req.orderId));
+              }
             }
           }
         }
@@ -490,7 +533,14 @@ export const appRouter = router({
         const req = await getPendingRequestById(input.id);
         if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
         if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
-        await processApprovePendingRequest(input.id, reviewer.name, input.processApprovedQty);
+        // Level 1.1 process-approve: validate qty but do NOT deduct stock (preview only)
+        // Actual stock deduction happens when Level 2 final-approves
+        const processQty = input.processApprovedQty;
+        if (!processQty || processQty <= 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Please enter how many pcs you used from this order." });
+        }
+        // Just record the process-approval metadata, no stock changes
+        await processApprovePendingRequest(input.id, reviewer.name, processQty);
         return { success: true };
       }),
     actionLog: publicProcedure

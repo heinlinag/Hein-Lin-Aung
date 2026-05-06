@@ -52,6 +52,7 @@ function RequestCard({
   canApprove,
   canCancel,
   canProcessApprove,
+  currentWorkerID,
 }: {
   req: PendingRequest;
   onApprove: (id: number, approvedQty?: number) => void;
@@ -61,6 +62,7 @@ function RequestCard({
   canApprove: boolean;
   canCancel: boolean;
   canProcessApprove: boolean;
+  currentWorkerID?: string;
 }) {
   // Cancel reason dialog state (local to card)
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -218,8 +220,13 @@ function RequestCard({
           {canCancel && (
             <button
               onClick={() => {
-                // Level 1 cannot cancel if request has been process-approved by Level 1.1
-                if (!canApprove && isProcessApproved) {
+                // Level 1: cannot cancel if request has been process-approved by Level 1.1
+                // Level 1.1: cannot cancel OTHER users' requests that they have already processed
+                const isOwnRequest = req.requestedBy === currentWorkerID;
+                if (!canApprove && isProcessApproved && !isOwnRequest) {
+                  setShowProcessBlockedDialog(true);
+                } else if (canProcessApprove && isProcessApproved && !isOwnRequest) {
+                  // Level 1.1 trying to cancel another user's request they already processed
                   setShowProcessBlockedDialog(true);
                 } else {
                   setShowCancelDialog(true);
@@ -714,6 +721,7 @@ export default function ApprovalCenter() {
                     canApprove={canApprove}
                     canCancel={canApprove || canProcessApprove || req.requestedBy === worker?.workerID}
                     canProcessApprove={canProcessApprove}
+                    currentWorkerID={worker?.workerID}
                   />
                 ))}
               </div>

@@ -421,3 +421,19 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Level 2 Approve dialog: show process qty vs requested qty conflict warning with option to override
 - [x] Level 1 Request Use dialog: rename "Quantity to Use" field to "For This Modify Target Black How Many Pcs?" (separate from available qty display)
 - [x] Level 1.1 Process dialog: rename title to "Process Approved", show Target Black QTY from Level 1 request, require qty input before confirming
+
+## Stock Quantity Logic Fix (May 7)
+- [ ] Server: Level 1 submitRequest (Used Update) must NOT deduct Available Qty — request only
+- [ ] Server: Level 1.1 processApprove must deduct Available Qty by processApprovedQty
+- [ ] Server: Level 1.1 self-submit Used Update → auto In Process status + immediate stock deduction
+- [ ] ApprovalCenter: Level 1.1 can only cancel their OWN self-submitted requests; cannot cancel Level 1 user requests that are already processed
+- [ ] StockHistory: show Remaining After = Available - processApprovedQty only after Level 1.1 process
+
+## Stock Quantity Logic Fix (May 7) - COMPLETED
+- [x] Server: Level 1 submitRequest (Used Update) must NOT deduct Available Qty — request only (no changes needed, already correct)
+- [x] Server: Level 1.1 processApprove: preview only, no stock deduction (stock deduction moved to Level 2 approve)
+- [x] Server: Level 1.1 self-submit Used Update → auto In Process status, no stock deduction (preview only)
+- [x] Server: Level 2 approve deducts stock based on processApprovedQty when Level 1.1 already processed
+- [x] ApprovalCenter: Level 1.1 can only cancel their OWN requests; cannot cancel other users' processed requests
+- [x] StockHistory: show Remaining After = Available - processApprovedQty for Level 1.1 users (preview only)
+- [x] StockHistory: Level 1 users do NOT see Remaining After (request only, no stock effect)

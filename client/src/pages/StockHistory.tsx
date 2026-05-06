@@ -228,8 +228,8 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
 }
 
 // ─── Level 1: Used Update Request Dialog (sends to approval queue) ─────────────
-function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
-  order: Order; workerID: string; onClose: () => void; onSuccess: () => void;
+function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSuccess }: {
+  order: Order; workerID: string; userLevel: string; onClose: () => void; onSuccess: () => void;
 }) {
   const [step, setStep] = useState<"choose" | "job" | "old_stock">("choose");
   const [jobNo, setJobNo] = useState("");
@@ -326,10 +326,17 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1"><X size={18} /></button>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-            <Clock size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-orange-700">Your request will be sent to a <strong>Level 2 user</strong> for approval before taking effect.</p>
-          </div>
+          {userLevel === "1.1" ? (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+              <Zap size={14} className="text-purple-500 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-purple-700"><strong>Level 1.1:</strong> Stock will be <strong>deducted immediately</strong> when you submit. Your request will then await Level 2 final approval.</p>
+            </div>
+          ) : (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+              <Clock size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-orange-700">Your request will be sent to a <strong>Level 1.1 user</strong> for processing, then a <strong>Level 2 user</strong> for final approval before taking effect.</p>
+            </div>
+          )}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
             <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Available Quantity</p>
             <p className="text-2xl font-bold text-blue-700 mt-0.5">{availableQty} <span className="text-sm font-normal">pcs</span></p>
@@ -393,12 +400,17 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
                     <input type="text" value={scores} onChange={e => setScores(e.target.value)} placeholder="e.g. 184 275 184" className="w-full border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1 block">For This Modify Target Black How Many Pcs?</label>
-                    <input type="number" value={useQty} onChange={e => { setUseQty(e.target.value); setJobError(""); }} placeholder="e.g. 15" min={1} max={availableQty} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <p className="text-xs text-muted-foreground mt-1">Available Quantity: <strong>{availableQty} pcs</strong></p>
-                    {useQty && !isNaN(parseInt(useQty)) && parseInt(useQty) > 0 && parseInt(useQty) <= availableQty && (
-                      <p className="text-xs text-green-600 mt-0.5 font-medium">Remaining after use: {availableQty - parseInt(useQty)} pcs</p>
-                    )}
+                    <label className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1 block">For This Modify Target Black How Many Pcs? <span className="text-destructive">*</span></label>
+                    <input type="number" value={useQty} onChange={e => { setUseQty(e.target.value); setJobError(""); }} placeholder="e.g. 15" min={1} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    {userLevel === "1.1" && useQty && parseInt(useQty) > 0 ? (
+                      <div className="mt-1.5 flex items-center gap-1.5 bg-purple-50 border border-purple-200 rounded-lg px-2.5 py-1.5">
+                        <span className="text-xs text-purple-600 font-semibold">Remaining After:</span>
+                        <span className="text-xs text-purple-800 font-bold">{Math.max(0, availableQty - parseInt(useQty))} pcs</span>
+                        {parseInt(useQty) > availableQty && <span className="text-xs text-destructive font-semibold ml-1">⚠ Exceeds available!</span>}
+                      </div>
+                    ) : userLevel === "1" ? (
+                      <p className="text-xs text-muted-foreground mt-1">This is your target request qty. Stock will be updated only after Level 1.1 processes it.</p>
+                    ) : null}
                   </div>
                 </div>
                 {jobError && <p className="text-xs text-destructive">{jobError}</p>}
@@ -410,16 +422,19 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
                     if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
                     const qty = parseInt(useQty);
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
-                    if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs after pending requests).`); return; }
                     setShowJobConfirm(true);
                   }} className="w-full bg-orange-500 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                     <Clock size={14} /> Submit for Approval
                   </button>
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3">
-                      <AlertTriangle size={16} className="text-orange-600 flex-shrink-0" />
-                      <p className="text-xs text-orange-700">Submit request to use <strong>{useQty} pcs</strong> for Job <strong>{jobNo}</strong>? This will be sent to a Level 2 user for approval.</p>
+                    <div className={`flex items-center gap-2 rounded-lg p-3 ${userLevel === "1.1" ? "bg-purple-50 border border-purple-200" : "bg-orange-50 border border-orange-200"}`}>
+                      <AlertTriangle size={16} className={`flex-shrink-0 ${userLevel === "1.1" ? "text-purple-600" : "text-orange-600"}`} />
+                      {userLevel === "1.1" ? (
+                        <p className="text-xs text-purple-700">Submit to use <strong>{useQty} pcs</strong> for Job <strong>{jobNo}</strong>? Stock will be <strong>deducted immediately</strong>. Awaiting Level 2 final approval.</p>
+                      ) : (
+                        <p className="text-xs text-orange-700">Submit request to use <strong>{useQty} pcs</strong> for Job <strong>{jobNo}</strong>? This will be sent for Level 1.1 processing, then Level 2 approval.</p>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => setShowJobConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
@@ -783,7 +798,7 @@ export default function StockHistory() {
         <UsedUpdateDialog order={usedUpdateOrder} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />
       )}
       {usedUpdateOrder && (userLevel === "1" || userLevel === "1.1") && worker && (
-        <UsedUpdateRequestDialog order={usedUpdateOrder} workerID={worker.workerID} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />
+        <UsedUpdateRequestDialog order={usedUpdateOrder} workerID={worker.workerID} userLevel={userLevel} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />
       )}
       {deleteOrder && userLevel === "2" && (
         <DeleteDialog order={deleteOrder} onClose={() => setDeleteOrder(null)} onSuccess={() => { setDeleteOrder(null); utils.orders.list.invalidate(); }} />
