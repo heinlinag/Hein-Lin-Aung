@@ -523,8 +523,7 @@ export default function ApprovalCenter() {
         {activeTab === "requests" && (
           <>
             {/* Status filter sub-tabs */}
-            <div className="flex gap-1 mb-5 items-center justify-between">
-              <div className="flex gap-1">
+            <div className="flex gap-1 mb-5">
               {([
                 { key: "pending" as const, label: "Pending" },
                 { key: "approved" as const, label: "Approved" },
@@ -533,7 +532,7 @@ export default function ApprovalCenter() {
               ]).map(({ key, label }) => (
                 <button
                   key={label}
-                  onClick={() => setStatusFilter(key)}
+                  onClick={() => { setStatusFilter(key); setJobNoSearch(""); }}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     statusFilter === key
                       ? key === "pending" ? "bg-orange-500 text-white" : key === "approved" ? "bg-green-600 text-white" : key === "cancelled" ? "bg-gray-500 text-white" : "bg-primary text-white"
@@ -543,24 +542,23 @@ export default function ApprovalCenter() {
                   {label}
                 </button>
               ))}
-              </div>
-              
-              {/* Job No search when All tab is selected */}
-              {statusFilter === undefined && (
-                <div className="relative w-48">
-                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Search Job No..."
-                    value={jobNoSearch}
-                    onChange={e => setJobNoSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-              )}
             </div>
+            
+            {/* Job No search when All tab is selected */}
+            {statusFilter === undefined && (
+              <div className="relative w-full mb-4 max-w-xs">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search Job No..."
+                  value={jobNoSearch}
+                  onChange={e => setJobNoSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            )}
 
             {requestsQuery.isLoading ? (
               <div className="space-y-3">
