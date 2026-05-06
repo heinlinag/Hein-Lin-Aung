@@ -400,3 +400,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] AppLayout profile dropdown: Admin Panel link only shown to Level 2 users
 - [x] AppLayout profile dropdown: clicking Admin Panel shows password dialog before navigating
 - [x] AdminPanel.tsx: block direct URL access (/admin) for Level 1 and Level 1.1 users - redirect to home
+
+## Login Page Animations
+- [x] Tab switch (Employee ↔ Admin): slide + fade animation
+- [x] Employee login success: full-screen success animation before navigating to home
+- [x] Admin login success: full-screen success animation before navigating to admin panel
