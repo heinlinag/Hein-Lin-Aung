@@ -264,20 +264,31 @@ function RequestCard({
                 <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                   <PlayCircle size={20} className="text-purple-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-base">Approve Request (process approved request)</h3>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-base">Process Approved</h3>
+                  <p className="text-xs text-gray-500">Confirm how many pcs you used from this order</p>
+                </div>
               </div>
               {!isDelete && action && (
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-2">Requested Qty: <strong>{action.usedQty} pcs</strong></p>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Approved Qty (optional — leave blank to use requested)</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={processApprovedQtyLocal}
-                    onChange={e => setProcessApprovedQtyLocal(e.target.value)}
-                    placeholder={String(action.usedQty)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-                  />
+                <div className="mb-4 space-y-3">
+                  {/* Target Black QTY info from Level 1 request */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-xs text-blue-800">
+                      <strong>{req.workerName}</strong> requested Target Black QTY of <strong>{action.usedQty} pcs</strong> from Order ID <strong>{snapshot?.orderID ?? "—"}</strong>.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-purple-700 mb-1">How many pcs did you use from Order {snapshot?.orderID ?? ""}? <span className="text-destructive">*</span></label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={processApprovedQtyLocal}
+                      onChange={e => setProcessApprovedQtyLocal(e.target.value)}
+                      placeholder={`e.g. ${action.usedQty}`}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    />
+                    {!processApprovedQtyLocal && <p className="text-xs text-red-500 mt-1">This field is required before confirming.</p>}
+                  </div>
                 </div>
               )}
               {isDelete && <p className="text-sm text-gray-600 mb-4">Mark this delete request as currently being processed. Level 2 must still give final approval.</p>}
@@ -287,7 +298,15 @@ function RequestCard({
               <div className="flex gap-3">
                 <button onClick={() => setShowProcessApproveDialog(false)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
                 <button
-                  onClick={() => { const pq = processApprovedQtyLocal ? parseInt(processApprovedQtyLocal) : undefined; setShowProcessApproveDialog(false); onProcessApprove(req.id, pq); }}
+                  onClick={() => {
+                    if (!isDelete && !processApprovedQtyLocal) {
+                      toast.error("Please enter how many pcs you used before confirming.");
+                      return;
+                    }
+                    const pq = processApprovedQtyLocal ? parseInt(processApprovedQtyLocal) : undefined;
+                    setShowProcessApproveDialog(false);
+                    onProcessApprove(req.id, pq);
+                  }}
                   className="flex-1 bg-purple-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-purple-700"
                 >Confirm Process</button>
               </div>
@@ -308,17 +327,35 @@ function RequestCard({
                 <h3 className="font-bold text-gray-900 text-base">Approve Request</h3>
               </div>
               {!isDelete && action && (
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-2">Requested Qty: <strong>{action.usedQty} pcs</strong></p>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Approved Qty (optional — leave blank to use requested)</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={approvedQtyLocal}
-                    onChange={e => setApprovedQtyLocal(e.target.value)}
-                    placeholder={String(action.usedQty)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                  />
+                <div className="mb-4 space-y-3">
+                  <p className="text-sm text-gray-600">Requested Qty: <strong>{action.usedQty} pcs</strong></p>
+                  {/* Process qty conflict warning */}
+                  {req.processApprovedQty && req.processApprovedQty !== action.usedQty && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-xs text-amber-800">
+                          <p className="font-semibold mb-1">Quantity Mismatch</p>
+                          <p>Requested Qty: <strong>{action.usedQty} pcs</strong> but <strong>{req.processApprovedBy}</strong> processed only <strong>{req.processApprovedQty} pcs</strong>.</p>
+                          <p className="mt-1">Would you like to change the approved qty? Leave blank to use the requested qty ({action.usedQty} pcs).</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Approved Qty (optional — leave blank to use requested)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={approvedQtyLocal}
+                      onChange={e => setApprovedQtyLocal(e.target.value)}
+                      placeholder={req.processApprovedQty ? String(req.processApprovedQty) : String(action.usedQty)}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                    />
+                    {req.processApprovedQty && req.processApprovedQty !== action.usedQty && (
+                      <p className="text-xs text-gray-500 mt-1">Placeholder shows process qty ({req.processApprovedQty} pcs) as suggestion.</p>
+                    )}
+                  </div>
                 </div>
               )}
               {isDelete && <p className="text-sm text-gray-600 mb-4">Are you sure you want to approve this delete request? This action cannot be undone.</p>}

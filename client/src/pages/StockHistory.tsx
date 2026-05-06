@@ -393,10 +393,11 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
                     <input type="text" value={scores} onChange={e => setScores(e.target.value)} placeholder="e.g. 184 275 184" className="w-full border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Quantity to Use (max {availableQty} pcs)</label>
+                    <label className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1 block">For This Modify Target Black How Many Pcs?</label>
                     <input type="number" value={useQty} onChange={e => { setUseQty(e.target.value); setJobError(""); }} placeholder="e.g. 15" min={1} max={availableQty} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <p className="text-xs text-muted-foreground mt-1">Available Quantity: <strong>{availableQty} pcs</strong></p>
                     {useQty && !isNaN(parseInt(useQty)) && parseInt(useQty) > 0 && parseInt(useQty) <= availableQty && (
-                      <p className="text-xs text-green-600 mt-1 font-medium">Remaining after use: {availableQty - parseInt(useQty)} pcs</p>
+                      <p className="text-xs text-green-600 mt-0.5 font-medium">Remaining after use: {availableQty - parseInt(useQty)} pcs</p>
                     )}
                   </div>
                 </div>

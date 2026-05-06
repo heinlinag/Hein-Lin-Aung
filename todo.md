@@ -416,3 +416,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Documentation: removed FAQ tab (double header issue) — FAQ button now navigates to /faq page directly
 - [x] System Status: updated with 6 new May 7 entries, 10 system components including Geo-Restriction and Admin Access Control
 - [x] Responsive: FAQ wrapped in AppLayout for /faq route; Home notification banner responsive on mobile/desktop
+
+## Approval Flow UX Fixes (May 7)
+- [x] Level 2 Approve dialog: show process qty vs requested qty conflict warning with option to override
+- [x] Level 1 Request Use dialog: rename "Quantity to Use" field to "For This Modify Target Black How Many Pcs?" (separate from available qty display)
+- [x] Level 1.1 Process dialog: rename title to "Process Approved", show Target Black QTY from Level 1 request, require qty input before confirming
