@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { ShieldX, Globe, Loader2, RefreshCw, WifiOff, AlertTriangle, Wifi } from "lucide-react";
 
 const ALLOWED_COUNTRIES = ["MY", "MM"]; // Malaysia, Myanmar
@@ -44,44 +44,78 @@ function useGeoCheck() {
   const [status, setStatus] = useState<GeoStatus>("loading");
   const [geoResult, setGeoResult] = useState<GeoResult | null>(null);
   const [attemptCount, setAttemptCount] = useState(0);
+  const [countdown, setCountdown] = useState(30);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startCountdown = useCallback(() => {
+    setCountdown(30);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    countdownRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          if (countdownRef.current) clearInterval(countdownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
 
   const check = useCallback(async () => {
     setStatus("loading");
+    startCountdown();
     try {
       const result = await detectCountry();
       setGeoResult(result);
+      if (countdownRef.current) clearInterval(countdownRef.current);
       setStatus(ALLOWED_COUNTRIES.includes(result.countryCode) ? "allowed" : "blocked");
     } catch {
+      if (countdownRef.current) clearInterval(countdownRef.current);
       setStatus("error");
     }
-  }, []);
+  }, [startCountdown]);
 
   useEffect(() => { check(); }, [check, attemptCount]);
+  useEffect(() => () => { if (countdownRef.current) clearInterval(countdownRef.current); }, []);
 
   const retry = useCallback(() => setAttemptCount(c => c + 1), []);
 
-  return { status, geoResult, retry };
+  return { status, geoResult, retry, countdown };
 }
 
 export default function GeoGuard({ children }: { children: React.ReactNode }) {
-  const { status, geoResult, retry } = useGeoCheck();
+  const { status, geoResult, retry, countdown } = useGeoCheck();
 
   if (status === "loading") {
+    const pct = Math.round((countdown / 30) * 100);
+    const circumference = 2 * Math.PI * 28; // r=28
+    const dashOffset = circumference * (1 - pct / 100);
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        <div className="flex flex-col items-center gap-4 text-slate-400">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full border-2 border-slate-700 flex items-center justify-center">
-              <Globe size={28} className="text-slate-500" />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
-              <Loader2 size={12} className="animate-spin text-blue-400" />
+        <div className="flex flex-col items-center gap-5 text-slate-400">
+          {/* Circular countdown */}
+          <div className="relative w-24 h-24 flex items-center justify-center">
+            <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="28" fill="none" stroke="#1e293b" strokeWidth="4" />
+              <circle
+                cx="32" cy="32" r="28" fill="none"
+                stroke="#3b82f6" strokeWidth="4"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={dashOffset}
+                style={{ transition: "stroke-dashoffset 0.9s linear" }}
+              />
+            </svg>
+            <div className="flex flex-col items-center justify-center">
+              <Globe size={20} className="text-slate-400 mb-0.5" />
+              <span className="text-xl font-bold text-white leading-none">{countdown}</span>
             </div>
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium text-slate-300">Checking your access location…</p>
-            <p className="text-xs text-slate-500 mt-1">Please wait a moment</p>
+            <p className="text-sm font-semibold text-slate-200">Checking your access location…</p>
+            <p className="text-xs text-slate-500 mt-1">Please wait — verifying your region ({countdown}s)</p>
           </div>
+          <Loader2 size={14} className="animate-spin text-blue-400" />
         </div>
       </div>
     );

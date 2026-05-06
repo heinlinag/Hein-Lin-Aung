@@ -363,3 +363,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Refresh Button Animation + Login Contact Fix
 - [x] Add spinning animation to all refresh/reload buttons app-wide (ApprovalCenter, AdminPanel, StockHistory, etc.)
 - [x] Login page: remove admin name (HEiNANN) and phone number display, keep only "Chat on WhatsApp" button
+
+## Loading Screen Countdown + Refresh Animation Fix
+- [x] GeoRestricted: show 30s countdown timer during loading screen
+- [x] Approval Center: verify refresh button spin animation works correctly

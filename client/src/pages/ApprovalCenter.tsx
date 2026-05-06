@@ -504,11 +504,16 @@ export default function ApprovalCenter() {
             </p>
           </div>
           <button
-            onClick={() => utils.pendingRequests.list.invalidate()}
-            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100"
+            onClick={async () => {
+              setIsRefreshing(true);
+              await utils.pendingRequests.list.invalidate();
+              setTimeout(() => setIsRefreshing(false), 700);
+            }}
+            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-60"
             title="Refresh"
+            disabled={isRefreshing}
           >
-            <RefreshCw size={16} />
+            <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
           </button>
         </div>
 
