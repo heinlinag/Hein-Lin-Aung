@@ -395,3 +395,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Home: remove Admin Panel, Documentation, System Status quick-access cards
 - [x] Documentation page: verify it works and has real content (routes /docs confirmed working)
 - [x] System Status page: verify it works and has real content (routes /status confirmed working)
+
+## Admin Panel Protection
+- [x] AppLayout profile dropdown: Admin Panel link only shown to Level 2 users
+- [x] AppLayout profile dropdown: clicking Admin Panel shows password dialog before navigating
+- [x] AdminPanel.tsx: block direct URL access (/admin) for Level 1 and Level 1.1 users - redirect to home
