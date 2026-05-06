@@ -381,3 +381,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Approval Center — Block Level 1 Cancel When Process-Approved
 - [x] ApprovalCenter: when Level 1 user clicks Cancel on a process-approved request, show error dialog instead of cancel dialog
 - [x] Error message: "Your request has already been processed by [processApprovedBy]. You cannot cancel it at this stage. Please contact your supervisor."
+
+## User Profile Panel in Header
+- [x] AppLayout: make user badge (name + level) clickable to open a profile dropdown/panel
+- [x] Profile panel: show worker name, worker ID, department, user level badge
+- [x] Profile panel: quick links to Admin Panel (admin/level 2 only), Documentation, System Status
+- [x] Profile panel: show logout button
+- [x] Profile panel: close on outside click or Escape key
