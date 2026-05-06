@@ -327,3 +327,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Server: pendingRequests.submit — if worker is Level 1.1, auto call processApprovePendingRequest after creating request
 - [x] StockHistory: Level 1.1 user sees same Used Update / Delete dialogs as Level 1
 - [x] StockHistory: After Level 1.1 submits, show toast "Request submitted & auto process-approved"
+
+
+## Approval Center — Job No Search Feature
+- [x] ApprovalCenter.tsx: Add search input field when "All" tab is selected
+- [x] Filter Used Update requests by Job No (exact or partial match)
+- [x] Show search results in real-time as user types

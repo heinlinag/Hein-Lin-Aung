@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -359,6 +359,7 @@ export default function ApprovalCenter() {
   const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "cancelled" | undefined>("pending");
   const [activeTab, setActiveTab] = useState<"requests" | "history">("requests");
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [jobNoSearch, setJobNoSearch] = useState("");
 
   const userLevel = worker?.userLevel ?? "2";
   const canApprove = userLevel === "2";
@@ -378,7 +379,23 @@ export default function ApprovalCenter() {
   const cancelMutation = trpc.pendingRequests.cancel.useMutation();
   const processApproveMutation = trpc.pendingRequests.processApprove.useMutation();
 
-  const requests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
+  const allRequests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
+  
+  // Filter by Job No when "All" tab is selected
+  const requests = useMemo(() => {
+    if (statusFilter !== undefined || !jobNoSearch.trim()) return allRequests;
+    
+    return allRequests.filter(req => {
+      if (req.type !== "used_update") return true; // Show all delete requests
+      try {
+        const action = JSON.parse(req.actionData || "{}") as ActionData;
+        if (!action.jobNo) return true; // Show if no job no
+        return action.jobNo.toLowerCase().includes(jobNoSearch.toLowerCase());
+      } catch {
+        return true;
+      }
+    });
+  }, [allRequests, statusFilter, jobNoSearch]);
 
   // Notification sound when new pending requests arrive
   const { playChime } = useNotificationSound();
@@ -506,7 +523,8 @@ export default function ApprovalCenter() {
         {activeTab === "requests" && (
           <>
             {/* Status filter sub-tabs */}
-            <div className="flex gap-1 mb-5">
+            <div className="flex gap-1 mb-5 items-center justify-between">
+              <div className="flex gap-1">
               {([
                 { key: "pending" as const, label: "Pending" },
                 { key: "approved" as const, label: "Approved" },
@@ -525,6 +543,23 @@ export default function ApprovalCenter() {
                   {label}
                 </button>
               ))}
+              </div>
+              
+              {/* Job No search when All tab is selected */}
+              {statusFilter === undefined && (
+                <div className="relative w-48">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search Job No..."
+                    value={jobNoSearch}
+                    onChange={e => setJobNoSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              )}
             </div>
 
             {requestsQuery.isLoading ? (
@@ -538,7 +573,9 @@ export default function ApprovalCenter() {
                 <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                   <Clock size={28} className="text-muted-foreground/40" />
                 </div>
-                <p className="text-sm text-muted-foreground">No {statusFilter ?? ""} requests found</p>
+                <p className="text-sm text-muted-foreground">
+                  {jobNoSearch ? `No requests found for Job No "${jobNoSearch}"` : `No ${statusFilter ?? ""} requests found`}
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
