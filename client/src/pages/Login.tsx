@@ -129,7 +129,15 @@ export default function Login() {
   }, []);
 
   const workersQuery = trpc.workers.list.useQuery();
+  const pendingQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
   const notifyLogin = trpc.push.sendToAll.useMutation();
+
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good Morning";
+    if (h < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
 
   const switchTab = (t: Tab) => {
     if (t === tab) return;
@@ -170,7 +178,15 @@ export default function Login() {
       setSuccessName(found.name);
       setSuccessType("worker");
       setTimeout(() => {
-        toast.success(`Welcome, ${found.name}!`, { duration: 3000, icon: "👋" });
+        const pendingCount = pendingQuery.data?.length ?? 0;
+        const greeting = getGreeting();
+        const pendingMsg = pendingCount > 0
+          ? `You have ${pendingCount} pending ${pendingCount === 1 ? "job" : "jobs"} in the Approval Center.`
+          : "No pending jobs in the Approval Center.";
+        toast.success(
+          `${greeting}, ${found.name}! ${pendingMsg}`,
+          { duration: 5000, icon: "👋" }
+        );
         navigate("/");
       }, 1600);
     } catch {

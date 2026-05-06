@@ -405,3 +405,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Tab switch (Employee ↔ Admin): slide + fade animation
 - [x] Employee login success: full-screen success animation before navigating to home
 - [x] Admin login success: full-screen success animation before navigating to admin panel
+
+## Enhanced Welcome Toast
+- [x] Login: show time-aware greeting (Good Morning/Afternoon/Evening) + pending count in welcome toast, 5s duration, all user levels
