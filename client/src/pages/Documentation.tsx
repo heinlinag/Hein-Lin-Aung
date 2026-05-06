@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import AppLayout from "@/components/AppLayout";
 import { FileText, Download, BookOpen, Shield, HelpCircle } from "lucide-react";
-import FAQ from "./FAQ";
 
 const EMPLOYEE_GUIDE_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663608581478/AzwFmHviKQDRtTtP.pdf";
 const ADMIN_GUIDE_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663608581478/rJZMrLLFokwcBZDz.pdf";
 
-type Tab = "employee" | "admin" | "faq";
+type Tab = "employee" | "admin";
 
 export default function Documentation() {
   const [activeTab, setActiveTab] = useState<Tab>("employee");
+  const [, navigate] = useLocation();
 
   const employeeGuideContent = [
     {
@@ -119,24 +120,13 @@ export default function Documentation() {
               Admin Guide
             </button>
             <button
-              onClick={() => setActiveTab("faq")}
-              className={`flex items-center gap-2 px-6 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === "faq"
-                  ? "border-purple-600 text-purple-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
+              onClick={() => navigate("/faq")}
+              className="flex items-center gap-2 px-6 py-3 font-semibold border-b-2 border-transparent text-gray-600 hover:text-purple-600 hover:border-purple-600 transition-colors whitespace-nowrap"
             >
               <HelpCircle size={20} />
               FAQ
             </button>
           </div>
-
-          {/* FAQ Tab */}
-          {activeTab === "faq" && (
-            <div className="-mx-4 -my-12">
-              <FAQ />
-            </div>
-          )}
 
           {/* Employee Guide Tab */}
           {activeTab === "employee" && (
