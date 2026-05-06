@@ -220,10 +220,11 @@ function RequestCard({
           {canCancel && (
             <button
               onClick={() => {
-                // Level 1: cannot cancel if request has been process-approved by Level 1.1
+                // Level 1: cannot cancel ANY request that has been process-approved (In Process) by Level 1.1
                 // Level 1.1: cannot cancel OTHER users' requests that they have already processed
                 const isOwnRequest = req.requestedBy === currentWorkerID;
-                if (!canApprove && isProcessApproved && !isOwnRequest) {
+                if (!canApprove && isProcessApproved) {
+                  // Level 1 cannot cancel any In Process request (even own)
                   setShowProcessBlockedDialog(true);
                 } else if (canProcessApprove && isProcessApproved && !isOwnRequest) {
                   // Level 1.1 trying to cancel another user's request they already processed
