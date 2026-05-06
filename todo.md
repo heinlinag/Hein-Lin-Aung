@@ -333,3 +333,20 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] ApprovalCenter.tsx: Add search input field when "All" tab is selected
 - [x] Filter Used Update requests by Job No (exact or partial match)
 - [x] Show search results in real-time as user types
+
+## Notifications Upgrade — Broadcast to All Users
+- [ ] Server: update push notification logic to send to ALL subscribed users (not just Level 2)
+- [ ] Server: notify all users on Submit Order
+- [ ] Server: notify all users on Used Update (direct Level 2 action)
+- [ ] Server: notify all users on Request Use (Level 1 / 1.1 pending request submitted)
+- [ ] Server: notify all users on In Process (Level 1.1 process-approve)
+- [ ] Server: notify all users on Approved (Level 2 final approve)
+- [ ] Server: notify all users on Cancelled (Level 2 cancel)
+- [ ] Server: notify all users on Employee Login
+
+## Access Restricted Page Upgrade
+- [ ] Upgrade GeoRestricted component with modern, polished design
+- [ ] Use multiple IP geolocation APIs for more reliable country detection
+- [ ] Add loading state while geo-check is in progress
+- [ ] Improve bilingual notice (Myanmar + English) with clearer messaging
+- [ ] Add retry/refresh button for users who may have VPN issues

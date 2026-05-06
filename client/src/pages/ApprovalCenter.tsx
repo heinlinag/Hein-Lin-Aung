@@ -378,6 +378,7 @@ export default function ApprovalCenter() {
   const approveMutation = trpc.pendingRequests.approve.useMutation();
   const cancelMutation = trpc.pendingRequests.cancel.useMutation();
   const processApproveMutation = trpc.pendingRequests.processApprove.useMutation();
+  const notifyAll = trpc.push.sendToAll.useMutation();
 
   const allRequests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
   
@@ -414,8 +415,17 @@ export default function ApprovalCenter() {
     if (!worker || !canApprove) return;
     setProcessingId(id);
     try {
+      const req = allRequests.find(r => r.id === id);
+      const snap = req ? JSON.parse(req.orderSnapshot) as OrderSnapshot : null;
       await approveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, approvedQty });
       toast.success("Request approved and action executed.");
+      notifyAll.mutate({
+        title: "✅ Request Approved",
+        body: snap
+          ? `${worker.workerID} approved a ${req?.type === "delete" ? "Delete" : "Used Update"} request for Order ${snap.orderID}.`
+          : `${worker.workerID} approved request #${id}.`,
+        tag: "request-approved"
+      });
       utils.pendingRequests.list.invalidate();
       utils.orders.list.invalidate();
       if (activeTab === "history") utils.pendingRequests.actionLog.invalidate();
@@ -431,8 +441,17 @@ export default function ApprovalCenter() {
     if (!worker) return;
     setProcessingId(id);
     try {
+      const req = allRequests.find(r => r.id === id);
+      const snap = req ? JSON.parse(req.orderSnapshot) as OrderSnapshot : null;
       await cancelMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, cancelReason: reason });
       toast.success("Request cancelled. No changes made.");
+      notifyAll.mutate({
+        title: "❌ Request Cancelled",
+        body: snap
+          ? `${worker.workerID} cancelled a ${req?.type === "delete" ? "Delete" : "Used Update"} request for Order ${snap.orderID}. Reason: ${reason}`
+          : `${worker.workerID} cancelled request #${id}.`,
+        tag: "request-cancelled"
+      });
       utils.pendingRequests.list.invalidate();
       if (activeTab === "history") utils.pendingRequests.actionLog.invalidate();
     } catch (err: unknown) {
@@ -447,8 +466,17 @@ export default function ApprovalCenter() {
     if (!worker || !canProcessApprove) return;
     setProcessingId(id);
     try {
+      const req = allRequests.find(r => r.id === id);
+      const snap = req ? JSON.parse(req.orderSnapshot) as OrderSnapshot : null;
       await processApproveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, processApprovedQty });
       toast.success("Request marked as In Process. Level 2 will give final approval.");
+      notifyAll.mutate({
+        title: "🔄 Request In Process",
+        body: snap
+          ? `${worker.workerID} marked a ${req?.type === "delete" ? "Delete" : "Used Update"} request for Order ${snap.orderID} as In Process. Awaiting Level 2 final approval.`
+          : `${worker.workerID} process-approved request #${id}.`,
+        tag: "request-in-process"
+      });
       utils.pendingRequests.list.invalidate();
     } catch (err: unknown) {
       const e = err as { message?: string };

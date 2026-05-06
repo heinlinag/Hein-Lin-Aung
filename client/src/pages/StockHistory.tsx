@@ -31,6 +31,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   const [boardSizeL, setBoardSizeL] = useState("");
   const [scores, setScores] = useState("");
   const logUsage = trpc.orders.logUsage.useMutation();
+  const notifyAll = trpc.push.sendToAll.useMutation();
   const utils = trpc.useUtils();
   const availableQty = remaining !== null ? remaining : order.qty;
 
@@ -46,6 +47,11 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
     try {
       await logUsage.mutateAsync({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", orderId: order.id, newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null });
       toast.success(`Used ${qty} pcs for Job ${jobNo}. Remaining: ${newQty} pcs.`);
+      notifyAll.mutate({
+        title: "⚡ Stock Used (Job No)",
+        body: `Order ${order.orderID}: ${qty} pcs used for Job ${jobNo}. Remaining: ${newQty} pcs.`,
+        tag: "used-update"
+      });
       setRemaining(newQty);
       setJobNo(""); setUseQty(""); setMasterCard(""); setBoardSizeW(""); setBoardSizeL(""); setScores("");
       utils.orders.list.invalidate();
@@ -61,6 +67,11 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
     try {
       await logUsage.mutateAsync({ jobNo: null, usedQty: order.qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "old_stock", orderId: order.id, newQty: 0 });
       toast.success("Order cleared and moved to Out of Stock.");
+      notifyAll.mutate({
+        title: "📦 Old Stock Cleared",
+        body: `Order ${order.orderID} (${order.qty} pcs) has been cleared and moved to Out of Stock.`,
+        tag: "used-update"
+      });
       utils.orders.list.invalidate();
       utils.orders.getUsage.invalidate();
       onSuccess();
@@ -231,7 +242,7 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
   const [boardSizeL, setBoardSizeL] = useState("");
   const [scores, setScores] = useState("");
   const submitRequest = trpc.pendingRequests.submit.useMutation();
-  const notifyLevel2 = trpc.push.sendToLevel2.useMutation();
+  const notifyAll = trpc.push.sendToAll.useMutation();
   const pendingUsedQtyQuery = trpc.pendingRequests.getPendingUsedQty.useQuery({ orderId: order.id });
   const pendingUsedQty = pendingUsedQtyQuery.data?.pendingUsedQty ?? 0;
   const availableQty = Math.max(0, order.qty - pendingUsedQty);
@@ -258,7 +269,14 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
       } else {
         toast.success("Request submitted! Awaiting Level 2 approval.");
       }
-      notifyLevel2.mutate({ title: "New Approval Request", body: `${workerID} submitted a Used Update request. Please review in Approval Center.`, tag: "pending-request" });
+      const isProcessed = jobResult.autoProcessApproved;
+      notifyAll.mutate({
+        title: isProcessed ? "🔄 Request In Process" : "📋 New Approval Request",
+        body: isProcessed
+          ? `${workerID} submitted Used Update for Order ${order.orderID} — auto process-approved. Awaiting Level 2.`
+          : `${workerID} submitted a Used Update request for Order ${order.orderID}. Pending Level 2 approval.`,
+        tag: "pending-request"
+      });
       onSuccess();
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -277,8 +295,18 @@ function UsedUpdateRequestDialog({ order, workerID, onClose, onSuccess }: {
       });
       if (oldResult.autoProcessApproved) {
         toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");
+        notifyAll.mutate({
+          title: "🔄 Request In Process",
+          body: `${workerID} submitted Old Stock clear for Order ${order.orderID} — auto process-approved. Awaiting Level 2.`,
+          tag: "pending-request"
+        });
       } else {
         toast.success("Request submitted! Awaiting Level 2 approval.");
+        notifyAll.mutate({
+          title: "📋 New Approval Request",
+          body: `${workerID} submitted an Old Stock clear request for Order ${order.orderID}. Pending Level 2 approval.`,
+          tag: "pending-request"
+        });
       }
       onSuccess();
     } catch (err: unknown) {
@@ -485,6 +513,7 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
   const [error, setError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const submitRequest = trpc.pendingRequests.submit.useMutation();
+  const notifyAll = trpc.push.sendToAll.useMutation();
 
   const handleRequest = async () => {
     setError("");
@@ -497,8 +526,18 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
       });
       if (delResult.autoProcessApproved) {
         toast.success("Delete request submitted & auto process-approved! Awaiting Level 2 final approval.");
+        notifyAll.mutate({
+          title: "🔄 Delete Request In Process",
+          body: `${workerID} submitted a Delete request for Order ${order.orderID} — auto process-approved. Awaiting Level 2.`,
+          tag: "pending-request"
+        });
       } else {
         toast.success("Delete request submitted! Awaiting Level 2 approval.");
+        notifyAll.mutate({
+          title: "🗑️ New Delete Request",
+          body: `${workerID} submitted a Delete request for Order ${order.orderID}. Pending Level 2 approval.`,
+          tag: "pending-request"
+        });
       }
       onSuccess();
     } catch (err: unknown) {
