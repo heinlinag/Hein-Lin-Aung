@@ -239,9 +239,6 @@ export default function Login() {
           <span className="text-xs text-gray-400">|</span>
           <span className="text-xs font-mono font-bold text-primary">v2.5.0</span>
         </div>
-        <div className="mt-1.5 text-xs text-gray-400">
-          Level 1.1 · Process Approve · Geo-Restriction · Broadcast Notifications
-        </div>
       </div>
     </div>
   );
