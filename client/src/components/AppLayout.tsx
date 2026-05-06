@@ -44,7 +44,7 @@ function levelLabel(level: string) {
 
 export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
   const [location, navigate] = useLocation();
-  const { worker, logoutWorker } = useAuth();
+  const { worker, logoutWorker, loginAdmin } = useAuth();
   const userLevel = worker?.userLevel ?? "2";
   const lv = levelLabel(userLevel);
 
@@ -67,6 +67,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
 
   const handleAdminPwSubmit = () => {
     if (adminPwInput === ADMIN_PASSWORD) {
+      loginAdmin(); // set isAdminAuthenticated = true before navigating
       setShowAdminDialog(false);
       navigate("/admin");
     } else {
