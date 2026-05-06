@@ -79,8 +79,8 @@ export default function GeoGuard({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium text-slate-300">Verifying access location…</p>
-            <p className="text-xs text-slate-500 mt-1">ကင်ရာက်ခွင့် သစ်ဆေးနေသည်…</p>
+            <p className="text-sm font-medium text-slate-300">Checking your access location…</p>
+            <p className="text-xs text-slate-500 mt-1">Please wait a moment</p>
           </div>
         </div>
       </div>
@@ -147,29 +147,14 @@ export default function GeoGuard({ children }: { children: React.ReactNode }) {
 
               <div className="border-t border-white/10 mb-5" />
 
-              {/* Myanmar */}
-              <div className="mb-5">
-                <h2 className="text-base font-bold text-white mb-2 text-center">ကင်ရာက်ခွင့် မရှိပဪbမရှိပဪb</h2>
-                <p className="text-sm text-slate-300 leading-relaxed text-center">
-                  ဤ System သည်{" "}
-                  <span className="font-semibold text-white">မလေးရှား 🇲🇾</span>{" "}
-                  နှင််{" "}
-                  <span className="font-semibold text-white">မြန်မာနိုင်ငံ 🇲🇲</span>{" "}
-                  တွင်သာ ကင်ရာက် အသုံပြုနိုင်သည်။
-                </p>
-              </div>
-
               {/* VPN Warning */}
               <div className="bg-amber-500/10 border border-amber-500/25 rounded-xl p-4 mb-5">
                 <div className="flex items-start gap-2.5">
                   <AlertTriangle size={15} className="text-amber-400 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-bold text-amber-300 mb-1.5">⚠ VPN Notice / VPN သတိပေးချက်ချက်တ်</p>
-                    <p className="text-xs text-amber-200/80 leading-relaxed mb-1.5">
-                      <strong className="text-amber-300">EN:</strong> Disable your VPN and reconnect from Malaysia or Myanmar to access this system.
-                    </p>
+                    <p className="text-xs font-bold text-amber-300 mb-1.5">⚠ VPN Notice</p>
                     <p className="text-xs text-amber-200/80 leading-relaxed">
-                      <strong className="text-amber-300">MM:</strong> VPN ခ်အသုံပြုနေပဪbက ပိတ်ပြီး မလေးရှား သိုမြက်တ် မြန်မာနိုင်ငံမှ ထပ်မံ ကြိုးသာပဪb။
+                      If you are in Malaysia or Myanmar but seeing this page, your VPN may be masking your location. Please disable your VPN and try again.
                     </p>
                   </div>
                 </div>
@@ -181,7 +166,7 @@ export default function GeoGuard({ children }: { children: React.ReactNode }) {
                 className="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 rounded-xl py-2.5 text-sm font-semibold transition-colors"
               >
                 <RefreshCw size={14} />
-                Retry / ထပ်မံ သစ်ဆေးမည်
+                Retry
               </button>
             </div>
           </div>
