@@ -17,25 +17,29 @@ export default function Documentation() {
       sections: [
         "System Requirements",
         "Accessing the System",
-        "Login Access - Employee Login (Level 1 & Level 2)",
+        "Login Access — Employee Login (Level 1, 1.1 & 2)",
+        "1-Hour Session & Re-login",
+        "User Profile Dropdown",
       ],
     },
     {
       title: "Core Features",
       sections: [
-        "Home Dashboard",
-        "Submit Order",
-        "Stock History",
-        "Usage History",
-        "Approval Center",
+        "Home Dashboard & Welcome Toast",
+        "Submit Order (Order ID, Flute, Size, Qty, BQ)",
+        "Stock History — Low-Stock Alerts & Usage Update",
+        "Usage History — Master Card, Board Size, Scores",
+        "Approval Center — Pending / In Process / Approved / Cancelled",
+        "Process Approve Workflow (Level 1.1)",
       ],
     },
     {
-      title: "Support",
+      title: "Support & Navigation",
       sections: [
-        "Troubleshooting",
-        "Glossary",
-        "Contact Support",
+        "FAQ — 42 Q&A across 8 categories",
+        "System Status Page",
+        "Notifications — Browser Push Alerts",
+        "Troubleshooting & Contact Administrator",
       ],
     },
   ];
@@ -44,27 +48,30 @@ export default function Documentation() {
     {
       title: "Admin Access",
       sections: [
-        "Admin Login",
-        "Admin Panel Dashboard",
-        "Summary Statistics",
+        "Admin Login via Login Page or User Profile",
+        "Password-Protected Admin Panel",
+        "Admin Panel Dashboard & Summary Stats",
+        "Level 1 / 1.1 / 2 Role Management",
       ],
     },
     {
       title: "Management",
       sections: [
-        "Employee Management",
-        "Orders Management",
-        "Approval Workflow",
-        "Deleted Logs & Audit Trail",
+        "Employee Management (Add / Edit / Delete)",
+        "Orders Management & Export (Excel / PDF)",
+        "Approval Workflow — Approve / Cancel / Process",
+        "Deleted Logs & Full Audit Trail",
+        "Push Notification Subscriptions",
       ],
     },
     {
       title: "Operations",
       sections: [
-        "System Statistics",
-        "Best Practices",
-        "System Maintenance",
-        "Troubleshooting",
+        "Real-Time System Statistics",
+        "Geo-Restriction (Malaysia & Myanmar only)",
+        "System Status Monitoring",
+        "Best Practices & Maintenance",
+        "Troubleshooting & WhatsApp Support",
       ],
     },
   ];
@@ -176,12 +183,16 @@ export default function Documentation() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">Key Features Covered</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   {[
-                    "Employee Login with 1-hour sessions",
+                    "Employee Login with 1-hour sessions (Level 1, 1.1 & 2)",
                     "Submit new orders with auto-uppercase Order ID",
                     "Real-time duplicate Order ID checking",
-                    "Stock History with low-stock alerts",
-                    "Usage tracking and history",
-                    "Approval Center for Level 1 & 2 users",
+                    "Stock History with low-stock alerts & usage update",
+                    "Usage History — Master Card, Board Size, Scores",
+                    "Approval Center — Pending / In Process / Approved / Cancelled",
+                    "Process Approve workflow for Level 1.1 users",
+                    "Action History — full request trail per card",
+                    "User Profile dropdown with FAQ, Docs & Status links",
+                    "Browser push notifications for approvals",
                     "BQ Comment shortcuts (LR, MP, KL, LP, KC, WT)",
                     "Mobile and desktop responsive design",
                   ].map((feature, idx) => (
@@ -240,14 +251,16 @@ export default function Documentation() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">Admin Capabilities</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   {[
-                    "One-time admin password authentication",
-                    "Employee management (add/delete/view)",
-                    "User Level assignment (Level 1 & 2)",
-                    "Complete order management",
-                    "Approval workflow control",
-                    "Deleted logs & audit trail",
-                    "Real-time system statistics",
-                    "Export orders to Excel/PDF",
+                    "Password-protected admin access (User Profile or Login page)",
+                    "Employee management — add / edit / delete workers",
+                    "User Level assignment (Level 1, 1.1 & 2)",
+                    "Complete order management with search & filter",
+                    "Approval workflow — approve / cancel / process-approve",
+                    "Deleted logs & full audit trail",
+                    "Real-time system statistics dashboard",
+                    "Export orders to Excel / PDF",
+                    "Push notification subscription management",
+                    "Geo-restriction enforcement (MY & MM only)",
                   ].map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-3">
                       <span className="text-green-600 font-bold text-lg">✓</span>
@@ -289,7 +302,7 @@ export default function Documentation() {
           {/* Footer Info */}
           <div className="mt-12 text-center text-gray-600">
             <p className="mb-2">
-              <strong>Version:</strong> 1.0 | <strong>Last Updated:</strong> May 2026
+              <strong>Version:</strong> 2.5 | <strong>Last Updated:</strong> May 7, 2026
             </p>
             <p>
               For additional support, contact your system administrator

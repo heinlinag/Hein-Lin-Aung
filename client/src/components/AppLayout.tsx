@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, History, CheckCircle2, Settings, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -174,6 +174,17 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
             <BookOpen size={15} className="text-blue-600" />
           </div>
           <span className="flex-1 text-left">Documentation</span>
+          <ChevronRight size={13} className="text-muted-foreground" />
+        </button>
+
+        <button
+          onClick={() => goTo("/faq")}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-gray-100 transition-colors"
+        >
+          <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+            <HelpCircle size={15} className="text-amber-600" />
+          </div>
+          <span className="flex-1 text-left">FAQ</span>
           <ChevronRight size={13} className="text-muted-foreground" />
         </button>
 

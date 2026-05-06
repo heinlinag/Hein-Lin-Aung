@@ -408,3 +408,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Enhanced Welcome Toast
 - [x] Login: show time-aware greeting (Good Morning/Afternoon/Evening) + pending count in welcome toast, 5s duration, all user levels
+
+## Notifications / FAQ / Docs / Status / Responsive
+- [x] Notifications: improve browser permission prompt UI (better onboarding card with bell icon, benefit text, dismiss button)
+- [x] FAQ: create /faq route with AppLayout, add FAQ link in User Profile dropdown (all users)
+- [x] Documentation: updated Employee Guide and Admin Guide to v2.5 features
+- [x] System Status: updated with 6 new May 7 entries, 10 system components including Geo-Restriction and Admin Access Control
+- [x] Responsive: FAQ wrapped in AppLayout for /faq route; Home notification banner responsive on mobile/desktop

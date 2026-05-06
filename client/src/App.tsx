@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import ApprovalCenter from "./pages/ApprovalCenter";
 import Documentation from "./pages/Documentation";
 import SystemStatus from "./pages/SystemStatus";
+import FAQ from "./pages/FAQ";
 
 function Router() {
   return (
@@ -54,6 +55,9 @@ function Router() {
 
       {/* Public: Documentation */}
       <Route path="/docs" component={Documentation} />
+
+      {/* Public: FAQ */}
+      <Route path="/faq" component={FAQ} />
 
       {/* Public: System Status */}
       <Route path="/status" component={SystemStatus} />

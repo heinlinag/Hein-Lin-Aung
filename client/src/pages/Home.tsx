@@ -1,9 +1,10 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2 } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
 import AppLayout from "@/components/AppLayout";
+import { useState, useEffect } from "react";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 
@@ -41,8 +42,57 @@ const baseFeatures = [
     btnLabel: "Open Approval Center",
     showBadge: true,
   },
-
 ];
+
+function NotificationBanner({ onDismiss }: { onDismiss: () => void }) {
+  const [requesting, setRequesting] = useState(false);
+
+  const handleEnable = async () => {
+    setRequesting(true);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted" || permission === "denied") {
+        onDismiss();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setRequesting(false);
+    }
+  };
+
+  return (
+    <div className="mx-4 lg:mx-8 mt-4 mb-0 max-w-6xl lg:mx-auto">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
+        <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+          <Bell size={16} className="text-blue-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-blue-900 leading-tight">Enable Notifications</p>
+          <p className="text-xs text-blue-700 opacity-80 leading-tight mt-0.5">
+            Get instant alerts when your requests are approved or new orders arrive.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={handleEnable}
+            disabled={requesting}
+            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
+          >
+            {requesting ? "..." : "Enable"}
+          </button>
+          <button
+            onClick={onDismiss}
+            className="p-1.5 rounded-lg text-blue-400 hover:text-blue-600 hover:bg-blue-100 transition-colors"
+            title="Dismiss"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const [, navigate] = useLocation();
@@ -55,6 +105,22 @@ export default function Home() {
     { refetchInterval: 30000 }
   );
   const pendingCount = (pendingQuery.data ?? []).length;
+
+  // Notification permission banner state
+  const DISMISS_KEY = "notif_banner_dismissed";
+  const [showNotifBanner, setShowNotifBanner] = useState(false);
+
+  useEffect(() => {
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "default") return;
+    const dismissed = sessionStorage.getItem(DISMISS_KEY);
+    if (!dismissed) setShowNotifBanner(true);
+  }, []);
+
+  const dismissBanner = () => {
+    sessionStorage.setItem(DISMISS_KEY, "1");
+    setShowNotifBanner(false);
+  };
 
   return (
     <AppLayout>
@@ -94,6 +160,9 @@ export default function Home() {
         )}
       </div>
 
+      {/* Notification permission banner */}
+      {showNotifBanner && <NotificationBanner onDismiss={dismissBanner} />}
+
       {/* Feature cards grid */}
       <div className="px-4 lg:px-8 py-6 lg:py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 max-w-6xl mx-auto lg:mx-0">
@@ -116,7 +185,7 @@ export default function Home() {
                   <p className="text-sm opacity-85 mt-0.5 text-white/90">{f.description}</p>
                 </div>
               </div>
-              {/* Badge on Approval Center - moved inside loop */}
+              {/* Badge on Approval Center */}
               {f.showBadge && pendingCount > 0 && (
                 <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow">
                   {pendingCount > 99 ? "99+" : pendingCount}
@@ -136,7 +205,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border py-4 text-center px-4">
         <p className="text-xs text-muted-foreground">
-          PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()}
+          PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()} &middot; v2.5
         </p>
       </footer>
     </AppLayout>

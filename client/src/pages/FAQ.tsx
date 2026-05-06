@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, HelpCircle, Search } from 'lucide-react';
+import AppLayout from '@/components/AppLayout';
 
 const faqData = [
   {
@@ -264,6 +265,7 @@ export default function FAQ() {
   const totalQuestions = faqData.reduce((sum, s) => sum + s.questions.length, 0);
 
   return (
+    <AppLayout>
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-10 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -377,5 +379,6 @@ export default function FAQ() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }

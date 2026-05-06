@@ -45,6 +45,42 @@ export default function SystemStatus() {
 
   const recentUpdates: StatusUpdate[] = [
     {
+      date: 'May 7, 2026',
+      title: 'User Profile Dropdown & FAQ Quick Access',
+      description: 'Header badge now shows "User Profile" and opens a dropdown with employee info, Admin Panel (Level 2 only with password), Documentation, FAQ, System Status, and Logout. FAQ page added at /faq with 42 Q&A pairs.',
+      type: 'update',
+    },
+    {
+      date: 'May 7, 2026',
+      title: 'Admin Panel Password Protection',
+      description: 'Admin Panel now requires a password dialog from the User Profile dropdown. Level 1 and Level 1.1 users are blocked from /admin entirely. Direct URL access is redirected to Home.',
+      type: 'update',
+    },
+    {
+      date: 'May 7, 2026',
+      title: 'Login Page Animations',
+      description: 'Tab switch (Employee ↔ Admin) now has a slide animation. Employee and Admin login success show a full-screen animated overlay before navigating to the dashboard.',
+      type: 'update',
+    },
+    {
+      date: 'May 7, 2026',
+      title: 'Action History — Level 1.1 Process Info Always Visible',
+      description: 'Approval Center request cards now always show Level 1.1 process-approved info (name, qty, timestamp) regardless of final status (pending / approved / cancelled).',
+      type: 'update',
+    },
+    {
+      date: 'May 7, 2026',
+      title: 'Cannot Cancel Processed Request',
+      description: 'Level 1 users can no longer cancel a request that has been process-approved by a Level 1.1 user. A dialog with a WhatsApp Contact Administrator button is shown instead.',
+      type: 'update',
+    },
+    {
+      date: 'May 6, 2026',
+      title: 'Access Restricted — 30s Countdown',
+      description: 'Geo-restriction loading screen now shows a 30→0 countdown ring. Ring depletes as time runs out and turns orange at ≤10s. Countdown stops immediately when Geo API responds.',
+      type: 'update',
+    },
+    {
       date: 'May 5, 2026',
       title: 'Level 1.1 User Role Released',
       description: 'New intermediate user role Level 1.1 added. Requests submitted by Level 1.1 users are automatically process-approved (In Process) upon submission. Level 1.1 users can also manually process-approve Level 1 requests from the Approval Center.',
@@ -54,12 +90,6 @@ export default function SystemStatus() {
       date: 'May 5, 2026',
       title: 'Approval Center — Extra Fields Display',
       description: 'Used Update request cards in the Approval Center now display Master Card, Board Size (W×L mm), and Scores fields for full job traceability.',
-      type: 'update',
-    },
-    {
-      date: 'May 5, 2026',
-      title: 'FAQ Updated to v2',
-      description: 'FAQ page fully rewritten with 42 Q&A pairs across 8 categories. Added search bar and category filter. Covers Level 1.1, Process Approve workflow, Master Card, Board Size, Scores, and all latest features.',
       type: 'update',
     },
     {
@@ -262,6 +292,8 @@ export default function SystemStatus() {
                 { name: 'File Storage', status: 'operational' },
                 { name: 'Approval Workflow Engine', status: 'operational' },
                 { name: 'Level 1.1 Process Approve', status: 'operational' },
+                { name: 'Geo-Restriction Guard', status: 'operational' },
+                { name: 'Admin Panel Access Control', status: 'operational' },
               ].map((component, idx) => (
                 <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
                   <span className="font-semibold text-gray-900">{component.name}</span>
@@ -290,7 +322,7 @@ export default function SystemStatus() {
                 View Documentation
               </a>
               <a
-                href="/docs?tab=faq"
+                href="/faq"
                 className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg border border-blue-600 hover:bg-blue-50 transition-colors"
               >
                 View FAQ
