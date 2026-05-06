@@ -335,18 +335,27 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Show search results in real-time as user types
 
 ## Notifications Upgrade — Broadcast to All Users
-- [ ] Server: update push notification logic to send to ALL subscribed users (not just Level 2)
-- [ ] Server: notify all users on Submit Order
-- [ ] Server: notify all users on Used Update (direct Level 2 action)
-- [ ] Server: notify all users on Request Use (Level 1 / 1.1 pending request submitted)
-- [ ] Server: notify all users on In Process (Level 1.1 process-approve)
-- [ ] Server: notify all users on Approved (Level 2 final approve)
-- [ ] Server: notify all users on Cancelled (Level 2 cancel)
-- [ ] Server: notify all users on Employee Login
+- [x] Server: update push notification logic to send to ALL subscribed users (not just Level 2)
+- [x] Server: notify all users on Submit Order
+- [x] Server: notify all users on Used Update (direct Level 2 action)
+- [x] Server: notify all users on Request Use (Level 1 / 1.1 pending request submitted)
+- [x] Server: notify all users on In Process (Level 1.1 process-approve)
+- [x] Server: notify all users on Approved (Level 2 final approve)
+- [x] Server: notify all users on Cancelled (Level 2 cancel)
+- [x] Server: notify all users on Employee Login
 
 ## Access Restricted Page Upgrade
-- [ ] Upgrade GeoRestricted component with modern, polished design
-- [ ] Use multiple IP geolocation APIs for more reliable country detection
-- [ ] Add loading state while geo-check is in progress
-- [ ] Improve bilingual notice (Myanmar + English) with clearer messaging
-- [ ] Add retry/refresh button for users who may have VPN issues
+- [x] Upgrade GeoRestricted component with modern, polished design
+- [x] Use multiple IP geolocation APIs for more reliable country detection
+- [x] Add loading state while geo-check is in progress
+- [x] Improve bilingual notice (Myanmar + English) with clearer messaging
+- [x] Add retry/refresh button for users who may have VPN issues
+
+## Usage History & Admin Panel Full Access + Login Version Display
+- [ ] Usage History: show MasterCard, Board Size (W×L), Scores columns in history table
+- [ ] Usage History: show Level 1.1 request info (process approved by) in history
+- [ ] Admin Panel: Full Access — approve/cancel pending requests from Admin Panel
+- [ ] Admin Panel: Full Access — process approve (Level 1.1 style) from Admin Panel
+- [ ] Admin Panel: Full Access — direct Used Update / Delete from Admin Panel (bypass approval)
+- [ ] Admin Panel: show all worker levels including 1.1 in worker management
+- [ ] Login Page: display current version number (e.g. v2.5.0)

@@ -243,6 +243,18 @@ export default function Login() {
           </div>
         )}
       </div>
+      {/* Version Footer */}
+      <div className="mt-6 text-center">
+        <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-full px-4 py-1.5 shadow-sm">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block"></span>
+          <span className="text-xs font-semibold text-gray-600">Stock Management System</span>
+          <span className="text-xs text-gray-400">|</span>
+          <span className="text-xs font-mono font-bold text-primary">v2.5.0</span>
+        </div>
+        <div className="mt-1.5 text-xs text-gray-400">
+          Level 1.1 · Process Approve · Geo-Restriction · Broadcast Notifications
+        </div>
+      </div>
     </div>
   );
 }

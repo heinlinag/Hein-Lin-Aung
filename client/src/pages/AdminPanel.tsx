@@ -735,6 +735,9 @@ function PendingRequestsTab() {
   const [approveDialog, setApproveDialog] = useState<{ id: number; requestedQty: number | null; isDelete: boolean } | null>(null);
   const [approvedQtyInput, setApprovedQtyInput] = useState("");
 
+  // Process Approve dialog
+  const [processDialog, setProcessDialog] = useState<{ id: number; requestedQty: number | null } | null>(null);
+  const [processQtyInput, setProcessQtyInput] = useState("");
   const listQuery = trpc.pendingRequests.list.useQuery({ status: statusFilter });
   const requests = (listQuery.data ?? []) as PendingReq[];
   const approveMut = trpc.pendingRequests.approve.useMutation({
@@ -745,6 +748,10 @@ function PendingRequestsTab() {
     onSuccess: () => { utils.pendingRequests.list.invalidate(); toast.success("Request cancelled."); },
     onError: (e) => toast.error(e.message),
   });
+  const processApproveMut = trpc.pendingRequests.processApprove.useMutation({
+    onSuccess: () => { utils.pendingRequests.list.invalidate(); toast.success("Request marked as In Process!"); },
+    onError: (e) => toast.error(e.message),
+  });
   const handleApprove = async (id: number, approvedQty?: number) => {
     setProcessingId(id);
     try { await approveMut.mutateAsync({ id, reviewerWorkerID: "ADMIN", approvedQty }); } finally { setProcessingId(null); }
@@ -752,6 +759,10 @@ function PendingRequestsTab() {
   const handleCancel = async (id: number, reason: string) => {
     setProcessingId(id);
     try { await cancelMut.mutateAsync({ id, reviewerWorkerID: "ADMIN", cancelReason: reason }); } finally { setProcessingId(null); }
+  };
+  const handleProcessApprove = async (id: number, processedQty?: number) => {
+    setProcessingId(id);
+    try { await processApproveMut.mutateAsync({ id, reviewerWorkerID: "ADMIN", processApprovedQty: processedQty }); } finally { setProcessingId(null); }
   };
   return (
     <div>
@@ -801,18 +812,40 @@ function PendingRequestsTab() {
                   {req.type === "used_update" && action.jobNo && (
                     <div><span className="text-muted-foreground">Job No: </span><span className="font-semibold font-mono">{action.jobNo}</span></div>
                   )}
+                  {req.type === "used_update" && action.masterCard && (
+                    <div><span className="text-muted-foreground">Master Card: </span><span className="font-semibold font-mono">{action.masterCard}</span></div>
+                  )}
+                  {req.type === "used_update" && (action.boardSizeW || action.boardSizeL) && (
+                    <div><span className="text-muted-foreground">Board Size: </span><span className="font-semibold">{action.boardSizeW ?? "—"}×{action.boardSizeL ?? "—"} mm</span></div>
+                  )}
+                  {req.type === "used_update" && action.scores && (
+                    <div className="col-span-2"><span className="text-muted-foreground">Scores: </span><span className="font-semibold font-mono">{action.scores}</span></div>
+                  )}
+                  {(req as any).processApprovedBy && (
+                    <div className="col-span-2 flex items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">⚙ In Process</span>
+                      <span className="text-xs text-muted-foreground">by {(req as any).processApprovedBy}</span>
+                    </div>
+                  )}
                   {req.reviewedBy && (
                     <div className="col-span-2"><span className="text-muted-foreground">Reviewed by: </span><span className="font-semibold">{req.reviewedBy}</span></div>
                   )}
                 </div>
                 {isPending && (
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex gap-2 pt-1 flex-wrap">
                     <button onClick={() => { setCancelDialog({ id: req.id }); setCancelReason(""); }} disabled={processingId === req.id}
-                      className="flex-1 border border-border rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
+                      className="flex-1 min-w-[80px] border border-border rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
                       <XCircle size={12} /> Cancel
                     </button>
+                    {req.type === "used_update" && !(req as any).processApprovedBy && (
+                      <button onClick={() => { const aq = action.usedQty ?? null; setProcessDialog({ id: req.id, requestedQty: aq }); setProcessQtyInput(aq ? String(aq) : ""); }} disabled={processingId === req.id}
+                        className="flex-1 min-w-[80px] bg-purple-600 text-white rounded-lg py-2 text-xs font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
+                        {processingId === req.id ? <Loader2 size={12} className="animate-spin" /> : <span>⚙</span>}
+                        Process
+                      </button>
+                    )}
                     <button onClick={() => { const aq = req.type === "used_update" ? (action.usedQty ?? null) : null; setApproveDialog({ id: req.id, requestedQty: aq, isDelete: req.type === "delete" }); setApprovedQtyInput(aq ? String(aq) : ""); }} disabled={processingId === req.id}
-                      className="flex-1 bg-green-600 text-white rounded-lg py-2 text-xs font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
+                      className="flex-1 min-w-[80px] bg-green-600 text-white rounded-lg py-2 text-xs font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
                       {processingId === req.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
                       Approve
                     </button>
@@ -888,6 +921,43 @@ function PendingRequestsTab() {
                   onClick={async () => { const id = approveDialog.id; const aq = approvedQtyInput ? parseInt(approvedQtyInput) : undefined; setApproveDialog(null); await handleApprove(id, aq); }}
                   className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700"
                 >Confirm Approve</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Process Approve Dialog */}
+      {processDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-purple-600 text-lg">⚙</span>
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">Approve Request (process approved request)</h3>
+              </div>
+              {processDialog.requestedQty !== null && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-2">Requested Qty: <strong>{processDialog.requestedQty} pcs</strong></p>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Approved Qty (optional — leave blank to use requested)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={processQtyInput}
+                    onChange={e => setProcessQtyInput(e.target.value)}
+                    placeholder={String(processDialog.requestedQty)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                  />
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mb-4">This marks the request as "In Process". Level 2 final approval is still required.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setProcessDialog(null)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                <button
+                  onClick={async () => { const id = processDialog.id; const pq = processQtyInput ? parseInt(processQtyInput) : undefined; setProcessDialog(null); await handleProcessApprove(id, pq); }}
+                  className="flex-1 bg-purple-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-purple-700"
+                >Confirm Process</button>
               </div>
             </div>
           </div>
