@@ -377,3 +377,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] GeoRestricted: number turns orange when countdown ≤ 10s
 - [x] GeoRestricted: ring color changes blue→orange when countdown ≤ 10s
 - [x] GeoRestricted: countdown stops immediately when geo API responds
+
+## Approval Center — Block Level 1 Cancel When Process-Approved
+- [x] ApprovalCenter: when Level 1 user clicks Cancel on a process-approved request, show error dialog instead of cancel dialog
+- [x] Error message: "Your request has already been processed by [processApprovedBy]. You cannot cancel it at this stage. Please contact your supervisor."

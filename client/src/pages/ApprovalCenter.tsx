@@ -71,6 +71,8 @@ function RequestCard({
   // Process Approve dialog state (local to card)
   const [showProcessApproveDialog, setShowProcessApproveDialog] = useState(false);
   const [processApprovedQtyLocal, setProcessApprovedQtyLocal] = useState("");
+  // Process-blocked cancel dialog (Level 1 trying to cancel a process-approved request)
+  const [showProcessBlockedDialog, setShowProcessBlockedDialog] = useState(false);
 
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
@@ -215,7 +217,15 @@ function RequestCard({
         <div className="flex gap-2 pt-1 flex-wrap">
           {canCancel && (
             <button
-              onClick={() => { setShowCancelDialog(true); setCancelReasonLocal(""); }}
+              onClick={() => {
+                // Level 1 cannot cancel if request has been process-approved by Level 1.1
+                if (!canApprove && isProcessApproved) {
+                  setShowProcessBlockedDialog(true);
+                } else {
+                  setShowCancelDialog(true);
+                  setCancelReasonLocal("");
+                }
+              }}
               disabled={isProcessing}
               className="flex-1 min-w-[80px] border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
@@ -351,6 +361,37 @@ function RequestCard({
                   className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-red-700 disabled:opacity-50"
                 >Confirm Cancel</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Process-Blocked Cancel Dialog — shown when Level 1 tries to cancel a process-approved request */}
+      {showProcessBlockedDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={20} className="text-orange-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">Cannot Cancel Request</h3>
+              </div>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-orange-800 leading-relaxed">
+                  Your request <strong>({req.workerName})</strong> has already been processed by{" "}
+                  <strong>{req.processApprovedBy}</strong>. You cannot cancel it at this stage.
+                </p>
+                <p className="text-xs text-orange-600 mt-2">
+                  Please contact your supervisor if you need this request to be cancelled.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowProcessBlockedDialog(false)}
+                className="w-full bg-gray-800 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-700"
+              >
+                OK, Understood
+              </button>
             </div>
           </div>
         </div>
