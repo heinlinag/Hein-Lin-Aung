@@ -116,11 +116,16 @@ function RequestCard({
               In Process
             </span>
           )}
+          {isProcessApproved && req.status !== "pending" && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-50 text-purple-500 border border-purple-200 flex-shrink-0">
+              Processed
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Process Approved info */}
-      {isProcessApproved && req.status === "pending" && (
+      {/* Process Approved info — always show if processApprovedBy is set */}
+      {isProcessApproved && (
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-2.5 flex items-start gap-2">
           <PlayCircle size={13} className="text-purple-600 mt-0.5 flex-shrink-0" />
           <div className="text-xs text-purple-700">

@@ -87,33 +87,42 @@ export default function GeoGuard({ children }: { children: React.ReactNode }) {
   const { status, geoResult, retry, countdown } = useGeoCheck();
 
   if (status === "loading") {
-    const pct = Math.round((countdown / 30) * 100);
+    // Ring depletes as countdown goes from 30 → 0
+    // pct = remaining fraction (1.0 at 30s, 0.0 at 0s)
+    const pct = countdown / 30;
     const circumference = 2 * Math.PI * 28; // r=28
-    const dashOffset = circumference * (1 - pct / 100);
+    // dashOffset = 0 means full ring; increases as countdown decreases
+    const dashOffset = circumference * (1 - pct);
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
         <div className="flex flex-col items-center gap-5 text-slate-400">
-          {/* Circular countdown */}
-          <div className="relative w-24 h-24 flex items-center justify-center">
+          {/* Circular countdown ring — shrinks from full to empty as 30→0 */}
+          <div className="relative w-28 h-28 flex items-center justify-center">
             <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 64 64">
+              {/* Track */}
               <circle cx="32" cy="32" r="28" fill="none" stroke="#1e293b" strokeWidth="4" />
+              {/* Progress ring — depletes as time runs out */}
               <circle
                 cx="32" cy="32" r="28" fill="none"
-                stroke="#3b82f6" strokeWidth="4"
+                stroke={countdown > 10 ? "#3b82f6" : "#f97316"}
+                strokeWidth="4"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={dashOffset}
-                style={{ transition: "stroke-dashoffset 0.9s linear" }}
+                style={{ transition: "stroke-dashoffset 0.95s linear, stroke 0.3s" }}
               />
             </svg>
-            <div className="flex flex-col items-center justify-center">
-              <Globe size={20} className="text-slate-400 mb-0.5" />
-              <span className="text-xl font-bold text-white leading-none">{countdown}</span>
+            <div className="flex flex-col items-center justify-center z-10">
+              <Globe size={16} className="text-slate-400 mb-0.5" />
+              <span className={`text-2xl font-bold leading-none tabular-nums ${
+                countdown > 10 ? "text-white" : "text-orange-400"
+              }`}>{countdown}</span>
+              <span className="text-[9px] text-slate-500 leading-none mt-0.5">sec</span>
             </div>
           </div>
           <div className="text-center">
             <p className="text-sm font-semibold text-slate-200">Checking your access location…</p>
-            <p className="text-xs text-slate-500 mt-1">Please wait — verifying your region ({countdown}s)</p>
+            <p className="text-xs text-slate-500 mt-1">Please wait — verifying your region</p>
           </div>
           <Loader2 size={14} className="animate-spin text-blue-400" />
         </div>

@@ -367,3 +367,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Loading Screen Countdown + Refresh Animation Fix
 - [x] GeoRestricted: show 30s countdown timer during loading screen
 - [x] Approval Center: verify refresh button spin animation works correctly
+
+## Action History — Show Level 1.1 Process Info After Final Approval/Cancellation
+- [x] ApprovalCenter: show processApprovedBy/processApprovedAt/processApprovedQty in request cards even when status is "approved" or "cancelled"
+- [x] ApprovalCenter: show "Processed" badge (purple outline) on approved/cancelled cards that have processApprovedBy set
+
+## Access Restricted — 30s Countdown Fix
+- [x] GeoRestricted: fix SVG ring to deplete from full→empty as countdown goes 30→0
+- [x] GeoRestricted: number turns orange when countdown ≤ 10s
+- [x] GeoRestricted: ring color changes blue→orange when countdown ≤ 10s
+- [x] GeoRestricted: countdown stops immediately when geo API responds
