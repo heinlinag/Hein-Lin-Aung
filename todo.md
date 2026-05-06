@@ -294,14 +294,14 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Parse actionData JSON to extract masterCard, boardSizeW, boardSizeL, scores fields
 
 ## User Level 1.1 Implementation
-- [ ] Schema: add process_approved_qty, process_approved_by, process_approved_at fields to pendingRequests table
-- [ ] Run drizzle-kit generate and apply migration SQL
-- [ ] Server: add pendingRequests.processApprove procedure (Level 1.1 only)
-- [ ] UI: ApprovalCenter.tsx — Level 1.1 sees "Process Approve" button on Level 1 pending requests
-- [ ] UI: Process Approve dialog — title "Approve Request (process approved request)", shows Requested Qty, optional Approved Qty input
-- [ ] UI: Show "Process Approved" badge/indicator on request cards when process_approved_by is set
-- [ ] UI: AdminPanel.tsx — add "1.1" option to worker level dropdown in Add Worker and Edit Worker dialogs
-- [ ] UI: ApprovalCenter — Level 1.1 info banner explaining their role
+- [x] Schema: add process_approved_qty, process_approved_by, process_approved_at fields to pendingRequests table
+- [x] Run drizzle-kit generate and apply migration SQL
+- [x] Server: add pendingRequests.processApprove procedure (Level 1.1 only)
+- [x] UI: ApprovalCenter.tsx — Level 1.1 sees "Process Approve" button on Level 1 pending requests
+- [x] UI: Process Approve dialog — title "Approve Request (process approved request)", shows Requested Qty, optional Approved Qty input
+- [x] UI: Show "Process Approved" badge/indicator on request cards when process_approved_by is set
+- [x] UI: AdminPanel.tsx — add "1.1" option to worker level dropdown in Add Worker and Edit Worker dialogs
+- [x] UI: ApprovalCenter — Level 1.1 info banner explaining their role
 
 ## User Level 1.1 (Process Approve)
 - [x] Schema: Add `processApprovedQty`, `processApprovedBy`, `processApprovedAt` columns to `pendingRequests`
@@ -352,10 +352,14 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add retry/refresh button for users who may have VPN issues
 
 ## Usage History & Admin Panel Full Access + Login Version Display
-- [ ] Usage History: show MasterCard, Board Size (W×L), Scores columns in history table
-- [ ] Usage History: show Level 1.1 request info (process approved by) in history
-- [ ] Admin Panel: Full Access — approve/cancel pending requests from Admin Panel
-- [ ] Admin Panel: Full Access — process approve (Level 1.1 style) from Admin Panel
+- [x] Usage History: show MasterCard, Board Size (W×L), Scores columns in history table
+- [x] Usage History: show Level 1.1 request info (process approved by) in history
+- [x] Admin Panel: Full Access — approve/cancel pending requests from Admin Panel
+- [x] Admin Panel: Full Access — process approve (Level 1.1 style) from Admin Panel
 - [ ] Admin Panel: Full Access — direct Used Update / Delete from Admin Panel (bypass approval)
-- [ ] Admin Panel: show all worker levels including 1.1 in worker management
-- [ ] Login Page: display current version number (e.g. v2.5.0)
+- [x] Admin Panel: show all worker levels including 1.1 in worker management
+- [x] Login Page: display current version number (e.g. v2.5.0)
+
+## Refresh Button Animation + Login Contact Fix
+- [x] Add spinning animation to all refresh/reload buttons app-wide (ApprovalCenter, AdminPanel, StockHistory, etc.)
+- [x] Login page: remove admin name (HEiNANN) and phone number display, keep only "Chat on WhatsApp" button

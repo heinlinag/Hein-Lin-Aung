@@ -358,6 +358,7 @@ export default function ApprovalCenter() {
   const { worker } = useAuth();
   const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "cancelled" | undefined>("pending");
   const [activeTab, setActiveTab] = useState<"requests" | "history">("requests");
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [jobNoSearch, setJobNoSearch] = useState("");
 

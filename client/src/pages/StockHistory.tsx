@@ -584,6 +584,19 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
 }
 
 // ─── Main StockHistory ─────────────────────────────────────────────────────────
+function RefreshButton({ onRefresh, size = 16 }: { onRefresh: () => void; size?: number }) {
+  const [spinning, setSpinning] = useState(false);
+  return (
+    <button
+      onClick={async () => { setSpinning(true); await onRefresh(); setTimeout(() => setSpinning(false), 700); }}
+      className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100 ml-auto transition-colors"
+      title="Refresh"
+    >
+      <RefreshCw size={size} className={spinning ? "animate-spin" : "transition-transform"} />
+    </button>
+  );
+}
+
 export default function StockHistory() {
   const [, navigate] = useLocation();
   void navigate;
@@ -621,9 +634,7 @@ export default function StockHistory() {
             Level 2 — Direct actions enabled
           </div>
         )}
-        <button onClick={() => utils.orders.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100 ml-auto" title="Refresh">
-          <RefreshCw size={16} />
-        </button>
+        <RefreshButton onRefresh={() => utils.orders.list.invalidate()} />
       </div>
 
       <main className="container lg:max-w-none lg:px-8 py-5">

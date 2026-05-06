@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
-import { Loader2, User, ShieldCheck, Eye, EyeOff, MessageCircle, Phone } from "lucide-react";
+import { Loader2, User, ShieldCheck, Eye, EyeOff, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
@@ -164,18 +164,6 @@ export default function Login() {
             {/* Admin Contact Card */}
             <div className="mt-5 rounded-xl border border-green-100 bg-green-50 p-4">
               <p className="text-xs font-semibold text-green-800 mb-3">Don't have an Employee ID? Contact your Administrator.</p>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <User size={16} className="text-green-700" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">HEiNANN</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
-                    <Phone size={11} />
-                    +601159225408
-                  </p>
-                </div>
-              </div>
               <a
                 href="https://wa.me/601159225408"
                 target="_blank"

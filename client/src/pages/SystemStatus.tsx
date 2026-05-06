@@ -167,7 +167,7 @@ export default function SystemStatus() {
                 </div>
               </div>
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => { const btn = document.getElementById('sys-refresh-icon'); if (btn) { btn.classList.add('animate-spin'); setTimeout(() => btn.classList.remove('animate-spin'), 700); } window.location.reload(); }}
                 className="px-4 py-2 bg-white text-gray-900 font-semibold rounded-lg hover:shadow-md transition-shadow"
               >
                 Refresh

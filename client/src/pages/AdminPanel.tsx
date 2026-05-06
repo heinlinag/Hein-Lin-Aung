@@ -14,6 +14,19 @@ type Order = {
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
 };
 
+function RefreshButton({ onRefresh, size = 15 }: { onRefresh: () => void | Promise<void>; size?: number }) {
+  const [spinning, setSpinning] = useState(false);
+  return (
+    <button
+      onClick={async () => { setSpinning(true); await onRefresh(); setTimeout(() => setSpinning(false), 700); }}
+      className="text-muted-foreground hover:text-foreground p-1 transition-colors rounded"
+      title="Refresh"
+    >
+      <RefreshCw size={size} className={spinning ? "animate-spin" : "transition-transform"} />
+    </button>
+  );
+}
+
 // ─── Workers Tab ───────────────────────────────────────────────────────────────
 function WorkersTab() {
   const utils = trpc.useUtils();
@@ -475,9 +488,7 @@ function OrdersTab() {
           >
             <FileDown size={13} /> PDF
           </button>
-          <button onClick={() => utils.orders.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1 transition-colors" title="Refresh">
-            <RefreshCw size={15} />
-          </button>
+          <RefreshButton onRefresh={() => utils.orders.list.invalidate()} />
         </div>
       </div>
 
@@ -635,9 +646,7 @@ function DeletedLogsTab() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">{logs.length} deleted record{logs.length !== 1 ? "s" : ""}</p>
-        <button onClick={() => utils.orders.getDeletedLogs.invalidate()} className="text-muted-foreground hover:text-foreground p-1 transition-colors" title="Refresh">
-          <RefreshCw size={15} />
-        </button>
+        <RefreshButton onRefresh={() => utils.orders.getDeletedLogs.invalidate()} />
       </div>
 
       {logsQuery.isLoading ? (
@@ -768,7 +777,7 @@ function PendingRequestsTab() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-bold text-foreground">Pending Requests</h2>
-        <button onClick={() => utils.pendingRequests.list.invalidate()} className="text-muted-foreground hover:text-foreground p-1"><RefreshCw size={15} /></button>
+        <RefreshButton onRefresh={() => utils.pendingRequests.list.invalidate()} />
       </div>
       {/* Status filter */}
       <div className="flex gap-2 mb-4">
