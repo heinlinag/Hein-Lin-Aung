@@ -226,8 +226,8 @@ export default function Login() {
 
       {/* Hero */}
       <div className="gspp-gradient px-6 py-10 text-center text-white">
-        <div className="w-24 h-24 bg-white/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ring-4 ring-white/40">
-          <img src={GSPP_LOGO} alt="GSPP" className="h-16 w-16 object-contain" />
+        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <img src={GSPP_LOGO} alt="GSPP" className="h-12 w-12 object-contain" />
         </div>
         <h1 className="text-2xl font-bold mb-1">Login Access</h1>
         <p className="text-white/80 text-sm">PP4 Manual Slitter Stock Management</p>
