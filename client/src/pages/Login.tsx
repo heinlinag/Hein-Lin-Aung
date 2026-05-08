@@ -278,7 +278,6 @@ export default function Login() {
                 </div>
                 <div>
                   <h2 className="font-bold text-gray-900">Employee Login</h2>
-                  <p className="text-xs text-gray-500">Session valid for 1 hour</p>
                 </div>
               </div>
 
@@ -337,7 +336,6 @@ export default function Login() {
                 </div>
                 <div>
                   <h2 className="font-bold text-gray-900">Admin Login</h2>
-                  <p className="text-xs text-gray-500">Password required every visit</p>
                 </div>
               </div>
 
