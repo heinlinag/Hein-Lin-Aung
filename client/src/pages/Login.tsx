@@ -277,7 +277,6 @@ export default function Login() {
                   <User size={20} className="text-blue-600" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-gray-900">Employee Login</h2>
                 </div>
               </div>
 
@@ -335,7 +334,6 @@ export default function Login() {
                   <ShieldCheck size={20} className="text-green-600" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-gray-900">Admin Login</h2>
                 </div>
               </div>
 
