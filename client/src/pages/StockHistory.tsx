@@ -254,7 +254,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
     if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
     const qty = parseInt(useQty);
     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
-    if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs after pending requests).`); return; }
+    // Level 1 request: no qty limit (user requests target qty, Level 1.1/2 decide how much to approve)
     const newQty = order.qty - qty;
     try {
       const jobResult = await submitRequest.mutateAsync({
