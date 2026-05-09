@@ -17,7 +17,7 @@ const faqData = [
       },
       {
         question: 'What is the difference between Employee login and Admin login?',
-        answer: 'Employee login uses your Employee ID and grants access to Stock History, Submit Order, Usage History, and Approval Center based on your user level (1, 1.1, or 2). Admin login uses a separate password and grants access to the Admin Panel for managing employees, orders, deleted logs, and pending requests.',
+        answer: 'Employee login uses your Employee ID and grants access to Stock History, Submit Order, Usage History, Approval Center, and QR Scanner based on your user level (1, 1.1, or 2). Admin login uses a separate password and grants access to the Admin Panel for managing employees, orders, deleted logs, and pending requests.',
       },
       {
         question: 'I forgot my Employee ID. What should I do?',
@@ -35,7 +35,7 @@ const faqData = [
     questions: [
       {
         question: 'What are the different User Levels in the system?',
-        answer: 'The system has three user levels:\n\n• Level 1 — Can submit orders, request Used Updates, and request deletions. All actions go to the Approval Center as pending requests requiring Level 2 approval.\n\n• Level 1.1 — Same as Level 1, but requests are automatically "Process Approved" (marked as In Process) the moment they are submitted. Level 2 still gives the final Approve or Cancel.\n\n• Level 2 — Can approve or cancel Level 1 / Level 1.1 requests. Also has direct action access: can update usage and delete orders without going through approval.',
+        answer: 'The system has three user levels:\n\n• Level 1 — Can submit orders, request Used Updates, and request deletions. All actions go to the Approval Center as pending requests requiring Level 2 approval. Can request any quantity regardless of available stock.\n\n• Level 1.1 — Same as Level 1, but requests are automatically "Process Approved" (marked as In Process) the moment they are submitted. Level 2 still gives the final Approve or Cancel. Can also process-approve Level 1 requests in Approval Center.\n\n• Level 2 — Can approve or cancel Level 1 / Level 1.1 requests. Also has direct action access: can update usage and delete orders without going through approval.',
       },
       {
         question: 'What does "Level 1.1" mean and how is it different from Level 1?',
@@ -47,7 +47,7 @@ const faqData = [
       },
       {
         question: 'How do I submit a Used Update request as a Level 1 or Level 1.1 user?',
-        answer: 'In Stock History, click the "Request Use" button on any current stock order. Choose either:\n• Job No — Enter an 8-digit job number, Master Card, Board Size (W×L), Scores, and quantity used.\n• Old Stock — Confirm to mark the entire order as used and move it to Out of Stock.\nYour request will be sent to the Approval Center.',
+        answer: 'In Stock History, click the "Used Update" button on any current stock order. Choose either:\n• Job No — Enter an 8-digit job number, BQ, Board Size (W×L), Flute Type, and quantity used.\n• Old Stock — Confirm to mark the entire order as used and move it to Out of Stock.\nYour request will be sent to the Approval Center.',
       },
       {
         question: 'How do I approve or cancel a pending request as a Level 2 user?',
@@ -59,7 +59,7 @@ const faqData = [
       },
       {
         question: 'Can I cancel my own pending request?',
-        answer: 'Yes. Level 1 and Level 1.1 users can cancel their own pending requests from the Approval Center. Level 2 users can cancel any request. Once a request is approved, it cannot be cancelled.',
+        answer: 'Yes. Level 1 users can cancel their own pending requests from the Approval Center. Level 1.1 users can cancel their own requests, but cannot cancel other users\' requests that have been process-approved. Level 2 users can cancel any request. Once a request is approved, it cannot be cancelled.',
       },
       {
         question: 'I cannot see the Approval Center or certain buttons. Why?',
@@ -111,19 +111,61 @@ const faqData = [
       },
       {
         question: 'What is the difference between "Job No" and "Old Stock" in Used Update?',
-        answer: '• Job No — Enter an 8-digit job number, Master Card, Board Size (W×L mm), Scores, and the quantity used. This logs the usage for tracking in Usage History.\n• Old Stock — Marks the entire order as fully consumed and moves it to Out of Stock. Use this when the remaining stock is being cleared as old/expired material.',
+        answer: '• Job No — Enter an 8-digit job number, BQ, Board Size (W×L mm), Flute Type, and the quantity used. This logs the usage for tracking in Usage History.\n• Old Stock — Marks the entire order as fully consumed and moves it to Out of Stock. Use this when the remaining stock is being cleared as old/expired material.',
       },
       {
-        question: 'What is the Master Card field in Used Update?',
-        answer: 'Master Card is a reference identifier for the job (e.g., a production card number). It is recorded in the Usage History for traceability and is also visible in Approval Center request details.',
+        question: 'What is the BQ field in Used Update?',
+        answer: 'BQ is a reference identifier for the job (e.g., a production card number). It is recorded in the Usage History for traceability and is also visible in Approval Center request details.',
       },
       {
-        question: 'What are Board Size and Scores fields?',
-        answer: 'Board Size (W × L in mm) refers to the physical dimensions of the board used in the job. Scores refers to the number of scores/cuts applied. Both are recorded in Usage History and visible in Approval Center request details.',
+        question: 'What are Board Size and Flute Type fields?',
+        answer: 'Board Size (W × L in mm) refers to the physical dimensions of the board used in the job. Flute Type refers to the corrugated board type (BA, BC, BE, etc.). Both are recorded in Usage History and visible in Approval Center request details.',
       },
       {
         question: 'Where can I see past usage records?',
-        answer: 'Go to the Usage History page from the Home Dashboard. It shows all logged usage entries including Job No, Used Qty, Order ID, Flute Type, BQ Comment, Master Card, Board Size, and Scores.',
+        answer: 'Go to the Usage History page from the Home Dashboard. It shows all logged usage entries including Job No, Used Qty, Order ID, Flute Type, BQ, Board Size, and other details.',
+      },
+      {
+        question: 'How do I print an A4 label for an order?',
+        answer: 'In Stock History, click the printer icon 🖨️ next to any order. A professional A4 label will open with: Order ID, Quantity, Product Details (Board Size, Flute Type, BQ), and a QR code. You can then print it directly from your browser.',
+      },
+      {
+        question: 'What information is encoded in the QR code on the label?',
+        answer: 'The QR code contains: Order ID, Quantity, BQ, Board Size, Flute Type, and the timestamp when the label was generated. This allows the QR Scanner to verify order details when the label is scanned.',
+      },
+    ],
+  },
+  {
+    category: 'QR Scanner & Label Verification',
+    icon: '📱',
+    questions: [
+      {
+        question: 'What is the QR Scanner and how do I use it?',
+        answer: 'The QR Scanner is a verification tool accessible from the Home Dashboard. You can use it to:\n1. Scan QR codes from printed A4 labels using your device camera, or\n2. Manually enter an Order ID to verify it against Stock History records.\nAfter scanning, the system shows whether the order exists and displays its current details.',
+      },
+      {
+        question: 'How do I access the QR Scanner?',
+        answer: 'From the Home Dashboard, click the "QR Scanner" card. You can then either:\n• Click "Start Camera" to scan a QR code from a label using your device camera, or\n• Enter an Order ID manually and click "Verify".',
+      },
+      {
+        question: 'What happens after I scan a QR code?',
+        answer: 'The system verifies the scanned Order ID against Stock History. If found, it displays:\n• Order ID, Current Quantity, Board Size, Flute Type, BQ\n• A "Match ✓" status if the order exists\n• An option to update the balance if needed (requires Employee ID verification)\n\nIf the order is not found, it shows "Not Found ✗" status.',
+      },
+      {
+        question: 'Can I update the balance after scanning?',
+        answer: 'Yes. After a successful scan, you can click "Update Balance" to change the quantity. You must enter:\n• New Quantity (the updated qty)\n• Your Employee ID (for verification)\nThe system will record this update in the Scanned History with your name, the time, and the qty change.',
+      },
+      {
+        question: 'What is the "Scanned History" tab?',
+        answer: 'The Scanned History tab shows all scan events and balance updates. Each entry displays:\n• Order ID that was scanned\n• Employee name and ID who performed the action\n• Action type (Scanned or Balance Updated)\n• Old qty → New qty (for balance updates)\n• Date and time of the event\nThis provides a complete audit trail of all scanning and verification activities.',
+      },
+      {
+        question: 'Can I see who scanned which order and when?',
+        answer: 'Yes. The Scanned History tab shows a complete log of all scanning activities, including: who scanned the order (Employee name and ID), which Order ID was scanned, the action performed, and the exact date/time. This helps track inventory verification and balance updates.',
+      },
+      {
+        question: 'What if the QR code on the label does not match the current stock?',
+        answer: 'If the label qty differs from the current system qty, the scanner will show a "Balance Mismatch" alert. You can then update the balance to the correct quantity using the "Update Balance" button. This ensures the physical stock matches the system records.',
       },
     ],
   },
@@ -141,7 +183,7 @@ const faqData = [
       },
       {
         question: 'What information is shown on a Used Update request card?',
-        answer: 'Each Used Update request card shows: Order ID, Flute Type, BQ Comment, current quantity, requested used quantity, Job No, Master Card, Board Size (W×L), Scores, purpose (Job No or Old Stock), submitted by, and submission time. If process-approved, it also shows who process-approved it and when.',
+        answer: 'Each Used Update request card shows: Order ID, Flute Type, BQ, current quantity, requested used quantity, Job No, Board Size (W×L), purpose (Job No or Old Stock), submitted by, and submission time. If process-approved, it also shows who process-approved it and when.',
       },
       {
         question: 'Can a Level 2 user override the approved quantity?',
@@ -150,6 +192,10 @@ const faqData = [
       {
         question: 'What happens when a request is approved?',
         answer: 'For Used Update requests: the order quantity is reduced by the approved quantity, and a usage history record is created.\nFor Delete requests: the order is permanently removed from the stock list and a deletion log is recorded.',
+      },
+      {
+        question: 'What is the difference between "Pending" and "In Process" requests?',
+        answer: '"Pending" means a Level 1 user submitted the request and it is waiting for Level 2 approval.\n"In Process" means a Level 1.1 user submitted the request (auto process-approved) or a Level 1.1 user manually process-approved a Level 1 request. It is still awaiting final Level 2 approval.',
       },
     ],
   },
@@ -164,7 +210,7 @@ const faqData = [
       },
       {
         question: 'How do I add a new employee?',
-        answer: 'In the Admin Panel, go to the Workers tab and click "Add Worker". Enter the Employee ID, Name, Department, and select a User Level (Level 1, Level 1.1, or Level 2). Click Add to save.',
+        answer: 'In the Admin Panel, go to the Workers tab and click "Add Worker". Enter the Employee ID, Name, Department, and select the User Level (1, 1.1, or 2). Click Save to add the worker.',
       },
       {
         question: 'What are the User Levels I can assign to a worker?',
@@ -176,7 +222,7 @@ const faqData = [
       },
       {
         question: 'What is the Deleted Logs tab?',
-        answer: 'The Deleted Logs tab shows a full audit trail of all deleted orders, including: Order ID, Flute Type, Size, Qty, BQ Comment, who deleted it, and when. This helps maintain accountability and traceability.',
+        answer: 'The Deleted Logs tab shows a full audit trail of all deleted orders, including: Order ID, Flute Type, Size, Qty, BQ, who deleted it, and when. This helps maintain accountability and traceability.',
       },
       {
         question: 'What is the Pending Requests tab in the Admin Panel?',
@@ -184,7 +230,7 @@ const faqData = [
       },
       {
         question: 'How do I export orders to PDF or Excel?',
-        answer: 'In the Admin Panel Orders tab, use the "Export PDF" or "Export Excel" buttons to download the current order list. The export includes all visible columns: Order ID, Flute Type, Size, Qty, BQ Comment, Submitted By, and Date.',
+        answer: 'In the Admin Panel Orders tab, use the "Export PDF" or "Export Excel" buttons to download the current order list. The export includes all visible columns: Order ID, Flute Type, Size, Qty, BQ, Submitted By, and Date.',
       },
     ],
   },
@@ -212,7 +258,7 @@ const faqData = [
     questions: [
       {
         question: 'The Used Update or Delete button does not open a dialog. What should I do?',
-        answer: 'Ensure you are logged in with a valid Employee ID. If you are a Level 1 or Level 1.1 user, the "Request Use" button should open the Used Update Request dialog. If the dialog does not appear, try refreshing the page and logging in again. If the problem persists, contact your administrator.',
+        answer: 'Ensure you are logged in with a valid Employee ID. If you are a Level 1 or Level 1.1 user, the "Used Update" button should open the Used Update Request dialog. If the dialog does not appear, try refreshing the page and logging in again. If the problem persists, contact your administrator.',
       },
       {
         question: 'My request shows "Pending" but I am a Level 1.1 user. Should it not be "In Process"?',
@@ -229,6 +275,14 @@ const faqData = [
       {
         question: 'I see a "Duplicate Order ID" warning. What does it mean?',
         answer: 'An order with the same ID already exists in the system. Order IDs must be unique. Please enter a different Order ID or check with your team to ensure you are not duplicating an existing order.',
+      },
+      {
+        question: 'The QR Scanner camera is not working. What should I do?',
+        answer: 'Ensure your browser has camera permission enabled for this site. Go to your browser settings → Site Settings → Camera and ensure this site is set to "Allow". Also check that no other app is using the camera. If the problem persists, try using the manual Order ID input instead.',
+      },
+      {
+        question: 'The QR code on the printed label does not scan. What should I do?',
+        answer: 'Ensure the label is printed clearly and not damaged. Try scanning it with the QR Scanner camera or use the manual Order ID input field. If the QR code is damaged, print a new label using the printer icon in Stock History.',
       },
       {
         question: 'How do I contact support?',
@@ -298,85 +352,71 @@ export default function FAQ() {
             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
               activeCategory === null
                 ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
             }`}
           >
-            All
+            All Categories
           </button>
-          {faqData.map((s) => (
+          {faqData.map((section) => (
             <button
-              key={s.category}
-              onClick={() => setActiveCategory(activeCategory === s.category ? null : s.category)}
+              key={section.category}
+              onClick={() => setActiveCategory(section.category)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
-                activeCategory === s.category
+                activeCategory === section.category
                   ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
               }`}
             >
-              {s.icon} {s.category}
+              {section.icon} {section.category}
             </button>
           ))}
         </div>
 
-        {/* No results */}
-        {filteredData.length === 0 && (
-          <div className="text-center py-16 text-gray-400">
-            <HelpCircle size={40} className="mx-auto mb-3 opacity-40" />
-            <p className="text-base">No questions found for &quot;{searchQuery}&quot;</p>
-          </div>
-        )}
-
-        {/* FAQ Sections */}
-        <div className="space-y-6">
+        {/* FAQ Items */}
+        <div className="space-y-3">
           {filteredData.map((section) => (
-            <div key={section.category} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4 flex items-center gap-3">
-                <span className="text-2xl">{section.icon}</span>
-                <h2 className="text-lg font-bold text-white">{section.category}</h2>
-                <span className="ml-auto text-blue-200 text-xs font-medium">{section.questions.length} questions</span>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {section.questions.map((item, index) => {
-                  const itemId = `${section.category}-${index}`;
-                  const isExpanded = expandedItems.includes(itemId);
-                  return (
-                    <div key={itemId}>
-                      <button
-                        onClick={() => toggleExpand(itemId)}
-                        className="w-full px-6 py-4 text-left hover:bg-blue-50/50 transition-colors flex items-start justify-between gap-4"
-                      >
-                        <span className="font-semibold text-gray-900 text-sm leading-relaxed">
-                          {item.question}
-                        </span>
-                        <ChevronDown
-                          size={18}
-                          className={`text-blue-500 transition-transform flex-shrink-0 mt-0.5 ${
-                            isExpanded ? 'rotate-180' : ''
-                          }`}
-                        />
-                      </button>
-                      {isExpanded && (
-                        <div className="px-6 pb-5 bg-blue-50/30">
-                          <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line border-l-2 border-blue-300 pl-4">
-                            {item.answer}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+            <div key={section.category} className="space-y-3">
+              {section.questions.map((item, idx) => {
+                const itemId = `${section.category}-${idx}`;
+                const isExpanded = expandedItems.includes(itemId);
+
+                return (
+                  <div
+                    key={itemId}
+                    className="border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow overflow-hidden"
+                  >
+                    <button
+                      onClick={() => toggleExpand(itemId)}
+                      className="w-full px-5 py-4 flex items-start justify-between hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-left font-semibold text-gray-900 text-sm">{item.question}</span>
+                      <ChevronDown
+                        size={18}
+                        className={`flex-shrink-0 text-gray-400 transition-transform ml-3 ${
+                          isExpanded ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+
+                    {isExpanded && (
+                      <div className="px-5 py-4 bg-gray-50 border-t border-gray-200">
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                          {item.answer}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
 
-        {/* Contact Section */}
-        <div className="mt-10 bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl p-8 text-white text-center">
-          <h3 className="text-xl font-bold mb-2">Still have questions?</h3>
-          <p className="text-blue-100 text-sm">
-            Contact your system administrator for issues not covered here.
-          </p>
-        </div>
+        {filteredData.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No questions found. Try a different search or category.</p>
+          </div>
+        )}
       </div>
     </div>
     </AppLayout>
