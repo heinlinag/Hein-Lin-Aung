@@ -92,6 +92,13 @@
       "when": 1777974665255,
       "tag": "0012_rare_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1778316853062,
+      "tag": "0013_dashing_tyrannus",
+      "breakpoints": true
     }
   ]
 }

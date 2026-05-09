@@ -3,8 +3,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import AppLayout from "@/components/AppLayout";
-import { CheckCircle, XCircle, AlertTriangle, Loader2, ScanLine, RefreshCw, Package, Edit3, X } from "lucide-react";
-
+import { CheckCircle, XCircle, AlertTriangle, Loader2, ScanLine, RefreshCw, Package, Edit3, X, History, Clock, User, ArrowRight } from "lucide-react";
 
 interface ScannedOrder {
   orderId: string;
@@ -25,10 +24,12 @@ interface VerifiedOrder {
   status: string;
 }
 
+type TabType = "scanner" | "history";
+
 export default function QRScanner() {
-  // Support ?orderId=XXX query param from Stock History page
   const initialOrderId = new URLSearchParams(window.location.search).get("orderId")?.toUpperCase() ?? "";
 
+  const [activeTab, setActiveTab] = useState<TabType>(initialOrderId ? "scanner" : "scanner");
   const [scanning, setScanning] = useState(false);
   const [scannedData, setScannedData] = useState<ScannedOrder | null>(
     initialOrderId ? { orderId: initialOrderId, qty: 0, bq: "", boardSize: "" } : null
@@ -42,11 +43,19 @@ export default function QRScanner() {
   const [updateLoading, setUpdateLoading] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerDivRef = useRef<HTMLDivElement>(null);
+  const hasLoggedScan = useRef<string | null>(null);
 
   const { data: verifyResult, isLoading: verifying, refetch: refetchVerify } = trpc.orders.qrVerify.useQuery(
     { orderID: verifyOrderID },
     { enabled: verifyOrderID.length > 0 }
   );
+
+  const { data: scanHistory, isLoading: historyLoading, refetch: refetchHistory } = trpc.orders.getQrScanHistory.useQuery(
+    undefined,
+    { enabled: activeTab === "history" }
+  );
+
+  const logScanMutation = trpc.orders.logQrScan.useMutation();
 
   const updateBalanceMutation = trpc.orders.qrUpdateBalance.useMutation({
     onSuccess: (data) => {
@@ -56,11 +65,27 @@ export default function QRScanner() {
       setEmployeeId("");
       setUpdateNote("");
       refetchVerify();
+      refetchHistory();
     },
     onError: (err) => {
       toast.error(err.message || "Failed to update balance");
     },
   });
+
+  // Log scan when order is verified (once per unique orderId)
+  useEffect(() => {
+    if (verifyResult?.found && verifyOrderID && hasLoggedScan.current !== verifyOrderID) {
+      hasLoggedScan.current = verifyOrderID;
+      // Try to get worker info from localStorage (set during login)
+      const workerID = localStorage.getItem("workerID") || "UNKNOWN";
+      const workerName = localStorage.getItem("workerName") || "Unknown";
+      logScanMutation.mutate({
+        orderId: verifyOrderID,
+        scannedBy: workerID,
+        scannedByName: workerName,
+      });
+    }
+  }, [verifyResult, verifyOrderID]);
 
   const startScanner = async () => {
     if (!scannerDivRef.current) return;
@@ -71,12 +96,10 @@ export default function QRScanner() {
       await scanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-          handleScanSuccess(decodedText);
-        },
+        (decodedText) => { handleScanSuccess(decodedText); },
         () => {}
       );
-    } catch (err) {
+    } catch {
       toast.error("Camera access denied or not available. Use manual input instead.");
       setScanning(false);
       setManualInput(true);
@@ -126,10 +149,13 @@ export default function QRScanner() {
       toast.error("Employee ID is required for verification");
       return;
     }
+    const currentOrder = verifyResult.order as VerifiedOrder;
     setUpdateLoading(true);
     updateBalanceMutation.mutate({
-      orderId: verifyResult.order.id,
+      orderId: currentOrder.id,
+      orderStringId: currentOrder.orderID,
       newQty: qty,
+      oldQty: currentOrder.qty,
       employeeId: employeeId.trim().toUpperCase(),
       note: updateNote.trim() || undefined,
     }, {
@@ -143,6 +169,7 @@ export default function QRScanner() {
     setVerifyOrderID("");
     setManualInput(false);
     setShowUpdateDialog(false);
+    hasLoggedScan.current = null;
   };
 
   useEffect(() => {
@@ -151,13 +178,12 @@ export default function QRScanner() {
 
   const order = verifyResult?.order as VerifiedOrder | null | undefined;
   const isMatch = verifyResult?.found && scannedData && order;
-  const isMismatch = scannedData && verifyResult && !verifyResult.found;
 
   return (
     <AppLayout>
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-5">
           <div className="flex items-center gap-3 mb-1">
             <div className="p-2 bg-blue-100 rounded-lg">
               <ScanLine className="text-blue-600" size={22} />
@@ -167,202 +193,290 @@ export default function QRScanner() {
           <p className="text-sm text-gray-500 ml-12">Scan order labels to verify stock and update balance</p>
         </div>
 
-        {/* Scanner Area */}
-        {!scannedData && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">
-            <div className="p-4 border-b border-gray-100 bg-gray-50">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setManualInput(false); if (!scanning) startScanner(); }}
-                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${!manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
-                >
-                  📷 Camera Scan
-                </button>
-                <button
-                  onClick={() => { setManualInput(true); stopScanner(); }}
-                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
-                >
-                  ⌨️ Manual Input
-                </button>
-              </div>
-            </div>
+        {/* Tabs */}
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5">
+          <button
+            onClick={() => setActiveTab("scanner")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${activeTab === "scanner" ? "bg-white text-blue-700 shadow-sm" : "text-gray-600 hover:text-gray-800"}`}
+          >
+            <ScanLine size={15} />
+            Scanner
+          </button>
+          <button
+            onClick={() => { setActiveTab("history"); refetchHistory(); }}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${activeTab === "history" ? "bg-white text-blue-700 shadow-sm" : "text-gray-600 hover:text-gray-800"}`}
+          >
+            <History size={15} />
+            Scanned History
+          </button>
+        </div>
 
-            <div className="p-4">
-              {!manualInput ? (
-                <div>
-                  <div
-                    id="qr-reader"
-                    ref={scannerDivRef}
-                    className="w-full rounded-xl overflow-hidden bg-gray-900"
-                    style={{ minHeight: "280px" }}
-                  />
-                  {!scanning && (
-                    <div className="mt-3 text-center">
-                      <button
-                        onClick={startScanner}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 mx-auto"
-                      >
-                        <ScanLine size={16} />
-                        Start Camera
-                      </button>
-                    </div>
-                  )}
-                  {scanning && (
-                    <div className="mt-3 text-center">
-                      <button
-                        onClick={stopScanner}
-                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 mx-auto"
-                      >
-                        <X size={16} />
-                        Stop Camera
-                      </button>
-                      <p className="text-xs text-gray-500 mt-2">Point camera at QR code on the label</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <form onSubmit={handleManualVerify} className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. A-207"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
-                      onChange={(e) => e.target.value = e.target.value.toUpperCase()}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm"
-                  >
-                    Verify Order
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Verification Result */}
-        {scannedData && (
-          <div className="space-y-4">
-            {/* Scanned QR Data */}
-            {scannedData.bq && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <ScanLine className="text-blue-600" size={16} />
-                  <span className="text-sm font-semibold text-blue-800">Scanned QR Data</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="text-gray-500">Order ID:</span> <span className="font-bold">{scannedData.orderId}</span></div>
-                  <div><span className="text-gray-500">Qty:</span> <span className="font-bold">{scannedData.qty} pcs</span></div>
-                  {scannedData.bq && <div><span className="text-gray-500">BQ:</span> <span className="font-medium">{scannedData.bq}</span></div>}
-                  {scannedData.boardSize && <div><span className="text-gray-500">Board Size:</span> <span className="font-medium">{scannedData.boardSize}</span></div>}
-                </div>
-              </div>
-            )}
-
-            {/* Verification Status */}
-            {verifying && (
-              <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center justify-center gap-3">
-                <Loader2 className="animate-spin text-blue-600" size={20} />
-                <span className="text-gray-600">Verifying against Stock History...</span>
-              </div>
-            )}
-
-            {!verifying && verifyResult && (
-              <div className={`rounded-xl border-2 overflow-hidden ${isMatch ? "border-green-400" : "border-red-400"}`}>
-                {/* Status Banner */}
-                <div className={`px-4 py-3 flex items-center gap-3 ${isMatch ? "bg-green-50" : "bg-red-50"}`}>
-                  {isMatch ? (
-                    <CheckCircle className="text-green-600 shrink-0" size={22} />
-                  ) : (
-                    <XCircle className="text-red-600 shrink-0" size={22} />
-                  )}
-                  <div>
-                    <p className={`font-bold text-base ${isMatch ? "text-green-800" : "text-red-800"}`}>
-                      {isMatch ? "✓ Order Found in Stock History" : "✗ Order Not Found"}
-                    </p>
-                    <p className={`text-xs ${isMatch ? "text-green-600" : "text-red-600"}`}>
-                      {isMatch ? "This label matches a record in the system" : "No matching order found for this QR code"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Order Details */}
-                {isMatch && order && (
-                  <div className="bg-white p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Package className="text-gray-500" size={16} />
-                      <span className="text-sm font-semibold text-gray-700">Current Stock Record</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Order ID</p>
-                        <p className="font-bold text-gray-900 text-base">{order.orderID}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Current Balance</p>
-                        <p className={`font-bold text-base ${order.qty <= 50 ? "text-orange-600" : "text-green-700"}`}>
-                          {order.qty} pcs
-                          {order.qty <= 50 && <span className="ml-1 text-xs">⚠ Low</span>}
-                        </p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Flute Type</p>
-                        <p className="font-semibold text-gray-900">{order.fluteType}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Board Size</p>
-                        <p className="font-semibold text-gray-900">{order.sizeW} × {order.sizeL} mm</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3 col-span-2">
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">BQ Comment</p>
-                        <p className="font-semibold text-gray-900 text-yellow-700 bg-yellow-50 px-2 py-1 rounded inline-block">{order.bqComment}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3 col-span-2">
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Status</p>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "current" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                          {order.status === "current" ? "In Stock" : "Out of Stock"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* QR vs System Comparison */}
-                    {scannedData.qty > 0 && scannedData.qty !== order.qty && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-                        <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={16} />
-                        <div className="text-sm">
-                          <p className="font-semibold text-amber-800">Balance Mismatch Detected</p>
-                          <p className="text-amber-700 mt-0.5">
-                            Label shows <strong>{scannedData.qty} pcs</strong> but system shows <strong>{order.qty} pcs</strong>.
-                            Consider updating the balance below.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Update Balance Button */}
+        {/* ── SCANNER TAB ── */}
+        {activeTab === "scanner" && (
+          <>
+            {!scannedData && (
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">
+                <div className="p-4 border-b border-gray-100 bg-gray-50">
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => { setNewQty(String(order.qty)); setShowUpdateDialog(true); }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2"
+                      onClick={() => { setManualInput(false); if (!scanning) startScanner(); }}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${!manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
                     >
-                      <Edit3 size={16} />
-                      Update Balance
+                      📷 Camera Scan
+                    </button>
+                    <button
+                      onClick={() => { setManualInput(true); stopScanner(); }}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+                    >
+                      ⌨️ Manual Input
                     </button>
                   </div>
-                )}
+                </div>
+
+                <div className="p-4">
+                  {!manualInput ? (
+                    <div>
+                      <div
+                        id="qr-reader"
+                        ref={scannerDivRef}
+                        className="w-full rounded-xl overflow-hidden bg-gray-900"
+                        style={{ minHeight: "280px" }}
+                      />
+                      {!scanning && (
+                        <div className="mt-3 text-center">
+                          <button
+                            onClick={startScanner}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 mx-auto"
+                          >
+                            <ScanLine size={16} />
+                            Start Camera
+                          </button>
+                        </div>
+                      )}
+                      {scanning && (
+                        <div className="mt-3 text-center">
+                          <button
+                            onClick={stopScanner}
+                            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 mx-auto"
+                          >
+                            <X size={16} />
+                            Stop Camera
+                          </button>
+                          <p className="text-xs text-gray-500 mt-2">Point camera at QR code on the label</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <form onSubmit={handleManualVerify} className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. A-207"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                          onChange={(e) => e.target.value = e.target.value.toUpperCase()}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm"
+                      >
+                        Verify Order
+                      </button>
+                    </form>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Reset Button */}
-            <button
-              onClick={resetScanner}
-              className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2"
-            >
-              <RefreshCw size={16} />
-              Scan Another QR Code
-            </button>
+            {scannedData && (
+              <div className="space-y-4">
+                {scannedData.bq && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ScanLine className="text-blue-600" size={16} />
+                      <span className="text-sm font-semibold text-blue-800">Scanned QR Data</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><span className="text-gray-500">Order ID:</span> <span className="font-bold">{scannedData.orderId}</span></div>
+                      <div><span className="text-gray-500">Qty:</span> <span className="font-bold">{scannedData.qty} pcs</span></div>
+                      {scannedData.bq && <div><span className="text-gray-500">BQ:</span> <span className="font-medium">{scannedData.bq}</span></div>}
+                      {scannedData.boardSize && <div><span className="text-gray-500">Board Size:</span> <span className="font-medium">{scannedData.boardSize}</span></div>}
+                    </div>
+                  </div>
+                )}
+
+                {verifying && (
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center justify-center gap-3">
+                    <Loader2 className="animate-spin text-blue-600" size={20} />
+                    <span className="text-gray-600">Verifying against Stock History...</span>
+                  </div>
+                )}
+
+                {!verifying && verifyResult && (
+                  <div className={`rounded-xl border-2 overflow-hidden ${isMatch ? "border-green-400" : "border-red-400"}`}>
+                    <div className={`px-4 py-3 flex items-center gap-3 ${isMatch ? "bg-green-50" : "bg-red-50"}`}>
+                      {isMatch ? (
+                        <CheckCircle className="text-green-600 shrink-0" size={22} />
+                      ) : (
+                        <XCircle className="text-red-600 shrink-0" size={22} />
+                      )}
+                      <div>
+                        <p className={`font-bold text-base ${isMatch ? "text-green-800" : "text-red-800"}`}>
+                          {isMatch ? "✓ Order Found in Stock History" : "✗ Order Not Found"}
+                        </p>
+                        <p className={`text-xs ${isMatch ? "text-green-600" : "text-red-600"}`}>
+                          {isMatch ? "This label matches a record in the system" : "No matching order found for this QR code"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {isMatch && order && (
+                      <div className="bg-white p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Package className="text-gray-500" size={16} />
+                          <span className="text-sm font-semibold text-gray-700">Current Stock Record</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Order ID</p>
+                            <p className="font-bold text-gray-900 text-base">{order.orderID}</p>
+                          </div>
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Current Balance</p>
+                            <p className={`font-bold text-base ${order.qty <= 50 ? "text-orange-600" : "text-green-700"}`}>
+                              {order.qty} pcs
+                              {order.qty <= 50 && <span className="ml-1 text-xs">⚠ Low</span>}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Flute Type</p>
+                            <p className="font-semibold text-gray-900">{order.fluteType}</p>
+                          </div>
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Board Size</p>
+                            <p className="font-semibold text-gray-900">{order.sizeW} × {order.sizeL} mm</p>
+                          </div>
+                          <div className="bg-gray-50 rounded-lg p-3 col-span-2">
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">BQ Comment</p>
+                            <p className="font-semibold text-yellow-700 bg-yellow-50 px-2 py-1 rounded inline-block">{order.bqComment}</p>
+                          </div>
+                          <div className="bg-gray-50 rounded-lg p-3 col-span-2">
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Status</p>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "current" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                              {order.status === "current" ? "In Stock" : "Out of Stock"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {scannedData.qty > 0 && scannedData.qty !== order.qty && (
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+                            <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={16} />
+                            <div className="text-sm">
+                              <p className="font-semibold text-amber-800">Balance Mismatch Detected</p>
+                              <p className="text-amber-700 mt-0.5">
+                                Label shows <strong>{scannedData.qty} pcs</strong> but system shows <strong>{order.qty} pcs</strong>.
+                                Consider updating the balance below.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() => { setNewQty(String(order.qty)); setShowUpdateDialog(true); }}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2"
+                        >
+                          <Edit3 size={16} />
+                          Update Balance
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  onClick={resetScanner}
+                  className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2"
+                >
+                  <RefreshCw size={16} />
+                  Scan Another QR Code
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── SCANNED HISTORY TAB ── */}
+        {activeTab === "history" && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-gray-500">Recent scan events (latest 200)</p>
+              <button
+                onClick={() => refetchHistory()}
+                className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <RefreshCw size={13} />
+                Refresh
+              </button>
+            </div>
+
+            {historyLoading && (
+              <div className="flex items-center justify-center py-12 gap-3">
+                <Loader2 className="animate-spin text-blue-600" size={20} />
+                <span className="text-gray-500 text-sm">Loading history...</span>
+              </div>
+            )}
+
+            {!historyLoading && (!scanHistory || scanHistory.length === 0) && (
+              <div className="text-center py-12 text-gray-400">
+                <History size={40} className="mx-auto mb-3 opacity-30" />
+                <p className="font-medium">No scan history yet</p>
+                <p className="text-sm mt-1">Scans and balance updates will appear here</p>
+              </div>
+            )}
+
+            {!historyLoading && scanHistory && scanHistory.map((log) => (
+              <div
+                key={log.id}
+                className={`bg-white rounded-xl border shadow-sm p-4 ${log.action === "balance_update" ? "border-blue-200" : "border-gray-200"}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className={`p-2 rounded-lg shrink-0 ${log.action === "balance_update" ? "bg-blue-100" : "bg-gray-100"}`}>
+                      {log.action === "balance_update" ? (
+                        <Edit3 size={15} className="text-blue-600" />
+                      ) : (
+                        <ScanLine size={15} className="text-gray-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-gray-900 text-sm">{log.orderId}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${log.action === "balance_update" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+                          {log.action === "balance_update" ? "Balance Updated" : "Scanned"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
+                        <User size={11} />
+                        <span className="font-medium text-gray-700">{log.scannedByName}</span>
+                        <span className="text-gray-400">({log.scannedBy})</span>
+                      </div>
+                      {log.action === "balance_update" && log.oldQty != null && log.newQty != null && (
+                        <div className="flex items-center gap-1.5 mt-1.5 text-xs">
+                          <span className="bg-orange-50 text-orange-700 px-2 py-0.5 rounded font-medium">{log.oldQty} pcs</span>
+                          <ArrowRight size={11} className="text-gray-400" />
+                          <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium">{log.newQty} pcs</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
+                    <Clock size={11} />
+                    <span>{new Date(log.createdAt).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

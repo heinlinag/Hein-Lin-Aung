@@ -449,3 +449,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add QR Scanner card to Home dashboard
 - [x] Add Scan button in Stock History (desktop icon + mobile button) linking to /qr-scanner?orderId=XXX
 - [x] QRScanner page reads orderId from URL query param for pre-filled verification
+
+## QR Scanner - Scanned History Feature (May 9)
+- [x] Schema: add qr_scan_log table (id, orderId, scannedBy, scannedByName, action, oldQty, newQty, createdAt)
+- [x] Apply migration SQL for qr_scan_log table
+- [x] Server: add orders.logQrScan procedure to record each scan event
+- [x] Server: add orders.getQrScanHistory procedure to fetch scan log
+- [x] QRScanner: log scan event on every successful QR scan (manual or camera)
+- [x] QRScanner: log balance update event when Employee ID verified and qty updated
+- [x] QRScanner: add "Scanned History" tab showing scan log (who, Order ID, action, time)

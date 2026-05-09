@@ -126,3 +126,17 @@ export const pushSubscriptions = mysqlTable("pushSubscriptions", {
 });
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
+
+// QR Scan Log table — records every QR scan event and balance updates
+export const qrScanLog = mysqlTable("qrScanLog", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: varchar("orderId", { length: 64 }).notNull(),  // Order ID (string)
+  scannedBy: varchar("scannedBy", { length: 64 }).notNull(),     // workerID
+  scannedByName: varchar("scannedByName", { length: 128 }).notNull(), // worker name
+  action: mysqlEnum("action", ["scan", "balance_update"]).default("scan").notNull(),
+  oldQty: int("oldQty"),     // populated for balance_update
+  newQty: int("newQty"),     // populated for balance_update
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type QrScanLog = typeof qrScanLog.$inferSelect;
+export type InsertQrScanLog = typeof qrScanLog.$inferInsert;

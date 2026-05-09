@@ -320,7 +320,9 @@ export const appRouter = router({
     qrUpdateBalance: publicProcedure
       .input(z.object({
         orderId: z.number().int().positive(),
+        orderStringId: z.string().min(1), // Order ID string for logging
         newQty: z.number().int().min(0),
+        oldQty: z.number().int().min(0),
         employeeId: z.string().min(1),
         note: z.string().optional(),
       }))
@@ -329,10 +331,45 @@ export const appRouter = router({
         if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
         const db = await (await import("./db")).getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
-        const { orders: ordersTable } = await import("../drizzle/schema");
+        const { orders: ordersTable, qrScanLog } = await import("../drizzle/schema");
         const { eq } = await import("drizzle-orm");
         await db.update(ordersTable).set({ qty: input.newQty }).where(eq(ordersTable.id, input.orderId));
+        // Log the balance update event
+        await db.insert(qrScanLog).values({
+          orderId: input.orderStringId,
+          scannedBy: worker.workerID,
+          scannedByName: worker.name,
+          action: "balance_update",
+          oldQty: input.oldQty,
+          newQty: input.newQty,
+        });
         return { success: true, workerName: worker.name };
+      }),
+    logQrScan: publicProcedure
+      .input(z.object({
+        orderId: z.string().min(1),
+        scannedBy: z.string().min(1),   // workerID
+        scannedByName: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await (await import("./db")).getDb();
+        if (!db) return { success: false };
+        const { qrScanLog } = await import("../drizzle/schema");
+        await db.insert(qrScanLog).values({
+          orderId: input.orderId,
+          scannedBy: input.scannedBy,
+          scannedByName: input.scannedByName,
+          action: "scan",
+        });
+        return { success: true };
+      }),
+    getQrScanHistory: publicProcedure
+      .query(async () => {
+        const db = await (await import("./db")).getDb();
+        if (!db) return [];
+        const { qrScanLog } = await import("../drizzle/schema");
+        const { desc } = await import("drizzle-orm");
+        return db.select().from(qrScanLog).orderBy(desc(qrScanLog.createdAt)).limit(200);
       }),
   }),
   // ─── Pending Requests ──────────────────────────────────────────────────────────────────────────────
