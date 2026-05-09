@@ -423,11 +423,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Level 1.1 Process dialog: rename title to "Process Approved", show Target Black QTY from Level 1 request, require qty input before confirming
 
 ## Stock Quantity Logic Fix (May 7)
-- [ ] Server: Level 1 submitRequest (Used Update) must NOT deduct Available Qty — request only
-- [ ] Server: Level 1.1 processApprove must deduct Available Qty by processApprovedQty
-- [ ] Server: Level 1.1 self-submit Used Update → auto In Process status + immediate stock deduction
-- [ ] ApprovalCenter: Level 1.1 can only cancel their OWN self-submitted requests; cannot cancel Level 1 user requests that are already processed
-- [ ] StockHistory: show Remaining After = Available - processApprovedQty only after Level 1.1 process
+- [x] Server: Level 1 submitRequest (Used Update) must NOT deduct Available Qty — request only
+- [x] Server: Level 1.1 processApprove must deduct Available Qty by processApprovedQty
+- [x] Server: Level 1.1 self-submit Used Update → auto In Process status + immediate stock deduction
+- [x] ApprovalCenter: Level 1.1 can only cancel their OWN self-submitted requests; cannot cancel Level 1 user requests that are already processed
+- [x] StockHistory: show Remaining After = Available - processApprovedQty only after Level 1.1 process
 
 ## Stock Quantity Logic Fix (May 7) - COMPLETED
 - [x] Server: Level 1 submitRequest (Used Update) must NOT deduct Available Qty — request only (no changes needed, already correct)
@@ -446,3 +446,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Show match/mismatch status with order details after scan
 - [x] Allow balance update after scan with Employee ID verification
 - [x] Add QR Scanner route and navigation link
+- [x] Add QR Scanner card to Home dashboard
+- [x] Add Scan button in Stock History (desktop icon + mobile button) linking to /qr-scanner?orderId=XXX
+- [x] QRScanner page reads orderId from URL query param for pre-filled verification
