@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, History, CheckCircle2, Settings, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -28,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/stock-history",   label: "Stock History",   icon: <Package size={18} /> },
   { href: "/usage-history",   label: "Usage History",   icon: <History size={18} /> },
   { href: "/approval-center", label: "Approval Center", icon: <CheckCircle2 size={18} /> },
+  { href: "/qr-scanner",      label: "QR Scanner",      icon: <ScanLine size={18} /> },
   { href: "/admin",           label: "Admin Panel",     icon: <Settings size={18} />, adminOnly: true },
 ];
 

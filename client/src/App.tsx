@@ -17,6 +17,7 @@ import ApprovalCenter from "./pages/ApprovalCenter";
 import Documentation from "./pages/Documentation";
 import SystemStatus from "./pages/SystemStatus";
 import FAQ from "./pages/FAQ";
+import QRScanner from "./pages/QRScanner";
 
 function Router() {
   return (
@@ -53,6 +54,12 @@ function Router() {
         </LoginGate>
       </Route>
 
+      {/* QR Scanner */}
+      <Route path="/qr-scanner">
+        <LoginGate>
+          <QRScanner />
+        </LoginGate>
+      </Route>
       {/* Public: Documentation */}
       <Route path="/docs" component={Documentation} />
 

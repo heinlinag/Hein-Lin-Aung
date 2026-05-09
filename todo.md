@@ -437,3 +437,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] ApprovalCenter: Level 1.1 can only cancel their OWN requests; cannot cancel other users' processed requests
 - [x] StockHistory: show Remaining After = Available - processApprovedQty for Level 1.1 users (preview only)
 - [x] StockHistory: Level 1 users do NOT see Remaining After (request only, no stock effect)
+
+## QR Scanner Feature (May 9)
+- [x] Fix QR code field: change masterCard key to bq in QR code data
+- [x] Install html5-qrcode library for camera-based QR scanning
+- [x] Create QR Scanner page (/qr-scanner) with camera scan capability
+- [x] QR scan result: match scanned order against Stock History records
+- [x] Show match/mismatch status with order details after scan
+- [x] Allow balance update after scan with Employee ID verification
+- [x] Add QR Scanner route and navigation link

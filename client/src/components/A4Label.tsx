@@ -226,13 +226,13 @@ export const A4Label: React.FC<A4LabelProps> = ({
     }, 300);
   };
 
-  const qrValue = JSON.stringify({
-    orderId,
-    qty: orderQty,
-    masterCard,
-    boardSize,
-    timestamp: new Date().toISOString(),
-  });
+    const qrValue = JSON.stringify({
+      orderId,
+      qty: orderQty,
+      bq: masterCard,
+      boardSize,
+      timestamp: new Date().toISOString(),
+    });
 
   const currentDate = new Date();
   const printDate = currentDate.toLocaleDateString();

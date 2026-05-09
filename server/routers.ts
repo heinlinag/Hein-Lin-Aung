@@ -307,11 +307,34 @@ export const appRouter = router({
         }
         return { success: true };
       }),
-    getUsage: publicProcedure.query(async () => {
+     getUsage: publicProcedure.query(async () => {
       return getUsageHistory();
     }),
+    qrVerify: publicProcedure
+      .input(z.object({ orderID: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const order = await getOrderByOrderID(input.orderID.trim().toUpperCase());
+        if (!order) return { found: false, order: null };
+        return { found: true, order };
+      }),
+    qrUpdateBalance: publicProcedure
+      .input(z.object({
+        orderId: z.number().int().positive(),
+        newQty: z.number().int().min(0),
+        employeeId: z.string().min(1),
+        note: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.employeeId.trim().toUpperCase());
+        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
+        const db = await (await import("./db")).getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        const { orders: ordersTable } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await db.update(ordersTable).set({ qty: input.newQty }).where(eq(ordersTable.id, input.orderId));
+        return { success: true, workerName: worker.name };
+      }),
   }),
-
   // ─── Pending Requests ──────────────────────────────────────────────────────────────────────────────
   pendingRequests: router({
     submit: publicProcedure
