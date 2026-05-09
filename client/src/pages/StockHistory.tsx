@@ -6,6 +6,7 @@ import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clo
 import { useAuth } from "@/contexts/AuthContext";
 
 import AppLayout from "@/components/AppLayout";
+import { A4Label } from "@/components/A4Label";
 
 const LOW_STOCK_THRESHOLD = 50;
 
@@ -740,6 +741,14 @@ export default function StockHistory() {
                               {(userLevel === "1" || userLevel === "1.1") ? "Request Use" : "Used Update"}
                             </button>
                           )}
+                          <A4Label
+                            orderId={order.orderID}
+                            orderQty={order.qty}
+                            masterCard={order.bqComment}
+                            boardSize={`${order.sizeW}×${order.sizeL}`}
+                            fluteType={order.fluteType}
+                            bqComment={order.bqComment}
+                          />
                           <button onClick={() => setDeleteOrder(order)} className="text-muted-foreground hover:text-destructive p-1">
                             <Trash2 size={14} />
                           </button>
