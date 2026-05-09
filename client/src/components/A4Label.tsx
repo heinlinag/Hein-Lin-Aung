@@ -24,10 +24,12 @@ export const A4Label: React.FC<A4LabelProps> = ({
   const handlePrint = () => {
     if (!printRef.current) return;
 
-    const printWindow = window.open("", "", "height=800,width=600");
+    const printWindow = window.open("", "", "height=900,width=800");
     if (!printWindow) return;
 
     const printContent = printRef.current.innerHTML;
+    const currentDate = new Date().toLocaleString();
+    
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -40,10 +42,18 @@ export const A4Label: React.FC<A4LabelProps> = ({
               padding: 0;
               box-sizing: border-box;
             }
-            body {
-              font-family: Arial, sans-serif;
-              background: white;
+            html, body {
+              width: 100%;
+              height: 100%;
+              margin: 0;
               padding: 0;
+            }
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              background: white;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
             @page {
               size: A4;
@@ -53,80 +63,155 @@ export const A4Label: React.FC<A4LabelProps> = ({
               body {
                 margin: 0;
                 padding: 0;
+                display: block;
               }
             }
-            .label-container {
+            .label-page {
               width: 210mm;
               height: 297mm;
-              padding: 20mm;
+              padding: 15mm;
               display: flex;
               flex-direction: column;
-              justify-content: center;
-              align-items: center;
-              gap: 20px;
+              justify-content: space-between;
+              background: white;
+              box-shadow: 0 0 10px rgba(0,0,0,0.1);
               page-break-after: always;
             }
             .label-header {
               text-align: center;
-              margin-bottom: 20px;
+              border-bottom: 3px solid #1a5f7a;
+              padding-bottom: 12mm;
+              margin-bottom: 12mm;
             }
-            .label-header h1 {
-              font-size: 32px;
+            .header-top {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10mm;
+              margin-bottom: 5mm;
+            }
+            .header-logo {
+              height: 12mm;
+              width: 12mm;
+              object-fit: contain;
+            }
+            .header-title {
+              font-size: 20px;
               font-weight: bold;
-              margin-bottom: 5px;
               color: #1a1a1a;
+              margin: 0;
             }
-            .label-header p {
-              font-size: 14px;
+            .header-subtitle {
+              font-size: 11px;
               color: #666;
+              margin: 3mm 0 0 0;
             }
             .label-content {
               display: flex;
-              gap: 40px;
-              align-items: center;
-              justify-content: center;
-              width: 100%;
+              gap: 15mm;
+              align-items: flex-start;
+              justify-content: space-between;
+              flex: 1;
+              margin-bottom: 10mm;
             }
             .label-info {
               flex: 1;
               display: flex;
               flex-direction: column;
-              gap: 15px;
+              gap: 8mm;
+            }
+            .info-section {
+              display: flex;
+              flex-direction: column;
+              gap: 4mm;
+            }
+            .info-section-title {
+              font-size: 10px;
+              font-weight: bold;
+              color: #1a5f7a;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              border-bottom: 1px solid #ddd;
+              padding-bottom: 2mm;
             }
             .info-row {
               display: flex;
-              gap: 10px;
-              font-size: 14px;
+              gap: 5mm;
+              font-size: 11px;
+              align-items: flex-start;
             }
             .info-label {
               font-weight: bold;
-              min-width: 120px;
+              min-width: 30mm;
               color: #333;
+              text-transform: uppercase;
+              font-size: 10px;
             }
             .info-value {
               color: #555;
               flex: 1;
+              word-break: break-word;
+              font-size: 12px;
+              font-weight: 500;
             }
-            .qr-code-container {
+            .qr-section {
               display: flex;
               flex-direction: column;
               align-items: center;
-              gap: 10px;
+              gap: 5mm;
+              padding: 8mm;
+              border: 2px solid #1a5f7a;
+              border-radius: 4px;
+              background: #f9f9f9;
             }
-            .qr-code-container canvas {
-              border: 2px solid #ddd;
-              padding: 10px;
-              background: white;
+            .qr-code-container {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .qr-code-container svg {
+              width: 50mm;
+              height: 50mm;
             }
             .qr-label {
-              font-size: 12px;
+              font-size: 9px;
               color: #666;
               font-weight: bold;
+              text-align: center;
+            }
+            .label-footer {
+              border-top: 2px solid #1a5f7a;
+              padding-top: 8mm;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 9px;
+              color: #999;
+            }
+            .footer-left {
+              display: flex;
+              flex-direction: column;
+              gap: 2mm;
+            }
+            .footer-right {
+              text-align: right;
+              display: flex;
+              flex-direction: column;
+              gap: 2mm;
+            }
+            .qty-badge {
+              display: inline-block;
+              background: #1a5f7a;
+              color: white;
+              padding: 3mm 6mm;
+              border-radius: 3px;
+              font-weight: bold;
+              font-size: 13px;
             }
           </style>
         </head>
         <body>
-          <div class="label-container">
+          <div class="label-page">
             ${printContent}
           </div>
         </body>
@@ -135,11 +220,10 @@ export const A4Label: React.FC<A4LabelProps> = ({
     printWindow.document.close();
     printWindow.focus();
 
-    // Delay print to allow rendering
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
-    }, 250);
+    }, 300);
   };
 
   const qrValue = JSON.stringify({
@@ -147,7 +231,12 @@ export const A4Label: React.FC<A4LabelProps> = ({
     qty: orderQty,
     masterCard,
     boardSize,
+    timestamp: new Date().toISOString(),
   });
+
+  const currentDate = new Date();
+  const printDate = currentDate.toLocaleDateString();
+  const printTime = currentDate.toLocaleTimeString();
 
   return (
     <div>
@@ -162,49 +251,74 @@ export const A4Label: React.FC<A4LabelProps> = ({
       {/* Hidden print content */}
       <div ref={printRef} style={{ display: "none" }}>
         <div className="label-header">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "15px", marginBottom: "10px" }}>
-            <img src="/manus-storage/gspp-logo_988a5ce5.png" alt="GSPP" style={{ height: "40px", width: "40px", objectFit: "contain" }} />
-            <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: "0" }}>PP4 Stock Board (NPRM)</h1>
+          <div className="header-top">
+            <img src="/manus-storage/gspp-logo_988a5ce5.png" alt="GSPP" className="header-logo" />
+            <div>
+              <h1 className="header-title">PP4 Stock Board (NPRM)</h1>
+              <p className="header-subtitle">Stock Management System</p>
+            </div>
           </div>
-          <p>Stock Management System</p>
         </div>
 
         <div className="label-content">
           <div className="label-info">
-            <div className="info-row">
-              <span className="info-label">Order ID:</span>
-              <span className="info-value">{orderId}</span>
+            <div className="info-section">
+              <div className="info-section-title">Order Information</div>
+              <div className="info-row">
+                <span className="info-label">Order ID</span>
+                <span className="info-value">{orderId}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Quantity</span>
+                <span className="info-value"><span className="qty-badge">{orderQty} pcs</span></span>
+              </div>
             </div>
-            <div className="info-row">
-              <span className="info-label">Quantity:</span>
-              <span className="info-value">{orderQty} pcs</span>
+
+            <div className="info-section">
+              <div className="info-section-title">Product Details</div>
+              <div className="info-row">
+                <span className="info-label">Board Size</span>
+                <span className="info-value">{boardSize} mm</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Flute Type</span>
+                <span className="info-value">{fluteType}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">MasterCard</span>
+                <span className="info-value">{masterCard}</span>
+              </div>
             </div>
-            <div className="info-row">
-              <span className="info-label">MasterCard:</span>
-              <span className="info-value">{masterCard}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Board Size:</span>
-              <span className="info-value">{boardSize}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Flute Type:</span>
-              <span className="info-value">{fluteType}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">BQ Comment:</span>
-              <span className="info-value">{bqComment}</span>
+
+            <div className="info-section">
+              <div className="info-section-title">Specifications</div>
+              <div className="info-row">
+                <span className="info-label">BQ Comment</span>
+                <span className="info-value">{bqComment}</span>
+              </div>
             </div>
           </div>
 
-          <div className="qr-code-container">
-            <QRCodeSVG
-              value={qrValue}
-              size={200}
-              level="H"
-              includeMargin={true}
-            />
-            <span className="qr-label">Scan to view details</span>
+          <div className="qr-section">
+            <div className="qr-code-container">
+              <QRCodeSVG
+                value={qrValue}
+                size={200}
+                level="H"
+                includeMargin={true}
+              />
+            </div>
+            <span className="qr-label">Scan to verify order details</span>
+          </div>
+        </div>
+
+        <div className="label-footer">
+          <div className="footer-left">
+            <div><strong>Printed:</strong> {printDate} {printTime}</div>
+            <div><strong>System:</strong> PP4 Stock Management</div>
+          </div>
+          <div className="footer-right">
+            <div>For verification and tracking purposes only</div>
           </div>
         </div>
       </div>
