@@ -153,17 +153,20 @@ export const A4Label: React.FC<A4LabelProps> = ({
     <div>
       <button
         onClick={handlePrint}
-        className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+        title="Print A4 Label"
       >
         <Printer size={16} />
-        Print A4 Label
       </button>
 
       {/* Hidden print content */}
       <div ref={printRef} style={{ display: "none" }}>
         <div className="label-header">
-          <h1>Order Label</h1>
-          <p>PP4 Manual Slitter - Stock Management</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "15px", marginBottom: "10px" }}>
+            <img src="/manus-storage/gspp-logo_988a5ce5.png" alt="GSPP" style={{ height: "40px", width: "40px", objectFit: "contain" }} />
+            <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: "0" }}>PP4 Stock Board (NPRM)</h1>
+          </div>
+          <p>Stock Management System</p>
         </div>
 
         <div className="label-content">
