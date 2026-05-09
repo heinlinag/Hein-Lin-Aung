@@ -24,12 +24,11 @@ export const A4Label: React.FC<A4LabelProps> = ({
   const handlePrint = () => {
     if (!printRef.current) return;
 
-    const printWindow = window.open("", "", "height=900,width=800");
+    const printWindow = window.open("", "", "height=1100,width=850");
     if (!printWindow) return;
 
     const printContent = printRef.current.innerHTML;
-    const currentDate = new Date().toLocaleString();
-    
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -37,181 +36,261 @@ export const A4Label: React.FC<A4LabelProps> = ({
           <meta charset="UTF-8">
           <title>Order Label - ${orderId}</title>
           <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
             html, body {
-              width: 100%;
-              height: 100%;
-              margin: 0;
-              padding: 0;
-            }
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              background: white;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            @page {
-              size: A4;
-              margin: 0;
-            }
-            @media print {
-              body {
-                margin: 0;
-                padding: 0;
-                display: block;
-              }
-            }
-            .label-page {
               width: 210mm;
               height: 297mm;
-              padding: 15mm;
+              margin: 0;
+              padding: 0;
+              background: white;
+              font-family: 'Segoe UI', Arial, sans-serif;
+            }
+            @page { size: A4; margin: 0; }
+            @media print {
+              html, body { width: 210mm; height: 297mm; }
+            }
+
+            .page {
+              width: 210mm;
+              height: 297mm;
+              padding: 12mm 14mm;
               display: flex;
               flex-direction: column;
-              justify-content: flex-end;
               background: white;
-              box-shadow: 0 0 10px rgba(0,0,0,0.1);
-              page-break-after: always;
             }
-            .label-header {
-              text-align: center;
-              border-bottom: 3px solid #1a5f7a;
-              padding-bottom: 12mm;
-              margin-bottom: 12mm;
-            }
-            .header-top {
+
+            /* ── HEADER ── */
+            .header {
               display: flex;
               align-items: center;
-              justify-content: center;
-              gap: 10mm;
-              margin-bottom: 5mm;
+              justify-content: space-between;
+              padding-bottom: 6mm;
+              border-bottom: 3px solid #0f4c75;
+              margin-bottom: 7mm;
             }
-            .header-logo {
-              height: 12mm;
-              width: 12mm;
+            .header-left {
+              display: flex;
+              align-items: center;
+              gap: 5mm;
+            }
+            .logo {
+              width: 14mm;
+              height: 14mm;
               object-fit: contain;
             }
-            .header-title {
-              font-size: 20px;
-              font-weight: bold;
-              color: #1a1a1a;
-              margin: 0;
+            .brand-name {
+              font-size: 22px;
+              font-weight: 900;
+              color: #0f4c75;
+              letter-spacing: -0.3px;
+              line-height: 1.1;
             }
-            .header-subtitle {
-              font-size: 11px;
+            .brand-sub {
+              font-size: 10px;
               color: #666;
-              margin: 3mm 0 0 0;
-            }
-            .label-content {
-              display: flex;
-              gap: 15mm;
-              align-items: flex-start;
-              justify-content: space-between;
-              flex: 1;
-              margin-bottom: 10mm;
-            }
-            .label-info {
-              flex: 1;
-              display: flex;
-              flex-direction: column;
-              gap: 8mm;
-            }
-            .info-section {
-              display: flex;
-              flex-direction: column;
-              gap: 4mm;
-            }
-            .info-section-title {
-              font-size: 13px;
-              font-weight: bold;
-              color: #1a5f7a;
-              text-transform: uppercase;
+              margin-top: 1mm;
               letter-spacing: 0.5px;
-              border-bottom: 2px solid #1a5f7a;
-              padding-bottom: 3mm;
-            }
-            .info-row {
-              display: flex;
-              gap: 5mm;
-              font-size: 14px;
-              align-items: flex-start;
-            }
-            .info-label {
-              font-weight: bold;
-              min-width: 35mm;
-              color: #333;
               text-transform: uppercase;
-              font-size: 13px;
             }
-            .info-value {
-              color: #555;
-              flex: 1;
-              word-break: break-word;
-              font-size: 15px;
-              font-weight: 600;
+            .header-right {
+              text-align: right;
             }
-            .qr-section {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 5mm;
-              padding: 8mm;
-              border: 2px solid #1a5f7a;
-              border-radius: 4px;
-              background: #f9f9f9;
+            .doc-type {
+              font-size: 11px;
+              font-weight: 700;
+              color: #0f4c75;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              background: #e8f4fd;
+              padding: 2mm 5mm;
+              border-radius: 2px;
             }
-            .qr-code-container {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .qr-code-container svg {
-              width: 50mm;
-              height: 50mm;
-            }
-            .qr-label {
-              font-size: 9px;
-              color: #666;
-              font-weight: bold;
-              text-align: center;
-            }
-            .label-footer {
-              border-top: 2px solid #1a5f7a;
-              padding-top: 8mm;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
+            .print-date {
               font-size: 9px;
               color: #999;
+              margin-top: 2mm;
+            }
+
+            /* ── ORDER ID BANNER ── */
+            .order-banner {
+              background: #0f4c75;
+              color: white;
+              padding: 5mm 8mm;
+              border-radius: 3px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 7mm;
+            }
+            .order-id-label {
+              font-size: 11px;
+              font-weight: 600;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              opacity: 0.8;
+            }
+            .order-id-value {
+              font-size: 30px;
+              font-weight: 900;
+              letter-spacing: 1px;
+              line-height: 1;
+            }
+            .qty-pill {
+              background: white;
+              color: #0f4c75;
+              font-size: 22px;
+              font-weight: 900;
+              padding: 3mm 7mm;
+              border-radius: 3px;
+              text-align: center;
+              line-height: 1.1;
+            }
+            .qty-pill-label {
+              font-size: 9px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              opacity: 0.7;
+              text-align: center;
+              margin-top: 1mm;
+            }
+
+            /* ── MAIN BODY ── */
+            .body {
+              display: flex;
+              gap: 8mm;
+              flex: 1;
+              margin-bottom: 7mm;
+            }
+
+            /* ── INFO PANEL ── */
+            .info-panel {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              gap: 5mm;
+            }
+            .section {
+              border: 1.5px solid #d0e8f5;
+              border-radius: 3px;
+              overflow: hidden;
+            }
+            .section-header {
+              background: #e8f4fd;
+              padding: 2.5mm 5mm;
+              font-size: 10px;
+              font-weight: 800;
+              color: #0f4c75;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            }
+            .section-body {
+              padding: 4mm 5mm;
+              display: flex;
+              flex-direction: column;
+              gap: 3.5mm;
+            }
+            .field-row {
+              display: flex;
+              align-items: flex-start;
+              gap: 3mm;
+            }
+            .field-label {
+              font-size: 10px;
+              font-weight: 700;
+              color: #888;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              min-width: 28mm;
+              padding-top: 0.5mm;
+            }
+            .field-value {
+              font-size: 16px;
+              font-weight: 700;
+              color: #1a1a1a;
+              flex: 1;
+              word-break: break-word;
+              line-height: 1.2;
+            }
+            .field-value.large {
+              font-size: 20px;
+              font-weight: 900;
+              color: #0f4c75;
+            }
+
+            /* ── QR PANEL ── */
+            .qr-panel {
+              width: 62mm;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 4mm;
+            }
+            .qr-box {
+              border: 2px solid #0f4c75;
+              border-radius: 4px;
+              padding: 4mm;
+              background: white;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 3mm;
+              width: 100%;
+            }
+            .qr-box svg {
+              width: 52mm !important;
+              height: 52mm !important;
+            }
+            .qr-caption {
+              font-size: 8px;
+              color: #888;
+              text-align: center;
+              font-weight: 600;
+              letter-spacing: 0.5px;
+              text-transform: uppercase;
+            }
+            .qr-order-id {
+              font-size: 11px;
+              font-weight: 900;
+              color: #0f4c75;
+              text-align: center;
+              letter-spacing: 1px;
+            }
+
+            /* ── FOOTER ── */
+            .footer {
+              border-top: 2px solid #0f4c75;
+              padding-top: 4mm;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-end;
             }
             .footer-left {
-              display: flex;
-              flex-direction: column;
-              gap: 2mm;
+              font-size: 9px;
+              color: #aaa;
+              line-height: 1.6;
             }
             .footer-right {
+              font-size: 9px;
+              color: #aaa;
               text-align: right;
-              display: flex;
-              flex-direction: column;
-              gap: 2mm;
+              line-height: 1.6;
             }
-            .qty-badge {
+            .verified-badge {
               display: inline-block;
-              background: #1a5f7a;
-              color: white;
-              padding: 4mm 8mm;
-              border-radius: 3px;
-              font-weight: bold;
-              font-size: 16px;
+              background: #e8f4fd;
+              color: #0f4c75;
+              font-size: 8px;
+              font-weight: 700;
+              padding: 1mm 3mm;
+              border-radius: 2px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
             }
           </style>
         </head>
         <body>
-          <div class="label-page">
+          <div class="page">
             ${printContent}
           </div>
         </body>
@@ -219,24 +298,24 @@ export const A4Label: React.FC<A4LabelProps> = ({
     `);
     printWindow.document.close();
     printWindow.focus();
-
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
-    }, 300);
+    }, 350);
   };
 
-    const qrValue = JSON.stringify({
-      orderId,
-      qty: orderQty,
-      bq: masterCard,
-      boardSize,
-      timestamp: new Date().toISOString(),
-    });
+  const qrValue = JSON.stringify({
+    orderId,
+    qty: orderQty,
+    bq: masterCard,
+    boardSize,
+    fluteType,
+    timestamp: new Date().toISOString(),
+  });
 
-  const currentDate = new Date();
-  const printDate = currentDate.toLocaleDateString();
-  const printTime = currentDate.toLocaleTimeString();
+  const now = new Date();
+  const printDate = now.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  const printTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
   return (
     <div>
@@ -250,77 +329,100 @@ export const A4Label: React.FC<A4LabelProps> = ({
 
       {/* Hidden print content */}
       <div ref={printRef} style={{ display: "none" }}>
-        <div className="label-header">
-          <div className="header-top">
-            <img src="/manus-storage/gspp-logo_988a5ce5.png" alt="GSPP" className="header-logo" />
+
+        {/* HEADER */}
+        <div className="header">
+          <div className="header-left">
+            <img src="/manus-storage/gspp-logo_988a5ce5.png" alt="GSPP" className="logo" />
             <div>
-              <h1 className="header-title">PP4 Stock Board (NPRM)</h1>
-              <p className="header-subtitle">Stock Management System</p>
+              <div className="brand-name">PP4 Stock Board (NPRM)</div>
+              <div className="brand-sub">Stock Management System</div>
             </div>
+          </div>
+          <div className="header-right">
+            <div className="doc-type">Stock Label</div>
+            <div className="print-date">Printed: {printDate} {printTime}</div>
           </div>
         </div>
 
-        <div className="label-content">
-          <div className="label-info">
-            <div className="info-section">
-              <div className="info-section-title">Order Information</div>
-              <div className="info-row">
-                <span className="info-label">Order ID</span>
-                <span className="info-value">{orderId}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Quantity</span>
-                <span className="info-value"><span className="qty-badge">{orderQty} pcs</span></span>
+        {/* ORDER ID BANNER */}
+        <div className="order-banner">
+          <div>
+            <div className="order-id-label">Order ID</div>
+            <div className="order-id-value">{orderId}</div>
+          </div>
+          <div>
+            <div className="qty-pill">{orderQty}</div>
+            <div className="qty-pill-label">pcs</div>
+          </div>
+        </div>
+
+        {/* MAIN BODY */}
+        <div className="body">
+
+          {/* INFO PANEL */}
+          <div className="info-panel">
+
+            <div className="section">
+              <div className="section-header">Product Details</div>
+              <div className="section-body">
+                <div className="field-row">
+                  <span className="field-label">Board Size</span>
+                  <span className="field-value large">{boardSize} mm</span>
+                </div>
+                <div className="field-row">
+                  <span className="field-label">Flute Type</span>
+                  <span className="field-value large">{fluteType}</span>
+                </div>
               </div>
             </div>
 
-            <div className="info-section">
-              <div className="info-section-title">Product Details</div>
-              <div className="info-row">
-                <span className="info-label">Board Size</span>
-                <span className="info-value">{boardSize} mm</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Flute Type</span>
-                <span className="info-value">{fluteType}</span>
-              </div>
-                              <div className="info-row">
-                <span className="info-label">BQ</span>
-                <span className="info-value">{masterCard}</span>
+            <div className="section">
+              <div className="section-header">BQ Information</div>
+              <div className="section-body">
+                <div className="field-row">
+                  <span className="field-label">BQ</span>
+                  <span className="field-value">{masterCard}</span>
+                </div>
+                {bqComment && (
+                  <div className="field-row">
+                    <span className="field-label">BQ Comment</span>
+                    <span className="field-value">{bqComment}</span>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="info-section">
-              <div className="info-section-title">Specifications</div>
-              <div className="info-row">
-                <span className="info-label">BQ Comment</span>
-                <span className="info-value">{bqComment}</span>
-              </div>
-            </div>
           </div>
 
-          <div className="qr-section">
-            <div className="qr-code-container">
+          {/* QR PANEL */}
+          <div className="qr-panel">
+            <div className="qr-box">
               <QRCodeSVG
                 value={qrValue}
-                size={200}
+                size={210}
                 level="H"
-                includeMargin={true}
+                includeMargin={false}
               />
+              <div className="qr-order-id">{orderId}</div>
+              <div className="qr-caption">Scan to verify</div>
             </div>
-            <span className="qr-label">Scan to verify order details</span>
+          </div>
+
+        </div>
+
+        {/* FOOTER */}
+        <div className="footer">
+          <div className="footer-left">
+            <div>PP4 Manual Slitter · Stock Management System</div>
+            <div>Generated: {printDate} at {printTime}</div>
+          </div>
+          <div className="footer-right">
+            <span className="verified-badge">For Verification Only</span>
+            <div style={{ marginTop: "1mm" }}>Do not duplicate or alter this label</div>
           </div>
         </div>
 
-        <div className="label-footer">
-          <div className="footer-left">
-            <div><strong>Printed:</strong> {printDate} {printTime}</div>
-            <div><strong>System:</strong> PP4 Stock Management</div>
-          </div>
-          <div className="footer-right">
-            <div>For verification and tracking purposes only</div>
-          </div>
-        </div>
       </div>
     </div>
   );
