@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock } from "lucide-react";
+import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock, ScanLine } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 import AppLayout from "@/components/AppLayout";
@@ -749,6 +749,13 @@ export default function StockHistory() {
                             fluteType={order.fluteType}
                             bqComment={order.bqComment}
                           />
+                          <button
+                            onClick={() => navigate(`/qr-scanner?orderId=${encodeURIComponent(order.orderID)}`)}
+                            className="text-teal-600 hover:text-teal-800 p-1 rounded hover:bg-teal-50 transition-colors"
+                            title="Verify with QR Scanner"
+                          >
+                            <ScanLine size={14} />
+                          </button>
                           <button onClick={() => setDeleteOrder(order)} className="text-muted-foreground hover:text-destructive p-1">
                             <Trash2 size={14} />
                           </button>
@@ -787,14 +794,23 @@ export default function StockHistory() {
                     <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono break-all leading-relaxed">{order.bqComment}</span>
                   </div>
                   <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</p>
-                  {activeTab === "current" && (
+                  <div className="flex gap-2">
+                    {activeTab === "current" && (
+                      <button
+                        onClick={() => setUsedUpdateOrder(order)}
+                        className={`flex-1 text-white rounded-lg py-2 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2 ${(userLevel === "1" || userLevel === "1.1") ? "bg-orange-500" : "gspp-gradient"}`}
+                      >
+                        {(userLevel === "1" || userLevel === "1.1") ? <><Clock size={14} /> Request Use</> : <><Zap size={14} /> Used Update</>}
+                      </button>
+                    )}
                     <button
-                      onClick={() => setUsedUpdateOrder(order)}
-                      className={`w-full text-white rounded-lg py-2 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2 ${(userLevel === "1" || userLevel === "1.1") ? "bg-orange-500" : "gspp-gradient"}`}
+                      onClick={() => navigate(`/qr-scanner?orderId=${encodeURIComponent(order.orderID)}`)}
+                      className="px-3 py-2 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1.5 text-xs font-semibold"
+                      title="Verify with QR Scanner"
                     >
-                      {(userLevel === "1" || userLevel === "1.1") ? <><Clock size={14} /> Request Use</> : <><Zap size={14} /> Used Update</>}
+                      <ScanLine size={14} /> Scan
                     </button>
-                  )}
+                  </div>
                 </div>
               )})}
             </div>

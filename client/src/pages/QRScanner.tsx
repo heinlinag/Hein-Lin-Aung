@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import AppLayout from "@/components/AppLayout";
 import { CheckCircle, XCircle, AlertTriangle, Loader2, ScanLine, RefreshCw, Package, Edit3, X } from "lucide-react";
 
+
 interface ScannedOrder {
   orderId: string;
   qty: number;
@@ -25,9 +26,14 @@ interface VerifiedOrder {
 }
 
 export default function QRScanner() {
+  // Support ?orderId=XXX query param from Stock History page
+  const initialOrderId = new URLSearchParams(window.location.search).get("orderId")?.toUpperCase() ?? "";
+
   const [scanning, setScanning] = useState(false);
-  const [scannedData, setScannedData] = useState<ScannedOrder | null>(null);
-  const [verifyOrderID, setVerifyOrderID] = useState("");
+  const [scannedData, setScannedData] = useState<ScannedOrder | null>(
+    initialOrderId ? { orderId: initialOrderId, qty: 0, bq: "", boardSize: "" } : null
+  );
+  const [verifyOrderID, setVerifyOrderID] = useState(initialOrderId);
   const [manualInput, setManualInput] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [newQty, setNewQty] = useState("");

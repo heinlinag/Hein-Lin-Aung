@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
@@ -9,6 +9,14 @@ import { useState, useEffect } from "react";
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 
 const baseFeatures = [
+  {
+    icon: <ScanLine size={32} />,
+    title: "QR Scanner",
+    description: "Scan QR codes on stock labels to verify orders and update balances in real time.",
+    href: "/qr-scanner",
+    cardClass: "feature-card-teal",
+    btnLabel: "Open Scanner",
+  },
   {
     icon: <ClipboardList size={32} />,
     title: "Submit Order",
