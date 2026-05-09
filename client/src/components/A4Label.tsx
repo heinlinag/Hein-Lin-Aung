@@ -72,7 +72,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
               padding: 15mm;
               display: flex;
               flex-direction: column;
-              justify-content: space-between;
+              justify-content: flex-end;
               background: white;
               box-shadow: 0 0 10px rgba(0,0,0,0.1);
               page-break-after: always;
@@ -126,33 +126,33 @@ export const A4Label: React.FC<A4LabelProps> = ({
               gap: 4mm;
             }
             .info-section-title {
-              font-size: 10px;
+              font-size: 13px;
               font-weight: bold;
               color: #1a5f7a;
               text-transform: uppercase;
               letter-spacing: 0.5px;
-              border-bottom: 1px solid #ddd;
-              padding-bottom: 2mm;
+              border-bottom: 2px solid #1a5f7a;
+              padding-bottom: 3mm;
             }
             .info-row {
               display: flex;
               gap: 5mm;
-              font-size: 11px;
+              font-size: 14px;
               align-items: flex-start;
             }
             .info-label {
               font-weight: bold;
-              min-width: 30mm;
+              min-width: 35mm;
               color: #333;
               text-transform: uppercase;
-              font-size: 10px;
+              font-size: 13px;
             }
             .info-value {
               color: #555;
               flex: 1;
               word-break: break-word;
-              font-size: 12px;
-              font-weight: 500;
+              font-size: 15px;
+              font-weight: 600;
             }
             .qr-section {
               display: flex;
@@ -203,10 +203,10 @@ export const A4Label: React.FC<A4LabelProps> = ({
               display: inline-block;
               background: #1a5f7a;
               color: white;
-              padding: 3mm 6mm;
+              padding: 4mm 8mm;
               border-radius: 3px;
               font-weight: bold;
-              font-size: 13px;
+              font-size: 16px;
             }
           </style>
         </head>
@@ -284,8 +284,8 @@ export const A4Label: React.FC<A4LabelProps> = ({
                 <span className="info-label">Flute Type</span>
                 <span className="info-value">{fluteType}</span>
               </div>
-              <div className="info-row">
-                <span className="info-label">MasterCard</span>
+                              <div className="info-row">
+                <span className="info-label">BQ</span>
                 <span className="info-value">{masterCard}</span>
               </div>
             </div>
