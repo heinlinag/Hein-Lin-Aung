@@ -348,7 +348,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
         {/* ORDER ID BANNER */}
         <div className="order-banner">
           <div>
-            <div className="order-id-label">Order ID</div>
+            <div className="order-id-label">Production Order</div>
             <div className="order-id-value">{orderId}</div>
           </div>
           <div>

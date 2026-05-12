@@ -665,7 +665,7 @@ export default function StockHistory() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input type="text" value={searchOrderID} onChange={e => setSearchOrderID(e.target.value)} placeholder="Search Order ID…" className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white" />
+            <input type="text" value={searchOrderID} onChange={e => setSearchOrderID(e.target.value)} placeholder="Search Production Order…" className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white" />
           </div>
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -701,7 +701,7 @@ export default function StockHistory() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b-2 border-border">
-                    {["Order ID","Flute Type","Size (W×L)","Qty","BQ","Date","Actions"].map(h => (
+                    {["Production Order","Flute Type","Size (W×L)","Qty","BQ","Date","Actions"].map(h => (
                       <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-4">{h}</th>
                     ))}
                   </tr>
@@ -766,7 +766,7 @@ export default function StockHistory() {
                 <div key={order.id} className={`border rounded-xl shadow-sm p-4 space-y-2 ${isLowStock ? "bg-orange-50 border-orange-200" : "bg-white border-border"}`}>
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground">Order ID</p>
+                      <p className="text-xs text-muted-foreground">Production Order</p>
                       <div className="flex items-center gap-1.5">
                         {isLowStock && <AlertTriangle size={14} className="text-orange-500" />}
                         <p className="text-base font-bold text-primary">{order.orderID}</p>

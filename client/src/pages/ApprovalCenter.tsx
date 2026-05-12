@@ -144,7 +144,7 @@ function RequestCard({
       {snapshot && (
         <div className="bg-gray-50 rounded-lg p-3 space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Order ID</span>
+            <span className="text-xs text-muted-foreground">Production Order</span>
             <span className="text-sm font-bold text-primary">{snapshot.orderID}</span>
           </div>
           <div className="flex items-center justify-between">
@@ -282,7 +282,7 @@ function RequestCard({
                   {/* Target Black QTY info from Level 1 request */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <p className="text-xs text-blue-800">
-                      <strong>{req.workerName}</strong> requested Target Black QTY of <strong>{action.usedQty} pcs</strong> from Order ID <strong>{snapshot?.orderID ?? "—"}</strong>.
+                      <strong>{req.workerName}</strong> requested Target Black QTY of <strong>{action.usedQty} pcs</strong> from Production Order <strong>{snapshot?.orderID ?? "—"}</strong>.
                     </p>
                   </div>
                   <div>

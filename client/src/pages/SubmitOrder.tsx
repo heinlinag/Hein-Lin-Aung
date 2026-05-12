@@ -24,7 +24,7 @@ export default function SubmitOrder() {
   const notifyAll = trpc.push.sendToAll.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
 
-  // Debounced Order ID duplicate check
+  // Debounced Production Order duplicate check
   const [debouncedOrderID, setDebouncedOrderID] = useState("");
   useEffect(() => {
     const t = setTimeout(() => setDebouncedOrderID(orderID.trim()), 500);
@@ -50,7 +50,7 @@ export default function SubmitOrder() {
       return;
     }
     if (isDuplicate) {
-      toast.error(`Order ID "${orderID.trim()}" already exists. Please use a different Order ID.`);
+      toast.error(`Production Order "${orderID.trim()}" already exists. Please use a different Production Order.`);
       return;
     }
     // Show confirmation dialog before submitting
@@ -100,12 +100,12 @@ export default function SubmitOrder() {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Row 1: Order ID + Flute Type */}
+            {/* Row 1: Production Order + Flute Type */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Order ID */}
+              {/* Production Order */}
               <div>
                 <label className={labelCls}>
-                  Order ID <span className="text-destructive">*</span>
+                  Production Order <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
@@ -116,12 +116,12 @@ export default function SubmitOrder() {
                 />
                 {isDuplicate && (
                   <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                    <span>⚠</span> Order ID <strong>{debouncedOrderID}</strong> already exists in the system.
+                    <span>⚠</span> Production Order <strong>{debouncedOrderID}</strong> already exists in the system.
                   </p>
                 )}
                 {!isDuplicate && debouncedOrderID && duplicateCheck.data && (
                   <p className="mt-1 text-xs text-green-600 flex items-center gap-1">
-                    <span>✓</span> Order ID is available.
+                    <span>✓</span> Production Order is available.
                   </p>
                 )}
               </div>
@@ -268,7 +268,7 @@ export default function SubmitOrder() {
               </div>
               <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-1.5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Order ID</span>
+                  <span className="text-gray-500">Production Order</span>
                   <span className="font-bold text-blue-700">{orderID.trim()}</span>
                 </div>
                 <div className="flex justify-between text-sm">

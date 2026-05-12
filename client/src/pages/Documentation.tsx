@@ -27,7 +27,7 @@ export default function Documentation() {
       title: "Core Features",
       sections: [
         "Home Dashboard & Welcome Toast",
-        "Submit Order (Order ID, Flute, Size, Qty, BQ)",
+        "Submit Order (Production Order, Flute, Size, Qty, BQ)",
         "Stock History — Low-Stock Alerts & Usage Update",
         "Usage History — Master Card, Board Size, Scores",
         "Approval Center — Pending / In Process / Approved / Cancelled",
@@ -174,8 +174,8 @@ export default function Documentation() {
                 <div className="grid md:grid-cols-2 gap-4">
                   {[
                     "Employee Login with 1-hour sessions (Level 1, 1.1 & 2)",
-                    "Submit new orders with auto-uppercase Order ID",
-                    "Real-time duplicate Order ID checking",
+                    "Submit new orders with auto-uppercase Production Order",
+                    "Real-time duplicate Production Order checking",
                     "Stock History with low-stock alerts & usage update",
                     "Usage History — Master Card, Board Size, Scores",
                     "Approval Center — Pending / In Process / Approved / Cancelled",

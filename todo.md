@@ -458,3 +458,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] QRScanner: log scan event on every successful QR scan (manual or camera)
 - [x] QRScanner: log balance update event when Employee ID verified and qty updated
 - [x] QRScanner: add "Scanned History" tab showing scan log (who, Order ID, action, time)
+
+
+## Terminology Update: Order ID → Production Order (May 9)
+- [x] Replace "Order ID" with "Production Order" in all UI labels and placeholders
+- [x] Update QR Scanner page (scan input, history display, QR code label)
+- [x] Update A4 Label printing (header, QR code text, footer)
+- [x] Update Stock History page (table headers, mobile cards, dialogs)
+- [x] Update Home dashboard (QR Scanner card description)
+- [x] Update FAQ page (all references to Order ID)
+- [x] Update server-side error messages and responses

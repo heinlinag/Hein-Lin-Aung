@@ -320,7 +320,7 @@ export const appRouter = router({
     qrUpdateBalance: publicProcedure
       .input(z.object({
         orderId: z.number().int().positive(),
-        orderStringId: z.string().min(1), // Order ID string for logging
+        orderStringId: z.string().min(1), // Production Order string for logging
         newQty: z.number().int().min(0),
         oldQty: z.number().int().min(0),
         employeeId: z.string().min(1),

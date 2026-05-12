@@ -45,7 +45,7 @@ function MobileCard({ entry }: { entry: UsageEntry }) {
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm mb-3">
           <div>
-            <span className="text-muted-foreground text-xs">Order ID</span>
+            <span className="text-muted-foreground text-xs">Production Order</span>
             <div className="font-semibold text-foreground">{entry.orderID}</div>
           </div>
           <div>
@@ -143,7 +143,7 @@ export default function UsageHistory() {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search by Order ID, Job No, Master Card, Employee ID..."
+            placeholder="Search by Production Order, Job No, Master Card, Employee ID..."
             className="w-full pl-8 pr-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
@@ -167,7 +167,7 @@ export default function UsageHistory() {
                     <tr>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Job No</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Used Qty</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Order ID</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Production Order</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Flute</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">BQ</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Master Card</th>

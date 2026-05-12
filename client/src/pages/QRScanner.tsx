@@ -269,7 +269,7 @@ export default function QRScanner() {
                   ) : (
                     <form onSubmit={handleManualVerify} className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Production Order</label>
                         <input
                           type="text"
                           placeholder="e.g. A-207"
@@ -298,7 +298,7 @@ export default function QRScanner() {
                       <span className="text-sm font-semibold text-blue-800">Scanned QR Data</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-gray-500">Order ID:</span> <span className="font-bold">{scannedData.orderId}</span></div>
+                      <div><span className="text-gray-500">Production Order:</span> <span className="font-bold">{scannedData.orderId}</span></div>
                       <div><span className="text-gray-500">Qty:</span> <span className="font-bold">{scannedData.qty} pcs</span></div>
                       {scannedData.bq && <div><span className="text-gray-500">BQ:</span> <span className="font-medium">{scannedData.bq}</span></div>}
                       {scannedData.boardSize && <div><span className="text-gray-500">Board Size:</span> <span className="font-medium">{scannedData.boardSize}</span></div>}
@@ -339,7 +339,7 @@ export default function QRScanner() {
                         </div>
                         <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                           <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Order ID</p>
+                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Production Order</p>
                             <p className="font-bold text-gray-900 text-base">{order.orderID}</p>
                           </div>
                           <div className="bg-gray-50 rounded-lg p-3">

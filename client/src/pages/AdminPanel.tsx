@@ -381,7 +381,7 @@ function WorkersTab() {
 function exportToExcel(orders: Order[]) {
   import("xlsx").then(XLSX => {
     const data = orders.map(o => ({
-      "Order ID": o.orderID,
+      "Production Order": o.orderID,
       "Flute Type": o.fluteType,
       "Width (mm)": o.sizeW,
       "Length (mm)": o.sizeL,
@@ -408,7 +408,7 @@ function exportToPDF(orders: Order[]) {
       doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
       (doc as unknown as { autoTable: (opts: unknown) => void }).autoTable({
         startY: 27,
-        head: [["Order ID", "Flute", "W×L (mm)", "Qty", "BQ Comment", "Status", "Submitted By", "Date"]],
+        head: [["Production Order", "Flute", "W×L (mm)", "Qty", "BQ Comment", "Status", "Submitted By", "Date"]],
         body: orders.map(o => [
           o.orderID,
           o.fluteType,
@@ -508,7 +508,7 @@ function OrdersTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {["Order ID","Flute","Size","Qty","BQ","Submitted By","Date","Status",""].map(h => (
+                  {["Production Order","Flute","Size","Qty","BQ","Submitted By","Date","Status",""].map(h => (
                     <th key={h} className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-3">{h}</th>
                   ))}
                 </tr>
@@ -552,7 +552,7 @@ function OrdersTab() {
               <div key={order.id} className="p-4 bg-white border border-border rounded-xl shadow-sm space-y-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Order ID</p>
+                    <p className="text-xs text-muted-foreground">Production Order</p>
                     <p className="text-sm font-bold text-primary">{order.orderID}</p>
                   </div>
                   <button onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }} className="text-muted-foreground hover:text-destructive p-1">
@@ -663,7 +663,7 @@ function DeletedLogsTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {["Order ID","Flute","Size","Qty","BQ","Deleted By","Deleted At"].map(h => (
+                  {["Production Order","Flute","Size","Qty","BQ","Deleted By","Deleted At"].map(h => (
                     <th key={h} className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-3">{h}</th>
                   ))}
                 </tr>
@@ -693,7 +693,7 @@ function DeletedLogsTab() {
               <div key={log.id} className="p-4 bg-red-50 border border-red-100 rounded-xl shadow-sm space-y-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Order ID</p>
+                    <p className="text-xs text-muted-foreground">Production Order</p>
                     <p className="text-sm font-bold text-red-600">{log.orderID}</p>
                   </div>
                   <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold">Deleted</span>
@@ -813,7 +813,7 @@ function PendingRequestsTab() {
                   <span className="text-xs text-muted-foreground">{new Date(req.createdAt).toLocaleString()}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-2">
-                  <div><span className="text-muted-foreground">Order ID: </span><span className="font-semibold">{snapshot.orderID ?? "—"}</span></div>
+                  <div><span className="text-muted-foreground">Production Order: </span><span className="font-semibold">{snapshot.orderID ?? "—"}</span></div>
                   <div><span className="text-muted-foreground">Requested by: </span><span className="font-semibold">{req.workerName} ({req.requestedBy})</span></div>
                   {req.type === "used_update" && action.usedQty && (
                     <div><span className="text-muted-foreground">Use Qty: </span><span className="font-semibold text-blue-700">{action.usedQty} pcs</span></div>

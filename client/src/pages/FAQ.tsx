@@ -72,8 +72,8 @@ const faqData = [
     icon: '📦',
     questions: [
       {
-        question: 'What is the Order ID format?',
-        answer: 'The Order ID is a unique identifier for each order (e.g., "ORD001", "A123B456"). The system automatically converts it to uppercase. Order IDs must be unique — the system will warn you if a duplicate is detected in real time.',
+        question: 'What is the Production Order format?',
+        answer: 'The Production Order is a unique identifier for each order (e.g., "ORD001", "A123B456"). The system automatically converts it to uppercase. Production Orders must be unique — the system will warn you if a duplicate is detected in real time.',
       },
       {
         question: 'What are BQ Comments and how should I use them?',
@@ -84,8 +84,8 @@ const faqData = [
         answer: 'Flute Type refers to the corrugated board type. Available options: BA, BC, BE, and Manual (for custom types). Select from the dropdown or choose "Manual" to enter a custom flute type.',
       },
       {
-        question: 'I see a "Duplicate Order ID" warning. What does it mean?',
-        answer: 'An order with the same ID already exists. Order IDs must be unique. Please use a different Order ID or verify with your team that you are not duplicating an existing order.',
+        question: 'I see a "Duplicate Production Order" warning. What does it mean?',
+        answer: 'An order with the same ID already exists. Production Orders must be unique. Please use a different Production Order or verify with your team that you are not duplicating an existing order.',
       },
       {
         question: 'Can I edit an order after submitting it?',
@@ -123,15 +123,15 @@ const faqData = [
       },
       {
         question: 'Where can I see past usage records?',
-        answer: 'Go to the Usage History page from the Home Dashboard. It shows all logged usage entries including Job No, Used Qty, Order ID, Flute Type, BQ, Board Size, and other details.',
+        answer: 'Go to the Usage History page from the Home Dashboard. It shows all logged usage entries including Job No, Used Qty, Production Order, Flute Type, BQ, Board Size, and other details.',
       },
       {
         question: 'How do I print an A4 label for an order?',
-        answer: 'In Stock History, click the printer icon 🖨️ next to any order. A professional A4 label will open with: Order ID, Quantity, Product Details (Board Size, Flute Type, BQ), and a QR code. You can then print it directly from your browser.',
+        answer: 'In Stock History, click the printer icon 🖨️ next to any order. A professional A4 label will open with: Production Order, Quantity, Product Details (Board Size, Flute Type, BQ), and a QR code. You can then print it directly from your browser.',
       },
       {
         question: 'What information is encoded in the QR code on the label?',
-        answer: 'The QR code contains: Order ID, Quantity, BQ, Board Size, Flute Type, and the timestamp when the label was generated. This allows the QR Scanner to verify order details when the label is scanned.',
+        answer: 'The QR code contains: Production Order, Quantity, BQ, Board Size, Flute Type, and the timestamp when the label was generated. This allows the QR Scanner to verify order details when the label is scanned.',
       },
     ],
   },
@@ -141,15 +141,15 @@ const faqData = [
     questions: [
       {
         question: 'What is the QR Scanner and how do I use it?',
-        answer: 'The QR Scanner is a verification tool accessible from the Home Dashboard. You can use it to:\n1. Scan QR codes from printed A4 labels using your device camera, or\n2. Manually enter an Order ID to verify it against Stock History records.\nAfter scanning, the system shows whether the order exists and displays its current details.',
+        answer: 'The QR Scanner is a verification tool accessible from the Home Dashboard. You can use it to:\n1. Scan QR codes from printed A4 labels using your device camera, or\n2. Manually enter an Production Order to verify it against Stock History records.\nAfter scanning, the system shows whether the order exists and displays its current details.',
       },
       {
         question: 'How do I access the QR Scanner?',
-        answer: 'From the Home Dashboard, click the "QR Scanner" card. You can then either:\n• Click "Start Camera" to scan a QR code from a label using your device camera, or\n• Enter an Order ID manually and click "Verify".',
+        answer: 'From the Home Dashboard, click the "QR Scanner" card. You can then either:\n• Click "Start Camera" to scan a QR code from a label using your device camera, or\n• Enter an Production Order manually and click "Verify".',
       },
       {
         question: 'What happens after I scan a QR code?',
-        answer: 'The system verifies the scanned Order ID against Stock History. If found, it displays:\n• Order ID, Current Quantity, Board Size, Flute Type, BQ\n• A "Match ✓" status if the order exists\n• An option to update the balance if needed (requires Employee ID verification)\n\nIf the order is not found, it shows "Not Found ✗" status.',
+        answer: 'The system verifies the scanned Production Order against Stock History. If found, it displays:\n• Production Order, Current Quantity, Board Size, Flute Type, BQ\n• A "Match ✓" status if the order exists\n• An option to update the balance if needed (requires Employee ID verification)\n\nIf the order is not found, it shows "Not Found ✗" status.',
       },
       {
         question: 'Can I update the balance after scanning?',
@@ -157,11 +157,11 @@ const faqData = [
       },
       {
         question: 'What is the "Scanned History" tab?',
-        answer: 'The Scanned History tab shows all scan events and balance updates. Each entry displays:\n• Order ID that was scanned\n• Employee name and ID who performed the action\n• Action type (Scanned or Balance Updated)\n• Old qty → New qty (for balance updates)\n• Date and time of the event\nThis provides a complete audit trail of all scanning and verification activities.',
+        answer: 'The Scanned History tab shows all scan events and balance updates. Each entry displays:\n• Production Order that was scanned\n• Employee name and ID who performed the action\n• Action type (Scanned or Balance Updated)\n• Old qty → New qty (for balance updates)\n• Date and time of the event\nThis provides a complete audit trail of all scanning and verification activities.',
       },
       {
         question: 'Can I see who scanned which order and when?',
-        answer: 'Yes. The Scanned History tab shows a complete log of all scanning activities, including: who scanned the order (Employee name and ID), which Order ID was scanned, the action performed, and the exact date/time. This helps track inventory verification and balance updates.',
+        answer: 'Yes. The Scanned History tab shows a complete log of all scanning activities, including: who scanned the order (Employee name and ID), which Production Order was scanned, the action performed, and the exact date/time. This helps track inventory verification and balance updates.',
       },
       {
         question: 'What if the QR code on the label does not match the current stock?',
@@ -183,7 +183,7 @@ const faqData = [
       },
       {
         question: 'What information is shown on a Used Update request card?',
-        answer: 'Each Used Update request card shows: Order ID, Flute Type, BQ, current quantity, requested used quantity, Job No, Board Size (W×L), purpose (Job No or Old Stock), submitted by, and submission time. If process-approved, it also shows who process-approved it and when.',
+        answer: 'Each Used Update request card shows: Production Order, Flute Type, BQ, current quantity, requested used quantity, Job No, Board Size (W×L), purpose (Job No or Old Stock), submitted by, and submission time. If process-approved, it also shows who process-approved it and when.',
       },
       {
         question: 'Can a Level 2 user override the approved quantity?',
@@ -222,7 +222,7 @@ const faqData = [
       },
       {
         question: 'What is the Deleted Logs tab?',
-        answer: 'The Deleted Logs tab shows a full audit trail of all deleted orders, including: Order ID, Flute Type, Size, Qty, BQ, who deleted it, and when. This helps maintain accountability and traceability.',
+        answer: 'The Deleted Logs tab shows a full audit trail of all deleted orders, including: Production Order, Flute Type, Size, Qty, BQ, who deleted it, and when. This helps maintain accountability and traceability.',
       },
       {
         question: 'What is the Pending Requests tab in the Admin Panel?',
@@ -230,7 +230,7 @@ const faqData = [
       },
       {
         question: 'How do I export orders to PDF or Excel?',
-        answer: 'In the Admin Panel Orders tab, use the "Export PDF" or "Export Excel" buttons to download the current order list. The export includes all visible columns: Order ID, Flute Type, Size, Qty, BQ, Submitted By, and Date.',
+        answer: 'In the Admin Panel Orders tab, use the "Export PDF" or "Export Excel" buttons to download the current order list. The export includes all visible columns: Production Order, Flute Type, Size, Qty, BQ, Submitted By, and Date.',
       },
     ],
   },
@@ -273,16 +273,16 @@ const faqData = [
         answer: 'The Available Qty accounts for pending Used Update requests. If other users have submitted pending requests for the same order, their requested quantities are subtracted from the current stock to prevent over-allocation.',
       },
       {
-        question: 'I see a "Duplicate Order ID" warning. What does it mean?',
-        answer: 'An order with the same ID already exists in the system. Order IDs must be unique. Please enter a different Order ID or check with your team to ensure you are not duplicating an existing order.',
+        question: 'I see a "Duplicate Production Order" warning. What does it mean?',
+        answer: 'An order with the same ID already exists in the system. Production Orders must be unique. Please enter a different Production Order or check with your team to ensure you are not duplicating an existing order.',
       },
       {
         question: 'The QR Scanner camera is not working. What should I do?',
-        answer: 'Ensure your browser has camera permission enabled for this site. Go to your browser settings → Site Settings → Camera and ensure this site is set to "Allow". Also check that no other app is using the camera. If the problem persists, try using the manual Order ID input instead.',
+        answer: 'Ensure your browser has camera permission enabled for this site. Go to your browser settings → Site Settings → Camera and ensure this site is set to "Allow". Also check that no other app is using the camera. If the problem persists, try using the manual Production Order input instead.',
       },
       {
         question: 'The QR code on the printed label does not scan. What should I do?',
-        answer: 'Ensure the label is printed clearly and not damaged. Try scanning it with the QR Scanner camera or use the manual Order ID input field. If the QR code is damaged, print a new label using the printer icon in Stock History.',
+        answer: 'Ensure the label is printed clearly and not damaged. Try scanning it with the QR Scanner camera or use the manual Production Order input field. If the QR code is damaged, print a new label using the printer icon in Stock History.',
       },
       {
         question: 'How do I contact support?',
