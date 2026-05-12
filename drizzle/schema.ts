@@ -30,6 +30,7 @@ export type InsertWorker = typeof workers.$inferInsert;
 export const orders = mysqlTable("orders", {
   id: int("id").autoincrement().primaryKey(),
   orderID: varchar("orderID", { length: 64 }).notNull(),
+  trackingId: varchar("trackingId", { length: 64 }).unique(), // TRK-YYYYMMDD-XXXXX format (nullable for existing orders)
   fluteType: varchar("fluteType", { length: 64 }).notNull(),
   sizeW: int("sizeW").notNull(),
   sizeL: int("sizeL").notNull(),

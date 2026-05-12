@@ -468,3 +468,15 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Update Home dashboard (QR Scanner card description)
 - [x] Update FAQ page (all references to Order ID)
 - [x] Update server-side error messages and responses
+
+
+## Tracking ID (Reference Number) Feature (May 12)
+- [x] Schema: add trackingId column to orders table (unique, auto-generated format: TRK-YYYYMMDD-XXXXX)
+- [x] Apply migration SQL for trackingId column
+- [x] DB helper: generateTrackingId function
+- [x] Server: update submitOrder procedure to auto-generate and save trackingId
+- [x] Stock History: display Tracking ID in desktop table (new column after Production Order)
+- [x] Stock History: display Tracking ID in mobile card (prominently shown)
+- [x] QR Scanner: add trackingId to QR code data
+- [x] A4 Label: display Tracking ID prominently (header or near QR code)
+- [x] FAQ: add Q&A about Tracking ID (Reference Number) format and usage

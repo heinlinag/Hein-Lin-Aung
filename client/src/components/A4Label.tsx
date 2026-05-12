@@ -4,6 +4,7 @@ import { Printer } from "lucide-react";
 
 interface A4LabelProps {
   orderId: string;
+  trackingId?: string;
   orderQty: number;
   masterCard: string;
   boardSize: string;
@@ -13,6 +14,7 @@ interface A4LabelProps {
 
 export const A4Label: React.FC<A4LabelProps> = ({
   orderId,
+  trackingId,
   orderQty,
   masterCard,
   boardSize,
@@ -306,6 +308,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
 
   const qrValue = JSON.stringify({
     orderId,
+    trackingId,
     qty: orderQty,
     bq: masterCard,
     boardSize,
@@ -350,6 +353,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
           <div>
             <div className="order-id-label">Production Order</div>
             <div className="order-id-value">{orderId}</div>
+            {trackingId && <div style={{ fontSize: '11px', fontWeight: '600', marginTop: '2mm', letterSpacing: '1px', opacity: 0.9 }}>Ref: {trackingId}</div>}
           </div>
           <div>
             <div className="qty-pill">{orderQty}</div>

@@ -161,8 +161,11 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
+        const { generateTrackingId } = await import("./db");
+        const trackingId = generateTrackingId();
         await createOrder({
           orderID: input.orderID,
+          trackingId: trackingId,
           fluteType: input.fluteType,
           sizeW: input.sizeW,
           sizeL: input.sizeL,
@@ -171,7 +174,7 @@ export const appRouter = router({
           status: "current",
           submittedBy: input.workerID,
         });
-        return { success: true };
+        return { success: true, trackingId };
       }),
     updateStatus: publicProcedure
       .input(z.object({

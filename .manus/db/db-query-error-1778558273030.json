@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE `orders` ADD `trackingId` varchar(64) NOT NULL;\nALTER TABLE `orders` ADD CONSTRAINT `orders_trackingId_unique` UNIQUE(`trackingId`);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute ALTER TABLE `orders` ADD `trackingId` varchar(64) NOT NULL;\nALTER TABLE `orders` ADD CONSTRAINT `orders_trackingId_unique` UNIQUE(`trackingId`);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1062 (23000) at line 2: Duplicate entry '?' for key 'orders.orders_trackingId_unique'"
+  ]
+}

@@ -5,6 +5,19 @@ import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+// ─── Tracking ID Generator ───────────────────────────────────────────────────
+
+export function generateTrackingId(): string {
+  // Format: TRK-YYYYMMDD-XXXXX
+  // XXXXX is a 5-digit random number (00000-99999)
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const random = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
+  return `TRK-${year}${month}${day}-${random}`;
+}
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {

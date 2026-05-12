@@ -10,7 +10,7 @@ import { A4Label } from "@/components/A4Label";
 const LOW_STOCK_THRESHOLD = 50;
 
 type Order = {
-  id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
+  id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock";
   submittedBy: string | null; createdAt: Date;
 };
@@ -701,7 +701,7 @@ export default function StockHistory() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b-2 border-border">
-                    {["Production Order","Flute Type","Size (W×L)","Qty","BQ","Date","Actions"].map(h => (
+                    {["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","BQ","Date","Actions"].map(h => (
                       <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-4">{h}</th>
                     ))}
                   </tr>
@@ -711,6 +711,9 @@ export default function StockHistory() {
                     const isLowStock = activeTab === "current" && order.qty < LOW_STOCK_THRESHOLD;
                     return (
                     <tr key={order.id} className={`border-b border-border hover:bg-gray-50 transition-colors ${isLowStock ? "bg-orange-50/40" : ""}`}>
+                      <td className="py-3 pr-4">
+                        <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold">{order.trackingId || "—"}</span>
+                      </td>
                       <td className="py-3 pr-4 font-bold text-primary">
                         <div className="flex items-center gap-1.5">
                           {isLowStock && <AlertTriangle size={13} className="text-orange-500 flex-shrink-0" />}
@@ -741,6 +744,7 @@ export default function StockHistory() {
                           )}
                           <A4Label
                             orderId={order.orderID}
+                            trackingId={order.trackingId}
                             orderQty={order.qty}
                             masterCard={order.bqComment}
                             boardSize={`${order.sizeW}×${order.sizeL}`}
@@ -764,6 +768,7 @@ export default function StockHistory() {
                 const isLowStock = activeTab === "current" && order.qty < LOW_STOCK_THRESHOLD;
                 return (
                 <div key={order.id} className={`border rounded-xl shadow-sm p-4 space-y-2 ${isLowStock ? "bg-orange-50 border-orange-200" : "bg-white border-border"}`}>
+                  {order.trackingId && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold inline-block">Ref: {order.trackingId}</span>}
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground">Production Order</p>
