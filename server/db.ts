@@ -7,15 +7,28 @@ let _db: ReturnType<typeof drizzle> | null = null;
 
 // ─── Tracking ID Generator ───────────────────────────────────────────────────
 
-export function generateTrackingId(): string {
-  // Format: TRK-YYYYMMDD-XXXXX
-  // XXXXX is a 5-digit random number (00000-99999)
+export function generateTrackingId(orderID?: string): string {
+  // Format: PP4 + DDMMYY + HHMM + OrderID Suffix
+  // Example: PP400130520260100A206
+  // PP4 = prefix
+  // 001305 = day (01), month (05), year (26)
+  // 2026 = hour (20), minute (26)
+  // A206 = suffix from Production Order (A-206 -> A206)
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
-  const random = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
-  return `TRK-${year}${month}${day}-${random}`;
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear()).slice(-2);
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  
+  // Extract suffix from orderID (e.g., "A-206" -> "A206", "A - 206" -> "A206")
+  let orderSuffix = "0000";
+  if (orderID) {
+    // Remove hyphens and spaces, keep only alphanumeric
+    orderSuffix = orderID.replace(/[-\s]/g, '').toUpperCase().slice(-4).padStart(4, '0');
+  }
+  
+  return `PP4${day}${month}${year}${hour}${minute}${orderSuffix}`;
 }
 
 export async function getDb() {

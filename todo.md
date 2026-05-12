@@ -480,3 +480,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] QR Scanner: add trackingId to QR code data
 - [x] A4 Label: display Tracking ID prominently (header or near QR code)
 - [x] FAQ: add Q&A about Tracking ID (Reference Number) format and usage
+
+## Enhanced Tracking ID Format (May 12 - v2)
+- [x] Update generateTrackingId to include Production Order suffix
+- [x] Format: PP4 + DDMMYY + HHMM + Production Order Suffix (14 chars total)
+- [x] Example: PP41305262026A206 (from Production Order A-206 on 13/05/26 at 20:26)
+- [x] Handle various Production Order formats (A-206, A206, A - 206, etc.)
+- [x] Auto-uppercase and remove hyphens/spaces from Production Order
+- [x] Extract last 4 characters from Production Order ID
+- [x] Comprehensive unit tests for all format variations (7 tests, all passing)
+- [x] Update existing tests to support new format

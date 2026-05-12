@@ -162,7 +162,7 @@ export const appRouter = router({
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
         const { generateTrackingId } = await import("./db");
-        const trackingId = generateTrackingId();
+        const trackingId = generateTrackingId(input.orderID);
         await createOrder({
           orderID: input.orderID,
           trackingId: trackingId,

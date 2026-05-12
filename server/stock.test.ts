@@ -12,6 +12,7 @@ vi.mock("./db", () => ({
   createOrder: vi.fn().mockResolvedValue(undefined),
   updateOrderStatus: vi.fn().mockResolvedValue(undefined),
   deleteOrder: vi.fn().mockResolvedValue(undefined),
+  generateTrackingId: vi.fn((orderID?: string) => `TRK-${orderID || 'TEST'}`),
 }));
 
 import * as db from "./db";
@@ -74,6 +75,7 @@ describe("orders.submit", () => {
       id: 1, workerID: "W-001", name: "Alice", department: "Production", createdAt: new Date(),
     });
     vi.mocked(db.createOrder).mockResolvedValue(undefined);
+    vi.mocked(db.generateTrackingId).mockReturnValue('TRK-ORD-001');
     const caller = appRouter.createCaller(createPublicCtx());
     const result = await caller.orders.submit({
       orderID: "ORD-001",
@@ -84,8 +86,9 @@ describe("orders.submit", () => {
       bqComment: "LR170MP115LR170",
       workerID: "W-001",
     });
-    expect(result).toEqual({ success: true });
+    expect(result).toEqual({ success: true, trackingId: expect.any(String) });
     expect(db.createOrder).toHaveBeenCalledOnce();
+    expect(result.trackingId).toBeDefined();
   });
 
   it("throws UNAUTHORIZED when worker ID is invalid", async () => {
