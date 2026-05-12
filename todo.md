@@ -356,7 +356,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Usage History: show Level 1.1 request info (process approved by) in history
 - [x] Admin Panel: Full Access — approve/cancel pending requests from Admin Panel
 - [x] Admin Panel: Full Access — process approve (Level 1.1 style) from Admin Panel
-- [ ] Admin Panel: Full Access — direct Used Update / Delete from Admin Panel (bypass approval)
+- [x] Admin Panel: Full Access — direct Used Update / Delete from Admin Panel (bypass approval)
 - [x] Admin Panel: show all worker levels including 1.1 in worker management
 - [x] Login Page: display current version number (e.g. v2.5.0)
 

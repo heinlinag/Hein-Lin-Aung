@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
@@ -10,7 +10,7 @@ const ADMIN_PASSWORD = "Qwer@7090heinann";
 
 type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; createdAt: Date };
 type Order = {
-  id: number; orderID: string; fluteType: string; sizeW: number; sizeL: number;
+  id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
 };
 
@@ -437,8 +437,20 @@ function OrdersTab() {
   const [confirmWorkerID, setConfirmWorkerID] = useState("");
   const [deleteError, setDeleteError] = useState("");
 
+  const [usedUpdateTarget, setUsedUpdateTarget] = useState<Order | null>(null);
+  const [usedQty, setUsedQty] = useState("");
+  const [jobNo, setJobNo] = useState("");
+  const [masterCard, setMasterCard] = useState("");
+  const [boardSizeW, setBoardSizeW] = useState("");
+  const [boardSizeL, setBoardSizeL] = useState("");
+  const [scores, setScores] = useState("");
+  const [usedUpdateError, setUsedUpdateError] = useState("");
+  const [usedUpdateStep, setUsedUpdateStep] = useState<"type" | "confirm">("type");
+  const [usedUpdateType, setUsedUpdateType] = useState<"old_stock" | "job_no">("job_no");
+
   const deleteOrder = trpc.orders.delete.useMutation();
   const updateStatus = trpc.orders.updateStatus.useMutation();
+  const logUsage = trpc.orders.logUsage.useMutation();
 
   const handleDeleteOrder = async () => {
     if (!deleteTarget) return;
@@ -464,6 +476,66 @@ function OrdersTab() {
     } catch (err: unknown) {
       const e = err as { message?: string };
       toast.error(e?.message ?? "Failed to update status.");
+    }
+  };
+
+  const handleUsedUpdate = async () => {
+    if (!usedUpdateTarget) return;
+    setUsedUpdateError("");
+    if (usedUpdateStep === "type") {
+      if (usedUpdateType === "job_no") {
+        if (!jobNo.trim()) { setUsedUpdateError("Job No is required."); return; }
+        if (!masterCard.trim()) { setUsedUpdateError("Master Card is required."); return; }
+        if (!boardSizeW.trim() || !boardSizeL.trim()) { setUsedUpdateError("Board Size is required."); return; }
+      } else {
+        if (!usedQty.trim() || isNaN(Number(usedQty))) { setUsedUpdateError("Valid Used Qty is required."); return; }
+      }
+      setUsedUpdateStep("confirm");
+      return;
+    }
+    try {
+      if (usedUpdateType === "job_no") {
+        await logUsage.mutateAsync({
+          jobNo: jobNo.trim(),
+          usedQty: 0,
+          orderID: usedUpdateTarget.orderID,
+          fluteType: usedUpdateTarget.fluteType,
+          bqComment: usedUpdateTarget.bqComment,
+          purpose: "job",
+          orderId: usedUpdateTarget.id,
+          newQty: usedUpdateTarget.qty,
+          performedBy: "ADMIN",
+          masterCard: masterCard.trim(),
+          boardSizeW: Number(boardSizeW),
+          boardSizeL: Number(boardSizeL),
+          scores: scores.trim() || null,
+        });
+      } else {
+        await logUsage.mutateAsync({
+          jobNo: null,
+          usedQty: Number(usedQty),
+          orderID: usedUpdateTarget.orderID,
+          fluteType: usedUpdateTarget.fluteType,
+          bqComment: usedUpdateTarget.bqComment,
+          purpose: "old_stock",
+          orderId: usedUpdateTarget.id,
+          newQty: 0,
+          performedBy: "ADMIN",
+        });
+      }
+      toast.success(usedUpdateType === "job_no" ? "Job No usage logged." : "Old Stock cleared.");
+      utils.orders.list.invalidate();
+      setUsedUpdateTarget(null);
+      setUsedUpdateStep("type");
+      setJobNo("");
+      setUsedQty("");
+      setMasterCard("");
+      setBoardSizeW("");
+      setBoardSizeL("");
+      setScores("");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setUsedUpdateError(e?.message ?? "Failed to update usage.");
     }
   };
 
@@ -508,7 +580,7 @@ function OrdersTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {["Production Order","Flute","Size","Qty","BQ","Submitted By","Date","Status",""].map(h => (
+                  {["Tracking ID","Production Order","Flute","Size","Qty","BQ","Submitted By","Date","Status",""].map(h => (
                     <th key={h} className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-3">{h}</th>
                   ))}
                 </tr>
@@ -516,6 +588,9 @@ function OrdersTab() {
               <tbody>
                 {orders.map(order => (
                   <tr key={order.id} className="border-b border-border hover:bg-gray-50 transition-colors">
+                    <td className="py-3 pr-3">
+                      <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold">{order.trackingId || "—"}</span>
+                    </td>
                     <td className="py-3 pr-3 text-sm font-semibold text-primary">{order.orderID}</td>
                     <td className="py-3 pr-3">
                       <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Flute : {order.fluteType}</span>
@@ -536,8 +611,11 @@ function OrdersTab() {
                         {order.status === "current" ? "Current" : "Out"}
                       </button>
                     </td>
-                    <td className="py-3">
-                      <button onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }} className="text-muted-foreground hover:text-destructive transition-colors">
+                    <td className="py-3 flex gap-1">
+                      <button onClick={() => { setUsedUpdateTarget(order); setUsedUpdateStep("type"); setUsedUpdateType("job_no"); setJobNo(""); setUsedQty(""); setMasterCard(""); setBoardSizeW(""); setBoardSizeL(""); setScores(""); setUsedUpdateError(""); }} className="text-muted-foreground hover:text-blue-600 transition-colors" title="Used Update">
+                        <Zap size={14} />
+                      </button>
+                      <button onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }} className="text-muted-foreground hover:text-destructive transition-colors" title="Delete">
                         <Trash2 size={14} />
                       </button>
                     </td>
@@ -550,6 +628,7 @@ function OrdersTab() {
           <div className="md:hidden space-y-2">
             {orders.map(order => (
               <div key={order.id} className="p-4 bg-white border border-border rounded-xl shadow-sm space-y-2">
+                {order.trackingId && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold inline-block">Ref: {order.trackingId}</span>}
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">Production Order</p>
@@ -593,6 +672,14 @@ function OrdersTab() {
                     {order.status === "current" ? "Current" : "Out"}
                   </button>
                 </div>
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => { setUsedUpdateTarget(order); setUsedUpdateStep("type"); setUsedUpdateType("job_no"); setJobNo(""); setUsedQty(""); setMasterCard(""); setBoardSizeW(""); setBoardSizeL(""); setScores(""); setUsedUpdateError(""); }} className="flex-1 bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5">
+                    <Zap size={13} /> Used Update
+                  </button>
+                  <button onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }} className="flex-1 bg-red-100 text-red-700 hover:bg-red-200 text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5">
+                    <Trash2 size={13} /> Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -624,6 +711,177 @@ function OrdersTab() {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Used Update Dialog */}
+      {usedUpdateTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="font-bold text-foreground mb-4">Used Update - {usedUpdateTarget.orderID}</h3>
+
+            {usedUpdateStep === "type" ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-2 block">Update Type</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setUsedUpdateType("job_no")}
+                      className={`flex-1 py-2.5 rounded-lg font-semibold transition-colors ${
+                        usedUpdateType === "job_no"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-foreground hover:bg-gray-200"
+                      }`}
+                    >
+                      Job No
+                    </button>
+                    <button
+                      onClick={() => setUsedUpdateType("old_stock")}
+                      className={`flex-1 py-2.5 rounded-lg font-semibold transition-colors ${
+                        usedUpdateType === "old_stock"
+                          ? "bg-red-600 text-white"
+                          : "bg-gray-100 text-foreground hover:bg-gray-200"
+                      }`}
+                    >
+                      Old Stock
+                    </button>
+                  </div>
+                </div>
+
+                {usedUpdateType === "job_no" ? (
+                  <>
+                    <div>
+                      <label className="text-sm font-semibold text-foreground mb-1 block">Job No <span className="text-red-600">*</span></label>
+                      <input
+                        type="text"
+                        value={jobNo}
+                        onChange={e => { setJobNo(e.target.value.toUpperCase()); setUsedUpdateError(""); }}
+                        placeholder="Enter Job No"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-foreground mb-1 block">Master Card <span className="text-red-600">*</span></label>
+                      <input
+                        type="text"
+                        value={masterCard}
+                        onChange={e => { setMasterCard(e.target.value.toUpperCase()); setUsedUpdateError(""); }}
+                        placeholder="Enter Master Card"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-sm font-semibold text-foreground mb-1 block">Width <span className="text-red-600">*</span></label>
+                        <input
+                          type="number"
+                          value={boardSizeW}
+                          onChange={e => { setBoardSizeW(e.target.value); setUsedUpdateError(""); }}
+                          placeholder="W"
+                          className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold text-foreground mb-1 block">Length <span className="text-red-600">*</span></label>
+                        <input
+                          type="number"
+                          value={boardSizeL}
+                          onChange={e => { setBoardSizeL(e.target.value); setUsedUpdateError(""); }}
+                          placeholder="L"
+                          className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-foreground mb-1 block">Scores (optional)</label>
+                      <input
+                        type="text"
+                        value={scores}
+                        onChange={e => { setScores(e.target.value); setUsedUpdateError(""); }}
+                        placeholder="Enter Scores"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="text-sm font-semibold text-foreground mb-1 block">Used Qty <span className="text-red-600">*</span></label>
+                    <input
+                      type="number"
+                      value={usedQty}
+                      onChange={e => { setUsedQty(e.target.value); setUsedUpdateError(""); }}
+                      placeholder="Enter quantity used"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    />
+                  </div>
+                )}
+
+                {usedUpdateError && <p className="text-xs text-destructive">{usedUpdateError}</p>}
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    onClick={() => {
+                      setUsedUpdateTarget(null);
+                      setUsedUpdateStep("type");
+                      setJobNo("");
+                      setUsedQty("");
+                      setMasterCard("");
+                      setBoardSizeW("");
+                      setBoardSizeL("");
+                      setScores("");
+                      setUsedUpdateError("");
+                    }}
+                    className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUsedUpdate}
+                    disabled={logUsage.isPending}
+                    className="flex-1 bg-blue-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
+                  >
+                    {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                    Next
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-900 font-semibold mb-2">Confirm {usedUpdateType === "job_no" ? "Job No" : "Old Stock"} Update</p>
+                  {usedUpdateType === "job_no" ? (
+                    <div className="space-y-1 text-xs text-blue-800">
+                      <p><strong>Job No:</strong> {jobNo}</p>
+                      <p><strong>Master Card:</strong> {masterCard}</p>
+                      <p><strong>Board Size:</strong> {boardSizeW}×{boardSizeL} mm</p>
+                      {scores && <p><strong>Scores:</strong> {scores}</p>}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-blue-800"><strong>Used Qty:</strong> {usedQty} pcs</p>
+                  )}
+                </div>
+
+                {usedUpdateError && <p className="text-xs text-destructive">{usedUpdateError}</p>}
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setUsedUpdateStep("type")}
+                    className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleUsedUpdate}
+                    disabled={logUsage.isPending}
+                    className="flex-1 bg-blue-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
+                  >
+                    {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
