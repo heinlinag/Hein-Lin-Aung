@@ -634,9 +634,6 @@ function OrdersTab() {
                     <p className="text-xs text-muted-foreground">Production Order</p>
                     <p className="text-sm font-bold text-primary">{order.orderID}</p>
                   </div>
-                  <button onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }} className="text-muted-foreground hover:text-destructive p-1">
-                    <Trash2 size={15} />
-                  </button>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">Flute</span>

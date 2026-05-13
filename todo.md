@@ -513,3 +513,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add "View in Stock History" button to navigate to the order
 - [x] Add "Submit Another Order" button to clear form and start new order
 - [x] Mobile and desktop responsive design
+
+## Admin Panel Mobile View - Delete Button Fix (May 13)
+- [x] Remove duplicate Delete button from mobile cards in Admin Panel
+- [x] Keep only one Delete button per mobile card
+- [x] Ensure desktop view still has Delete button in actions column
