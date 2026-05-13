@@ -490,3 +490,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Extract last 4 characters from Production Order ID
 - [x] Comprehensive unit tests for all format variations (7 tests, all passing)
 - [x] Update existing tests to support new format
+
+## Mobile View - Tracking ID Display (May 13)
+- [x] Stock History mobile card: add Tracking ID display below Date/Time
+- [x] Show "N/A" for orders without Tracking ID
+- [x] Format: "Tracking ID: PP41305262026A206" or "Tracking ID: N/A"
+- [x] Style to match existing mobile card design

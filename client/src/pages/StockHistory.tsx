@@ -790,6 +790,7 @@ export default function StockHistory() {
                     <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono break-all leading-relaxed">{order.bqComment}</span>
                   </div>
                   <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">Tracking ID: <span className="font-mono font-semibold text-foreground">{order.trackingId || "N/A"}</span></p>
                   {activeTab === "current" && (
                     <button
                       onClick={() => setUsedUpdateOrder(order)}
