@@ -41,9 +41,18 @@ export default function QRScanner() {
   const [employeeId, setEmployeeId] = useState("");
   const [updateNote, setUpdateNote] = useState("");
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerDivRef = useRef<HTMLDivElement>(null);
+  const barcodeInputRef = useRef<HTMLInputElement>(null);
   const hasLoggedScan = useRef<string | null>(null);
+
+  // Detect mobile/desktop on mount and resize
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const { data: verifyResult, isLoading: verifying, refetch: refetchVerify } = trpc.orders.qrVerifyByTrackingId.useQuery(
     { trackingId: verifyTrackingId },
@@ -219,18 +228,37 @@ export default function QRScanner() {
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">
                 <div className="p-4 border-b border-gray-100 bg-gray-50">
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => { setManualInput(false); if (!scanning) startScanner(); }}
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${!manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
-                    >
-                      📷 Camera Scan
-                    </button>
-                    <button
-                      onClick={() => { setManualInput(true); stopScanner(); }}
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
-                    >
-                      ⌨️ Manual Input
-                    </button>
+                    {isMobile ? (
+                      <>
+                        <button
+                          onClick={() => { setManualInput(false); if (!scanning) startScanner(); }}
+                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${!manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+                        >
+                          📷 Camera Scan
+                        </button>
+                        <button
+                          onClick={() => { setManualInput(true); stopScanner(); }}
+                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+                        >
+                          ⌨️ Manual Input
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => { setManualInput(false); }}
+                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${!manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+                        >
+                          📊 Barcode Scan
+                        </button>
+                        <button
+                          onClick={() => { setManualInput(true); }}
+                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+                        >
+                          ⌨️ Manual Input
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -267,13 +295,13 @@ export default function QRScanner() {
                         </div>
                       )}
                     </div>
-                  ) : (
+                  ) : isMobile ? (
                     <form onSubmit={handleManualVerify} className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Production Order</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tracking ID</label>
                         <input
                           type="text"
-                          placeholder="e.g. A-207"
+                          placeholder="e.g. PP41305262026A206"
                           className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
                           onChange={(e) => e.target.value = e.target.value.toUpperCase()}
                         />
@@ -285,6 +313,33 @@ export default function QRScanner() {
                         Verify Order
                       </button>
                     </form>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Barcode Scanner</label>
+                        <input
+                          ref={barcodeInputRef}
+                          type="text"
+                          placeholder="Scan barcode or enter Tracking ID..."
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                          onChange={(e) => {
+                            e.target.value = e.target.value.toUpperCase();
+                            if (e.target.value.length > 0 && e.target.value.startsWith('PP4')) {
+                              setVerifyTrackingId(e.target.value);
+                              e.target.value = '';
+                            }
+                          }}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && barcodeInputRef.current?.value) {
+                              setVerifyTrackingId(barcodeInputRef.current.value);
+                              barcodeInputRef.current.value = '';
+                            }
+                          }}
+                          autoFocus
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500">Scan barcode label or manually enter Tracking ID</p>
+                    </div>
                   )}
                 </div>
               </div>

@@ -565,3 +565,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Server: Add qrVerifyByTrackingId procedure
 - [x] QR Scanner: Display Production Order details when Tracking ID is scanned
 - [x] All tests passing (16/16)
+
+
+## QR Scanner UI Updates (May 14)
+- [x] Update manual input label: "Production Order" → "Tracking ID"
+- [x] Update placeholder text: "E.G. A-207" → "E.G. PP41305262026A206"
+- [x] Add barcode scanner component for desktop
+- [x] Implement responsive design: QR scanner on mobile, barcode scanner on desktop
+- [x] Hide barcode scanner on mobile view
+- [x] Test on mobile and desktop
