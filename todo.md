@@ -496,3 +496,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Show "N/A" for orders without Tracking ID
 - [x] Format: "Tracking ID: PP41305262026A206" or "Tracking ID: N/A"
 - [x] Style to match existing mobile card design
+
+## Tracking ID Verification & Bug Fix (May 13)
+- [x] Fix: Add trackingId to getAllOrders SELECT statement
+- [x] Verify: trackingId is being generated automatically on order submission
+- [x] Verify: trackingId is being saved to database correctly
+- [x] Verify: trackingId is being returned to frontend in Stock History
+- [x] Verify: trackingId displays correctly on mobile cards
+- [x] Verify: trackingId displays correctly on desktop table
+- [x] All tests passing (16/16 ✓)

@@ -125,6 +125,7 @@ export async function getAllOrders(status?: "current" | "out_of_stock") {
     .select({
       id: orders.id,
       orderID: orders.orderID,
+      trackingId: orders.trackingId,
       fluteType: orders.fluteType,
       sizeW: orders.sizeW,
       sizeL: orders.sizeL,
