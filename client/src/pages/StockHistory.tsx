@@ -712,7 +712,13 @@ export default function StockHistory() {
                     return (
                     <tr key={order.id} className={`border-b border-border hover:bg-gray-50 transition-colors ${isLowStock ? "bg-orange-50/40" : ""}`}>
                       <td className="py-3 pr-4">
-                        <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold">{order.trackingId || "—"}</span>
+                        <span className={`text-xs px-2 py-1 rounded font-mono font-bold ${
+                          order.trackingId 
+                            ? "bg-teal-100 text-teal-700" 
+                            : "bg-gray-100 text-gray-500"
+                        }`}>
+                          {order.trackingId || "N/A"}
+                        </span>
                       </td>
                       <td className="py-3 pr-4 font-bold text-primary">
                         <div className="flex items-center gap-1.5">

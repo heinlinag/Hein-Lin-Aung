@@ -518,3 +518,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Remove duplicate Delete button from mobile cards in Admin Panel
 - [x] Keep only one Delete button per mobile card
 - [x] Ensure desktop view still has Delete button in actions column
+
+## Desktop Tracking ID Display Fix (May 13)
+- [x] Update desktop table to show "N/A" for missing Tracking ID (consistent with mobile)
+- [x] Style N/A differently (gray background) vs actual Tracking ID (teal background)
+- [x] Ensure consistency between mobile and desktop views
