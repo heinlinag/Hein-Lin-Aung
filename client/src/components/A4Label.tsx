@@ -67,7 +67,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
               align-items: center;
               justify-content: space-between;
               padding-bottom: 6mm;
-              border-bottom: 3px solid #0f4c75;
+              border-bottom: 2px solid #000;
               margin-bottom: 7mm;
             }
             .header-left {
@@ -83,13 +83,13 @@ export const A4Label: React.FC<A4LabelProps> = ({
             .brand-name {
               font-size: 22px;
               font-weight: 900;
-              color: #0f4c75;
+              color: #000;
               letter-spacing: -0.3px;
               line-height: 1.1;
             }
             .brand-sub {
               font-size: 10px;
-              color: #666;
+              color: #000;
               margin-top: 1mm;
               letter-spacing: 0.5px;
               text-transform: uppercase;
@@ -100,23 +100,25 @@ export const A4Label: React.FC<A4LabelProps> = ({
             .doc-type {
               font-size: 11px;
               font-weight: 700;
-              color: #0f4c75;
+              color: #000;
               text-transform: uppercase;
               letter-spacing: 1px;
-              background: #e8f4fd;
+              background: white;
+              border: 1px solid #000;
               padding: 2mm 5mm;
               border-radius: 2px;
             }
             .print-date {
               font-size: 9px;
-              color: #999;
+              color: #000;
               margin-top: 2mm;
             }
 
             /* ── ORDER ID BANNER ── */
             .order-banner {
-              background: #0f4c75;
-              color: white;
+              background: white;
+              color: #000;
+              border: 2px solid #000;
               padding: 5mm 8mm;
               border-radius: 3px;
               display: flex;
@@ -129,17 +131,20 @@ export const A4Label: React.FC<A4LabelProps> = ({
               font-weight: 600;
               letter-spacing: 2px;
               text-transform: uppercase;
-              opacity: 0.8;
+              opacity: 1;
+              color: #000;
             }
             .order-id-value {
               font-size: 30px;
               font-weight: 900;
               letter-spacing: 1px;
               line-height: 1;
+              color: #000;
             }
             .qty-pill {
               background: white;
-              color: #0f4c75;
+              color: #000;
+              border: 1px solid #000;
               font-size: 22px;
               font-weight: 900;
               padding: 3mm 7mm;
@@ -173,16 +178,17 @@ export const A4Label: React.FC<A4LabelProps> = ({
               gap: 5mm;
             }
             .section {
-              border: 1.5px solid #d0e8f5;
+              border: 1px solid #000;
               border-radius: 3px;
               overflow: hidden;
             }
             .section-header {
-              background: #e8f4fd;
+              background: white;
+              border-bottom: 1px solid #000;
               padding: 2.5mm 5mm;
               font-size: 10px;
               font-weight: 800;
-              color: #0f4c75;
+              color: #000;
               text-transform: uppercase;
               letter-spacing: 1px;
             }
@@ -191,6 +197,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
               display: flex;
               flex-direction: column;
               gap: 3.5mm;
+              background: white;
             }
             .field-row {
               display: flex;
@@ -200,7 +207,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
             .field-label {
               font-size: 10px;
               font-weight: 700;
-              color: #888;
+              color: #000;
               text-transform: uppercase;
               letter-spacing: 0.5px;
               min-width: 28mm;
@@ -209,7 +216,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
             .field-value {
               font-size: 16px;
               font-weight: 700;
-              color: #1a1a1a;
+              color: #000;
               flex: 1;
               word-break: break-word;
               line-height: 1.2;
@@ -217,7 +224,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
             .field-value.large {
               font-size: 20px;
               font-weight: 900;
-              color: #0f4c75;
+              color: #000;
             }
 
             /* ── QR PANEL ── */
@@ -229,7 +236,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
               gap: 4mm;
             }
             .qr-box {
-              border: 2px solid #0f4c75;
+              border: 2px solid #000;
               border-radius: 4px;
               padding: 4mm;
               background: white;
@@ -245,7 +252,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
             }
             .qr-caption {
               font-size: 8px;
-              color: #888;
+              color: #000;
               text-align: center;
               font-weight: 600;
               letter-spacing: 0.5px;
@@ -259,16 +266,15 @@ export const A4Label: React.FC<A4LabelProps> = ({
               letter-spacing: 1px;
             }
 
-            /* ── FOOTER ── */
-            .footer {
-              border-top: 2px solid #0f4c75;
-              padding-top: 4mm;
+            /* ── FOOTER ──             .footer {
+              border-top: 1px solid #000;
+              padding-top: 5mm;
               display: flex;
               justify-content: space-between;
-              align-items: flex-end;
-            }
-            .footer-left {
-              font-size: 9px;
+              align-items: center;
+              font-size: 8px;
+              color: #000;
+            }px;
               color: #aaa;
               line-height: 1.6;
             }

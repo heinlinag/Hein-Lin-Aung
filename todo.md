@@ -530,3 +530,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Use createdAt timestamp for date/time in Tracking ID
 - [x] Execute migration to populate trackingId for all orders without one
 - [x] Verify all orders now have Tracking IDs
+
+## A4 Label - Black & White Styling (May 13)
+- [x] Remove all colors from A4Label component
+- [x] Update to black text only (for black and white printing)
+- [x] Remove colored backgrounds (teal, blue, yellow, etc.)
+- [x] Keep borders and structure, use black lines only
+- [x] Ensure QR code remains black and white
+- [x] Test print preview to verify black and white output
