@@ -538,3 +538,30 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Keep borders and structure, use black lines only
 - [x] Ensure QR code remains black and white
 - [x] Test print preview to verify black and white output
+
+## Tracking ID-Only QR Code & Barcode System (May 13)
+- [ ] A4 Label: Update QR code generation to use ONLY Tracking ID (not Production Order)
+- [ ] A4 Label: Show "N/A" instead of QR code if Tracking ID is missing
+- [ ] A4 Label: Add barcode generation using Tracking ID (JsBarcode library)
+- [ ] A4 Label: Display barcode below QR code for scanner compatibility
+- [ ] QR Scanner: Update to accept ONLY Tracking ID (reject Production Order input)
+- [ ] QR Scanner: When Tracking ID scanned, fetch and display Production Order details
+- [ ] QR Scanner Manual Input: Accept ONLY Tracking ID format, reject other formats
+- [ ] Database: Add function to fetch order by Tracking ID (getOrderByTrackingId)
+- [ ] Server: Add tRPC procedure to get order by Tracking ID
+- [ ] Test QR scanner with Tracking ID input
+- [ ] Test barcode scanner with Tracking ID barcode
+- [ ] Test manual input validation (reject Production Order, accept Tracking ID only)
+
+
+## Tracking ID-Only QR Code & Barcode System (May 13)
+- [x] A4 Label: Generate QR code with ONLY Tracking ID (not JSON)
+- [x] A4 Label: Add barcode generation using Tracking ID
+- [x] A4 Label: Show "N/A" when no Tracking ID exists
+- [x] QR Scanner: Accept ONLY Tracking ID from QR code (plain text)
+- [x] QR Scanner: Manual input accepts ONLY Tracking ID
+- [x] QR Scanner: Reject Production Order input (old system)
+- [x] Database: Add getOrderByTrackingId function
+- [x] Server: Add qrVerifyByTrackingId procedure
+- [x] QR Scanner: Display Production Order details when Tracking ID is scanned
+- [x] All tests passing (16/16)

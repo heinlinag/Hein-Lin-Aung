@@ -154,6 +154,14 @@ export async function getOrderByOrderID(orderID: string) {
   return result[0] ?? null;
 }
 
+export async function getOrderByTrackingId(trackingId: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const { orders } = await import("../drizzle/schema");
+  const result = await db.select().from(orders).where(eq(orders.trackingId, trackingId)).limit(1);
+  return result[0] ?? null;
+}
+
 export async function createOrder(data: InsertOrder) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

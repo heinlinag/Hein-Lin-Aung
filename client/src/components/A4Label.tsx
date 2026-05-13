@@ -1,6 +1,8 @@
 import React, { useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Printer } from "lucide-react";
+import JsBarcode from "jsbarcode";
+import { useEffect } from "react";
 
 interface A4LabelProps {
   orderId: string;
@@ -261,7 +263,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
             .qr-order-id {
               font-size: 11px;
               font-weight: 900;
-              color: #0f4c75;
+              color: #000;
               text-align: center;
               letter-spacing: 1px;
             }
@@ -312,15 +314,25 @@ export const A4Label: React.FC<A4LabelProps> = ({
     }, 350);
   };
 
-  const qrValue = JSON.stringify({
-    orderId,
-    trackingId,
-    qty: orderQty,
-    bq: masterCard,
-    boardSize,
-    fluteType,
-    timestamp: new Date().toISOString(),
-  });
+  // QR code contains ONLY Tracking ID
+  const qrValue = trackingId || "";
+  const barcodeRef = useRef<SVGSVGElement>(null);
+
+  // Generate barcode when component mounts or trackingId changes
+  useEffect(() => {
+    if (barcodeRef.current && trackingId) {
+      try {
+        JsBarcode(barcodeRef.current, trackingId, {
+          format: "CODE128",
+          width: 2,
+          height: 50,
+          displayValue: false,
+        });
+      } catch (error) {
+        console.error("Barcode generation error:", error);
+      }
+    }
+  }, [trackingId]);
 
   const now = new Date();
   const printDate = now.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
@@ -407,16 +419,30 @@ export const A4Label: React.FC<A4LabelProps> = ({
 
           {/* QR PANEL */}
           <div className="qr-panel">
-            <div className="qr-box">
-              <QRCodeSVG
-                value={qrValue}
-                size={210}
-                level="H"
-                includeMargin={false}
-              />
-              <div className="qr-order-id">{orderId}</div>
-              <div className="qr-caption">Scan to verify</div>
-            </div>
+            {trackingId ? (
+              <>
+                <div className="qr-box">
+                  <QRCodeSVG
+                    value={qrValue}
+                    size={210}
+                    level="H"
+                    includeMargin={false}
+                  />
+                  <div className="qr-caption">Tracking ID</div>
+                  <div className="qr-order-id">{trackingId}</div>
+                </div>
+                <div className="qr-box" style={{ gap: '2mm' }}>
+                  <div className="qr-caption">Barcode</div>
+                  <svg ref={barcodeRef} style={{ width: '100%', height: 'auto' }}></svg>
+                  <div className="qr-order-id" style={{ fontSize: '9px' }}>{trackingId}</div>
+                </div>
+              </>
+            ) : (
+              <div className="qr-box" style={{ justifyContent: 'center', minHeight: '120mm' }}>
+                <div className="qr-caption" style={{ fontSize: '14px', fontWeight: 'bold' }}>N/A</div>
+                <div className="qr-caption">No Tracking ID</div>
+              </div>
+            )}
           </div>
 
         </div>

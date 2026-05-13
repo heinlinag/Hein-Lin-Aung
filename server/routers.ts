@@ -14,6 +14,7 @@ import {
   getAllOrders,
   createOrder,
   getOrderByOrderID,
+  getOrderByTrackingId,
   updateOrderStatus,
   deleteOrder,
   logUsageHistory,
@@ -317,6 +318,13 @@ export const appRouter = router({
       .input(z.object({ orderID: z.string().min(1) }))
       .query(async ({ input }) => {
         const order = await getOrderByOrderID(input.orderID.trim().toUpperCase());
+        if (!order) return { found: false, order: null };
+        return { found: true, order };
+      }),
+    qrVerifyByTrackingId: publicProcedure
+      .input(z.object({ trackingId: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const order = await getOrderByTrackingId(input.trackingId.trim().toUpperCase());
         if (!order) return { found: false, order: null };
         return { found: true, order };
       }),
