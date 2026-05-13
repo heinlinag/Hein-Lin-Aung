@@ -20,6 +20,7 @@ export default function SubmitOrder() {
   const [qty, setQty] = useState("");
   const [bqComment, setBqComment] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
+  const [successData, setSuccessData] = useState<{ trackingId: string; orderID: string; fluteType: string; sizeW: number; sizeL: number; qty: number } | null>(null);
 
   const notifyAll = trpc.push.sendToAll.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
@@ -62,7 +63,7 @@ export default function SubmitOrder() {
     if (!worker) return;
     const effectiveFluteType = fluteType === "Manual" ? manualFlute.trim() : fluteType;
     try {
-      await submitOrder.mutateAsync({
+      const result = await submitOrder.mutateAsync({
         orderID: orderID.trim(),
         fluteType: effectiveFluteType,
         sizeW: parseInt(sizeW),
@@ -73,7 +74,14 @@ export default function SubmitOrder() {
       });
       toast.success("Order submitted successfully!");
       notifyAll.mutate({ title: "New Order Submitted", body: "Order " + orderID.trim() + " (" + effectiveFluteType + ") submitted by " + (worker?.name ?? "Worker"), tag: "new-order" });
-      navigate("/stock-history");
+      setSuccessData({
+        trackingId: result.trackingId,
+        orderID: orderID.trim(),
+        fluteType: effectiveFluteType,
+        sizeW: parseInt(sizeW),
+        sizeL: parseInt(sizeL),
+        qty: parseInt(qty),
+      });
     } catch (err: unknown) {
       const e = err as { message?: string };
       toast.error(e?.message ?? "Failed to submit order.");
@@ -299,6 +307,78 @@ export default function SubmitOrder() {
                 >
                   {submitOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                   Yes, Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Screen Dialog */}
+      {successData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 text-center">
+              {/* Success Icon */}
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-gray-900 text-lg mb-2">Order Submitted Successfully!</h3>
+              <p className="text-sm text-gray-600 mb-6">Your order has been created and is ready for processing.</p>
+              
+              {/* Tracking ID Display */}
+              <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg p-4 mb-6 border border-teal-200">
+                <p className="text-xs text-teal-600 font-semibold mb-1 uppercase tracking-wide">Tracking ID (Reference Number)</p>
+                <p className="text-2xl font-bold text-teal-700 font-mono break-all">{successData.trackingId}</p>
+              </div>
+              
+              {/* Order Summary */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Production Order</span>
+                  <span className="font-bold text-blue-700">{successData.orderID}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Flute Type</span>
+                  <span className="font-semibold">{successData.fluteType}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Size</span>
+                  <span className="font-mono">{successData.sizeW} × {successData.sizeL} mm</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Quantity</span>
+                  <span className="font-semibold">{successData.qty} pcs</span>
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setSuccessData(null);
+                    navigate("/stock-history");
+                  }}
+                  className="flex-1 gspp-gradient rounded-lg py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                >
+                  View in Stock History
+                </button>
+                <button
+                  onClick={() => {
+                    setSuccessData(null);
+                    setOrderID("");
+                    setFluteType("");
+                    setManualFlute("");
+                    setSizeW("");
+                    setSizeL("");
+                    setQty("");
+                    setBqComment("");
+                  }}
+                  className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Submit Another
                 </button>
               </div>
             </div>
