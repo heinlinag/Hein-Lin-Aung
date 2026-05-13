@@ -523,3 +523,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Update desktop table to show "N/A" for missing Tracking ID (consistent with mobile)
 - [x] Style N/A differently (gray background) vs actual Tracking ID (teal background)
 - [x] Ensure consistency between mobile and desktop views
+
+## Backfill Existing Orders with Tracking ID (May 13)
+- [x] Create migration script to generate Tracking IDs for all existing orders
+- [x] Ensure Tracking IDs follow the format: PP4DDMMYYHHMM + OrderID suffix
+- [x] Use createdAt timestamp for date/time in Tracking ID
+- [x] Execute migration to populate trackingId for all orders without one
+- [x] Verify all orders now have Tracking IDs
