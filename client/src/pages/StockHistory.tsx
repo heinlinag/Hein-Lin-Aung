@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 import AppLayout from "@/components/AppLayout";
 import { A4Label } from "@/components/A4Label";
+import { UsageSuccessScreen } from "@/components/UsageSuccessScreen";
 
 const LOW_STOCK_THRESHOLD = 50;
 

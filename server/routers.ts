@@ -29,6 +29,7 @@ import {
   processApprovePendingRequest,
   createApprovalActionLog,
   getApprovalActionLog,
+  generateUsageTrackingId,
 } from "./db";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
@@ -266,8 +267,15 @@ export const appRouter = router({
         scores: z.string().optional().nullable(),
       }))
       .mutation(async ({ input }) => {
+        // Generate usage Tracking ID for Job No usage
+        let usageTrackingId: string | null = null;
+        if (input.jobNo && input.purpose === "job") {
+          usageTrackingId = generateUsageTrackingId(input.jobNo);
+        }
+        
         await logUsageHistory({
           jobNo: input.jobNo,
+          usageTrackingId,
           usedQty: input.usedQty,
           orderID: input.orderID,
           fluteType: input.fluteType,
@@ -309,7 +317,7 @@ export const appRouter = router({
             await db.update(ordersTable).set({ qty: input.newQty }).where(eq(ordersTable.id, input.orderId));
           }
         }
-        return { success: true };
+        return { success: true, usageTrackingId };
       }),
      getUsage: publicProcedure.query(async () => {
       return getUsageHistory();

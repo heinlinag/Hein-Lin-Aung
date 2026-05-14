@@ -31,6 +31,24 @@ export function generateTrackingId(orderID?: string): string {
   return `PP4${day}${month}${year}${hour}${minute}${orderSuffix}`;
 }
 
+// ─── Usage Tracking ID Generator ────────────────────────────────────────────
+// Format: Job No + Time (HHMM) = 11 characters total
+// Example: A206202026 (Job No A-206 at 20:26)
+export function generateUsageTrackingId(jobNo: string): string {
+  // Clean up Job No: remove hyphens/spaces, uppercase, take last 4 chars
+  const cleanJobNo = jobNo.replace(/[-\s]/g, '').toUpperCase().slice(-4).padStart(4, '0');
+  
+  // Get current time
+  const now = new Date();
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  
+  // Format: Job No (4 chars) + HHMM (4 chars) + 3 random digits for uniqueness
+  // Total: 11 characters
+  const randomSuffix = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+  return `${cleanJobNo}${hour}${minute}${randomSuffix}`;
+}
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -183,6 +201,7 @@ export async function deleteOrder(id: number) {
 // ─── Usage History ───────────────────────────────────────────────────────────
 export async function logUsageHistory(data: {
   jobNo: string | null;
+  usageTrackingId?: string | null;
   usedQty: number;
   orderID: string;
   fluteType: string;
@@ -197,6 +216,7 @@ export async function logUsageHistory(data: {
   if (!db) throw new Error("Database not available");
   await db.insert(usageHistory).values({
     jobNo: data.jobNo,
+    usageTrackingId: data.usageTrackingId ?? null,
     usedQty: data.usedQty,
     orderID: data.orderID,
     fluteType: data.fluteType,
