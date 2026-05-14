@@ -581,3 +581,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Adjust barcode dimensions for vertical display
 - [x] Update label layout to accommodate vertical barcode
 - [x] Test barcode scanning with vertical orientation
+
+
+## A4 Label - Remove BQ Comment Row (May 14)
+- [x] Remove "BQ COMMENT" row from BQ Information section
+- [x] Keep only "BQ" field in the label
+- [x] Update label layout to remove duplicate field

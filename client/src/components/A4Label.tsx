@@ -407,12 +407,6 @@ export const A4Label: React.FC<A4LabelProps> = ({
                   <span className="field-label">BQ</span>
                   <span className="field-value">{masterCard}</span>
                 </div>
-                {bqComment && (
-                  <div className="field-row">
-                    <span className="field-label">BQ Comment</span>
-                    <span className="field-value">{bqComment}</span>
-                  </div>
-                )}
               </div>
             </div>
 
