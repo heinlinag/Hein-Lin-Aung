@@ -587,3 +587,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Remove "BQ COMMENT" row from BQ Information section
 - [x] Keep only "BQ" field in the label
 - [x] Update label layout to remove duplicate field
+
+
+## Barcode Scanner - Desktop Functionality (May 14)
+- [x] Make barcode scanner input field functional on desktop
+- [x] Handle barcode scanner hardware input (keyboard emulation)
+- [x] Auto-submit when barcode is scanned (Enter key detection)
+- [x] Validate Tracking ID format from barcode scanner
+- [x] Display order details after successful barcode scan

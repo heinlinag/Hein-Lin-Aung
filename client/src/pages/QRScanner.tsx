@@ -324,15 +324,16 @@ export default function QRScanner() {
                           className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
                           onChange={(e) => {
                             e.target.value = e.target.value.toUpperCase();
-                            if (e.target.value.length > 0 && e.target.value.startsWith('PP4')) {
-                              setVerifyTrackingId(e.target.value);
-                              e.target.value = '';
-                            }
                           }}
-                          onKeyPress={(e) => {
+                          onKeyDown={(e) => {
                             if (e.key === 'Enter' && barcodeInputRef.current?.value) {
-                              setVerifyTrackingId(barcodeInputRef.current.value);
-                              barcodeInputRef.current.value = '';
+                              const trackingId = barcodeInputRef.current.value.trim().toUpperCase();
+                              if (trackingId.startsWith('PP4') && trackingId.length === 14) {
+                                setVerifyTrackingId(trackingId);
+                                barcodeInputRef.current.value = '';
+                              } else {
+                                toast.error('Invalid Tracking ID format. Expected format: PP4DDMMYYHHMMSUFFIX');
+                              }
                             }
                           }}
                           autoFocus
