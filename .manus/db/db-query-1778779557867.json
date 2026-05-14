@@ -1,9 +1,0 @@
-{
-  "query": "ALTER TABLE `usageHistory` ADD `usageTrackingId` varchar(64);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute ALTER TABLE `usageHistory` ADD `usageTrackingId` varchar(64);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 2165
-}

@@ -6,7 +6,6 @@ import { useAuth } from "@/contexts/AuthContext";
 
 import AppLayout from "@/components/AppLayout";
 import { A4Label } from "@/components/A4Label";
-import { UsageSuccessScreen } from "@/components/UsageSuccessScreen";
 
 const LOW_STOCK_THRESHOLD = 50;
 
@@ -31,8 +30,6 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   const [boardSizeW, setBoardSizeW] = useState("");
   const [boardSizeL, setBoardSizeL] = useState("");
   const [scores, setScores] = useState("");
-  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
-  const [successData, setSuccessData] = useState<{ usageTrackingId: string; jobNo: string | null; usedQty: number } | null>(null);
   const logUsage = trpc.orders.logUsage.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const utils = trpc.useUtils();
@@ -48,19 +45,8 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
     if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs).`); return; }
     const newQty = availableQty - qty;
     try {
-      const result = await logUsage.mutateAsync({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", orderId: order.id, newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null });
-      
-      // Show success screen with tracking ID
-      if (result.usageTrackingId) {
-        setSuccessData({
-          usageTrackingId: result.usageTrackingId,
-          jobNo,
-          usedQty: qty
-        });
-        setShowSuccessScreen(true);
-      } else {
-        toast.success(`Used ${qty} pcs for Job ${jobNo}. Remaining: ${newQty} pcs.`);
-      }
+      await logUsage.mutateAsync({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", orderId: order.id, newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null });
+      toast.success(`Used ${qty} pcs for Job ${jobNo}. Remaining: ${newQty} pcs.`);
       notifyAll.mutate({
         title: "⚡ Stock Used (Job No)",
         body: `Order ${order.orderID}: ${qty} pcs used for Job ${jobNo}. Remaining: ${newQty} pcs.`,
@@ -237,30 +223,6 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
           )}
         </div>
       </div>
-      
-      {/* Success Screen */}
-      {showSuccessScreen && successData && (
-        <UsageSuccessScreen
-          usageTrackingId={successData!.usageTrackingId}
-          jobNo={successData!.jobNo}
-          usedQty={successData!.usedQty}
-          orderID={order.orderID}
-          fluteType={order.fluteType}
-          bqComment={order.bqComment}
-          onClose={() => {
-            setShowSuccessScreen(false);
-            setSuccessData(null);
-            onClose();
-          }}
-          onRequestAnother={() => {
-            setShowSuccessScreen(false);
-            setSuccessData(null);
-            setStep("choose");
-            setJobNo("");
-            setUseQty("");
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -279,8 +241,6 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const [boardSizeW, setBoardSizeW] = useState("");
   const [boardSizeL, setBoardSizeL] = useState("");
   const [scores, setScores] = useState("");
-  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
-  const [successData, setSuccessData] = useState<{ usageTrackingId: string; jobNo: string | null; usedQty: number } | null>(null);
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const pendingUsedQtyQuery = trpc.pendingRequests.getPendingUsedQty.useQuery({ orderId: order.id });
@@ -304,23 +264,10 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
         requestedBy: workerID,
         actionData: JSON.stringify({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null }),
       });
-      
-      // Show success screen with tracking ID (if available)
-      if (jobResult.usageTrackingId) {
-        setSuccessData({
-          usageTrackingId: jobResult.usageTrackingId,
-          jobNo,
-          usedQty: qty
-        });
-        setShowSuccessScreen(true);
+      if (jobResult.autoProcessApproved) {
+        toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");
       } else {
         toast.success("Request submitted! Awaiting Level 2 approval.");
-      }
-      
-      if (jobResult.autoProcessApproved) {
-        // toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");
-      } else {
-        // toast.success("Request submitted! Awaiting Level 2 approval.");
       }
       const isProcessed = jobResult.autoProcessApproved;
       notifyAll.mutate({

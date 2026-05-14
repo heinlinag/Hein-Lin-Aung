@@ -113,13 +113,6 @@
       "when": 1778558299668,
       "tag": "0015_normal_whirlwind",
       "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "5",
-      "when": 1778779548957,
-      "tag": "0016_wise_zarek",
-      "breakpoints": true
     }
   ]
 }

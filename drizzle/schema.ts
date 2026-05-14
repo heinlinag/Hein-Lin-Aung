@@ -102,7 +102,6 @@ export type InsertDeletedLog = typeof deletedLogs.$inferInsert;
 export const usageHistory = mysqlTable("usageHistory", {
   id: int("id").autoincrement().primaryKey(),
   jobNo: varchar("jobNo", { length: 8 }),
-  usageTrackingId: varchar("usageTrackingId", { length: 64 }), // 11-char format: Job No + Time (e.g., A206202026)
   usedQty: int("usedQty").notNull(),
   orderID: varchar("orderID", { length: 64 }).notNull(),
   fluteType: varchar("fluteType", { length: 64 }).notNull(),

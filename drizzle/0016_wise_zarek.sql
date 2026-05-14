@@ -1,1 +1,0 @@
-ALTER TABLE `usageHistory` ADD `usageTrackingId` varchar(64);
