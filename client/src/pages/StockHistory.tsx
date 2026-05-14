@@ -306,12 +306,16 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
       });
       
       // Show success screen with tracking ID (if available)
-      setSuccessData({
-        usageTrackingId: `REQ-${Date.now().toString().slice(-8)}`,
-        jobNo,
-        usedQty: qty
-      });
-      setShowSuccessScreen(true);
+      if (jobResult.usageTrackingId) {
+        setSuccessData({
+          usageTrackingId: jobResult.usageTrackingId,
+          jobNo,
+          usedQty: qty
+        });
+        setShowSuccessScreen(true);
+      } else {
+        toast.success("Request submitted! Awaiting Level 2 approval.");
+      }
       
       if (jobResult.autoProcessApproved) {
         // toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");

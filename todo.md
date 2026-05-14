@@ -606,3 +606,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Tests: Add unit tests for generateUsageTrackingId function (various Job No formats)
 - [x] Tests: Add integration tests for Level 2 Used Update with Tracking ID generation (via unit tests)
 - [x] Tests: Add integration tests for Level 1/1.1 Request Use with Tracking ID generation (via unit tests)
+
+
+## Bug Fixes - Tracking ID System (May 15)
+- [x] Fix: Level 1/1.1 Request Use မှာ Success Screen မပြသ (Toast notification ပဲ ပြ)
+- [x] Fix: ApprovalCenter Request Card တွေမှာ Tracking ID မဖော်ပြ
+- [x] Fix: Level 2 Direct Used Update မှာ ApprovalCenter မှာ Record မကျန် (createApprovalActionLog ကို ခေါ်နေ)
+- [x] Verify: All workflows show success screen with Tracking ID
+- [x] Verify: ApprovalCenter displays Tracking ID on all request cards
+- [x] Verify: Level 2 direct actions create audit trail in ApprovalCenter

@@ -104,6 +104,12 @@ function RequestCard({
             <p className="text-xs text-muted-foreground">
               by <span className="font-semibold">{req.workerName}</span> ({req.requestedBy})
             </p>
+            {/* Tracking ID for used_update requests */}
+            {!isDelete && action?.jobNo && (
+              <p className="text-xs text-teal-600 font-semibold mt-1">
+                Tracking ID: {action.jobNo}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex flex-col items-end gap-1">
