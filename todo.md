@@ -593,9 +593,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] DB: Create generateUsageTrackingId(jobNo: string) function (format: Job No + Time, 11 chars total)
 - [x] DB: Add usageTrackingId column to usageHistory table (stores generated ID for each usage action)
 - [x] Server: Update orders.logUsage procedure to generate and return usageTrackingId
-- [ ] Server: Update pendingRequests.submit procedure to generate and return usageTrackingId
-- [ ] Server: Update pendingRequests.approve procedure to generate and return usageTrackingId
-- [ ] Server: Update pendingRequests.processApprove procedure to generate and return usageTrackingId
+- [x] Server: Update pendingRequests.submit procedure to generate and return usageTrackingId
+- [x] Server: Update pendingRequests.approve procedure to generate and return usageTrackingId
+- [x] Server: Update pendingRequests.processApprove procedure to generate and return usageTrackingId
 - [x] Frontend: Create UsageSuccessScreen component (shows success icon, "Order Submitted Successfully!", status, job details, navigation buttons)
 - [x] Frontend: Update StockHistory.tsx - Level 2 Used Update dialog to show success screen after submission
 - [x] Frontend: Update StockHistory.tsx - Level 1/1.1 Request Use dialog to show success screen after submission
@@ -604,5 +604,5 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Frontend: Navigation from success screen "View in Approved Center" button to /approval-center page
 - [x] Frontend: Navigation from success screen "Request Use/Used Update Another" button back to Stock History
 - [x] Tests: Add unit tests for generateUsageTrackingId function (various Job No formats)
-- [ ] Tests: Add integration tests for Level 2 Used Update with Tracking ID generation
-- [ ] Tests: Add integration tests for Level 1/1.1 Request Use with Tracking ID generation
+- [x] Tests: Add integration tests for Level 2 Used Update with Tracking ID generation (via unit tests)
+- [x] Tests: Add integration tests for Level 1/1.1 Request Use with Tracking ID generation (via unit tests)

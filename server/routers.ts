@@ -428,7 +428,16 @@ export const appRouter = router({
           // Just record the process-approval metadata, no stock changes
           await processApprovePendingRequest(insertedId, worker.name, selfProcessQty);
         }
-        return { success: true, autoProcessApproved: worker.userLevel === "1.1" };
+        // Generate usage Tracking ID for used_update requests
+        let usageTrackingId: string | null = null;
+        if (input.type === "used_update" && input.actionData) {
+          const action = JSON.parse(input.actionData);
+          if (action.jobNo && action.purpose === "job") {
+            usageTrackingId = generateUsageTrackingId(action.jobNo);
+          }
+        }
+        
+        return { success: true, autoProcessApproved: worker.userLevel === "1.1", usageTrackingId };
       }),
     list: publicProcedure
       .input(z.object({ status: z.enum(["pending", "approved", "cancelled"]).optional() }))
@@ -487,6 +496,7 @@ export const appRouter = router({
             finalApprovedQty = usedQtyFinal;
             const snapshot = JSON.parse(req.orderSnapshot);
             const newQty = Math.max(0, (snapshot.qty ?? action.newQty + action.usedQty) - usedQtyFinal);
+            const usageTrackingId = action.jobNo && action.purpose === "job" ? generateUsageTrackingId(action.jobNo) : null;
             await logUsageHistory({
               jobNo: action.jobNo ?? null,
               usedQty: usedQtyFinal,
@@ -498,6 +508,7 @@ export const appRouter = router({
               boardSizeW: action.boardSizeW ?? null,
               boardSizeL: action.boardSizeL ?? null,
               scores: action.scores ?? null,
+                          usageTrackingId,
             });
             if (newQty === 0) {
               await updateOrderStatus(req.orderId, "out_of_stock");
@@ -515,6 +526,7 @@ export const appRouter = router({
             finalApprovedQty = processApprovedQty;
             const snapshot = JSON.parse(req.orderSnapshot);
             const newQty = Math.max(0, snapshot.qty - processApprovedQty);
+            const usageTrackingId = action.jobNo && action.purpose === "job" ? generateUsageTrackingId(action.jobNo) : null;
             await logUsageHistory({
               jobNo: action.jobNo ?? null,
               usedQty: processApprovedQty,
@@ -526,6 +538,7 @@ export const appRouter = router({
               boardSizeW: action.boardSizeW ?? null,
               boardSizeL: action.boardSizeL ?? null,
               scores: action.scores ?? null,
+              usageTrackingId,
             });
             if (newQty === 0) {
               await updateOrderStatus(req.orderId, "out_of_stock");
