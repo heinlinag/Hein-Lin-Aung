@@ -325,8 +325,9 @@ export const A4Label: React.FC<A4LabelProps> = ({
         JsBarcode(barcodeRef.current, trackingId, {
           format: "CODE128",
           width: 2,
-          height: 50,
+          height: 80,
           displayValue: false,
+          margin: 0,
         });
       } catch (error) {
         console.error("Barcode generation error:", error);
@@ -433,7 +434,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
                 </div>
                 <div className="qr-box" style={{ gap: '2mm' }}>
                   <div className="qr-caption">Barcode</div>
-                  <svg ref={barcodeRef} style={{ width: '100%', height: 'auto' }}></svg>
+                  <svg ref={barcodeRef} style={{ width: 'auto', height: '120px', transform: 'rotate(90deg)', transformOrigin: 'center', margin: '0 auto' }}></svg>
                   <div className="qr-order-id" style={{ fontSize: '9px' }}>{trackingId}</div>
                 </div>
               </>

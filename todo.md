@@ -540,18 +540,18 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Test print preview to verify black and white output
 
 ## Tracking ID-Only QR Code & Barcode System (May 13)
-- [ ] A4 Label: Update QR code generation to use ONLY Tracking ID (not Production Order)
-- [ ] A4 Label: Show "N/A" instead of QR code if Tracking ID is missing
-- [ ] A4 Label: Add barcode generation using Tracking ID (JsBarcode library)
-- [ ] A4 Label: Display barcode below QR code for scanner compatibility
-- [ ] QR Scanner: Update to accept ONLY Tracking ID (reject Production Order input)
-- [ ] QR Scanner: When Tracking ID scanned, fetch and display Production Order details
-- [ ] QR Scanner Manual Input: Accept ONLY Tracking ID format, reject other formats
-- [ ] Database: Add function to fetch order by Tracking ID (getOrderByTrackingId)
-- [ ] Server: Add tRPC procedure to get order by Tracking ID
-- [ ] Test QR scanner with Tracking ID input
-- [ ] Test barcode scanner with Tracking ID barcode
-- [ ] Test manual input validation (reject Production Order, accept Tracking ID only)
+- [x] A4 Label: Update QR code generation to use ONLY Tracking ID (not Production Order)
+- [x] A4 Label: Show "N/A" instead of QR code if Tracking ID is missing
+- [x] A4 Label: Add barcode generation using Tracking ID (JsBarcode library)
+- [x] A4 Label: Display barcode below QR code for scanner compatibility
+- [x] QR Scanner: Update to accept ONLY Tracking ID (reject Production Order input)
+- [x] QR Scanner: When Tracking ID scanned, fetch and display Production Order details
+- [x] QR Scanner Manual Input: Accept ONLY Tracking ID format, reject other formats
+- [x] Database: Add function to fetch order by Tracking ID (getOrderByTrackingId)
+- [x] Server: Add tRPC procedure to get order by Tracking ID
+- [x] Test QR scanner with Tracking ID input
+- [x] Test barcode scanner with Tracking ID barcode
+- [x] Test manual input validation (reject Production Order, accept Tracking ID only)
 
 
 ## Tracking ID-Only QR Code & Barcode System (May 13)
@@ -574,3 +574,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Implement responsive design: QR scanner on mobile, barcode scanner on desktop
 - [x] Hide barcode scanner on mobile view
 - [x] Test on mobile and desktop
+
+
+## A4 Label - Vertical Barcode (May 14)
+- [x] Update barcode rendering to vertical orientation (portrait)
+- [x] Adjust barcode dimensions for vertical display
+- [x] Update label layout to accommodate vertical barcode
+- [x] Test barcode scanning with vertical orientation
