@@ -650,10 +650,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Build successful, 0 TypeScript errors
 
 ## RequestCard Job Description - In Process Qty Implementation (May 16)
-- [ ] Add In Process Qty field between Scores and Target Black
-- [ ] Implement In Process Qty logic: show processApprovedQty if exists, else "N/A"
-- [ ] Update Balance calculation: Current Qty - In Process Qty
-- [ ] Sync Order Info Current Qty with Balance value
-- [ ] Update Action History: "Approved Request" → "Approved NPRM Modify Order"
-- [ ] Display Action History with Job No, Used Qty, Process calculation, New Balance
-- [ ] Build and test all changes
+- [x] Add In Process Qty field between Scores and Target Black
+- [x] Implement In Process Qty logic: show processApprovedQty if exists, else "N/A"
+- [x] Update Balance calculation: Current Qty - In Process Qty
+- [x] Sync Order Info Current Qty with Balance value
+- [x] Update Action History: "Approved Request" → "Approved NPRM Modify Order"
+- [x] Display Action History with Job No, Used Qty, Process calculation, New Balance
+- [x] Build and test all changes

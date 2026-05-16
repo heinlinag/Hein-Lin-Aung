@@ -220,7 +220,7 @@ function RequestCard({
         {req.status === "approved" && req.reviewedBy && (
           <div className="text-xs">
             <p className="text-muted-foreground">
-              <span className="font-semibold">Approved NPRM Modify Order by</span> {req.reviewedBy} · {new Date(req.reviewedAt || req.createdAt).toLocaleString()}
+              <span className="font-semibold">Approved by</span> {req.reviewedBy} · {new Date(req.reviewedAt || req.createdAt).toLocaleString()}
             </p>
           </div>
         )}
