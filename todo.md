@@ -680,3 +680,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Change "Request Use" → "Purchase Order" in StockHistory page
 - [x] Updated both desktop table and mobile card button labels
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Purchase Order Dialog Header Update (May 16)
+- [x] Change dialog title from "Used Update Request" → "Purchase Order"
+- [x] Change "Order:" → "Production Order:" label
+- [x] Add Tracking ID / Reference number display (N/A if not available)
+- [x] Build successful, 0 TypeScript errors

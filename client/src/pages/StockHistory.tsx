@@ -363,7 +363,13 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                   <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Zap size={16} className="text-primary" /></div>
                   <div><p className="text-sm font-semibold text-foreground">Job No</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
                 </button>
-                <button onClick={() => setStep("old_stock")} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-destructive hover:bg-red-50 transition-all text-left">
+                <button onClick={() => {
+                  if (userLevel === "1") {
+                    alert("You are not authorized to access this feature.\n\nPlease contact your Administrator.");
+                  } else {
+                    setStep("old_stock");
+                  }
+                }} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-destructive hover:bg-red-50 transition-all text-left">
                   <div className="w-9 h-9 bg-destructive/10 rounded-lg flex items-center justify-center"><Package size={16} className="text-destructive" /></div>
                   <div><p className="text-sm font-semibold text-foreground">Old Stock</p><p className="text-xs text-muted-foreground">Clear entire order (move to Out of Stock)</p></div>
                 </button>
