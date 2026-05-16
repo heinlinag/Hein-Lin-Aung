@@ -616,3 +616,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display "In Process by" (Name) Date/Time - shown when processApprovedBy exists
 - [x] Display "Approved by" (Name) Date/Time - shown when status=approved
 - [x] Display "Cancel by" (Name) Date/Time - shown when status=cancelled
+
+## RequestCard Title & Header Update (May 16)
+- [x] Change "Used Update Request" → "NPRM Modify Order"
+- [x] Remove "by (Name) (Employee ID)" line from RequestCard header
+- [x] Build successful, 0 TypeScript errors
