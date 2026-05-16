@@ -348,17 +348,6 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <p className="text-xs text-orange-700">Your request will be sent to a <strong>Level 1.1 user</strong> for processing, then a <strong>Level 2 user</strong> for final approval before taking effect.</p>
             </div>
           )}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-            <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Available Quantity</p>
-            <p className="text-2xl font-bold text-blue-700 mt-0.5">{availableQty} <span className="text-sm font-normal">pcs</span></p>
-            <div className="mt-2 text-xs text-muted-foreground">
-              <span className="text-orange-600 font-semibold">Stock: {order.qty} pcs</span>
-              <span className="mx-1">−</span>
-              <span className="text-orange-600 font-semibold">Pending: {pendingUsedQty} pcs</span>
-              <span className="mx-1">=</span>
-              <span className="text-blue-600 font-semibold">Available: {availableQty} pcs</span>
-            </div>
-          </div>
 
           {step === "choose" && (
             <div>

@@ -711,3 +711,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display format: "Stock: X pcs - Pending: Y pcs = Available: Z pcs"
 - [x] Optimize layout for mobile and desktop views
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Purchase Order Header Reorganization (May 16)
+- [x] Reorganize header to show all info in sequence (no separation)
+- [x] Display order: Production Order, Tracking ID, Flute Type, BQ, Available Quantity
+- [x] Use smaller text size (text-xs, text-[10px])
+- [x] Remove duplicate Order Info section below header
+- [x] Build successful, 0 TypeScript errors
