@@ -107,22 +107,32 @@ function RequestCard({
           </div>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${
-            req.status === "pending" ? "bg-orange-100 text-orange-700" :
-            req.status === "approved" ? "bg-green-100 text-green-700" :
-            "bg-gray-200 text-gray-600"
-          }`}>
-            {req.status === "pending" ? "Pending" : req.status === "approved" ? "Approved" : "Cancelled"}
-          </span>
-          {/* Process Approved badge */}
-          {isProcessApproved && req.status === "pending" && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-100 text-purple-700 flex-shrink-0">
-              In Process
+          {/* Show only ONE status badge based on current state */}
+          {req.status === "pending" && !isProcessApproved && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-orange-100 text-orange-700 flex-shrink-0">
+              Pending
             </span>
           )}
-          {isProcessApproved && req.status !== "pending" && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-50 text-purple-500 border border-purple-200 flex-shrink-0">
-              Processed
+          {req.status === "pending" && isProcessApproved && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-100 text-purple-700 flex-shrink-0">
+              Process
+            </span>
+          )}
+          {req.status === "approved" && (
+            <>
+              <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-green-100 text-green-700 flex-shrink-0">
+                Approved
+              </span>
+              {isProcessApproved && (
+                <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-50 text-purple-500 border border-purple-200 flex-shrink-0">
+                  Processed
+                </span>
+              )}
+            </>
+          )}
+          {req.status === "cancelled" && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-gray-200 text-gray-600 flex-shrink-0">
+              Cancelled
             </span>
           )}
         </div>

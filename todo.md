@@ -587,3 +587,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Remove "BQ COMMENT" row from BQ Information section
 - [x] Keep only "BQ" field in the label
 - [x] Update label layout to remove duplicate field
+
+
+## ApprovalCenter UI Improvement - Status-Based Display (May 16)
+- [x] Update RequestCard to show only one status badge (Pending, Process Approved, or Approved)
+- [x] Show Cancel/Approve buttons only for Pending status (already implemented)
+- [x] Show "Process Approved by [Name]" section only when processApprovedBy is set (already implemented)
+- [x] Show read-only view for Approved status (no action buttons) (already implemented)
+- [x] Test status transitions and button visibility (build successful, 0 TS errors)
