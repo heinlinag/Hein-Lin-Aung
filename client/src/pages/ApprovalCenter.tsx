@@ -148,7 +148,7 @@ function RequestCard({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Current Qty</span>
-            <span className="text-sm font-semibold">{snapshot.qty} pcs</span>
+            <span className="text-sm font-semibold">{req.processApprovedQty ? `${snapshot.qty - req.processApprovedQty} pcs` : `${snapshot.qty} pcs`}</span>
           </div>
         </div>
       )}
@@ -193,8 +193,12 @@ function RequestCard({
             <span className="text-sm font-semibold text-destructive">-{action.usedQty} pcs</span>
           </div>
           <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">In Process Qty</span>
+            <span className="text-sm font-semibold text-purple-700">{req.processApprovedQty ? `${req.processApprovedQty} pcs` : "N/A"}</span>
+          </div>
+          <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Balance</span>
-            <span className="text-sm font-semibold text-green-700">{action.newQty} pcs</span>
+            <span className="text-sm font-semibold text-green-700">{req.processApprovedQty ? `${action.newQty - req.processApprovedQty} pcs` : `${action.newQty} pcs`}</span>
           </div>
         </div>
       )}
@@ -216,7 +220,7 @@ function RequestCard({
         {req.status === "approved" && req.reviewedBy && (
           <div className="text-xs">
             <p className="text-muted-foreground">
-              <span className="font-semibold">Approved by</span> {req.reviewedBy} · {new Date(req.reviewedAt || req.createdAt).toLocaleString()}
+              <span className="font-semibold">Approved NPRM Modify Order by</span> {req.reviewedBy} · {new Date(req.reviewedAt || req.createdAt).toLocaleString()}
             </p>
           </div>
         )}

@@ -643,3 +643,17 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Reorder fields: Job No → Master Card → Board Size → Scores → Target Black → Balance
 - [x] Move Target Black and Balance to bottom of section
 - [x] Build successful, 0 TypeScript errors
+
+## RequestCard Order Info - Flute Type Format (May 16)
+- [x] Remove "Flute : " prefix from Flute Type value
+- [x] Display only the value (e.g., "B" instead of "Flute : B")
+- [x] Build successful, 0 TypeScript errors
+
+## RequestCard Job Description - In Process Qty Implementation (May 16)
+- [ ] Add In Process Qty field between Scores and Target Black
+- [ ] Implement In Process Qty logic: show processApprovedQty if exists, else "N/A"
+- [ ] Update Balance calculation: Current Qty - In Process Qty
+- [ ] Sync Order Info Current Qty with Balance value
+- [ ] Update Action History: "Approved Request" → "Approved NPRM Modify Order"
+- [ ] Display Action History with Job No, Used Qty, Process calculation, New Balance
+- [ ] Build and test all changes
