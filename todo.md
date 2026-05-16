@@ -621,3 +621,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Change "Used Update Request" → "NPRM Modify Order"
 - [x] Remove "by (Name) (Employee ID)" line from RequestCard header
 - [x] Build successful, 0 TypeScript errors
+
+## RequestCard Order Info - Add BQ Field (May 16)
+- [x] Add BQ field to Order Info section in RequestCard
+- [x] Display BQ with yellow background (yellow-100 bg, yellow-800 text)
+- [x] Responsive layout maintained for mobile and desktop
+- [x] Build successful, 0 TypeScript errors
