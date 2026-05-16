@@ -221,11 +221,7 @@ function RequestCard({
         )}
       </div>
 
-      {/* Timestamp */}
-      <p className="text-xs text-muted-foreground">
-        Requested: {new Date(req.createdAt).toLocaleString()}
-        {req.reviewedBy && ` · Reviewed by ${req.reviewedBy}`}
-      </p>
+
 
       {/* Actions */}
       {isPending && (canCancel || canApprove || canProcessApprove) && (

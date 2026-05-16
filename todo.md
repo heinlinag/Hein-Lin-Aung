@@ -595,3 +595,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display: Request by (Name) Date/Time, In Process by (Name) Date/Time, Approved by (Name) Date/Time
 - [x] Test lifecycle display for all request statuses (Pending, In Process, Approved, Cancelled)
 - [x] Verify visual layout matches design (build successful, 0 TS errors)
+
+
+## RequestCard Progress Bar Integration (May 16)
+- [x] Remove "Requested: ..." timestamp section from RequestCard
+- [x] Add In Process progress bar to RequestCard header (Pending → In Process → Approved)
+- [x] Progress bar shows current status with visual indicators
+- [x] Test progress bar display for all request statuses (build successful)
+- [x] Verify visual layout matches design
