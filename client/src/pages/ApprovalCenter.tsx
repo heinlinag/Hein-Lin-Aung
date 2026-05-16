@@ -99,10 +99,7 @@ function RequestCard({
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">
-              {isDelete ? "Delete Request" : "Used Update Request"}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              by <span className="font-semibold">{req.workerName}</span> ({req.requestedBy})
+              {isDelete ? "Delete Request" : "NPRM Modify Order"}
             </p>
           </div>
         </div>

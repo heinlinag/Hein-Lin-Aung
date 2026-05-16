@@ -603,3 +603,16 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Progress bar shows current status with visual indicators
 - [x] Test progress bar display for all request statuses (build successful)
 - [x] Verify visual layout matches design
+
+## RequestCard Status Display - Single Stage Only (May 16)
+- [x] Remove multi-stage progress bar from RequestCard header
+- [x] Implement single status badge showing ONLY current active stage (Pending/In Process/Approved/Cancelled)
+- [x] Add AlertCircle import to lucide-react
+- [x] Build successful, 0 TypeScript errors
+
+## RequestCard Lifecycle Section Refactoring (May 16)
+- [x] Update Request Lifecycle section at bottom of RequestCard
+- [x] Display "Request by" (Name) Date/Time - always shown
+- [x] Display "In Process by" (Name) Date/Time - shown when processApprovedBy exists
+- [x] Display "Approved by" (Name) Date/Time - shown when status=approved
+- [x] Display "Cancel by" (Name) Date/Time - shown when status=cancelled
