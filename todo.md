@@ -658,3 +658,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display Action History with Job No, Used Qty, Process calculation, New Balance
 - [x] Build and test all changes
 - [x] Revert Action History label back to "Approved by"
+
+## RequestCard Job Description - Target Black Display Update (May 16)
+- [x] Change Target Black from "-{value} pcs" to "{value} pcs" format
+- [x] Change Target Black color from red to orange (text-orange-600)
+- [x] Target Black displays as highlight/reference only (no calculations)
+- [x] Build successful, 0 TypeScript errors

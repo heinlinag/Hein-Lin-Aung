@@ -198,7 +198,7 @@ function RequestCard({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Balance</span>
-            <span className="text-sm font-semibold text-green-700">{req.processApprovedQty ? `${action.newQty - req.processApprovedQty} pcs` : `${action.newQty} pcs`}</span>
+            <span className="text-sm font-semibold text-green-700">{req.processApprovedQty ? `${snapshot && snapshot.qty - req.processApprovedQty} pcs` : `${snapshot && snapshot.qty} pcs`}</span>
           </div>
         </div>
       )}
