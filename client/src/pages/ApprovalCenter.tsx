@@ -157,7 +157,7 @@ function RequestCard({
       {!isDelete && action && (
         <div className={`rounded-lg p-3 space-y-1.5 ${action.purpose === "old_stock" ? "bg-red-50 border border-red-200" : "bg-blue-50 border border-blue-200"}`}>
           <p className="text-xs font-semibold text-foreground uppercase tracking-wide">
-            {action.purpose === "old_stock" ? "Old Stock Clear" : "Job Usage"}
+            {action.purpose === "old_stock" ? "Old Stock Clear" : "Job Description"}
           </p>
           {action.jobNo && (
             <div className="flex items-center justify-between">
@@ -166,11 +166,11 @@ function RequestCard({
             </div>
           )}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Used Qty</span>
+            <span className="text-xs text-muted-foreground">Target Black</span>
             <span className="text-sm font-semibold text-destructive">-{action.usedQty} pcs</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Remaining After</span>
+            <span className="text-xs text-muted-foreground">Balance</span>
             <span className="text-sm font-semibold text-green-700">{action.newQty} pcs</span>
           </div>
           {/* Extra fields: MasterCard, Board Size, Scores */}

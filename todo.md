@@ -627,3 +627,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display BQ with yellow background (yellow-100 bg, yellow-800 text)
 - [x] Responsive layout maintained for mobile and desktop
 - [x] Build successful, 0 TypeScript errors
+
+## RequestCard Order Info - Field Reordering (May 16)
+- [x] Reorder fields: Production Order → Flute Type → Size → BQ → Current Qty
+- [x] Move BQ before Current Qty (not at bottom)
+- [x] Build successful, 0 TypeScript errors
