@@ -320,8 +320,9 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
       <div className="bg-white rounded-xl shadow-xl w-full max-w-sm flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div>
-            <h3 className="font-bold text-foreground">Used Update Request</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
+            <h3 className="font-bold text-foreground">Purchase Order</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Production Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
+            <p className="text-xs text-muted-foreground mt-1">Tracking ID: <span className="font-mono font-semibold text-foreground">{order.trackingId || "N/A"}</span></p>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1"><X size={18} /></button>
         </div>

@@ -675,3 +675,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## RequestCard Section Label - Job Description to Order Description (May 16)
 - [x] Change "Job Description" → "Order Description"
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Button Label Update (May 16)
+- [x] Change "Request Use" → "Purchase Order" in StockHistory page
+- [x] Updated both desktop table and mobile card button labels
+- [x] Build successful, 0 TypeScript errors
