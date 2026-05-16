@@ -190,7 +190,7 @@ function RequestCard({
           )}
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Target Black</span>
-            <span className="text-sm font-semibold text-destructive">-{action.usedQty} pcs</span>
+            <span className="text-sm font-semibold text-orange-600">{action.usedQty} pcs</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">In Process Qty</span>

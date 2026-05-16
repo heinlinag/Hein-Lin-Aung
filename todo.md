@@ -654,6 +654,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Implement In Process Qty logic: show processApprovedQty if exists, else "N/A"
 - [x] Update Balance calculation: Current Qty - In Process Qty
 - [x] Sync Order Info Current Qty with Balance value
-- [x] Update Action History: "Approved Request" → "Approved NPRM Modify Order"
+- [x] Update Action History: "Approved Request" → "Approved by" (reverted)
 - [x] Display Action History with Job No, Used Qty, Process calculation, New Balance
 - [x] Build and test all changes
+- [x] Revert Action History label back to "Approved by"
