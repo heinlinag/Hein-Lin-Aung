@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { StatusProgressionIndicator } from "@/components/StatusProgressionIndicator";
+import { RequestLifecycle } from "@/components/RequestLifecycle";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
 type PendingRequest = {
@@ -670,7 +671,7 @@ export default function ApprovalCenter() {
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "requests" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
           >
             Requests
-            {pendingCount !== undefined && pendingCount > 0 && (
+            {pendingCount > 0 && (
               <span className="ml-1.5 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">{pendingCount}</span>
             )}
           </button>
@@ -693,6 +694,28 @@ export default function ApprovalCenter() {
                 inProcessCount={inProcessCount}
                 approvedCount={approvedCount}
               />
+            </div>
+
+            {/* Status filter buttons */}
+            <div className="flex gap-2 mb-5 flex-wrap">
+              {([
+                { key: "pending" as const, label: "Pending", color: "bg-orange-500" },
+                { key: "approved" as const, label: "Approved", color: "bg-green-600" },
+                { key: "cancelled" as const, label: "Cancelled", color: "bg-gray-500" },
+                { key: undefined, label: "All", color: "bg-primary" },
+              ]).map(({ key, label, color }) => (
+                <button
+                  key={label}
+                  onClick={() => { setStatusFilter(key); setJobNoSearch(""); }}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                    statusFilter === key
+                      ? `${color} text-white`
+                      : "bg-gray-100 text-muted-foreground hover:bg-gray-200"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
             
             {/* Job No search when All tab is selected */}

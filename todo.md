@@ -604,3 +604,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add navigation between stages (stage buttons with visual progression)
 - [x] Show request count for each stage
 - [x] Test status progression workflow (build successful, 0 TS errors)
+
+
+## RequestCard Lifecycle Display (May 16)
+- [x] Create RequestLifecycle component to display request timeline
+- [x] Update ApprovalCenter tab to show Requests badge with pending count
+- [x] Add status filter buttons (Pending, Approved, Cancelled, All)
+- [x] Build successful, 0 TS errors
+- [x] Test lifecycle display for all request statuses
