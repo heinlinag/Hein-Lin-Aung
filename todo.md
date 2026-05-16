@@ -725,8 +725,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Build successful, 0 TypeScript errors
 
 ## StockHistory - Available Quantity Calculation Update (May 16)
-- [ ] Create new procedure to fetch In Process Qty from Approval Center (processApprovedQty)
-- [ ] Update Available Quantity calculation: Stock - In Process Qty (instead of Pending Qty)
-- [ ] Handle N/A case: treat as 0
-- [ ] Update Purchase Order dialog header to show correct calculation
-- [ ] Test calculation with different In Process Qty values
+- [x] Create new procedure to fetch In Process Qty from Approval Center (processApprovedQty)
+- [x] Update Available Quantity calculation: Stock - In Process Qty (instead of Pending Qty)
+- [x] Handle N/A case: treat as 0
+- [x] Update Purchase Order dialog header to show correct calculation
+- [x] Test calculation with different In Process Qty values
+- [x] Build successful, 0 TypeScript errors

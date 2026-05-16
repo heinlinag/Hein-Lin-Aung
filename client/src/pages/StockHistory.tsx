@@ -330,7 +330,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <p className="text-muted-foreground">Flute Type: <span className="font-semibold text-foreground">{order.fluteType}</span></p>
               <p className="text-muted-foreground">BQ: <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px]">{order.bqComment.length > 18 ? order.bqComment.slice(0, 18) + "…" : order.bqComment}</span></p>
               <p className="text-blue-600 font-semibold">Available Quantity: {availableQty} <span className="text-xs font-normal">pcs</span></p>
-              <p className="text-muted-foreground text-[10px] leading-tight">(Stock: {order.qty} pcs − Pending: {inProcessQty} pcs = Available: {availableQty} pcs)</p>
+              <p className="text-muted-foreground text-[10px] leading-tight">(Stock: {order.qty} pcs − In Process: {inProcessQty} pcs = Available: {availableQty} pcs)</p>
             </div>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0"><X size={18} /></button>
