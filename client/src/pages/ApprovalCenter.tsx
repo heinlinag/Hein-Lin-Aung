@@ -219,6 +219,13 @@ function RequestCard({
             </p>
           </div>
         )}
+        {req.status === "cancelled" && req.reviewedBy && (
+          <div className="text-xs">
+            <p className="text-muted-foreground">
+              <span className="font-semibold">Cancel by</span> {req.reviewedBy} · {new Date(req.reviewedAt || req.createdAt).toLocaleString()}
+            </p>
+          </div>
+        )}
       </div>
 
 
