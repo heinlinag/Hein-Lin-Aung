@@ -671,3 +671,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Balance = Current Qty (when In Process Qty is N/A)
 - [x] Add null check for snapshot to prevent TypeScript errors
 - [x] Build successful, 0 TypeScript errors
+
+## RequestCard Section Label - Job Description to Order Description (May 16)
+- [x] Change "Job Description" → "Order Description"
+- [x] Build successful, 0 TypeScript errors
