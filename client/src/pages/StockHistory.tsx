@@ -511,7 +511,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               OK, Understood
             </Button>
             <Button className="flex-1 bg-green-500 hover:bg-green-600 text-white">
-              <a href="https://wa.me/+60123456789" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full">
+              <a href="https://wa.me/+601159225408" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full">
                 Contact Admin
               </a>
             </Button>

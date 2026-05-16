@@ -692,3 +692,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Level 1 users see alert: "You are not authorized to access this feature. Please contact your Administrator."
 - [x] Level 1.1 and Level 2 users can access Old Stock feature
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Permission Denied Dialog (May 16)
+- [x] Replace browser alert with proper Dialog component
+- [x] Add Dialog with "Access Restricted" title and AlertTriangle icon
+- [x] Display message: "You are not authorized to access this feature. Please contact your Administrator via WhatsApp for assistance."
+- [x] Add "OK, Understood" button to close dialog
+- [x] Add "Contact Admin" button with WhatsApp link (placeholder: +60123456789)
+- [x] Build successful, 0 TypeScript errors
