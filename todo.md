@@ -595,3 +595,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Show "Process Approved by [Name]" section only when processApprovedBy is set (already implemented)
 - [x] Show read-only view for Approved status (no action buttons) (already implemented)
 - [x] Test status transitions and button visibility (build successful, 0 TS errors)
+
+
+## ApprovalCenter Status Progression UI (May 16)
+- [x] Create StatusProgressionIndicator component (visual stage indicator: Pending → In Process → Approved)
+- [x] Update ApprovalCenter to group requests by status stage (Pending, In Process, Approved)
+- [x] Display only requests for current stage (one stage at a time)
+- [x] Add navigation between stages (stage buttons with visual progression)
+- [x] Show request count for each stage
+- [x] Test status progression workflow (build successful, 0 TS errors)

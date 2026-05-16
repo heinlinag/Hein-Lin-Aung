@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import { StatusProgressionIndicator } from "@/components/StatusProgressionIndicator";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
 type PendingRequest = {
@@ -471,6 +472,7 @@ export default function ApprovalCenter() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [jobNoSearch, setJobNoSearch] = useState("");
+  const [currentStage, setCurrentStage] = useState<"pending" | "in_process" | "approved">("pending");
 
   const userLevel = worker?.userLevel ?? "2";
   const canApprove = userLevel === "2";
@@ -508,6 +510,24 @@ export default function ApprovalCenter() {
       }
     });
   }, [allRequests, statusFilter, jobNoSearch]);
+
+  // Helper to determine stage from request
+  const getStageFromRequest = (req: PendingRequest): "pending" | "in_process" | "approved" => {
+    if (req.status === "approved") return "approved";
+    if (req.processApprovedBy) return "in_process";
+    return "pending";
+  };
+
+  // Count requests by stage
+  const pendingCount = allRequests.filter(r => getStageFromRequest(r) === "pending").length;
+  const inProcessCount = allRequests.filter(r => getStageFromRequest(r) === "in_process").length;
+  const approvedCount = allRequests.filter(r => getStageFromRequest(r) === "approved").length;
+
+  // Filter requests by current stage
+  const stageRequests = useMemo(() => {
+    return requests.filter(r => getStageFromRequest(r) === currentStage);
+  }, [requests, currentStage]);
+
 
   // Notification sound when new pending requests arrive
   const { playChime } = useNotificationSound();
@@ -597,8 +617,6 @@ export default function ApprovalCenter() {
     }
   };
 
-  const pendingCount = statusFilter === "pending" ? requests.length : undefined;
-
   return (
     <AppLayout pageTitle="Approval Center">
       <main className="container lg:max-w-none lg:px-8 py-5">
@@ -666,26 +684,15 @@ export default function ApprovalCenter() {
 
         {activeTab === "requests" && (
           <>
-            {/* Status filter sub-tabs */}
-            <div className="flex gap-1 mb-5">
-              {([
-                { key: "pending" as const, label: "Pending" },
-                { key: "approved" as const, label: "Approved" },
-                { key: "cancelled" as const, label: "Cancelled" },
-                { key: undefined, label: "All" },
-              ]).map(({ key, label }) => (
-                <button
-                  key={label}
-                  onClick={() => { setStatusFilter(key); setJobNoSearch(""); }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                    statusFilter === key
-                      ? key === "pending" ? "bg-orange-500 text-white" : key === "approved" ? "bg-green-600 text-white" : key === "cancelled" ? "bg-gray-500 text-white" : "bg-primary text-white"
-                      : "bg-gray-100 text-muted-foreground hover:bg-gray-200"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+            {/* Status Progression Indicator */}
+            <div className="mb-6">
+              <StatusProgressionIndicator
+                currentStage={currentStage}
+                onStageChange={setCurrentStage}
+                pendingCount={pendingCount}
+                inProcessCount={inProcessCount}
+                approvedCount={approvedCount}
+              />
             </div>
             
             {/* Job No search when All tab is selected */}
@@ -716,12 +723,12 @@ export default function ApprovalCenter() {
                   <Clock size={28} className="text-muted-foreground/40" />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {jobNoSearch ? `No requests found for Job No "${jobNoSearch}"` : `No ${statusFilter ?? ""} requests found`}
+                  {`No ${currentStage} requests found`}
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {requests.map(req => (
+                {stageRequests.map(req => (
                   <RequestCard
                     key={req.id}
                     req={req}
