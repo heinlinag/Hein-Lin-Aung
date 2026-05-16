@@ -4,8 +4,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
-import { StatusProgressionIndicator } from "@/components/StatusProgressionIndicator";
-import { RequestLifecycle } from "@/components/RequestLifecycle";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
 type PendingRequest = {
@@ -109,32 +107,22 @@ function RequestCard({
           </div>
         </div>
         <div className="flex flex-col items-end gap-1">
-          {/* Show only ONE status badge based on current state */}
-          {req.status === "pending" && !isProcessApproved && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-orange-100 text-orange-700 flex-shrink-0">
-              Pending
-            </span>
-          )}
-          {req.status === "pending" && isProcessApproved && (
+          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${
+            req.status === "pending" ? "bg-orange-100 text-orange-700" :
+            req.status === "approved" ? "bg-green-100 text-green-700" :
+            "bg-gray-200 text-gray-600"
+          }`}>
+            {req.status === "pending" ? "Pending" : req.status === "approved" ? "Approved" : "Cancelled"}
+          </span>
+          {/* Process Approved badge */}
+          {isProcessApproved && req.status === "pending" && (
             <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-100 text-purple-700 flex-shrink-0">
-              Process
+              In Process
             </span>
           )}
-          {req.status === "approved" && (
-            <>
-              <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-green-100 text-green-700 flex-shrink-0">
-                Approved
-              </span>
-              {isProcessApproved && (
-                <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-50 text-purple-500 border border-purple-200 flex-shrink-0">
-                  Processed
-                </span>
-              )}
-            </>
-          )}
-          {req.status === "cancelled" && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-gray-200 text-gray-600 flex-shrink-0">
-              Cancelled
+          {isProcessApproved && req.status !== "pending" && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-50 text-purple-500 border border-purple-200 flex-shrink-0">
+              Processed
             </span>
           )}
         </div>
@@ -473,7 +461,6 @@ export default function ApprovalCenter() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [jobNoSearch, setJobNoSearch] = useState("");
-  const [currentStage, setCurrentStage] = useState<"pending" | "in_process" | "approved">("pending");
 
   const userLevel = worker?.userLevel ?? "2";
   const canApprove = userLevel === "2";
@@ -511,24 +498,6 @@ export default function ApprovalCenter() {
       }
     });
   }, [allRequests, statusFilter, jobNoSearch]);
-
-  // Helper to determine stage from request
-  const getStageFromRequest = (req: PendingRequest): "pending" | "in_process" | "approved" => {
-    if (req.status === "approved") return "approved";
-    if (req.processApprovedBy) return "in_process";
-    return "pending";
-  };
-
-  // Count requests by stage
-  const pendingCount = allRequests.filter(r => getStageFromRequest(r) === "pending").length;
-  const inProcessCount = allRequests.filter(r => getStageFromRequest(r) === "in_process").length;
-  const approvedCount = allRequests.filter(r => getStageFromRequest(r) === "approved").length;
-
-  // Filter requests by current stage
-  const stageRequests = useMemo(() => {
-    return requests.filter(r => getStageFromRequest(r) === currentStage);
-  }, [requests, currentStage]);
-
 
   // Notification sound when new pending requests arrive
   const { playChime } = useNotificationSound();
@@ -618,6 +587,8 @@ export default function ApprovalCenter() {
     }
   };
 
+  const pendingCount = statusFilter === "pending" ? requests.length : undefined;
+
   return (
     <AppLayout pageTitle="Approval Center">
       <main className="container lg:max-w-none lg:px-8 py-5">
@@ -671,7 +642,7 @@ export default function ApprovalCenter() {
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "requests" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
           >
             Requests
-            {pendingCount > 0 && (
+            {pendingCount !== undefined && pendingCount > 0 && (
               <span className="ml-1.5 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">{pendingCount}</span>
             )}
           </button>
@@ -685,31 +656,20 @@ export default function ApprovalCenter() {
 
         {activeTab === "requests" && (
           <>
-            {/* Status Progression Indicator */}
-            <div className="mb-6">
-              <StatusProgressionIndicator
-                currentStage={currentStage}
-                onStageChange={setCurrentStage}
-                pendingCount={pendingCount}
-                inProcessCount={inProcessCount}
-                approvedCount={approvedCount}
-              />
-            </div>
-
-            {/* Status filter buttons */}
-            <div className="flex gap-2 mb-5 flex-wrap">
+            {/* Status filter sub-tabs */}
+            <div className="flex gap-1 mb-5">
               {([
-                { key: "pending" as const, label: "Pending", color: "bg-orange-500" },
-                { key: "approved" as const, label: "Approved", color: "bg-green-600" },
-                { key: "cancelled" as const, label: "Cancelled", color: "bg-gray-500" },
-                { key: undefined, label: "All", color: "bg-primary" },
-              ]).map(({ key, label, color }) => (
+                { key: "pending" as const, label: "Pending" },
+                { key: "approved" as const, label: "Approved" },
+                { key: "cancelled" as const, label: "Cancelled" },
+                { key: undefined, label: "All" },
+              ]).map(({ key, label }) => (
                 <button
                   key={label}
                   onClick={() => { setStatusFilter(key); setJobNoSearch(""); }}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     statusFilter === key
-                      ? `${color} text-white`
+                      ? key === "pending" ? "bg-orange-500 text-white" : key === "approved" ? "bg-green-600 text-white" : key === "cancelled" ? "bg-gray-500 text-white" : "bg-primary text-white"
                       : "bg-gray-100 text-muted-foreground hover:bg-gray-200"
                   }`}
                 >
@@ -746,12 +706,12 @@ export default function ApprovalCenter() {
                   <Clock size={28} className="text-muted-foreground/40" />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {`No ${currentStage} requests found`}
+                  {jobNoSearch ? `No requests found for Job No "${jobNoSearch}"` : `No ${statusFilter ?? ""} requests found`}
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {stageRequests.map(req => (
+                {requests.map(req => (
                   <RequestCard
                     key={req.id}
                     req={req}
