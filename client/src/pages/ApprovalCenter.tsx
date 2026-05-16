@@ -136,7 +136,7 @@ function RequestCard({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Flute Type</span>
-            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {snapshot.fluteType}</span>
+            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">{snapshot.fluteType}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Size</span>

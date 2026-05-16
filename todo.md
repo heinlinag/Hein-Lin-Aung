@@ -638,3 +638,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Change "Used Qty" → "Target Black"
 - [x] Change "Remaining After" → "Balance"
 - [x] Build successful, 0 TypeScript errors
+
+## RequestCard Job Description - Field Reordering (May 16)
+- [x] Reorder fields: Job No → Master Card → Board Size → Scores → Target Black → Balance
+- [x] Move Target Black and Balance to bottom of section
+- [x] Build successful, 0 TypeScript errors
