@@ -165,14 +165,6 @@ function RequestCard({
               <span className="text-xs font-mono font-bold">{action.jobNo}</span>
             </div>
           )}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Target Black</span>
-            <span className="text-sm font-semibold text-destructive">-{action.usedQty} pcs</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Balance</span>
-            <span className="text-sm font-semibold text-green-700">{action.newQty} pcs</span>
-          </div>
           {/* Extra fields: MasterCard, Board Size, Scores */}
           {action.purpose === "job" && (
             <>
@@ -196,6 +188,14 @@ function RequestCard({
               )}
             </>
           )}
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Target Black</span>
+            <span className="text-sm font-semibold text-destructive">-{action.usedQty} pcs</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Balance</span>
+            <span className="text-sm font-semibold text-green-700">{action.newQty} pcs</span>
+          </div>
         </div>
       )}
 

@@ -632,3 +632,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Reorder fields: Production Order → Flute Type → Size → BQ → Current Qty
 - [x] Move BQ before Current Qty (not at bottom)
 - [x] Build successful, 0 TypeScript errors
+
+## RequestCard Job Description Section - Label Updates (May 16)
+- [x] Change "Job Usage" → "Job Description"
+- [x] Change "Used Qty" → "Target Black"
+- [x] Change "Remaining After" → "Balance"
+- [x] Build successful, 0 TypeScript errors
