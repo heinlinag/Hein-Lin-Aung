@@ -128,17 +128,7 @@ function RequestCard({
         </div>
       </div>
 
-      {/* Process Approved info — always show if processApprovedBy is set */}
-      {isProcessApproved && (
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-2.5 flex items-start gap-2">
-          <PlayCircle size={13} className="text-purple-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-purple-700">
-            <span className="font-semibold">Process Approved</span> by {req.processApprovedBy}
-            {req.processApprovedQty && <span> · Qty: {req.processApprovedQty} pcs</span>}
-            {req.processApprovedAt && <span> · {new Date(req.processApprovedAt).toLocaleString()}</span>}
-          </div>
-        </div>
-      )}
+
 
       {/* Order info */}
       {snapshot && (
@@ -207,6 +197,29 @@ function RequestCard({
           )}
         </div>
       )}
+
+      {/* Request Lifecycle */}
+      <div className="space-y-2 py-2 border-t border-border">
+        <div className="text-xs">
+          <p className="text-muted-foreground">
+            <span className="font-semibold">Request by</span> {req.workerName} · {new Date(req.createdAt).toLocaleString()}
+          </p>
+        </div>
+        {isProcessApproved && req.processApprovedBy && (
+          <div className="text-xs">
+            <p className="text-muted-foreground">
+              <span className="font-semibold">In Process by</span> {req.processApprovedBy} · {new Date(req.processApprovedAt || req.createdAt).toLocaleString()}
+            </p>
+          </div>
+        )}
+        {req.status === "approved" && req.reviewedBy && (
+          <div className="text-xs">
+            <p className="text-muted-foreground">
+              <span className="font-semibold">Approved by</span> {req.reviewedBy} · {new Date(req.reviewedAt || req.createdAt).toLocaleString()}
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Timestamp */}
       <p className="text-xs text-muted-foreground">

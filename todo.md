@@ -587,3 +587,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Remove "BQ COMMENT" row from BQ Information section
 - [x] Keep only "BQ" field in the label
 - [x] Update label layout to remove duplicate field
+
+
+## RequestCard Lifecycle Refactoring (May 16)
+- [x] Remove "Process Approved by..." section from top of RequestCard
+- [x] Add RequestLifecycle component at bottom of RequestCard (before action buttons)
+- [x] Display: Request by (Name) Date/Time, In Process by (Name) Date/Time, Approved by (Name) Date/Time
+- [x] Test lifecycle display for all request statuses (Pending, In Process, Approved, Cancelled)
+- [x] Verify visual layout matches design (build successful, 0 TS errors)
