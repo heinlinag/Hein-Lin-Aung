@@ -704,3 +704,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## StockHistory - WhatsApp Number Update (May 16)
 - [x] Update WhatsApp link from +60123456789 to +601159225408
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Purchase Order Dialog Header & Info (May 16)
+- [x] Add Order Info section (Flute Type, BQ) below Purchase Order header
+- [x] Improve Available Quantity display with smaller text for calculation
+- [x] Display format: "Stock: X pcs - Pending: Y pcs = Available: Z pcs"
+- [x] Optimize layout for mobile and desktop views
+- [x] Build successful, 0 TypeScript errors

@@ -322,25 +322,20 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-sm flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-          <div>
-            <h3 className="font-bold text-foreground">Purchase Order</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Production Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
-            <p className="text-xs text-muted-foreground mt-1">Tracking ID: <span className="font-mono font-semibold text-foreground">{order.trackingId || "N/A"}</span></p>
+          <div className="flex-1">
+            <h3 className="font-bold text-foreground mb-2">Purchase Order</h3>
+            <div className="space-y-1 text-xs">
+              <p className="text-muted-foreground">Production Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
+              <p className="text-muted-foreground">Tracking ID: <span className="font-mono font-semibold text-foreground text-[10px]">{order.trackingId || "N/A"}</span></p>
+              <p className="text-muted-foreground">Flute Type: <span className="font-semibold text-foreground">{order.fluteType}</span></p>
+              <p className="text-muted-foreground">BQ: <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px]">{order.bqComment.length > 18 ? order.bqComment.slice(0, 18) + "…" : order.bqComment}</span></p>
+              <p className="text-blue-600 font-semibold">Available Quantity: {availableQty} <span className="text-xs font-normal">pcs</span></p>
+              <p className="text-muted-foreground text-[10px] leading-tight">(Stock: {order.qty} pcs − Pending: {pendingUsedQty} pcs = Available: {availableQty} pcs)</p>
+            </div>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1"><X size={18} /></button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0"><X size={18} /></button>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
-          {/* Order Info Section */}
-          <div className="mb-4 space-y-2 pb-3 border-b border-border">
-            <div className="flex justify-between items-start">
-              <span className="text-xs text-muted-foreground">Flute Type</span>
-              <span className="text-sm font-semibold text-foreground">{order.fluteType}</span>
-            </div>
-            <div className="flex justify-between items-start">
-              <span className="text-xs text-muted-foreground">BQ</span>
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono font-semibold">{order.bqComment.length > 20 ? order.bqComment.slice(0, 20) + "…" : order.bqComment}</span>
-            </div>
-          </div>
 
           {userLevel === "1.1" ? (
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 flex items-start gap-2">
