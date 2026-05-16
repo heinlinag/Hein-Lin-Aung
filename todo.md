@@ -700,3 +700,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add "OK, Understood" button to close dialog
 - [x] Add "Contact Admin" button with WhatsApp link (placeholder: +60123456789)
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - WhatsApp Number Update (May 16)
+- [x] Update WhatsApp link from +60123456789 to +601159225408
+- [x] Build successful, 0 TypeScript errors

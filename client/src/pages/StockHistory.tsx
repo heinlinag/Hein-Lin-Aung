@@ -330,6 +330,18 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1"><X size={18} /></button>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
+          {/* Order Info Section */}
+          <div className="mb-4 space-y-2 pb-3 border-b border-border">
+            <div className="flex justify-between items-start">
+              <span className="text-xs text-muted-foreground">Flute Type</span>
+              <span className="text-sm font-semibold text-foreground">{order.fluteType}</span>
+            </div>
+            <div className="flex justify-between items-start">
+              <span className="text-xs text-muted-foreground">BQ</span>
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono font-semibold">{order.bqComment.length > 20 ? order.bqComment.slice(0, 20) + "…" : order.bqComment}</span>
+            </div>
+          </div>
+
           {userLevel === "1.1" ? (
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 flex items-start gap-2">
               <Zap size={14} className="text-purple-500 mt-0.5 flex-shrink-0" />
@@ -344,18 +356,13 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
             <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Available Quantity</p>
             <p className="text-2xl font-bold text-blue-700 mt-0.5">{availableQty} <span className="text-sm font-normal">pcs</span></p>
-            {pendingUsedQty > 0 && (
-              <div className="mt-1.5 flex items-center gap-1.5">
-                <span className="text-xs text-orange-600">Stock: {order.qty} pcs</span>
-                <span className="text-xs text-muted-foreground">−</span>
-                <span className="text-xs text-orange-600 font-semibold">Pending: {pendingUsedQty} pcs</span>
-                <span className="text-xs text-muted-foreground">= Available: {availableQty} pcs</span>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
-            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono">{order.bqComment.length > 22 ? order.bqComment.slice(0, 22) + "…" : order.bqComment}</span>
+            <div className="mt-2 text-xs text-muted-foreground">
+              <span className="text-orange-600 font-semibold">Stock: {order.qty} pcs</span>
+              <span className="mx-1">−</span>
+              <span className="text-orange-600 font-semibold">Pending: {pendingUsedQty} pcs</span>
+              <span className="mx-1">=</span>
+              <span className="text-blue-600 font-semibold">Available: {availableQty} pcs</span>
+            </div>
           </div>
 
           {step === "choose" && (
