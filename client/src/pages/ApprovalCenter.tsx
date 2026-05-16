@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
@@ -106,23 +106,23 @@ function RequestCard({
             </p>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${
-            req.status === "pending" ? "bg-orange-100 text-orange-700" :
-            req.status === "approved" ? "bg-green-100 text-green-700" :
-            "bg-gray-200 text-gray-600"
-          }`}>
-            {req.status === "pending" ? "Pending" : req.status === "approved" ? "Approved" : "Cancelled"}
-          </span>
-          {/* Process Approved badge */}
-          {isProcessApproved && req.status === "pending" && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-100 text-purple-700 flex-shrink-0">
-              In Process
+        {/* Single Status Badge - Show ONLY current stage */}
+        <div className="flex-shrink-0">
+          {req.status === "cancelled" ? (
+            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-gray-200 text-gray-600 flex items-center gap-1.5">
+              <XCircle size={14} /> Cancelled
             </span>
-          )}
-          {isProcessApproved && req.status !== "pending" && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-50 text-purple-500 border border-purple-200 flex-shrink-0">
-              Processed
+          ) : req.status === "approved" ? (
+            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1.5">
+              <CheckCircle2 size={14} /> Approved
+            </span>
+          ) : isProcessApproved ? (
+            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-purple-100 text-purple-700 flex items-center gap-1.5">
+              <Clock size={14} /> In Process
+            </span>
+          ) : (
+            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-orange-100 text-orange-700 flex items-center gap-1.5">
+              <AlertCircle size={14} /> Pending
             </span>
           )}
         </div>
