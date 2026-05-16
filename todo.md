@@ -736,3 +736,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Change "Pending" label to "In Process" in calculation display
 - [x] Display: "(Stock: X pcs − In Process: Y pcs = Available: Z pcs)"
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Pending Request Purchase Section (May 16)
+- [x] Add "Pending Request Purchase" section to Purchase Order dialog header
+- [x] Fetch pending requests from Approval Center with same Production Order/Tracking ID
+- [x] Display count of pending requests (e.g., "1 job")
+- [x] Show "N/A" if no pending requests exist
+- [x] Only show pending requests (status = pending)
+- [x] Test with different pending request counts
+- [x] Build successful, 0 TypeScript errors

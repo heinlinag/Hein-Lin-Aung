@@ -249,6 +249,9 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery({ orderId: order.id });
   const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
   const availableQty = Math.max(0, order.qty - inProcessQty);
+  const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
+  const pendingRequestsForOrder = (pendingRequestsQuery.data ?? []).filter((req: any) => req.orderID === order.orderID);
+  const pendingRequestCount = pendingRequestsForOrder.length;
 
   const handleJobRequest = async () => {
     setJobError("");
@@ -331,6 +334,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <p className="text-muted-foreground">BQ: <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px]">{order.bqComment.length > 18 ? order.bqComment.slice(0, 18) + "…" : order.bqComment}</span></p>
               <p className="text-blue-600 font-semibold">Available Quantity: {availableQty} <span className="text-xs font-normal">pcs</span></p>
               <p className="text-muted-foreground text-[10px] leading-tight">(Stock: {order.qty} pcs − In Process: {inProcessQty} pcs = Available: {availableQty} pcs)</p>
+              <p className="text-muted-foreground">Pending Request Purchase: <span className="font-semibold text-foreground">{pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</span></p>
             </div>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0"><X size={18} /></button>
