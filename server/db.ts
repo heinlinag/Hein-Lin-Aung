@@ -332,3 +332,29 @@ export async function getApprovalActionLog(limit = 100) {
   if (!db) return [];
   return db.select().from(approvalActionLog).orderBy(desc(approvalActionLog.createdAt)).limit(limit);
 }
+
+
+// Returns In Process Qty for a given orderId (processApprovedQty from approved requests)
+export async function getInProcessQtyForOrder(orderId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db
+    .select()
+    .from(pendingRequests)
+    .where(and(eq(pendingRequests.orderId, orderId), eq(pendingRequests.status, "approved"), eq(pendingRequests.type, "used_update")));
+  let total = 0;
+  for (const row of rows) {
+    // Use processApprovedQty if available (Level 1.1 process-approved), otherwise use approvedQty
+    if (typeof row.processApprovedQty === "number") {
+      total += row.processApprovedQty;
+    } else if (typeof row.approvedQty === "number") {
+      total += row.approvedQty;
+    } else {
+      try {
+        const action = JSON.parse(row.actionData ?? "{}");
+        if (typeof action.usedQty === "number") total += action.usedQty;
+      } catch { /* ignore */ }
+    }
+  }
+  return total;
+}

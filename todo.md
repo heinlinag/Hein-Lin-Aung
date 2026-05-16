@@ -718,3 +718,15 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Use smaller text size (text-xs, text-[10px])
 - [x] Remove duplicate Order Info section below header
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Remove Duplicate Available Quantity Box (May 16)
+- [x] Remove duplicate "AVAILABLE QUANTITY" box from Purchase Order dialog
+- [x] Keep Available Quantity info in header only
+- [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Available Quantity Calculation Update (May 16)
+- [ ] Create new procedure to fetch In Process Qty from Approval Center (processApprovedQty)
+- [ ] Update Available Quantity calculation: Stock - In Process Qty (instead of Pending Qty)
+- [ ] Handle N/A case: treat as 0
+- [ ] Update Purchase Order dialog header to show correct calculation
+- [ ] Test calculation with different In Process Qty values

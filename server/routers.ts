@@ -25,6 +25,7 @@ import {
   getPendingRequests,
   getPendingRequestById,
   getPendingUsedQtyForOrder,
+  getInProcessQtyForOrder,
   updatePendingRequestStatus,
   processApprovePendingRequest,
   createApprovalActionLog,
@@ -432,6 +433,12 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const pendingUsedQty = await getPendingUsedQtyForOrder(input.orderId);
         return { pendingUsedQty };
+      }),
+    getInProcessQty: publicProcedure
+      .input(z.object({ orderId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const inProcessQty = await getInProcessQtyForOrder(input.orderId);
+        return { inProcessQty };
       }),
     approve: publicProcedure
       .input(z.object({
