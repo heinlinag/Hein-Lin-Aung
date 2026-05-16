@@ -686,3 +686,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Change "Order:" → "Production Order:" label
 - [x] Add Tracking ID / Reference number display (N/A if not available)
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Old Stock Permission Access Restriction (May 16)
+- [x] Add permission check for Old Stock button in UsedUpdateRequestDialog
+- [x] Level 1 users see alert: "You are not authorized to access this feature. Please contact your Administrator."
+- [x] Level 1.1 and Level 2 users can access Old Stock feature
+- [x] Build successful, 0 TypeScript errors

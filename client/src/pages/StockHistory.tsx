@@ -3,6 +3,8 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 import AppLayout from "@/components/AppLayout";
 import { A4Label } from "@/components/A4Label";
@@ -241,6 +243,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const [boardSizeW, setBoardSizeW] = useState("");
   const [boardSizeL, setBoardSizeL] = useState("");
   const [scores, setScores] = useState("");
+  const [showPermissionDenied, setShowPermissionDenied] = useState(false);
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const pendingUsedQtyQuery = trpc.pendingRequests.getPendingUsedQty.useQuery({ orderId: order.id });
@@ -365,7 +368,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                 </button>
                 <button onClick={() => {
                   if (userLevel === "1") {
-                    alert("You are not authorized to access this feature.\n\nPlease contact your Administrator.");
+                    setShowPermissionDenied(true);
                   } else {
                     setStep("old_stock");
                   }
@@ -489,6 +492,32 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
           )}
         </div>
       </div>
+
+      {/* Permission Denied Dialog */}
+      <Dialog open={showPermissionDenied} onOpenChange={setShowPermissionDenied}>
+        <DialogContent className="w-full max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle size={20} className="text-destructive" />
+              Access Restricted
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="space-y-3">
+            <p className="text-sm text-foreground">You are not authorized to access this feature.</p>
+            <p className="text-sm text-muted-foreground">Please contact your Administrator via WhatsApp for assistance.</p>
+          </DialogDescription>
+          <div className="flex gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowPermissionDenied(false)} className="flex-1">
+              OK, Understood
+            </Button>
+            <Button className="flex-1 bg-green-500 hover:bg-green-600 text-white">
+              <a href="https://wa.me/+60123456789" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full">
+                Contact Admin
+              </a>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
