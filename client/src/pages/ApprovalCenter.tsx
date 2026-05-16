@@ -157,7 +157,7 @@ function RequestCard({
       {!isDelete && action && (
         <div className={`rounded-lg p-3 space-y-1.5 ${action.purpose === "old_stock" ? "bg-red-50 border border-red-200" : "bg-blue-50 border border-blue-200"}`}>
           <p className="text-xs font-semibold text-foreground uppercase tracking-wide">
-            {action.purpose === "old_stock" ? "Old Stock Clear" : "Job Description"}
+            {action.purpose === "old_stock" ? "Old Stock Clear" : "Order Description"}
           </p>
           {action.jobNo && (
             <div className="flex items-center justify-between">

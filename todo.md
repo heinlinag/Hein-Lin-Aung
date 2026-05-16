@@ -664,3 +664,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Change Target Black color from red to orange (text-orange-600)
 - [x] Target Black displays as highlight/reference only (no calculations)
 - [x] Build successful, 0 TypeScript errors
+
+## RequestCard Job Description - Balance Calculation Fix (May 16)
+- [x] Update Balance to use Current Qty (snapshot.qty) instead of action.newQty
+- [x] Balance = Current Qty - In Process Qty (when In Process Qty exists)
+- [x] Balance = Current Qty (when In Process Qty is N/A)
+- [x] Add null check for snapshot to prevent TypeScript errors
+- [x] Build successful, 0 TypeScript errors
