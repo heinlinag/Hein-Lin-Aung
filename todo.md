@@ -731,3 +731,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Update Purchase Order dialog header to show correct calculation
 - [x] Test calculation with different In Process Qty values
 - [x] Build successful, 0 TypeScript errors
+
+## StockHistory - Purchase Order Calculation Label Update (May 16)
+- [x] Change "Pending" label to "In Process" in calculation display
+- [x] Display: "(Stock: X pcs − In Process: Y pcs = Available: Z pcs)"
+- [x] Build successful, 0 TypeScript errors
