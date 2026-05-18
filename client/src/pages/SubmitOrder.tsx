@@ -20,7 +20,7 @@ export default function SubmitOrder() {
   const [qty, setQty] = useState("");
   const [bqComment, setBqComment] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
-  const [successData, setSuccessData] = useState<{ trackingId: string; orderID: string; fluteType: string; sizeW: number; sizeL: number; qty: number } | null>(null);
+  const [successData, setSuccessData] = useState<{ trackingId: string; orderID: string; fluteType: string; sizeW: number; sizeL: number; qty: number; bqComment: string } | null>(null);
 
   const notifyAll = trpc.push.sendToAll.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
@@ -81,6 +81,7 @@ export default function SubmitOrder() {
         sizeW: parseInt(sizeW),
         sizeL: parseInt(sizeL),
         qty: parseInt(qty),
+        bqComment: bqComment.trim(),
       });
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -288,6 +289,10 @@ export default function SubmitOrder() {
                   <span className="font-mono">{sizeW} × {sizeL} mm</span>
                 </div>
                 <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">BQ</span>
+                  <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px] break-words">{bqComment}</span>
+                </div>
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Qty</span>
                   <span className="font-semibold">{qty} pcs</span>
                 </div>
@@ -347,6 +352,10 @@ export default function SubmitOrder() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Size</span>
                   <span className="font-mono">{successData.sizeW} × {successData.sizeL} mm</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">BQ</span>
+                  <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px] break-words">{successData.bqComment}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Quantity</span>
