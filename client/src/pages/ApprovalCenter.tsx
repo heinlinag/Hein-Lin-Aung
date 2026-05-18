@@ -616,13 +616,6 @@ export default function ApprovalCenter() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-foreground">Approval Center</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {canApprove
-                ? "Review and approve Level 1 worker requests"
-                : canProcessApprove
-                ? "View requests and mark them as In Process"
-                : "View your submitted requests"}
-            </p>
           </div>
           <button
             onClick={async () => {
