@@ -10,45 +10,50 @@ const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 
 const baseFeatures = [
   {
-    icon: <ScanLine size={32} />,
+    icon: <ScanLine size={40} className="text-teal-400" />,
     title: "QR Scanner",
     description: "Scan QR codes on stock labels to verify orders and update balances in real time.",
     href: "/qr-scanner",
     cardClass: "feature-card-teal",
     btnLabel: "Open Scanner",
+    iconBg: "bg-gradient-to-br from-teal-500/30 to-cyan-500/20",
   },
   {
-    icon: <ClipboardList size={32} />,
+    icon: <ClipboardList size={40} className="text-blue-400" />,
     title: "Submit Order",
     description: "Submit a new Manual Slitter order with Flute Type, Size, Qty and BQ comment.",
     href: "/submit-order",
     cardClass: "feature-card-blue",
     btnLabel: "Submit Order",
+    iconBg: "bg-gradient-to-br from-blue-500/30 to-indigo-500/20",
   },
   {
-    icon: <Package size={32} />,
+    icon: <Package size={40} className="text-green-400" />,
     title: "Stock History",
     description: "View current stock and out-of-stock orders. Update usage and filter by BQ.",
     href: "/stock-history",
     cardClass: "feature-card-green",
     btnLabel: "View Stock",
+    iconBg: "bg-gradient-to-br from-green-500/30 to-emerald-500/20",
   },
   {
-    icon: <History size={32} />,
+    icon: <History size={40} className="text-purple-400" />,
     title: "Usage History",
     description: "Track how orders have been used — by Job No or Old Stock clearance.",
     href: "/usage-history",
     cardClass: "feature-card-purple",
     btnLabel: "View Usage",
+    iconBg: "bg-gradient-to-br from-purple-500/30 to-violet-500/20",
   },
   {
-    icon: <CheckCircle2 size={32} />,
+    icon: <CheckCircle2 size={40} className="text-orange-400" />,
     title: "Approval Center",
     description: "Review and manage pending requests for delete and used-update actions.",
     href: "/approval-center",
     cardClass: "feature-card-orange",
     btnLabel: "Open Approval Center",
     showBadge: true,
+    iconBg: "bg-gradient-to-br from-orange-500/30 to-amber-500/20",
   },
 ];
 
@@ -180,7 +185,7 @@ export default function Home() {
               className={`rounded-xl p-5 shadow-sm ${f.cardClass} relative flex flex-col`}
             >
               <div className="flex items-start gap-4 mb-4 flex-1">
-                <div className="bg-white/20 rounded-lg p-2.5 flex-shrink-0">
+                <div className={`${f.iconBg} rounded-xl p-3 flex-shrink-0 backdrop-blur-sm border border-white/20 shadow-lg`}>
                   {f.icon}
                 </div>
                 <div>
