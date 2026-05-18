@@ -10,50 +10,55 @@ const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
 
 const baseFeatures = [
   {
-    icon: <ScanLine size={40} className="text-teal-400" />,
+    icon: <ScanLine size={48} className="text-teal-300 drop-shadow-lg" />,
     title: "QR Scanner",
     description: "Scan QR codes on stock labels to verify orders and update balances in real time.",
     href: "/qr-scanner",
     cardClass: "feature-card-teal",
     btnLabel: "Open Scanner",
-    iconBg: "bg-gradient-to-br from-teal-500/30 to-cyan-500/20",
+    iconBg: "bg-gradient-to-br from-teal-500/40 via-cyan-500/30 to-cyan-400/20",
+    accentColor: "teal",
   },
   {
-    icon: <ClipboardList size={40} className="text-blue-400" />,
+    icon: <ClipboardList size={48} className="text-blue-300 drop-shadow-lg" />,
     title: "Submit Order",
     description: "Submit a new Manual Slitter order with Flute Type, Size, Qty and BQ comment.",
     href: "/submit-order",
     cardClass: "feature-card-blue",
     btnLabel: "Submit Order",
-    iconBg: "bg-gradient-to-br from-blue-500/30 to-indigo-500/20",
+    iconBg: "bg-gradient-to-br from-blue-500/40 via-indigo-500/30 to-indigo-400/20",
+    accentColor: "blue",
   },
   {
-    icon: <Package size={40} className="text-green-400" />,
+    icon: <Package size={48} className="text-green-300 drop-shadow-lg" />,
     title: "Stock History",
     description: "View current stock and out-of-stock orders. Update usage and filter by BQ.",
     href: "/stock-history",
     cardClass: "feature-card-green",
     btnLabel: "View Stock",
-    iconBg: "bg-gradient-to-br from-green-500/30 to-emerald-500/20",
+    iconBg: "bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-emerald-400/20",
+    accentColor: "green",
   },
   {
-    icon: <History size={40} className="text-purple-400" />,
+    icon: <History size={48} className="text-purple-300 drop-shadow-lg" />,
     title: "Usage History",
     description: "Track how orders have been used — by Job No or Old Stock clearance.",
     href: "/usage-history",
     cardClass: "feature-card-purple",
     btnLabel: "View Usage",
-    iconBg: "bg-gradient-to-br from-purple-500/30 to-violet-500/20",
+    iconBg: "bg-gradient-to-br from-purple-500/40 via-violet-500/30 to-violet-400/20",
+    accentColor: "purple",
   },
   {
-    icon: <CheckCircle2 size={40} className="text-orange-400" />,
+    icon: <CheckCircle2 size={48} className="text-orange-300 drop-shadow-lg" />,
     title: "Approval Center",
     description: "Review and manage pending requests for delete and used-update actions.",
     href: "/approval-center",
     cardClass: "feature-card-orange",
     btnLabel: "Open Approval Center",
     showBadge: true,
-    iconBg: "bg-gradient-to-br from-orange-500/30 to-amber-500/20",
+    iconBg: "bg-gradient-to-br from-orange-500/40 via-amber-500/30 to-amber-400/20",
+    accentColor: "orange",
   },
 ];
 
@@ -185,8 +190,18 @@ export default function Home() {
               className={`rounded-xl p-5 shadow-sm ${f.cardClass} relative flex flex-col`}
             >
               <div className="flex items-start gap-4 mb-4 flex-1">
-                <div className={`${f.iconBg} rounded-xl p-3 flex-shrink-0 backdrop-blur-sm border border-white/20 shadow-lg`}>
-                  {f.icon}
+                <div className={`${f.iconBg} rounded-2xl p-4 flex-shrink-0 backdrop-blur-md border border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 hover:border-white/50 relative group`}>
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{
+                    background: f.accentColor === 'teal' ? 'rgba(20, 184, 166, 0.3)' : 
+                               f.accentColor === 'blue' ? 'rgba(59, 130, 246, 0.3)' :
+                               f.accentColor === 'green' ? 'rgba(34, 197, 94, 0.3)' :
+                               f.accentColor === 'purple' ? 'rgba(168, 85, 247, 0.3)' :
+                               'rgba(249, 115, 22, 0.3)'
+                  }} />
+                  <div className="relative z-10">
+                    {f.icon}
+                  </div>
                 </div>
                 <div>
                   <h3 className="font-bold text-lg leading-tight text-white" style={{ fontFamily: "Lora, serif" }}>
@@ -206,7 +221,7 @@ export default function Home() {
               )}
               <button
                 onClick={() => navigate(f.href)}
-                className="w-full bg-white/20 hover:bg-white/30 active:bg-white/40 transition-colors rounded-lg py-2.5 text-sm font-semibold text-white border border-white/30"
+                className="w-full bg-white/20 hover:bg-white/35 active:bg-white/40 transition-all duration-300 rounded-lg py-2.5 text-sm font-semibold text-white border border-white/30 hover:border-white/50 hover:shadow-lg transform hover:-translate-y-1"
               >
                 {f.btnLabel}
               </button>
