@@ -271,7 +271,7 @@ function RequestCard({
               Process
             </button>
           )}
-          {canApprove && (
+          {canApprove && isProcessApproved && (
             <button
               onClick={() => { setShowApproveDialog(true); setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : ""); }}
               disabled={isProcessing}
@@ -485,7 +485,7 @@ export default function ApprovalCenter() {
 
   const userLevel = worker?.userLevel ?? "2";
   const canApprove = userLevel === "2";
-  const canProcessApprove = userLevel === "1.1";
+  const canProcessApprove = userLevel === "1.1" || userLevel === "2";
   const isLevel1 = userLevel === "1";
 
   const requestsQuery = trpc.pendingRequests.list.useQuery(
