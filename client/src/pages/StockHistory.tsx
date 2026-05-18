@@ -93,7 +93,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
       <div className="bg-white rounded-xl shadow-xl w-full max-w-sm flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex-1">
-            <h3 className="font-bold text-foreground mb-2">Used Update</h3>
+            <h3 className="font-bold text-foreground mb-2">Purchase Order</h3>
             <div className="space-y-1 text-xs">
               <p className="text-muted-foreground">Production Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
               <p className="text-muted-foreground">Tracking ID: <span className="font-mono font-semibold text-foreground text-[10px]">{order.trackingId || "N/A"}</span></p>
@@ -783,7 +783,7 @@ export default function StockHistory() {
                               onClick={() => setUsedUpdateOrder(order)}
                               className={`text-xs px-2.5 py-1 rounded-lg font-semibold hover:opacity-90 whitespace-nowrap ${(userLevel === "1" || userLevel === "1.1") ? "bg-orange-500 text-white" : "bg-primary text-white"}`}
                             >
-                              {(userLevel === "1" || userLevel === "1.1") ? "Purchase Order" : "Used Update"}
+                              Purchase Order
                             </button>
                           )}
                           <A4Label
@@ -840,7 +840,7 @@ export default function StockHistory() {
                       onClick={() => setUsedUpdateOrder(order)}
                       className={`w-full text-white rounded-lg py-2 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2 ${(userLevel === "1" || userLevel === "1.1") ? "bg-orange-500" : "gspp-gradient"}`}
                     >
-                      {(userLevel === "1" || userLevel === "1.1") ? <><Clock size={14} /> Purchase Order</> : <><Zap size={14} /> Used Update</>}
+                      <><Zap size={14} /> Purchase Order</>
                     </button>
                   )}
                 </div>
