@@ -45,6 +45,18 @@ export default function SystemStatus() {
 
   const recentUpdates: StatusUpdate[] = [
     {
+      date: 'May 18, 2026',
+      title: 'Level 2 Stock History Updated to Match Level 1/1.1 Design',
+      description: 'Level 2 users now see the same comprehensive Purchase Order dialog with full order context, quantity breakdown, and pending requests count. All user levels now have consistent terminology and UI/UX.',
+      type: 'update',
+    },
+    {
+      date: 'May 18, 2026',
+      title: 'Version Updated to v9030889b',
+      description: 'All version references across Login, Home, and Documentation pages updated to reflect the latest checkpoint with Level 2 Stock History improvements and unified Purchase Order terminology.',
+      type: 'update',
+    },
+    {
       date: 'May 7, 2026',
       title: 'User Profile Dropdown & FAQ Quick Access',
       description: 'Header badge now shows "User Profile" and opens a dropdown with employee info, Admin Panel (Level 2 only with password), Documentation, FAQ, System Status, and Logout. FAQ page added at /faq with 42 Q&A pairs.',

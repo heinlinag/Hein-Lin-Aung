@@ -386,7 +386,7 @@ export default function Login() {
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block"></span>
           <span className="text-xs font-semibold text-gray-600">Stock Management System</span>
           <span className="text-xs text-gray-400">|</span>
-          <span className="text-xs font-mono font-bold text-primary">v2.5.0</span>
+          <span className="text-xs font-mono font-bold text-primary">v9030889b</span>
         </div>
       </div>
     </div>

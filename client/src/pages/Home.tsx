@@ -213,7 +213,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border py-4 text-center px-4">
         <p className="text-xs text-muted-foreground">
-          PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()} &middot; v2.5
+          PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()} &middot; v9030889b
         </p>
       </footer>
     </AppLayout>
