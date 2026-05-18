@@ -111,16 +111,6 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
             <Zap size={14} className="text-green-500 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-green-700"><strong>Level 2:</strong> Stock will be <strong>deducted immediately</strong> when you submit.</p>
           </div>
-          <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5 mb-3">
-            <div className="shrink-0">
-              <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide leading-none">Available</p>
-              <p className="text-xl font-bold text-blue-700 leading-tight">{availableQty} <span className="text-xs font-normal">pcs</span></p>
-            </div>
-            <div className="flex flex-wrap gap-1.5 ml-auto">
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono">{order.bqComment.length > 18 ? order.bqComment.slice(0, 18) + "…" : order.bqComment}</span>
-            </div>
-          </div>
 
           {step === "choose" && (
             <div>
