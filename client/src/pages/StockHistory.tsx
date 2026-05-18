@@ -35,6 +35,11 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   const logUsage = trpc.orders.logUsage.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const utils = trpc.useUtils();
+  const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery({ orderId: order.id });
+  const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
+  const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
+  const pendingRequestsForOrder = (pendingRequestsQuery.data ?? []).filter((req: any) => req.orderID === order.orderID);
+  const pendingRequestCount = pendingRequestsForOrder.length;
   const availableQty = remaining !== null ? remaining : order.qty;
 
   const handleJobSubmit = async () => {
@@ -85,15 +90,27 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-          <div>
-            <h3 className="font-bold text-foreground text-base">Used Update</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+          <div className="flex-1">
+            <h3 className="font-bold text-foreground mb-2">Used Update</h3>
+            <div className="space-y-1 text-xs">
+              <p className="text-muted-foreground">Production Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
+              <p className="text-muted-foreground">Tracking ID: <span className="font-mono font-semibold text-foreground text-[10px]">{order.trackingId || "N/A"}</span></p>
+              <p className="text-muted-foreground">Flute Type: <span className="font-semibold text-foreground">{order.fluteType}</span></p>
+              <p className="text-muted-foreground">BQ: <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px]">{order.bqComment.length > 18 ? order.bqComment.slice(0, 18) + "…" : order.bqComment}</span></p>
+              <p className="text-blue-600 font-semibold">Available Quantity: {availableQty} <span className="text-xs font-normal">pcs</span></p>
+              <p className="text-muted-foreground text-[10px] leading-tight">(Stock: {order.qty} pcs − In Process: {inProcessQty} pcs = Available: {availableQty} pcs)</p>
+              <p className="text-muted-foreground">Pending Request Purchase: <span className="font-semibold text-foreground">{pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</span></p>
+            </div>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-gray-100"><X size={18} /></button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0"><X size={18} /></button>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+            <Zap size={14} className="text-green-500 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-green-700"><strong>Level 2:</strong> Stock will be <strong>deducted immediately</strong> when you submit.</p>
+          </div>
           <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5 mb-3">
             <div className="shrink-0">
               <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide leading-none">Available</p>
