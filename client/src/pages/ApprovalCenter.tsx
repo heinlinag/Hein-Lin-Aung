@@ -647,11 +647,19 @@ export default function ApprovalCenter() {
             </p>
           </div>
         )}
-        {canProcessApprove && (
+        {canProcessApprove && userLevel === "1.1" && (
           <div className="flex items-start gap-2 bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
             <Info size={14} className="text-purple-600 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-purple-700">
               You are a <strong>Level 1.1</strong> user. You can mark Level 1 requests as <strong>In Process</strong> (currently being processed). Level 2 must still give final Approve or Cancel.
+            </p>
+          </div>
+        )}
+        {canProcessApprove && userLevel === "2" && (
+          <div className="flex items-start gap-2 bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+            <Info size={14} className="text-green-600 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-green-700">
+              You are a <strong>Level 2</strong> user. You must first mark requests as <strong>In Process</strong> (preview quantity), then give final <strong>Approve or Cancel</strong>.
             </p>
           </div>
         )}
