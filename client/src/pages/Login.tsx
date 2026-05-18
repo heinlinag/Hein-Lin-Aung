@@ -317,7 +317,7 @@ export default function Login() {
               <div className="mt-5 rounded-xl border border-green-100 bg-green-50 p-4">
                 <p className="text-xs font-semibold text-green-800 mb-3">Don't have an Employee ID? Contact your Administrator.</p>
                 <a
-                  href="https://wa.me/601159225408"
+                  href={`https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP?.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-green-500 hover:bg-green-600 active:scale-95 text-white text-sm font-semibold transition-all"

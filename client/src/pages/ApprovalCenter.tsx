@@ -459,7 +459,7 @@ function RequestCard({
                 OK, Understood
               </button>
               <a
-                href="https://wa.me/601159225408"
+                href={`https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP?.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors"
