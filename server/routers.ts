@@ -315,6 +315,12 @@ export const appRouter = router({
      getUsage: publicProcedure.query(async () => {
       return getUsageHistory();
     }),
+    getUsageByOrderID: publicProcedure
+      .input(z.object({ orderID: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const { getUsageHistoryByOrderID } = await import("./db");
+        return getUsageHistoryByOrderID(input.orderID);
+      }),
     qrVerify: publicProcedure
       .input(z.object({ orderID: z.string().min(1) }))
       .query(async ({ input }) => {
