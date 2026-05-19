@@ -272,14 +272,23 @@ function RequestCard({
             </button>
           )}
           {canApprove && isProcessApproved && (
-            <button
-              onClick={() => { setShowApproveDialog(true); setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : ""); }}
-              disabled={isProcessing}
-              className="flex-1 min-w-[80px] bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-            >
-              {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-              Approve
-            </button>
+            <>
+              <button
+                onClick={() => { setShowCancelDialog(true); setCancelReasonLocal(""); }}
+                disabled={isProcessing}
+                className="flex-1 min-w-[80px] border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                <XCircle size={14} /> Cancel
+              </button>
+              <button
+                onClick={() => { setShowApproveDialog(true); setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : ""); }}
+                disabled={isProcessing}
+                className="flex-1 min-w-[80px] bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                Approve
+              </button>
+            </>
           )}
         </div>
       )}
