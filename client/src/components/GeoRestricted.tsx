@@ -217,7 +217,7 @@ export default function GeoGuard({ children }: { children: React.ReactNode }) {
           {/* Footer */}
           <div className="flex items-center justify-center gap-2 mt-5">
             <Wifi size={12} className="text-slate-600" />
-            <p className="text-center text-xs text-slate-500">PP4 Manual Slitter · Stock Management System</p>
+            <p className="text-center text-xs text-slate-500">PP4 Manual Slitter · Stock Management System | v6c89c239</p>
           </div>
         </div>
       </div>
