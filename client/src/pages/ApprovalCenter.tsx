@@ -238,7 +238,7 @@ function RequestCard({
       {/* Actions */}
       {isPending && (canCancel || canApprove || canProcessApprove) && (
         <div className="flex gap-2 pt-1 flex-wrap">
-          {canCancel && (
+          {canCancel && !canApprove && (
             <button
               onClick={() => {
                 // Level 1: cannot cancel ANY request that has been process-approved (In Process) by Level 1.1
