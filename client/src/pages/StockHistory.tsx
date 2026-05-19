@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock, TrendingDown } from "lucide-react";
+import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,81 +10,6 @@ import AppLayout from "@/components/AppLayout";
 import { A4Label } from "@/components/A4Label";
 
 const LOW_STOCK_THRESHOLD = 50;
-
-// ─── Stock Usage History Section Component ────────────────────────────────────
-function StockUsageHistorySection({ orderID, initialQty }: { orderID: string; initialQty: number }) {
-  const usageQuery = (trpc.orders as any).getUsageByOrderID?.useQuery?.({ orderID }) ?? { data: [], isLoading: false };
-  const usageHistory = usageQuery.data ?? [];
-  
-  if (usageQuery.isLoading) {
-    return (
-      <div className="mb-4 p-3 bg-gray-50 rounded-lg animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-        <div className="space-y-2">
-          {[1, 2].map(i => <div key={i} className="h-3 bg-gray-200 rounded"></div>)}
-        </div>
-      </div>
-    );
-  }
-
-  if (usageHistory.length === 0) {
-    return null;
-  }
-
-  // Calculate current remaining qty
-  const totalUsed = usageHistory.reduce((sum: number, h: any) => sum + h.usedQty, 0);
-  const currentQty = Math.max(0, initialQty - totalUsed);
-
-  return (
-    <div className="mb-4 border border-blue-200 rounded-lg bg-blue-50 p-3">
-      <div className="flex items-center gap-2 mb-3">
-        <TrendingDown size={16} className="text-blue-600" />
-        <h4 className="text-sm font-semibold text-blue-900">Stock Usage History</h4>
-      </div>
-      
-      {/* Available Quantity */}
-      <div className="mb-3 p-2 bg-white rounded border border-blue-100">
-        <p className="text-xs text-gray-600">Available Quantity</p>
-        <p className="text-lg font-bold text-blue-600">{initialQty} pcs</p>
-      </div>
-
-      {/* Usage Records */}
-      <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
-        {usageHistory.map((record: any, idx: number) => (
-          <div key={idx} className="p-2 bg-white rounded border border-blue-100 text-xs">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="font-semibold text-gray-900">
-                  {record.purpose === "job" ? (
-                    <span>Purchase Order by (Job No) <span className="text-blue-600 font-mono">{record.jobNo}</span></span>
-                  ) : (
-                    <span>Purchase Order by (Old Stock)</span>
-                  )}
-                </p>
-                {record.masterCard && <p className="text-gray-600">MasterCard: {record.masterCard}</p>}
-                {record.boardSizeW && record.boardSizeL && (
-                  <p className="text-gray-600">Board Size: {record.boardSizeW} × {record.boardSizeL} mm</p>
-                )}
-                <p className="text-gray-500 text-[10px] mt-1">{new Date(record.createdAt).toLocaleString()}</p>
-              </div>
-              <div className="text-right ml-2">
-                <p className="font-bold text-red-600">-{record.usedQty} pcs</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Current Quantity */}
-      <div className="p-2 bg-white rounded border border-blue-100">
-        <p className="text-xs text-gray-600">Current Qty</p>
-        <p className={`text-lg font-bold ${currentQty === 0 ? "text-red-600" : "text-green-600"}`}>
-          {currentQty} pcs
-        </p>
-      </div>
-    </div>
-  );
-}
 
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
@@ -422,8 +347,6 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0"><X size={18} /></button>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
-          {/* Stock Usage History Section */}
-          <StockUsageHistorySection orderID={order.orderID} initialQty={order.qty} />
 
           {userLevel === "1.1" ? (
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 flex items-start gap-2">

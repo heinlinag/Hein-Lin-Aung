@@ -215,13 +215,6 @@ export async function getUsageHistory() {
   return db.select().from(usageHistory).orderBy(desc(usageHistory.createdAt));
 }
 
-// Get usage history for a specific order
-export async function getUsageHistoryByOrderID(orderID: string) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(usageHistory).where(eq(usageHistory.orderID, orderID)).orderBy(desc(usageHistory.createdAt));
-}
-
 // ─── Deleted Logs ─────────────────────────────────────────────────────────────
 export async function logDeletedOrder(data: {
   orderID: string;
