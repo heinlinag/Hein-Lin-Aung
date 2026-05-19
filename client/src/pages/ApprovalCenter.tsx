@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, Printer } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
@@ -238,95 +238,6 @@ function RequestCard({
       {/* Actions */}
       {isPending && (canCancel || canApprove || canProcessApprove) && (
         <div className="flex gap-2 pt-1 flex-wrap">
-          {!isDelete && snapshot && (
-            <button
-              onClick={() => {
-                // Generate A4 label for NPRM Modify Order
-                const printWindow = window.open('', '', 'width=800,height=600');
-                if (printWindow) {
-                  const html = `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                      <title>A4 Label - ${snapshot.orderID}</title>
-                      <style>
-                        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                        .label { width: 100%; max-width: 210mm; height: 297mm; border: 1px solid #ccc; padding: 20px; box-sizing: border-box; }
-                        .header { text-align: center; margin-bottom: 30px; }
-                        .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-                        .section { margin-bottom: 20px; }
-                        .section-title { font-size: 14px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
-                        .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
-                        .label-text { font-weight: bold; }
-                        .value { text-align: right; }
-                        .qr-section { text-align: center; margin-top: 30px; }
-                        @media print { body { margin: 0; padding: 0; } .label { border: none; } }
-                      </style>
-                    </head>
-                    <body>
-                      <div class="label">
-                        <div class="header">
-                          <div class="title">PP4 Manual Slitter</div>
-                          <div style="font-size: 12px; color: #666;">NPRM Modify Order Label</div>
-                        </div>
-                        <div class="section">
-                          <div class="section-title">Order Information</div>
-                          <div class="row">
-                            <span class="label-text">Production Order:</span>
-                            <span class="value" style="font-size: 16px; font-weight: bold;">${snapshot.orderID}</span>
-                          </div>
-                          <div class="row">
-                            <span class="label-text">Flute Type:</span>
-                            <span class="value">${snapshot.fluteType}</span>
-                          </div>
-                          <div class="row">
-                            <span class="label-text">Size:</span>
-                            <span class="value">${snapshot.sizeW} × ${snapshot.sizeL} mm</span>
-                          </div>
-                          <div class="row">
-                            <span class="label-text">BQ:</span>
-                            <span class="value">${snapshot.bqComment}</span>
-                          </div>
-                          <div class="row">
-                            <span class="label-text">Quantity:</span>
-                            <span class="value" style="font-size: 14px; font-weight: bold;">${snapshot.qty} pcs</span>
-                          </div>
-                        </div>
-                        <div class="section">
-                          <div class="section-title">Request Details</div>
-                          <div class="row">
-                            <span class="label-text">Requested By:</span>
-                            <span class="value">${req.workerName}</span>
-                          </div>
-                          <div class="row">
-                            <span class="label-text">Request Type:</span>
-                            <span class="value">NPRM Modify Order</span>
-                          </div>
-                          <div class="row">
-                            <span class="label-text">Date:</span>
-                            <span class="value">${new Date().toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                        <div style="margin-top: 40px; text-align: center; font-size: 11px; color: #999;">
-                          <div>Tracking ID: ${req.id}</div>
-                        </div>
-                      </div>
-                      <script>
-                        window.print();
-                        setTimeout(() => window.close(), 500);
-                      </script>
-                    </body>
-                    </html>
-                  `;
-                  printWindow.document.write(html);
-                  printWindow.document.close();
-                }
-              }}
-              className="flex-1 min-w-[80px] border border-blue-200 bg-blue-50 text-blue-700 rounded-lg py-2.5 text-sm font-semibold hover:bg-blue-100 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-            >
-              <Printer size={14} /> Print A4 Label
-            </button>
-          )}
           {canCancel && !canApprove && (
             <button
               onClick={() => {
