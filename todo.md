@@ -765,3 +765,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 **Responsive Design:** Mobile and desktop optimized
 **Documentation:** FAQ, System Status, and User Guide included
 **Version:** 7d6c4c1a (stable production-ready)
+
+## Print A4 Label Feature (May 19)
+- [x] Create custom print dialog for NPRM Modify Order requests in Approval Center
+- [x] Add Print button (printer icon) to request cards - desktop only
+- [x] Print dialog displays: Production Order, Flute Type, Size, BQ, Quantity, print timestamp
+- [x] Professional A4 label formatting with proper spacing and typography
+- [x] Print dialog has Cancel and Print buttons
+- [x] Clicking Print opens browser print window for individual order
+- [x] Dialog closes after printing or when user clicks Cancel
+- [x] Write comprehensive unit tests for print feature (17 tests, all passing)
