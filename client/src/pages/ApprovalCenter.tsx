@@ -335,6 +335,14 @@ function RequestCard({
               </p>
               <div className="flex gap-3">
                 <button onClick={() => setShowProcessApproveDialog(false)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                {canApprove && (
+                  <button
+                    onClick={() => { setShowProcessApproveDialog(false); setShowCancelDialog(true); setCancelReasonLocal(""); }}
+                    className="flex-1 border border-red-200 text-red-600 rounded-lg py-2.5 text-sm font-semibold hover:bg-red-50"
+                  >
+                    Cancel Request
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     if (!isDelete && !processApprovedQtyLocal) {
