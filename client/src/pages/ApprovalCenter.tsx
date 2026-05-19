@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, Printer } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
@@ -234,6 +234,19 @@ function RequestCard({
       </div>
 
 
+
+      {/* Print A4 Label Button - Desktop Only for NPRM Modify Order */}
+      {!isDelete && (
+        <div className="hidden md:flex pt-1">
+          <button
+            onClick={() => window.print()}
+            className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Print A4 Label"
+          >
+            <Printer size={16} />
+          </button>
+        </div>
+      )}
 
       {/* Actions */}
       {isPending && (canCancel || canApprove || canProcessApprove) && (
