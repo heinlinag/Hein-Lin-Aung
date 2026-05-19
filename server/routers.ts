@@ -607,7 +607,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
         if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
-        if (reviewer.userLevel !== "1.1") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1.1 workers can process-approve requests" });
+        if (reviewer.userLevel !== "1.1" && reviewer.userLevel !== "2") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1.1 and Level 2 workers can process-approve requests" });
         const req = await getPendingRequestById(input.id);
         if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
         if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });

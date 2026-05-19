@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, Printer, MessageCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 
@@ -75,9 +75,6 @@ function RequestCard({
   const [processApprovedQtyLocal, setProcessApprovedQtyLocal] = useState("");
   // Process-blocked cancel dialog (Level 1 trying to cancel a process-approved request)
   const [showProcessBlockedDialog, setShowProcessBlockedDialog] = useState(false);
-  // Print dialog state
-  const [showPrintDialog, setShowPrintDialog] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
 
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
@@ -238,100 +235,10 @@ function RequestCard({
 
 
 
-      {/* Print A4 Label Button - Desktop Only for NPRM Modify Order */}
-      {!isDelete && (
-        <div className="hidden md:flex pt-1">
-          <button
-            onClick={() => setShowPrintDialog(true)}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Print A4 Label"
-          >
-            <Printer size={16} />
-          </button>
-        </div>
-      )}
-
-      {/* Print Dialog for NPRM Modify Order */}
-      {showPrintDialog && !isDelete && snapshot && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-auto">
-            {/* Print Content */}
-            <div ref={printRef} className="p-8 bg-white">
-              <div className="space-y-6">
-                {/* Header */}
-                <div className="text-center border-b-2 border-gray-300 pb-4">
-                  <h1 className="text-2xl font-bold text-gray-900">PP4 Manual Slitter</h1>
-                  <p className="text-sm text-gray-600">NPRM Modify Order Label</p>
-                </div>
-
-                {/* Order Details */}
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Production Order</p>
-                    <p className="text-2xl font-bold text-blue-600 mt-1">{snapshot.orderID}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Flute Type</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">{snapshot.fluteType}</p>
-                  </div>
-                </div>
-
-                {/* Size and Quantity */}
-                <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Size (mm)</p>
-                    <p className="text-xl font-bold text-gray-900 mt-1">{snapshot.sizeW}×{snapshot.sizeL}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Quantity</p>
-                    <p className="text-xl font-bold text-green-600 mt-1">{snapshot.qty} pcs</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">BQ</p>
-                    <p className="text-sm font-mono font-bold text-gray-900 mt-1 break-words">{snapshot.bqComment}</p>
-                  </div>
-                </div>
-
-                {/* Print Date */}
-                <div className="text-center text-xs text-gray-500 border-t pt-4">
-                  <p>Printed on {new Date().toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Dialog Buttons */}
-            <div className="flex gap-3 p-4 border-t bg-gray-50">
-              <button
-                onClick={() => setShowPrintDialog(false)}
-                className="flex-1 px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (printRef.current) {
-                    const printWindow = window.open("", "", "height=600,width=800");
-                    if (printWindow) {
-                      printWindow.document.write(printRef.current.innerHTML);
-                      printWindow.document.close();
-                      printWindow.print();
-                    }
-                  }
-                  setShowPrintDialog(false);
-                }}
-                className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Printer size={16} /> Print
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Actions */}
       {isPending && (canCancel || canApprove || canProcessApprove) && (
         <div className="flex gap-2 pt-1 flex-wrap">
-          {canCancel && !canApprove && (
+          {canCancel && (
             <button
               onClick={() => {
                 // Level 1: cannot cancel ANY request that has been process-approved (In Process) by Level 1.1
@@ -365,23 +272,14 @@ function RequestCard({
             </button>
           )}
           {canApprove && isProcessApproved && (
-            <>
-              <button
-                onClick={() => { setShowCancelDialog(true); setCancelReasonLocal(""); }}
-                disabled={isProcessing}
-                className="flex-1 min-w-[80px] border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-              >
-                <XCircle size={14} /> Cancel
-              </button>
-              <button
-                onClick={() => { setShowApproveDialog(true); setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : ""); }}
-                disabled={isProcessing}
-                className="flex-1 min-w-[80px] bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-              >
-                {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-                Approve
-              </button>
-            </>
+            <button
+              onClick={() => { setShowApproveDialog(true); setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : ""); }}
+              disabled={isProcessing}
+              className="flex-1 min-w-[80px] bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+              Approve
+            </button>
           )}
         </div>
       )}
