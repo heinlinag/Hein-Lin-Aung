@@ -497,7 +497,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
 
       {/* Permission Denied Dialog */}
       <Dialog open={showPermissionDenied} onOpenChange={setShowPermissionDenied}>
-        <DialogContent className="w-full max-w-sm">
+        <DialogContent className="w-full max-w-sm md:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle size={20} className="text-destructive" />
@@ -528,8 +528,8 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
 // ─── Delete Permission Denied Dialog (Level 1: no delete access) ────────────────
 function DeletePermissionDeniedDialog({ onClose }: { onClose: () => void; }) {
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-sm">
+      <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="w-full max-w-sm md:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle size={20} className="text-destructive" />
@@ -577,7 +577,7 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm md:max-w-md p-6">
         <h3 className="font-bold text-foreground mb-2">Delete Order</h3>
         <p className="text-sm text-muted-foreground mb-4">Enter your Employee ID to confirm deletion of order <strong className="text-foreground">{order.orderID}</strong>.</p>
         <input type="text" value={workerID} onChange={e => { setWorkerID(e.target.value); setError(""); }} onKeyDown={e => e.key === "Enter" && handleDelete()} placeholder="Employee ID" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive mb-1" autoFocus />
@@ -634,7 +634,7 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm md:max-w-md p-6">
         <h3 className="font-bold text-foreground mb-2">Request Delete</h3>
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 flex items-start gap-2">
           <Clock size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />

@@ -752,3 +752,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Update error message to reflect both Level 1.1 and Level 2 can process-approve
 - [x] Write unit tests for Level 2 process approve permissions (13 tests, all passing)
 - [x] Verify Level 2 users can now click Process button without permission error
+
+
+## Purchase Order Dialog Layout Optimization (May 20)
+- [x] Optimize Purchase Order dialog for desktop/computer version
+- [x] Make dialog more compact and fit better on larger screens
+- [x] Adjust max-width and padding for desktop layout (added md:max-w-md)
+- [x] Ensure mobile view remains responsive (kept max-w-sm for mobile)
+- [x] Test on various screen sizes (15 unit tests, all passing)
