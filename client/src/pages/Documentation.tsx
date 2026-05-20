@@ -292,7 +292,7 @@ export default function Documentation() {
           {/* Footer Info */}
           <div className="mt-12 text-center text-gray-600">
             <p className="mb-2">
-              <strong>Version:</strong> 6c89c239 | <strong>Last Updated:</strong> May 20, 2026
+              <strong>Version:</strong> 9030889b | <strong>Last Updated:</strong> May 18, 2026
             </p>
             <p>
               For additional support, contact your system administrator
