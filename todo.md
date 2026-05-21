@@ -815,3 +815,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Apply to BQ Comment search (onChange: e.target.value.toUpperCase())
 - [x] Test case conversion on mobile and desktop
 - [x] Add unit tests for case conversion (24 tests, all passing)
+
+
+## BQ Search Placeholder Text Update (May 21)
+- [x] Change BQ search placeholder from "Select Flute Type first" to "Please select Flute Type first"
+- [x] Use English language only
+- [x] Test placeholder text displays correctly
+- [x] Add unit tests for placeholder text (14 tests, all passing)

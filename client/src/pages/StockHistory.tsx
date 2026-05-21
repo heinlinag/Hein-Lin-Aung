@@ -749,7 +749,7 @@ export default function StockHistory() {
           </select>
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input type="text" value={searchBQ} onChange={e => setSearchBQ(e.target.value.toUpperCase())} placeholder={searchFlute ? "Search BQ Comment…" : "Select Flute Type first"} disabled={!searchFlute} className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white disabled:bg-gray-50 disabled:text-muted-foreground" />
+            <input type="text" value={searchBQ} onChange={e => setSearchBQ(e.target.value.toUpperCase())} placeholder={searchFlute ? "Search BQ Comment…" : "Please select Flute Type first"} disabled={!searchFlute} className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white disabled:bg-gray-50 disabled:text-muted-foreground" />
           </div>
         </div>
 
