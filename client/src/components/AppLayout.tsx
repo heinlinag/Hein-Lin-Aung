@@ -253,7 +253,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
 
         {/* Nav links */}
         <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {NAV_ITEMS.map(item => (
+          {NAV_ITEMS.filter(item => !item.adminOnly).map(item => (
             <button
               key={item.href}
               onClick={() => navigate(item.href)}
@@ -274,8 +274,8 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
           ))}
         </nav>
 
-        {/* Logout */}
-        <div className="px-3 pb-4">
+        {/* Logout - Hidden on desktop, shown in mobile header */}
+        <div className="px-3 pb-4 hidden">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"

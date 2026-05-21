@@ -837,3 +837,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add responsive classes: lg:left-1/2 lg:-translate-x-1/2 lg:right-auto
 - [x] Keep Mobile View with right-0 positioning (unchanged)
 - [x] Add unit tests for profile dropdown centering (37 tests, all passing)
+
+
+## Desktop Admin Panel and Logout Hiding (May 22)
+- [x] Hide Admin Panel from desktop sidebar navigation
+- [x] Hide Logout button from desktop sidebar
+- [x] Filter NAV_ITEMS with adminOnly flag
+- [x] Add hidden class to logout button
+- [x] Keep both visible in mobile view
+- [x] Add unit tests for desktop hiding (34 tests, all passing)
