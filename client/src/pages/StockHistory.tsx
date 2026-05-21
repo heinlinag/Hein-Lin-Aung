@@ -702,7 +702,7 @@ export default function StockHistory() {
 
   const filtered = useMemo(() => orders.filter(o => {
     const matchID = !searchOrderID || o.orderID.toLowerCase().includes(searchOrderID.toLowerCase());
-    const matchFlute = !searchFlute || o.fluteType.toLowerCase().includes(searchFlute.toLowerCase());
+    const matchFlute = !searchFlute || o.fluteType === searchFlute; // Exact match for Flute Type
     const matchBQ = !searchBQ || o.bqComment.toLowerCase().includes(searchBQ.toLowerCase());
     return matchID && matchFlute && matchBQ;
   }), [orders, searchOrderID, searchFlute, searchBQ]);
@@ -738,13 +738,18 @@ export default function StockHistory() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input type="text" value={searchOrderID} onChange={e => setSearchOrderID(e.target.value)} placeholder="Search Production Order…" className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white" />
           </div>
+          <select value={searchFlute} onChange={e => setSearchFlute(e.target.value)} className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white">
+            <option value="">Select Flute Type</option>
+            <option value="BA">BA</option>
+            <option value="BE">BE</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="E">E</option>
+          </select>
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input type="text" value={searchFlute} onChange={e => setSearchFlute(e.target.value)} placeholder="Search Flute Type…" className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white" />
-          </div>
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input type="text" value={searchBQ} onChange={e => setSearchBQ(e.target.value)} placeholder="Search BQ Comment…" className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white" />
+            <input type="text" value={searchBQ} onChange={e => setSearchBQ(e.target.value)} placeholder={searchFlute ? "Search BQ Comment…" : "Select Flute Type first"} disabled={!searchFlute} className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white disabled:bg-gray-50 disabled:text-muted-foreground" />
           </div>
         </div>
 

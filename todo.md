@@ -760,3 +760,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Adjust max-width and padding for desktop layout (added md:max-w-md)
 - [x] Ensure mobile view remains responsive (kept max-w-sm for mobile)
 - [x] Test on various screen sizes (15 unit tests, all passing)
+
+
+## Stock History Search Improvements (May 20)
+- [x] Replace Search Flute Type text input with dropdown selector (BA, BE, A, B, C, E)
+- [x] Implement exact matching for Flute Type (B should NOT match BA)
+- [x] Make Flute Type selection REQUIRED when searching by BQ Comment
+- [x] Show validation message if BQ Comment searched without Flute Type selected
+- [x] Keep Search Production Order as text search (no changes)
+- [x] Test search combinations and filtering logic
+- [x] Add unit tests for search filtering (22 tests, all passing)
