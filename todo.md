@@ -770,3 +770,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Keep Search Production Order as text search (no changes)
 - [x] Test search combinations and filtering logic
 - [x] Add unit tests for search filtering (22 tests, all passing)
+
+
+## Purchase Order Card Size Expansion (May 21)
+- [x] Increase Purchase Order card/dialog max-width for desktop version (md:max-w-2xl)
+- [x] Make card larger and more spacious on computer screens
+- [x] Improve visual hierarchy and readability on larger screens (lg:p-8)
+- [x] Keep mobile view compact and responsive (max-w-sm)
+- [x] Test on various desktop screen sizes
+- [x] Add unit tests for responsive card sizing (25 tests, all passing)
