@@ -803,7 +803,7 @@ export default function StockHistory() {
                         </div>
                       </td>
                       <td className="py-3 pr-4">
-                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Flute : {order.fluteType}</span>
+                        <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">{order.fluteType}</span>
                       </td>
                       <td className="py-3 pr-4 font-mono text-sm">{order.sizeW}×{order.sizeL} mm</td>
                       <td className="py-3 pr-4">

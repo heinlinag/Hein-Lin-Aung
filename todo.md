@@ -779,3 +779,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Keep mobile view compact and responsive (max-w-sm)
 - [x] Test on various desktop screen sizes
 - [x] Add unit tests for responsive card sizing (25 tests, all passing)
+
+
+## Stock History Table Flute Type Display (May 21)
+- [x] Change Flute Type column display from "Flute : B" to just "B" on desktop table
+- [x] Apply to all flute types (BA, BE, A, B, C, E)
+- [x] Keep mobile card display format as is
+- [x] Test on desktop and mobile views
+- [x] Add unit tests for display format (26 tests, all passing)
