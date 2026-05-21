@@ -613,24 +613,7 @@ export default function ApprovalCenter() {
   return (
     <AppLayout pageTitle="Approval Center">
       <main className="container lg:max-w-none lg:px-8 py-5">
-        {/* Sticky header for desktop */}
-        <div className="hidden lg:flex items-center justify-between mb-4 sticky top-0 bg-white z-40 py-3 -mx-8 px-8 border-b border-border">
-          <div></div>
-          <button
-            onClick={async () => {
-              setIsRefreshing(true);
-              await utils.pendingRequests.list.invalidate();
-              setTimeout(() => setIsRefreshing(false), 700);
-            }}
-            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-60"
-            title="Refresh"
-            disabled={isRefreshing}
-          >
-            <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
-          </button>
-        </div>
-        {/* Mobile refresh button */}
-        <div className="lg:hidden flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4">
           <div></div>
           <button
             onClick={async () => {
@@ -672,8 +655,8 @@ export default function ApprovalCenter() {
           </div>
         )}
 
-        {/* Main tab: Requests / History - Sticky on mobile */}
-        <div className="flex gap-1 mb-4 border-b border-border sticky top-12 lg:top-20 bg-white z-30 -mx-4 px-4 lg:mx-0 lg:px-0 lg:static">
+        {/* Main tab: Requests / History */}
+        <div className="flex gap-1 mb-4 border-b border-border">
           <button
             onClick={() => setActiveTab("requests")}
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "requests" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
@@ -693,8 +676,8 @@ export default function ApprovalCenter() {
 
         {activeTab === "requests" && (
           <>
-            {/* Status filter sub-tabs - Sticky on mobile below tabs */}
-            <div className="flex gap-1 mb-5 sticky top-24 lg:top-auto bg-white z-20 -mx-4 px-4 lg:mx-0 lg:px-0 lg:static py-2 lg:py-0">
+            {/* Status filter sub-tabs */}
+            <div className="flex gap-1 mb-5">
               {([
                 { key: "pending" as const, label: "Pending" },
                 { key: "approved" as const, label: "Approved" },
@@ -715,9 +698,9 @@ export default function ApprovalCenter() {
               ))}
             </div>
             
-            {/* Job No search when All tab is selected - Sticky on mobile */}
+            {/* Job No search when All tab is selected */}
             {statusFilter === undefined && (
-              <div className="relative w-full mb-4 max-w-xs sticky top-32 lg:top-auto bg-white z-20 -mx-4 px-4 lg:mx-0 lg:px-0 lg:static py-2 lg:py-0">
+              <div className="relative w-full mb-4 max-w-xs">
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
