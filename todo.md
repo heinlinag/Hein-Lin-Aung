@@ -830,3 +830,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Apply same fix to Usage History page
 - [x] Test on desktop and mobile views
 - [x] Add unit tests for heading display (13 tests, all passing)
+
+
+## Refresh Button Header Repositioning (May 22)
+- [x] Move refresh button to sticky header (top-0, z-40)
+- [x] Make refresh button position consistent across Desktop and Mobile views
+- [x] Add "Approval Center" title to desktop header
+- [x] Add proper responsive padding (-mx-4 px-4 for mobile, lg:-mx-8 lg:px-8 for desktop)
+- [x] Add border-bottom to header
+- [x] Add unit tests for refresh button header positioning (29 tests, all passing)
