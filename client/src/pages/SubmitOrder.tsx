@@ -325,8 +325,39 @@ export default function SubmitOrder() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-6 text-center">
               {/* Success Icon */}
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <style>{`
+                @keyframes successCheckmark {
+                  0% {
+                    transform: scale(0) rotate(-45deg);
+                    opacity: 0;
+                  }
+                  50% {
+                    transform: scale(1.2) rotate(0deg);
+                  }
+                  100% {
+                    transform: scale(1) rotate(0deg);
+                    opacity: 1;
+                  }
+                }
+                @keyframes successBgPulse {
+                  0% {
+                    transform: scale(0.8);
+                    opacity: 0;
+                  }
+                  100% {
+                    transform: scale(1);
+                    opacity: 1;
+                  }
+                }
+                .success-checkmark {
+                  animation: successCheckmark 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+                }
+                .success-bg {
+                  animation: successBgPulse 0.5s cubic-bezier(0.4, 0.0, 0.2, 1) both;
+                }
+              `}</style>
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4 success-bg">
+                <svg className="w-8 h-8 text-green-600 success-checkmark" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
