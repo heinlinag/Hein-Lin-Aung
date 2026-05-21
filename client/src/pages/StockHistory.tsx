@@ -773,12 +773,12 @@ export default function StockHistory() {
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto max-h-[calc(100vh-300px)]">
               <table className="w-full text-sm">
-                <thead>
+                <thead className="sticky top-0 bg-background z-10">
                   <tr className="border-b-2 border-border">
                     {["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","BQ","Date","Actions"].map(h => (
-                      <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-4">{h}</th>
+                      <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-4 bg-background">{h}</th>
                     ))}
                   </tr>
                 </thead>

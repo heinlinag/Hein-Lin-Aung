@@ -787,3 +787,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Keep mobile card display format as is
 - [x] Test on desktop and mobile views
 - [x] Add unit tests for display format (26 tests, all passing)
+
+
+## Sticky Table Header for Stock History (May 21)
+- [x] Add sticky header to Stock History table on desktop/computer version
+- [x] Header should stay fixed at top while scrolling through order cards
+- [x] Display all column names (TRACKING ID, PRODUCTION ORDER, FLUTE TYPE, SIZE, QTY, BQ, DATE, ACTIONS)
+- [x] Keep header styling consistent with table design
+- [x] Only apply to desktop version (hidden on mobile)
+- [x] Test scrolling behavior
+- [x] Add unit tests for sticky header functionality (35 tests, all passing)
