@@ -149,6 +149,80 @@
 }
 
 @layer components {
+  /* ── Smooth Animations for Interactive Elements ── */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  a[href] {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  /* Checkbox and Radio animations */
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply transition-all duration-200;
+  }
+
+  input[type="checkbox"]:checked,
+  input[type="radio"]:checked {
+    @apply scale-105;
+  }
+
+  input[type="checkbox"]:hover:not(:disabled),
+  input[type="radio"]:hover:not(:disabled) {
+    @apply scale-110;
+  }
+
+  /* Form input animations */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    @apply transition-all duration-200;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):focus,
+  textarea:focus,
+  select:focus {
+    @apply scale-[1.02];
+  }
+
+  /* Button hover and active states */
+  button:not(:disabled):hover,
+  [role="button"]:not([aria-disabled="true"]):hover,
+  [type="button"]:not(:disabled):hover,
+  [type="submit"]:not(:disabled):hover {
+    @apply scale-105 shadow-md;
+  }
+
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  [type="button"]:not(:disabled):active,
+  [type="submit"]:not(:disabled):active {
+    @apply scale-95;
+  }
+
+  /* Link animations */
+  a[href] {
+    @apply hover:opacity-80;
+  }
+
+  /* Dropdown and modal animations */
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"] {
+    @apply animate-in fade-in duration-200;
+  }
+
+  /* Badge and status animations */
+  .badge,
+  [role="status"] {
+    @apply transition-all duration-300;
+  }
+
   .container {
     width: 100%;
     margin-left: auto;
