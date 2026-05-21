@@ -797,3 +797,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Only apply to desktop version (hidden on mobile)
 - [x] Test scrolling behavior
 - [x] Add unit tests for sticky header functionality (35 tests, all passing)
+
+
+## Mobile Order Card Ref Badge Removal (May 21)
+- [x] Hide "Ref: " badge on mobile view order cards
+- [x] Keep Tracking ID display at bottom (already shows same value)
+- [x] Remove redundant Ref number from mobile card header
+- [x] Keep Ref badge visible on desktop
+- [x] Test on mobile and desktop views
+- [x] Add unit tests for Ref badge visibility (34 tests, all passing)

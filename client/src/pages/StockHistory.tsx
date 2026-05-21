@@ -856,7 +856,7 @@ export default function StockHistory() {
                 const isLowStock = activeTab === "current" && order.qty < LOW_STOCK_THRESHOLD;
                 return (
                 <div key={order.id} className={`border rounded-xl shadow-sm p-4 space-y-2 ${isLowStock ? "bg-orange-50 border-orange-200" : "bg-white border-border"}`}>
-                  {order.trackingId && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold inline-block">Ref: {order.trackingId}</span>}
+                  {order.trackingId && <span className="hidden md:inline-block text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold">Ref: {order.trackingId}</span>}
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground">Production Order</p>
