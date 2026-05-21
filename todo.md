@@ -830,3 +830,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Apply same fix to Usage History page
 - [x] Test on desktop and mobile views
 - [x] Add unit tests for heading display (13 tests, all passing)
+
+
+## Profile Dropdown Centering (May 22)
+- [x] Center User Profile dropdown on Desktop version
+- [x] Change positioning from right-0 to left-1/2 -translate-x-1/2
+- [x] Keep Mobile View unchanged
+- [x] Add unit tests for profile dropdown centering (37 tests, all passing)
