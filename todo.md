@@ -822,3 +822,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Use English language only
 - [x] Test placeholder text displays correctly
 - [x] Add unit tests for placeholder text (14 tests, all passing)
+
+
+## Remove Duplicate Headings on Desktop (May 21)
+- [x] Remove duplicate "Approval Center" heading on desktop version
+- [x] Keep only one heading at the top (from AppLayout pageTitle)
+- [x] Apply same fix to Usage History page
+- [x] Test on desktop and mobile views
+- [x] Add unit tests for heading display (13 tests, all passing)

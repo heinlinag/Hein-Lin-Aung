@@ -131,7 +131,6 @@ export default function UsageHistory() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Usage History</h1>
             <p className="text-xs text-muted-foreground mt-0.5">{entries.length} records total</p>
           </div>
         </div>

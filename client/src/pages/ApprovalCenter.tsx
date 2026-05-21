@@ -614,9 +614,7 @@ export default function ApprovalCenter() {
     <AppLayout pageTitle="Approval Center">
       <main className="container lg:max-w-none lg:px-8 py-5">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Approval Center</h1>
-          </div>
+          <div></div>
           <button
             onClick={async () => {
               setIsRefreshing(true);
