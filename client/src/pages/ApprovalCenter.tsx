@@ -613,9 +613,7 @@ export default function ApprovalCenter() {
   return (
     <AppLayout pageTitle="Approval Center">
       <main className="container lg:max-w-none lg:px-8 py-5">
-        {/* Sticky header with refresh button - Desktop & Mobile */}
-        <div className="flex items-center justify-between mb-4 sticky top-0 bg-white z-40 py-3 -mx-4 px-4 lg:-mx-8 lg:px-8 border-b border-border">
-          <h1 className="text-lg font-bold text-foreground hidden lg:block">Approval Center</h1>
+        <div className="flex items-center justify-between mb-4">
           <div></div>
           <button
             onClick={async () => {
