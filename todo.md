@@ -806,3 +806,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Keep Ref badge visible on desktop
 - [x] Test on mobile and desktop views
 - [x] Add unit tests for Ref badge visibility (34 tests, all passing)
+
+
+## Search Input Case Conversion (May 21)
+- [x] Make search inputs case-insensitive
+- [x] Convert lowercase letters to uppercase (a > A, b > B, etc.)
+- [x] Apply to Production Order search (onChange: e.target.value.toUpperCase())
+- [x] Apply to BQ Comment search (onChange: e.target.value.toUpperCase())
+- [x] Test case conversion on mobile and desktop
+- [x] Add unit tests for case conversion (24 tests, all passing)
