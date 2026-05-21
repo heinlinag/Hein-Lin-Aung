@@ -158,36 +158,39 @@
   input[type="checkbox"]:not(:disabled),
   input[type="radio"]:not(:disabled),
   a[href] {
-    @apply transition-all duration-200 ease-out;
+    @apply transition-all duration-300;
+    transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
   }
 
   /* Checkbox and Radio animations */
   input[type="checkbox"],
   input[type="radio"] {
-    @apply transition-all duration-200;
+    @apply transition-all duration-400;
+    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   input[type="checkbox"]:checked,
   input[type="radio"]:checked {
-    @apply scale-105;
+    @apply scale-110;
   }
 
   input[type="checkbox"]:hover:not(:disabled),
   input[type="radio"]:hover:not(:disabled) {
-    @apply scale-110;
+    @apply scale-125;
   }
 
   /* Form input animations */
   input:not([type="checkbox"]):not([type="radio"]),
   textarea,
   select {
-    @apply transition-all duration-200;
+    @apply transition-all duration-300;
+    transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
   }
 
   input:not([type="checkbox"]):not([type="radio"]):focus,
   textarea:focus,
   select:focus {
-    @apply scale-[1.02];
+    @apply scale-[1.03] shadow-lg;
   }
 
   /* Button hover and active states */
@@ -195,32 +198,33 @@
   [role="button"]:not([aria-disabled="true"]):hover,
   [type="button"]:not(:disabled):hover,
   [type="submit"]:not(:disabled):hover {
-    @apply scale-105 shadow-md;
+    @apply scale-110 shadow-lg;
   }
 
   button:not(:disabled):active,
   [role="button"]:not([aria-disabled="true"]):active,
   [type="button"]:not(:disabled):active,
   [type="submit"]:not(:disabled):active {
-    @apply scale-95;
+    @apply scale-98;
   }
 
   /* Link animations */
   a[href] {
-    @apply hover:opacity-80;
+    @apply transition-all duration-300 hover:opacity-70;
   }
 
   /* Dropdown and modal animations */
   [role="dialog"],
   [role="menu"],
   [role="listbox"] {
-    @apply animate-in fade-in duration-200;
+    @apply animate-in fade-in zoom-in-95 duration-300;
   }
 
   /* Badge and status animations */
   .badge,
   [role="status"] {
-    @apply transition-all duration-300;
+    @apply transition-all duration-500;
+    transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
   }
 
   .container {

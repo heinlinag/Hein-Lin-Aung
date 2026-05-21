@@ -849,10 +849,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 
 ## Animation Implementation (May 22)
-- [x] Add animations to checkbox and toggle elements (scale on hover/checked)
-- [x] Add animations to buttons and clickable elements (scale on hover/active)
-- [x] Add animations to form inputs and transitions (scale on focus)
-- [x] Add animations to modals and dropdowns (fade-in animation)
-- [x] Add smooth transitions to status badges (duration-300)
+- [x] Add animations to checkbox and toggle elements (scale 110% checked, 125% hover, spring easing)
+- [x] Add animations to buttons and clickable elements (scale 110% hover, 98% active)
+- [x] Add animations to form inputs and transitions (scale 103% focus with shadow)
+- [x] Add animations to modals and dropdowns (fade-in + zoom-in animation)
+- [x] Add smooth transitions to status badges (duration-500 with cubic-bezier)
 - [x] Add animations to approval/rejection actions (via button animations)
-- [x] Write unit tests for animation implementations (51 tests, all passing)
+- [x] Enhance animations with smoother easing and longer durations
+- [x] Update unit tests for enhanced animations (51 tests, all passing)
