@@ -830,3 +830,14 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Apply same fix to Usage History page
 - [x] Test on desktop and mobile views
 - [x] Add unit tests for heading display (13 tests, all passing)
+
+
+## Approval Center - Sticky Headers (May 21)
+- [x] Implement sticky header for Approval Center page on desktop (top-0, z-40)
+- [x] Implement sticky tabs (Requests/History) on mobile (top-12, z-30)
+- [x] Implement sticky status filter buttons on mobile (top-24, z-20)
+- [x] Implement sticky Job No search input on mobile (top-32, z-20)
+- [x] Add proper z-index hierarchy (40 > 30 > 20)
+- [x] Add responsive behavior (hidden on mobile for desktop header, lg:static for mobile elements)
+- [x] Add negative margins and padding for mobile sticky elements (-mx-4, px-4)
+- [x] Add unit tests for sticky header functionality (32 tests, all passing)
