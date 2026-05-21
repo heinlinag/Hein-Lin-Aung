@@ -874,3 +874,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Maintain vertical alignment with status buttons
 - [x] Add transition-colors for smooth hover effect
 - [x] Write unit tests for refresh button repositioning (55 tests, all passing)
+
+
+## Sticky Request Cards Header (May 22)
+- [x] Add sticky header above request cards (below filter buttons)
+- [x] Display request type title (Pending/Approved/Cancelled/All Requests)
+- [x] Show item count in header
+- [x] Position sticky at top-0 (mobile) and lg:top-12 (desktop)
+- [x] Add border-bottom separator
+- [x] Write unit tests for sticky request header (63 tests, all passing)

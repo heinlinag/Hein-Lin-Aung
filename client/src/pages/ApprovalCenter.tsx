@@ -728,9 +728,19 @@ export default function ApprovalCenter() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {requests.map(req => (
-                  <RequestCard
+              <>
+                {/* Sticky header for request cards */}
+                <div className="sticky top-0 lg:top-12 z-20 bg-white border-b border-border mb-3 pb-2 pt-2">
+                  <div className="flex items-center justify-between px-4">
+                    <span className="text-sm font-semibold text-foreground">
+                      {statusFilter === "pending" ? "Pending Requests" : statusFilter === "approved" ? "Approved Requests" : statusFilter === "cancelled" ? "Cancelled Requests" : "All Requests"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{requests.length} item{requests.length !== 1 ? "s" : ""}</span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {requests.map(req => (
+                    <RequestCard
                     key={req.id}
                     req={req}
                     onApprove={handleApprove}
@@ -742,8 +752,9 @@ export default function ApprovalCenter() {
                     canProcessApprove={canProcessApprove}
                     currentWorkerID={worker?.workerID}
                   />
-                ))}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </>
         )}
