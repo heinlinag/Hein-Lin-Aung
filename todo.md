@@ -833,7 +833,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 
 ## Profile Dropdown Centering (May 22)
-- [x] Center User Profile dropdown on Desktop version
-- [x] Change positioning from right-0 to left-1/2 -translate-x-1/2
-- [x] Keep Mobile View unchanged
+- [x] Center User Profile dropdown on Desktop version (lg breakpoint)
+- [x] Add responsive classes: lg:left-1/2 lg:-translate-x-1/2 lg:right-auto
+- [x] Keep Mobile View with right-0 positioning (unchanged)
 - [x] Add unit tests for profile dropdown centering (37 tests, all passing)

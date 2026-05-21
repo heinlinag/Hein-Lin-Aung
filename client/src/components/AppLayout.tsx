@@ -113,7 +113,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
 
   /* ── Profile Dropdown ─────────────────────────────────────────────── */
   const ProfileDropdown = () => (
-    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden">
+    <div className="absolute top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden lg:left-1/2 lg:-translate-x-1/2 right-0 lg:right-auto">
       {/* Header */}
       <div className={`px-5 py-4 ${lv.bg} flex items-center justify-between`}>
         <div className="flex items-center gap-3">
