@@ -866,3 +866,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Implement background pulse animation (scale 0.8→1)
 - [x] Add animation sequencing (background first, checkmark with 0.2s delay)
 - [x] Write unit tests for success modal animations (49 tests, all passing)
+
+
+## Refresh Button Repositioning in Approval Center (May 22)
+- [x] Move Refresh button next to status filter buttons (Pending, Approved, Cancelled, All)
+- [x] Use ml-auto for right alignment in the filter row
+- [x] Maintain vertical alignment with status buttons
+- [x] Add transition-colors for smooth hover effect
+- [x] Write unit tests for refresh button repositioning (55 tests, all passing)

@@ -613,21 +613,7 @@ export default function ApprovalCenter() {
   return (
     <AppLayout pageTitle="Approval Center">
       <main className="container lg:max-w-none lg:px-8 py-5">
-        <div className="flex items-center justify-between mb-4">
-          <div></div>
-          <button
-            onClick={async () => {
-              setIsRefreshing(true);
-              await utils.pendingRequests.list.invalidate();
-              setTimeout(() => setIsRefreshing(false), 700);
-            }}
-            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-60"
-            title="Refresh"
-            disabled={isRefreshing}
-          >
-            <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
-          </button>
-        </div>
+        <div></div>
 
         {/* Level info banner */}
         {isLevel1 && (
@@ -677,7 +663,7 @@ export default function ApprovalCenter() {
         {activeTab === "requests" && (
           <>
             {/* Status filter sub-tabs */}
-            <div className="flex gap-1 mb-5">
+            <div className="flex gap-1 mb-5 items-center">
               {([
                 { key: "pending" as const, label: "Pending" },
                 { key: "approved" as const, label: "Approved" },
@@ -696,6 +682,18 @@ export default function ApprovalCenter() {
                   {label}
                 </button>
               ))}
+              <button
+                onClick={async () => {
+                  setIsRefreshing(true);
+                  await utils.pendingRequests.list.invalidate();
+                  setTimeout(() => setIsRefreshing(false), 700);
+                }}
+                className="ml-auto text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-60 transition-colors"
+                title="Refresh"
+                disabled={isRefreshing}
+              >
+                <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
+              </button>
             </div>
             
             {/* Job No search when All tab is selected */}
