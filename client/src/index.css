@@ -165,18 +165,18 @@
   /* Checkbox and Radio animations */
   input[type="checkbox"],
   input[type="radio"] {
-    @apply transition-all duration-400;
-    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+    @apply transition-all duration-300;
+    transition-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
   }
 
   input[type="checkbox"]:checked,
   input[type="radio"]:checked {
-    @apply scale-110;
+    @apply scale-105;
   }
 
   input[type="checkbox"]:hover:not(:disabled),
   input[type="radio"]:hover:not(:disabled) {
-    @apply scale-125;
+    @apply scale-110;
   }
 
   /* Form input animations */
@@ -198,14 +198,14 @@
   [role="button"]:not([aria-disabled="true"]):hover,
   [type="button"]:not(:disabled):hover,
   [type="submit"]:not(:disabled):hover {
-    @apply scale-110 shadow-lg;
+    @apply scale-105 shadow-md;
   }
 
   button:not(:disabled):active,
   [role="button"]:not([aria-disabled="true"]):active,
   [type="button"]:not(:disabled):active,
   [type="submit"]:not(:disabled):active {
-    @apply scale-98;
+    @apply scale-100;
   }
 
   /* Link animations */

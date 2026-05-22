@@ -874,3 +874,14 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Maintain vertical alignment with status buttons
 - [x] Add transition-colors for smooth hover effect
 - [x] Write unit tests for refresh button repositioning (55 tests, all passing)
+
+
+## Refined Smooth Animations (May 22)
+- [x] Reduce checkbox/radio scale from 125% to 110% on hover
+- [x] Reduce checkbox checked scale from 110% to 105%
+- [x] Reduce button hover scale from 110% to 105%
+- [x] Change button shadow from shadow-lg to shadow-md
+- [x] Change button active scale from 98% to 100%
+- [x] Use consistent cubic-bezier(0.4, 0.0, 0.2, 1) timing
+- [x] Remove spring easing (1.56 value)
+- [x] Write unit tests for refined animations (53 tests, all passing)
