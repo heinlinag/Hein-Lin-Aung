@@ -885,3 +885,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Use consistent cubic-bezier(0.4, 0.0, 0.2, 1) timing
 - [x] Remove spring easing (1.56 value)
 - [x] Write unit tests for refined animations (53 tests, all passing)
+
+
+## Home Menu Item (May 23)
+- [x] Add "Home" menu item to sidebar navigation (at top, above Submit Order)
+- [x] Create Home page route (href: "/")  that displays Dashboard
+- [x] Add Home icon (Home icon from lucide-react) to sidebar menu
+- [x] Clicking Home navigates to Dashboard page
+- [x] Add unit tests for Home menu (50 tests, all passing) navigation

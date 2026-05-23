@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, History, CheckCircle2, Settings, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine, Home,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -24,6 +24,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { href: "/",               label: "Home",             icon: <Home size={18} /> },
   { href: "/submit-order",    label: "Submit Order",    icon: <ClipboardList size={18} /> },
   { href: "/stock-history",   label: "Stock History",   icon: <Package size={18} /> },
   { href: "/usage-history",   label: "Usage History",   icon: <History size={18} /> },
