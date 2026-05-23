@@ -113,7 +113,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
 
   /* ── Profile Dropdown ─────────────────────────────────────────────── */
   const ProfileDropdown = () => (
-    <div className="absolute top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden lg:left-1/2 lg:-translate-x-1/2 right-0 lg:right-auto">
+    <div className="absolute top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden lg:hidden right-0">
       {/* Header */}
       <div className={`px-5 py-4 ${lv.bg} flex items-center justify-between`}>
         <div className="flex items-center gap-3">
@@ -230,10 +230,10 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
           </div>
         </div>
 
-        {/* Worker info — clickable to open profile */}
+        {/* Worker info — clickable to open profile (mobile) */}
         {worker && (
           <div
-            className="px-4 py-3 border-b border-border bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors relative"
+            className="lg:hidden px-4 py-3 border-b border-border bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors relative"
             onClick={() => setProfileOpen(v => !v)}
             ref={profileRef}
           >
@@ -251,8 +251,79 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
           </div>
         )}
 
-        {/* Nav links */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
+        {/* Desktop Profile Panel */}
+        {worker && (
+          <div className="hidden lg:flex flex-col px-4 py-4 space-y-3 border-b border-border bg-gradient-to-b from-gray-50 to-white">
+            {/* Profile header */}
+            <div className="flex items-center gap-2">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${lv.bg}`}>
+                <User size={16} className={lv.fg} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-bold text-foreground truncate">{worker.name}</div>
+                <div className="text-[10px] text-muted-foreground truncate">{worker.workerID}</div>
+              </div>
+            </div>
+
+            {/* Info rows */}
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center gap-2">
+                <IdCard size={12} className="shrink-0 text-gray-400" />
+                <span className="text-gray-600 font-medium">Employee ID</span>
+                <span className="ml-auto font-mono font-semibold text-foreground text-[9px]">{worker.workerID}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Building2 size={12} className="shrink-0 text-gray-400" />
+                <span className="text-gray-600 font-medium">Department</span>
+                <span className="ml-auto text-foreground text-[9px]">{worker.department || "—"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield size={12} className="shrink-0 text-gray-400" />
+                <span className="text-gray-600 font-medium">Access Level</span>
+                <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${lv.badge}`}>{lv.text}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick links (desktop) */}
+        <nav className="hidden lg:flex lg:flex-col px-3 py-3 space-y-0.5 border-b border-border">
+          {userLevel === "2" && (
+            <button
+              onClick={handleAdminPanelClick}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-foreground hover:bg-gray-100 transition-colors"
+            >
+              <Settings size={13} />
+              <span className="flex-1 text-left">Admin Panel</span>
+              <Lock size={10} className="text-gray-400" />
+            </button>
+          )}
+          <button
+            onClick={() => goTo("/docs")}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-foreground hover:bg-gray-100 transition-colors"
+          >
+            <BookOpen size={13} className="text-blue-600" />
+            <span className="flex-1 text-left">Documentation</span>
+          </button>
+          <button
+            onClick={() => goTo("/faq")}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-foreground hover:bg-gray-100 transition-colors"
+          >
+            <HelpCircle size={13} className="text-amber-600" />
+            <span className="flex-1 text-left">FAQ</span>
+          </button>
+          <button
+            onClick={() => goTo("/status")}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-foreground hover:bg-gray-100 transition-colors"
+          >
+            <Activity size={13} className="text-green-600" />
+            <span className="flex-1 text-left">System Status</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          </button>
+        </nav>
+
+        {/* Nav links (mobile) */}
+        <nav className="lg:hidden flex-1 px-3 py-4 space-y-0.5">
           {NAV_ITEMS.filter(item => !item.adminOnly).map(item => (
             <button
               key={item.href}
@@ -274,13 +345,13 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
           ))}
         </nav>
 
-        {/* Logout - Hidden on desktop, shown in mobile header */}
-        <div className="px-3 pb-4 hidden">
+        {/* Logout - Desktop */}
+        <div className="hidden lg:flex px-3 pb-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
           >
-            <LogOut size={18} />
+            <LogOut size={13} />
             <span>Logout</span>
           </button>
         </div>
