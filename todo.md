@@ -907,9 +907,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Replace individual Cancel, Process, Approve buttons with single "Update Info" button
 - [x] Create dropdown menu with all available actions
 - [x] Add DropdownMenu component import and Button import
-- [x] Display "Cancel Request" option with red icon
-- [x] Display "Process Request" option with purple icon
-- [x] Display "Approve Request" option with green icon
+- [x] Display "Cancel" option with red icon
+- [x] Display "Process" option with purple icon
+- [x] Display "Approved" option with green icon
 - [x] Only show relevant actions based on user permissions
 - [x] Maintain all original functionality and logic
 - [x] Verify TypeScript compilation passes
+- [x] Improve dropdown menu styling with hover effects
+- [x] Add rounded corners and better spacing to menu items
+- [x] Simplify menu text labels
