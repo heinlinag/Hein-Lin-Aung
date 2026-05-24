@@ -2,9 +2,16 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 type PendingRequest = {
   id: number;
@@ -241,52 +248,67 @@ function RequestCard({
 
 
 
-      {/* Actions */}
+      {/* Actions - Update Info Dropdown */}
       {isPending && (canCancel || canApprove || canProcessApprove) && (
-        <div className="flex gap-2 pt-1 flex-wrap">
-          {canCancel && (
-            <button
-              onClick={() => {
-                // Level 1: cannot cancel ANY request that has been process-approved (In Process) by Level 1.1
-                // Level 1.1: cannot cancel OTHER users' requests that they have already processed
-                const isOwnRequest = req.requestedBy === currentWorkerID;
-                if (!canApprove && isProcessApproved) {
-                  // Level 1 cannot cancel any In Process request (even own)
-                  setShowProcessBlockedDialog(true);
-                } else if (canProcessApprove && isProcessApproved && !isOwnRequest) {
-                  // Level 1.1 trying to cancel another user's request they already processed
-                  setShowProcessBlockedDialog(true);
-                } else {
-                  setShowCancelDialog(true);
-                  setCancelReasonLocal("");
-                }
-              }}
-              disabled={isProcessing}
-              className="flex-1 min-w-[80px] border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-            >
-              <XCircle size={14} /> Cancel
-            </button>
-          )}
-          {canProcessApprove && !isProcessApproved && (
-            <button
-              onClick={() => { setShowProcessApproveDialog(true); setProcessApprovedQtyLocal(""); }}
-              disabled={isProcessing}
-              className="flex-1 min-w-[80px] bg-purple-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-            >
-              {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />}
-              Process
-            </button>
-          )}
-          {canApprove && isProcessApproved && (
-            <button
-              onClick={() => { setShowApproveDialog(true); setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : ""); }}
-              disabled={isProcessing}
-              className="flex-1 min-w-[80px] bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-            >
-              {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-              Approve
-            </button>
-          )}
+        <div className="flex justify-end pt-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isProcessing}
+                className="gap-2"
+              >
+                {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <MoreVertical size={14} />}
+                Update Info
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {canCancel && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    const isOwnRequest = req.requestedBy === currentWorkerID;
+                    if (!canApprove && isProcessApproved) {
+                      setShowProcessBlockedDialog(true);
+                    } else if (canProcessApprove && isProcessApproved && !isOwnRequest) {
+                      setShowProcessBlockedDialog(true);
+                    } else {
+                      setShowCancelDialog(true);
+                      setCancelReasonLocal("");
+                    }
+                  }}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <XCircle size={14} className="text-red-600" />
+                  <span>Cancel Request</span>
+                </DropdownMenuItem>
+              )}
+              {canProcessApprove && !isProcessApproved && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setShowProcessApproveDialog(true);
+                    setProcessApprovedQtyLocal("");
+                  }}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <PlayCircle size={14} className="text-purple-600" />
+                  <span>Process Request</span>
+                </DropdownMenuItem>
+              )}
+              {canApprove && isProcessApproved && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setShowApproveDialog(true);
+                    setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : "");
+                  }}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <CheckCircle2 size={14} className="text-green-600" />
+                  <span>Approve Request</span>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 
