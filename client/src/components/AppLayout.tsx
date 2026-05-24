@@ -221,57 +221,61 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background flex">
       {/* ── Desktop Sidebar ────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border bg-gradient-to-b from-white to-gray-50/50 sticky top-0 h-screen overflow-y-auto shadow-sm">
-        {/* Brand - Compact */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-border/50">
-          <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain flex-shrink-0" />
+      <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border/60 bg-gradient-to-b from-slate-50 via-white to-slate-50/80 sticky top-0 h-screen overflow-y-auto shadow-lg">
+        {/* Brand - Premium */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-border/40 bg-gradient-to-r from-white/80 to-slate-50/80 backdrop-blur-sm">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg blur opacity-20"></div>
+            <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain flex-shrink-0 relative" />
+          </div>
           <div className="min-w-0">
-            <div className="font-bold text-xs text-foreground leading-tight tracking-tight">PP4 SLITTER</div>
-            <div className="text-[10px] text-muted-foreground leading-tight">Stock System</div>
+            <div className="font-bold text-xs text-slate-900 leading-tight tracking-widest">PP4 SLITTER</div>
+            <div className="text-[9px] text-slate-500 leading-tight font-medium">Stock System</div>
           </div>
         </div>
 
         {/* Worker info — clickable to open profile */}
         {worker && (
           <div
-            className="mx-3 mt-3 mb-2 px-3 py-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-50/50 cursor-pointer hover:from-blue-100 hover:to-blue-50 transition-all duration-200 relative border border-blue-100/50 hover:border-blue-200/50"
+            className="mx-3 mt-4 mb-3 px-3.5 py-3.5 rounded-xl bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-cyan-400/5 cursor-pointer hover:from-blue-500/15 hover:via-blue-400/10 hover:to-cyan-400/10 transition-all duration-300 relative border border-blue-200/40 hover:border-blue-300/60 group shadow-sm hover:shadow-md"
             onClick={() => setProfileOpen(v => !v)}
             ref={profileRef}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0 shadow-sm">
-                <User size={13} className="text-white" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-400/0 to-cyan-400/0 group-hover:from-blue-400/5 group-hover:to-cyan-400/5 transition-all duration-300"></div>
+            <div className="relative flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <User size={14} className="text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-foreground truncate leading-tight">{worker.name}</div>
-                <div className="text-[9px] text-muted-foreground truncate leading-tight">{worker.workerID}</div>
+                <div className="text-xs font-bold text-slate-900 truncate leading-tight">{worker.name}</div>
+                <div className="text-[8.5px] text-slate-500 truncate leading-tight font-medium">{worker.workerID}</div>
               </div>
-              <span className={`ml-auto shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-md ${lv.badge}`}>Lv{userLevel}</span>
+              <span className={`ml-auto shrink-0 text-[8px] font-bold px-2 py-0.5 rounded-lg ${lv.badge} shadow-sm`}>Lv{userLevel}</span>
             </div>
             {profileOpen && <ProfileDropdown />}
           </div>
         )}
 
         {/* Nav links */}
-        <nav className="flex-1 px-2.5 py-3 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 px-2 py-3.5 space-y-1 overflow-y-auto">
           {NAV_ITEMS.filter(item => !item.adminOnly).map(item => (
             <button
               key={item.href}
               onClick={() => navigate(item.href)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 relative group ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all duration-300 relative group ${
                 isActive(item.href)
-                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-200 scale-105"
-                  : "text-muted-foreground hover:bg-gray-100/80 hover:text-foreground hover:scale-105"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-300/50 scale-105"
+                  : "text-slate-600 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50/50 hover:text-slate-900 hover:scale-105 hover:shadow-sm"
               }`}
             >
-              <span className={`flex-shrink-0 transition-transform duration-200 ${
-                isActive(item.href) ? "scale-110" : "group-hover:scale-110"
+              <span className={`flex-shrink-0 transition-all duration-300 ${
+                isActive(item.href) ? "scale-110" : "group-hover:scale-115"
               }`}>
                 {item.icon}
               </span>
-              <span className="flex-1 text-left tracking-tight">{item.label}</span>
+              <span className="flex-1 text-left tracking-wide">{item.label}</span>
               {item.href === "/approval-center" && pendingCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg shadow-red-200 animate-pulse">
+                <span className="min-w-[22px] h-[22px] bg-gradient-to-br from-red-500 to-red-600 text-white text-[7px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg shadow-red-300/60 animate-pulse">
                   {pendingCount > 99 ? "99+" : pendingCount}
                 </span>
               )}
@@ -280,15 +284,15 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
         </nav>
 
         {/* Footer - Logout */}
-        <div className="px-2.5 pb-3 pt-2 border-t border-border/50 mt-auto">
+        <div className="px-2 pb-3.5 pt-3 border-t border-border/40 mt-auto bg-gradient-to-t from-slate-50/80 to-transparent">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-50/50 hover:text-red-600 transition-all duration-300 group shadow-sm hover:shadow-md"
           >
-            <span className="flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+            <span className="flex-shrink-0 group-hover:scale-115 transition-transform duration-300">
               <LogOut size={16} />
             </span>
-            <span className="flex-1 text-left tracking-tight">Logout</span>
+            <span className="flex-1 text-left tracking-wide">Logout</span>
           </button>
         </div>
       </aside>
