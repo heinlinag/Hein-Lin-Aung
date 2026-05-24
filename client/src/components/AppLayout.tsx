@@ -221,61 +221,66 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background flex">
       {/* ── Desktop Sidebar ────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border/60 bg-gradient-to-b from-slate-50 via-white to-slate-50/80 sticky top-0 h-screen overflow-y-auto shadow-lg">
-        {/* Brand - Premium */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-border/40 bg-gradient-to-r from-white/80 to-slate-50/80 backdrop-blur-sm">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg blur opacity-20"></div>
+      <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-slate-200/60 bg-gradient-to-b from-slate-50/95 via-white to-slate-50/90 sticky top-0 h-screen overflow-y-auto shadow-2xl" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.02) 0%, transparent 50%)' }}>
+        {/* Brand - Enterprise */}
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-200/40 bg-gradient-to-r from-white/90 via-slate-50/50 to-white/80 backdrop-blur-md relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg blur-md opacity-0 group-hover:opacity-30 transition-all duration-500"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg blur opacity-20 group-hover:opacity-30 transition-opacity duration-500"></div>
             <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain flex-shrink-0 relative" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 relative">
             <div className="font-bold text-xs text-slate-900 leading-tight tracking-widest">PP4 SLITTER</div>
-            <div className="text-[9px] text-slate-500 leading-tight font-medium">Stock System</div>
+            <div className="text-[8.5px] text-slate-500 leading-tight font-semibold">Stock System</div>
           </div>
         </div>
 
         {/* Worker info — clickable to open profile */}
         {worker && (
           <div
-            className="mx-3 mt-4 mb-3 px-3.5 py-3.5 rounded-xl bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-cyan-400/5 cursor-pointer hover:from-blue-500/15 hover:via-blue-400/10 hover:to-cyan-400/10 transition-all duration-300 relative border border-blue-200/40 hover:border-blue-300/60 group shadow-sm hover:shadow-md"
+            className="mx-3 mt-5 mb-4 px-4 py-4 rounded-xl bg-gradient-to-br from-blue-500/12 via-blue-400/6 to-cyan-400/8 cursor-pointer hover:from-blue-500/18 hover:via-blue-400/12 hover:to-cyan-400/14 transition-all duration-400 relative border border-blue-200/50 hover:border-blue-300/70 group shadow-md hover:shadow-lg overflow-hidden"
             onClick={() => setProfileOpen(v => !v)}
             ref={profileRef}
           >
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-400/0 to-cyan-400/0 group-hover:from-blue-400/5 group-hover:to-cyan-400/5 transition-all duration-300"></div>
-            <div className="relative flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
-                <User size={14} className="text-white" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-400/0 via-transparent to-cyan-400/0 group-hover:from-blue-400/8 group-hover:via-blue-300/4 group-hover:to-cyan-400/8 transition-all duration-400"></div>
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: 'radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 70%)' }}></div>
+            <div className="relative flex items-center gap-3.5">
+              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 flex items-center justify-center shrink-0 shadow-lg group-hover:shadow-xl transition-all duration-400 group-hover:scale-125 group-hover:-rotate-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400"></div>
+                <User size={15} className="text-white relative z-10" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-bold text-slate-900 truncate leading-tight">{worker.name}</div>
-                <div className="text-[8.5px] text-slate-500 truncate leading-tight font-medium">{worker.workerID}</div>
+                <div className="text-[8px] text-slate-500 truncate leading-tight font-semibold">{worker.workerID}</div>
               </div>
-              <span className={`ml-auto shrink-0 text-[8px] font-bold px-2 py-0.5 rounded-lg ${lv.badge} shadow-sm`}>Lv{userLevel}</span>
+              <span className={`ml-auto shrink-0 text-[7.5px] font-bold px-2.5 py-0.5 rounded-lg ${lv.badge} shadow-md`}>Lv{userLevel}</span>
             </div>
             {profileOpen && <ProfileDropdown />}
           </div>
         )}
 
         {/* Nav links */}
-        <nav className="flex-1 px-2 py-3.5 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-2.5 py-4 space-y-1.5 overflow-y-auto">
           {NAV_ITEMS.filter(item => !item.adminOnly).map(item => (
             <button
               key={item.href}
               onClick={() => navigate(item.href)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all duration-300 relative group ${
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-lg text-xs font-bold transition-all duration-400 relative group overflow-hidden ${
                 isActive(item.href)
-                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-300/50 scale-105"
-                  : "text-slate-600 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50/50 hover:text-slate-900 hover:scale-105 hover:shadow-sm"
+                  ? "bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white shadow-lg shadow-blue-400/40 scale-105"
+                  : "text-slate-600 hover:bg-gradient-to-r hover:from-slate-100/80 hover:via-slate-50 hover:to-slate-100/80 hover:text-slate-900 hover:scale-105 hover:shadow-md"
               }`}
             >
-              <span className={`flex-shrink-0 transition-all duration-300 ${
-                isActive(item.href) ? "scale-110" : "group-hover:scale-115"
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: isActive(item.href) ? 'linear-gradient(90deg, rgba(255,255,255,0.1) 0%, transparent 50%)' : 'linear-gradient(90deg, rgba(59,130,246,0.05) 0%, transparent 50%)' }}></div>
+              <span className={`flex-shrink-0 transition-all duration-400 relative z-10 ${
+                isActive(item.href) ? "scale-110 drop-shadow-lg" : "group-hover:scale-125"
               }`}>
                 {item.icon}
               </span>
-              <span className="flex-1 text-left tracking-wide">{item.label}</span>
+              <span className="flex-1 text-left tracking-wider relative z-10">{item.label}</span>
               {item.href === "/approval-center" && pendingCount > 0 && (
-                <span className="min-w-[22px] h-[22px] bg-gradient-to-br from-red-500 to-red-600 text-white text-[7px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg shadow-red-300/60 animate-pulse">
+                <span className="min-w-[24px] h-[24px] bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white text-[7px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg shadow-red-400/60 animate-pulse relative z-10">
                   {pendingCount > 99 ? "99+" : pendingCount}
                 </span>
               )}
@@ -284,15 +289,17 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
         </nav>
 
         {/* Footer - Logout */}
-        <div className="px-2 pb-3.5 pt-3 border-t border-border/40 mt-auto bg-gradient-to-t from-slate-50/80 to-transparent">
+        <div className="px-2.5 pb-4 pt-3.5 border-t border-slate-200/40 mt-auto bg-gradient-to-t from-slate-50/90 via-white/50 to-transparent relative overflow-hidden">
+          <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 70%)' }}></div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-50/50 hover:text-red-600 transition-all duration-300 group shadow-sm hover:shadow-md"
+            className="w-full flex items-center gap-3 px-3.5 py-3 rounded-lg text-xs font-bold text-slate-600 hover:bg-gradient-to-r hover:from-red-50/80 hover:via-red-50/50 hover:to-red-50/80 hover:text-red-600 transition-all duration-400 group shadow-sm hover:shadow-md relative z-10 overflow-hidden"
           >
-            <span className="flex-shrink-0 group-hover:scale-115 transition-transform duration-300">
-              <LogOut size={16} />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: 'linear-gradient(90deg, rgba(239,68,68,0.05) 0%, transparent 50%)' }}></div>
+            <span className="flex-shrink-0 group-hover:scale-125 transition-transform duration-400 relative z-10">
+              <LogOut size={17} />
             </span>
-            <span className="flex-1 text-left tracking-wide">Logout</span>
+            <span className="flex-1 text-left tracking-wider relative z-10">Logout</span>
           </button>
         </div>
       </aside>
