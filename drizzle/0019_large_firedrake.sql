@@ -1,0 +1,2 @@
+ALTER TABLE `approvalActionLog` MODIFY COLUMN `requestType` enum('delete','used_update') NOT NULL;--> statement-breakpoint
+ALTER TABLE `pendingRequests` MODIFY COLUMN `type` enum('delete','used_update') NOT NULL;

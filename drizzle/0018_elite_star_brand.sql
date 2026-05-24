@@ -1,0 +1,1 @@
+ALTER TABLE `approvalActionLog` MODIFY COLUMN `requestType` enum('delete','used_update','edit_order') NOT NULL;

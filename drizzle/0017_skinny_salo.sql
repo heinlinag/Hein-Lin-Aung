@@ -1,0 +1,1 @@
+ALTER TABLE `pendingRequests` MODIFY COLUMN `type` enum('delete','used_update','edit_order') NOT NULL;
