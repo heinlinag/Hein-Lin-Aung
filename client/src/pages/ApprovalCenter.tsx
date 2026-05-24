@@ -263,7 +263,7 @@ function RequestCard({
                 Update Info
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-44 p-1">
               {canCancel && (
                 <DropdownMenuItem
                   onClick={() => {
@@ -277,10 +277,10 @@ function RequestCard({
                       setCancelReasonLocal("");
                     }
                   }}
-                  className="flex items-center gap-2 cursor-pointer"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                 >
-                  <XCircle size={14} className="text-red-600" />
-                  <span>Cancel Request</span>
+                  <XCircle size={16} className="text-red-600 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">Cancel</span>
                 </DropdownMenuItem>
               )}
               {canProcessApprove && !isProcessApproved && (
@@ -289,10 +289,10 @@ function RequestCard({
                     setShowProcessApproveDialog(true);
                     setProcessApprovedQtyLocal("");
                   }}
-                  className="flex items-center gap-2 cursor-pointer"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer"
                 >
-                  <PlayCircle size={14} className="text-purple-600" />
-                  <span>Process Request</span>
+                  <PlayCircle size={16} className="text-purple-600 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">Process</span>
                 </DropdownMenuItem>
               )}
               {canApprove && isProcessApproved && (
@@ -301,10 +301,10 @@ function RequestCard({
                     setShowApproveDialog(true);
                     setApprovedQtyLocal(action?.usedQty ? String(action.usedQty) : "");
                   }}
-                  className="flex items-center gap-2 cursor-pointer"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-green-50 transition-colors cursor-pointer"
                 >
-                  <CheckCircle2 size={14} className="text-green-600" />
-                  <span>Approve Request</span>
+                  <CheckCircle2 size={16} className="text-green-600 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">Approved</span>
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
