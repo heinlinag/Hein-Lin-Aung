@@ -16,6 +16,7 @@ type PendingRequest = {
   actionData: string | null;
   status: "pending" | "approved" | "cancelled";
   reviewedBy: string | null;
+  cancelReason: string | null;
   processApprovedBy: string | null;
   processApprovedQty: number | null;
   processApprovedAt: Date | null;
@@ -225,10 +226,15 @@ function RequestCard({
           </div>
         )}
         {req.status === "cancelled" && req.reviewedBy && (
-          <div className="text-xs">
+          <div className="text-xs space-y-1.5">
             <p className="text-muted-foreground">
               <span className="font-semibold">Cancel by</span> {req.reviewedBy} · {new Date(req.reviewedAt || req.createdAt).toLocaleString()}
             </p>
+            {req.cancelReason && (
+              <p className="text-muted-foreground">
+                <span className="font-semibold">Cancel Reason:</span> {req.cancelReason}
+              </p>
+            )}
           </div>
         )}
       </div>

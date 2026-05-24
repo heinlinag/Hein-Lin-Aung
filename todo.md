@@ -893,3 +893,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add Home icon (Home icon from lucide-react) to sidebar menu
 - [x] Clicking Home navigates to Dashboard page
 - [x] Add unit tests for Home menu (50 tests, all passing) navigation
+
+
+## Cancel Reason Display in Approval Center (May 24)
+- [x] Add cancelReason field to PendingRequest type in ApprovalCenter.tsx
+- [x] Display Cancel Reason below "Cancel by" info in Request Card
+- [x] Format: "Cancel Reason: [reason text]" on separate line
+- [x] Only show Cancel Reason when request status is "cancelled" and reason exists
+- [x] Verify TypeScript compilation passes
