@@ -114,7 +114,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
 
   /* ── Profile Dropdown ─────────────────────────────────────────────── */
   const ProfileDropdown = () => (
-    <div className="absolute top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden lg:left-1/2 lg:-translate-x-1/2 right-0 lg:right-auto">
+    <div className="absolute top-full mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden lg:left-1/2 lg:-translate-x-1/2 right-0 lg:right-auto" style={{ pointerEvents: 'auto' }}>
       {/* Header */}
       <div className={`px-5 py-4 ${lv.bg} flex items-center justify-between`}>
         <div className="flex items-center gap-3">
@@ -221,9 +221,9 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background flex">
       {/* ── Desktop Sidebar ────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-slate-200/60 bg-gradient-to-b from-slate-50/95 via-white to-slate-50/90 sticky top-0 h-screen overflow-y-auto shadow-2xl" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.02) 0%, transparent 50%)' }}>
+      <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-blue-200/40 bg-gradient-to-b from-blue-50/80 via-white to-blue-50/60 sticky top-0 h-screen overflow-y-auto shadow-2xl" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(26, 127, 212, 0.04) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(29, 184, 126, 0.03) 0%, transparent 50%)' }}>
         {/* Brand - Enterprise */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-200/40 bg-gradient-to-r from-white/90 via-slate-50/50 to-white/80 backdrop-blur-md relative overflow-hidden">
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-blue-200/50 bg-gradient-to-r from-blue-50/60 via-white/80 to-blue-50/40 backdrop-blur-md relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg blur-md opacity-0 group-hover:opacity-30 transition-all duration-500"></div>
@@ -231,8 +231,8 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
             <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain flex-shrink-0 relative" />
           </div>
           <div className="min-w-0 relative">
-            <div className="font-bold text-xs text-slate-900 leading-tight tracking-widest">PP4 SLITTER</div>
-            <div className="text-[8.5px] text-slate-500 leading-tight font-semibold">Stock System</div>
+            <div className="font-bold text-xs text-slate-900 leading-tight tracking-widest">PP4 Manual Slitter</div>
+            <div className="text-[8.5px] text-slate-500 leading-tight font-semibold">Stock Management System</div>
           </div>
         </div>
 
