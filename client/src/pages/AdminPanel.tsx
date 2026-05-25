@@ -1244,13 +1244,13 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-50 via-white to-blue-50 border-b border-blue-100 sticky top-0 z-10 shadow-sm">
-        <div className="container py-4 flex items-center gap-4">
-          <button onClick={() => navigate("/")} className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 p-2 rounded-lg transition-colors">
+        <div className="container py-2.5 sm:py-4 flex items-center gap-2 sm:gap-4">
+          <button onClick={() => navigate("/")} className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0">
             <ArrowLeft size={20} />
           </button>
-          <img src={LOGO_URL} alt="GSPP" className="h-9 w-9 object-contain" />
+          <img src={LOGO_URL} alt="GSPP" className="h-7 sm:h-9 w-7 sm:w-9 object-contain flex-shrink-0" />
           <div className="border-l border-blue-200 pl-4">
-            <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Admin Panel</h1>
+            <h1 className="text-sm sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Admin Panel</h1>
             <p className="text-xs text-blue-600/70 font-medium">System Management & Configuration</p>
           </div>
           <div className="ml-auto flex items-center gap-4">
@@ -1260,7 +1260,7 @@ export default function AdminPanel() {
             </div>
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="flex items-center gap-2 text-sm border border-red-200 px-5 py-2.5 rounded-lg font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition-all shadow-sm hover:shadow-md"
+              className="flex items-center gap-2 text-sm border border-red-200 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-lg font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition-all shadow-sm hover:shadow-md"
             >
               <LogOut size={15} /> Logout
             </button>
