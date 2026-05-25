@@ -240,8 +240,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
         {worker && (
           <div
             className="mx-3 mt-5 mb-4 px-4 py-4 rounded-xl bg-gradient-to-br from-blue-500/12 via-blue-400/6 to-cyan-400/8 cursor-pointer hover:from-blue-500/18 hover:via-blue-400/12 hover:to-cyan-400/14 transition-all duration-400 relative border border-blue-200/50 hover:border-blue-300/70 group shadow-md hover:shadow-lg overflow-hidden"
-            onClick={() => setProfileOpen(v => !v)}
-            ref={profileRef}
+            onClick={() => navigate("/profile")}
           >
             <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-400/0 via-transparent to-cyan-400/0 group-hover:from-blue-400/8 group-hover:via-blue-300/4 group-hover:to-cyan-400/8 transition-all duration-400"></div>
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: 'radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 70%)' }}></div>
@@ -256,7 +255,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
               </div>
               <span className={`ml-auto shrink-0 text-[7.5px] font-bold px-2.5 py-0.5 rounded-lg ${lv.badge} shadow-md`}>Lv{userLevel}</span>
             </div>
-            {profileOpen && <ProfileDropdown />}
+
           </div>
         )}
 
@@ -321,13 +320,12 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
                 {/* Clickable profile badge */}
                 <div className="relative" ref={profileRef}>
                   <button
-                    onClick={() => setProfileOpen(v => !v)}
+                    onClick={() => navigate("/profile")}
                     className="flex items-center gap-1.5 bg-blue-50 text-blue-700 rounded-full px-3 py-1.5 text-xs font-semibold hover:bg-blue-100 transition-colors"
                   >
                     <User size={11} className="shrink-0" />
                     <span>User Profile</span>
                   </button>
-                  {profileOpen && <ProfileDropdown />}
                 </div>
               </div>
             )}
