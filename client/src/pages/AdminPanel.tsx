@@ -1242,48 +1242,49 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-white sticky top-0 z-10 shadow-sm">
-        <div className="container py-3 flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground p-1">
+      <header className="bg-gradient-to-r from-blue-50 via-white to-blue-50 border-b border-blue-100 sticky top-0 z-10 shadow-sm">
+        <div className="container py-4 flex items-center gap-4">
+          <button onClick={() => navigate("/")} className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 p-2 rounded-lg transition-colors">
             <ArrowLeft size={20} />
           </button>
-          <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
-          <div>
-            <h1 className="text-sm font-bold text-foreground leading-tight">Admin Panel</h1>
-            <p className="text-xs text-muted-foreground">PP4 Manual Slitter</p>
+          <img src={LOGO_URL} alt="GSPP" className="h-9 w-9 object-contain" />
+          <div className="border-l border-blue-200 pl-4">
+            <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Admin Panel</h1>
+            <p className="text-xs text-blue-600/70 font-medium">System Management & Configuration</p>
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <div className="text-xs font-semibold text-foreground">Administrator</div>
-              <div className="text-xs text-muted-foreground">Admin Access</div>
+              <div className="text-sm font-bold text-blue-900">Administrator</div>
+              <div className="text-xs text-blue-600/70">Full System Access</div>
             </div>
             <button
               onClick={() => { logoutAdmin(); navigate("/login?tab=admin"); }}
-              className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg font-medium text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 text-xs border border-blue-200 px-4 py-2 rounded-lg font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-all"
             >
-              <Lock size={12} /> Lock
+              <Lock size={14} /> Lock
             </button>
           </div>
         </div>
       </header>
 
       {/* Admin Banner */}
-      <div className="gspp-gradient text-white py-2 px-4 text-center text-xs">
-        Logged in as <strong>Administrator</strong> — Admin Access
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 text-center text-xs font-semibold shadow-md">
+        ✓ Logged in as <strong>Administrator</strong> — Full System Access
       </div>
 
       {/* Summary Stats */}
-      <div className="bg-gray-50 border-b border-border">
-        <div className="container lg:max-w-none lg:px-8 py-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="bg-gradient-to-b from-blue-50/50 to-white border-b border-blue-100">
+        <div className="container lg:max-w-none lg:px-8 py-8">
+          <h2 className="text-xs font-bold text-blue-600 mb-4 uppercase tracking-widest">📊 System Overview</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Current Orders */}
-            <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm">
-              <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <Package size={18} className="text-blue-600" />
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl border border-blue-200 p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer">
+              <div className="h-12 w-12 rounded-lg bg-blue-600 group-hover:bg-blue-700 flex items-center justify-center flex-shrink-0 transition-colors">
+                <Package size={20} className="text-white" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Current Orders</p>
-                <p className="text-2xl font-bold text-foreground leading-none mt-0.5">
+              <div className="flex-1">
+                <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Current Orders</p>
+                <p className="text-3xl font-bold text-blue-700 leading-none mt-1">
                   {statsQuery.isLoading ? <span className="text-base text-muted-foreground">…</span> : (stats?.totalCurrent ?? 0)}
                 </p>
               </div>
@@ -1334,32 +1335,32 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      <main className="container lg:max-w-none lg:px-8 py-6">
+      <main className="container lg:max-w-none lg:px-8 py-8">
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 border-b border-border">
+        <div className="flex gap-2 mb-8 border-b border-blue-200 pb-0 overflow-x-auto">
           <button
             onClick={() => setActiveTab("workers")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "workers" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-3 transition-all whitespace-nowrap ${activeTab === "workers" ? "border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-lg" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`}
           >
-            <Users size={15} /> Workers
+            <Users size={16} /> Workers
           </button>
           <button
             onClick={() => setActiveTab("orders")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "orders" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-3 transition-all whitespace-nowrap ${activeTab === "orders" ? "border-green-600 text-green-600 bg-green-50/50 rounded-t-lg" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`}
           >
-            <Package size={15} /> Orders
+            <Package size={16} /> Orders
           </button>
           <button
             onClick={() => setActiveTab("deleted_logs")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "deleted_logs" ? "border-red-500 text-red-600" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-3 transition-all whitespace-nowrap ${activeTab === "deleted_logs" ? "border-red-600 text-red-600 bg-red-50/50 rounded-t-lg" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`}
           >
-            <History size={15} /> Deleted Logs
+            <History size={16} /> Deleted Logs
           </button>
           <button
             onClick={() => setActiveTab("pending_requests")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "pending_requests" ? "border-orange-500 text-orange-600" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-3 transition-all whitespace-nowrap ${activeTab === "pending_requests" ? "border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-lg" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`}
           >
-            <ClipboardList size={15} /> Requests
+            <ClipboardList size={16} /> Requests
           </button>
         </div>
 
