@@ -162,7 +162,7 @@ export default function Home() {
           alt="GSPP"
           className="h-16 w-16 object-contain mx-auto mb-3 bg-white rounded-full p-1 shadow-md"
         />
-        <h2 className="text-2xl font-bold mb-1" style={{ fontFamily: "Lora, serif" }}>
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "Lora, serif" }}>
           PP4 Manual Slitter
         </h2>
         <p className="text-sm opacity-90">Stock Management System</p>
@@ -183,7 +183,7 @@ export default function Home() {
 
       {/* Feature cards grid */}
       <div className="px-4 lg:px-8 py-6 lg:py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 max-w-6xl mx-auto lg:mx-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 xl:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 max-w-6xl mx-auto lg:mx-0">
           {baseFeatures.map((f) => (
             <div
               key={f.href}

@@ -157,7 +157,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
         {userLevel === "2" && (
           <button
             onClick={handleAdminPanelClick}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-gray-100 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-foreground hover:bg-gray-100 transition-colors"
           >
             <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
               <Settings size={15} className="text-gray-600" />
@@ -170,7 +170,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
 
         <button
           onClick={() => goTo("/docs")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-gray-100 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-foreground hover:bg-gray-100 transition-colors"
         >
           <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
             <BookOpen size={15} className="text-blue-600" />
@@ -181,7 +181,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
 
         <button
           onClick={() => goTo("/faq")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-gray-100 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-foreground hover:bg-gray-100 transition-colors"
         >
           <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
             <HelpCircle size={15} className="text-amber-600" />
@@ -192,7 +192,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
 
         <button
           onClick={() => goTo("/status")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-gray-100 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-foreground hover:bg-gray-100 transition-colors"
         >
           <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
             <Activity size={15} className="text-green-600" />
@@ -207,7 +207,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
       <div className="px-3 py-2">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
         >
           <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
             <LogOut size={15} className="text-red-500" />
@@ -337,7 +337,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
         {/* Desktop page title bar */}
         {pageTitle && (
           <div className="hidden lg:flex items-center px-8 py-4 border-b border-border bg-white">
-            <h1 className="text-lg font-bold text-foreground" style={{ fontFamily: "Lora, serif" }}>
+            <h1 className="text-base sm:text-lg md:text-xl font-bold text-foreground" style={{ fontFamily: "Lora, serif" }}>
               {pageTitle}
             </h1>
           </div>
