@@ -2,7 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
@@ -1234,6 +1234,7 @@ function PendingRequestsTab() {
 export default function AdminPanel() {
   const { logoutAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests">("workers");
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [, navigate] = useLocation();
 
   const statsQuery = trpc.orders.adminStats.useQuery(undefined, { refetchInterval: 30000 });
@@ -1258,10 +1259,10 @@ export default function AdminPanel() {
               <div className="text-xs text-blue-600/70">Full System Access</div>
             </div>
             <button
-              onClick={() => { logoutAdmin(); navigate("/login?tab=admin"); }}
-              className="flex items-center gap-2 text-xs border border-blue-200 px-4 py-2 rounded-lg font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-all"
+              onClick={() => setShowLogoutConfirm(true)}
+              className="flex items-center gap-2 text-sm border border-red-200 px-5 py-2.5 rounded-lg font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition-all shadow-sm hover:shadow-md"
             >
-              <Lock size={14} /> Lock
+              <LogOut size={15} /> Logout
             </button>
           </div>
         </div>
@@ -1369,6 +1370,42 @@ export default function AdminPanel() {
         {activeTab === "deleted_logs" && <DeletedLogsTab />}
         {activeTab === "pending_requests" && <PendingRequestsTab />}
       </main>
+
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-lg bg-red-100 flex items-center justify-center">
+                <LogOut size={24} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-foreground">Confirm Logout</h3>
+                <p className="text-xs text-muted-foreground">Admin Session</p>
+              </div>
+            </div>
+            <p className="text-sm text-foreground">Are you sure you want to logout from the Admin Panel? Your admin session will be terminated.</p>
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-foreground hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  logoutAdmin();
+                  navigate("/login?tab=admin");
+                  setShowLogoutConfirm(false);
+                  toast.success("Logged out successfully");
+                }}
+                className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-bold hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
