@@ -140,10 +140,37 @@ export default function QRScanner() {
     }
   };
 
+  const validateTrackingId = (trackingId: string): { valid: boolean; error?: string } => {
+    if (!trackingId || trackingId.trim().length === 0) {
+      return { valid: false, error: "Tracking ID is required" };
+    }
+    
+    const trimmed = trackingId.trim().toUpperCase();
+    
+    // Check format: should start with PP4 and contain only alphanumeric characters
+    if (!/^PP4[A-Z0-9]+$/.test(trimmed)) {
+      return { valid: false, error: "Invalid format. Tracking ID must start with 'PP4' and contain only letters and numbers" };
+    }
+    
+    // Check length: typically PP4 + 12-16 characters (total 15-19)
+    if (trimmed.length < 10 || trimmed.length > 25) {
+      return { valid: false, error: `Invalid length. Tracking ID should be 10-25 characters (got ${trimmed.length})` };
+    }
+    
+    return { valid: true };
+  };
+
   const handleManualVerify = (e: React.FormEvent) => {
     e.preventDefault();
     const trackingId = (e.currentTarget as HTMLFormElement).querySelector("input")?.value?.trim().toUpperCase();
     if (!trackingId) return;
+    
+    const validation = validateTrackingId(trackingId);
+    if (!validation.valid) {
+      toast.error(validation.error || "Invalid Tracking ID");
+      return;
+    }
+    
     setVerifyTrackingId(trackingId);
     setScannedData({ orderId: trackingId, qty: 0, bq: "", boardSize: "" });
   };
@@ -298,13 +325,14 @@ export default function QRScanner() {
                   ) : isMobile ? (
                     <form onSubmit={handleManualVerify} className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tracking ID</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tracking ID or Reference Number</label>
                         <input
                           type="text"
                           placeholder="e.g. PP41305262026A206"
                           className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
                           onChange={(e) => e.target.value = e.target.value.toUpperCase()}
                         />
+                        <p className="text-xs text-gray-500 mt-1">Only Tracking ID format (starting with PP4)</p>
                       </div>
                       <button
                         type="submit"
@@ -316,29 +344,37 @@ export default function QRScanner() {
                   ) : (
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Barcode Scanner</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Barcode Scanner / Tracking ID</label>
                         <input
                           ref={barcodeInputRef}
                           type="text"
-                          placeholder="Scan barcode or enter Tracking ID..."
+                          placeholder="Scan barcode or enter Tracking ID (PP4...)"
                           className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
                           onChange={(e) => {
                             e.target.value = e.target.value.toUpperCase();
                             if (e.target.value.length > 0 && e.target.value.startsWith('PP4')) {
-                              setVerifyTrackingId(e.target.value);
-                              e.target.value = '';
+                              const validation = validateTrackingId(e.target.value);
+                              if (validation.valid) {
+                                setVerifyTrackingId(e.target.value);
+                                e.target.value = '';
+                              }
                             }
                           }}
                           onKeyPress={(e) => {
                             if (e.key === 'Enter' && barcodeInputRef.current?.value) {
-                              setVerifyTrackingId(barcodeInputRef.current.value);
-                              barcodeInputRef.current.value = '';
+                              const validation = validateTrackingId(barcodeInputRef.current.value);
+                              if (validation.valid) {
+                                setVerifyTrackingId(barcodeInputRef.current.value);
+                                barcodeInputRef.current.value = '';
+                              } else {
+                                toast.error(validation.error || "Invalid Tracking ID");
+                              }
                             }
                           }}
                           autoFocus
                         />
                       </div>
-                      <p className="text-xs text-gray-500">Scan barcode label or manually enter Tracking ID</p>
+                      <p className="text-xs text-gray-500 mt-1">Tracking ID or Reference number only (Format: PP4...)</p>
                     </div>
                   )}
                 </div>

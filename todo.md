@@ -957,3 +957,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Optimize desktop version (> 1440px) for large screens
 - [x] Test all pages on all 4 device types
 - [x] Ensure consistent experience across all device sizes
+
+
+## QR Scanner Manual Input Validation (May 25)
+- [x] Add Tracking ID format validation to QR Scanner
+- [x] Validate manual input for correct format and length
+- [x] Show error messages for invalid characters
+- [x] Show error messages for incorrect length
+- [x] Display "Tracking ID or Reference number only" message
+- [x] Prevent submission of invalid Tracking IDs
