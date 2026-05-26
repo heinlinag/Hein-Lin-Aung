@@ -62,7 +62,7 @@ function RequestCard({
   canProcessApprove,
   currentWorkerID,
 }: {
-  req: PurchaseOrder;
+  req: PendingRequest;
   onApprove: (id: number, approvedQty?: number) => void;
   onCancel: (id: number, reason: string) => void;
   onProcessApprove: (id: number, processApprovedQty?: number) => void;
@@ -107,7 +107,7 @@ function RequestCard({
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">
-              {isDelete ? "Delete Purchase Order" : "NPRM Modify Order"}
+              {isDelete ? "Delete Request" : "NPRM Modify Order"}
             </p>
           </div>
         </div>
@@ -381,7 +381,7 @@ function RequestCard({
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                   <CheckCircle2 size={20} className="text-green-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-base">Approve Purchase Order</h3>
+                <h3 className="font-bold text-gray-900 text-base">Approve Request</h3>
               </div>
               {!isDelete && action && (
                 <div className="mb-4 space-y-3">
@@ -530,7 +530,7 @@ export default function ApprovalCenter() {
   const processApproveMutation = trpc.pendingRequests.processApprove.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
 
-  const allRequests = (requestsQuery.data ?? []) as unknown as PurchaseOrder[];
+  const allRequests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
   
   // Filter by Job No when "All" tab is selected
   const requests = useMemo(() => {
@@ -684,7 +684,7 @@ export default function ApprovalCenter() {
             onClick={() => setActiveTab("history")}
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "history" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
           >
-            Stock Usage Balance History
+            Action History
           </button>
         </div>
 
@@ -787,7 +787,7 @@ export default function ApprovalCenter() {
                 <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                   <Clock size={28} className="text-muted-foreground/40" />
                 </div>
-                <p className="text-sm text-muted-foreground">No stock usage balance history yet</p>
+                <p className="text-sm text-muted-foreground">No action history yet</p>
               </div>
             ) : (
               <div className="space-y-2">

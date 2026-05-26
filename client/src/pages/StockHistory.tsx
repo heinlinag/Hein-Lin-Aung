@@ -101,7 +101,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
               <p className="text-muted-foreground">BQ: <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px] break-words">{order.bqComment}</span></p>
               <p className="text-blue-600 font-semibold">Available Quantity: {availableQty} <span className="text-xs font-normal">pcs</span></p>
               <p className="text-muted-foreground text-[10px] leading-tight">(Stock: {order.qty} pcs − In Process: {inProcessQty} pcs = Available: {availableQty} pcs)</p>
-              <p className="text-muted-foreground">Pending Purchase Order Purchase: <span className="font-semibold text-foreground">{pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</span></p>
+              <p className="text-muted-foreground">Pending Request Purchase: <span className="font-semibold text-foreground">{pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</span></p>
             </div>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0"><X size={18} /></button>
@@ -284,7 +284,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
       }
       const isProcessed = jobResult.autoProcessApproved;
       notifyAll.mutate({
-        title: isProcessed ? "🔄 Request In Process" : "📋 New Purchase Order",
+        title: isProcessed ? "🔄 Request In Process" : "📋 New Approval Request",
         body: isProcessed
           ? `${workerID} submitted Used Update for Order ${order.orderID} — auto process-approved. Awaiting Level 2.`
           : `${workerID} submitted a Used Update request for Order ${order.orderID}. Pending Level 2 approval.`,
@@ -316,7 +316,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
       } else {
         toast.success("Request submitted! Awaiting Level 2 approval.");
         notifyAll.mutate({
-          title: "📋 New Purchase Order",
+          title: "📋 New Approval Request",
           body: `${workerID} submitted an Old Stock clear request for Order ${order.orderID}. Pending Level 2 approval.`,
           tag: "pending-request"
         });
@@ -341,7 +341,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <p className="text-muted-foreground">BQ: <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px] break-words">{order.bqComment}</span></p>
               <p className="text-blue-600 font-semibold">Available Quantity: {availableQty} <span className="text-xs font-normal">pcs</span></p>
               <p className="text-muted-foreground text-[10px] leading-tight">(Stock: {order.qty} pcs − In Process: {inProcessQty} pcs = Available: {availableQty} pcs)</p>
-              <p className="text-muted-foreground">Pending Purchase Order Purchase: <span className="font-semibold text-foreground">{pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</span></p>
+              <p className="text-muted-foreground">Pending Request Purchase: <span className="font-semibold text-foreground">{pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</span></p>
             </div>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0"><X size={18} /></button>
@@ -594,7 +594,7 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
   );
 }
 
-// ─// ─── Level 1: Delete Purchase Order Dialog (sends to approval queue) ─────────────
+// ─// ─── Level 1: Delete Request Dialog (sends to approval queue) ─────────────
 function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: Order; workerID: string; onClose: () => void; onSuccess: () => void; }) {
   const [error, setError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
@@ -613,14 +613,14 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
       if (delResult.autoProcessApproved) {
         toast.success("Delete request submitted & auto process-approved! Awaiting Level 2 final approval.");
         notifyAll.mutate({
-          title: "🔄 Delete Purchase Order In Process",
+          title: "🔄 Delete Request In Process",
           body: `${workerID} submitted a Delete request for Order ${order.orderID} — auto process-approved. Awaiting Level 2.`,
           tag: "pending-request"
         });
       } else {
         toast.success("Delete request submitted! Awaiting Level 2 approval.");
         notifyAll.mutate({
-          title: "🗑️ New Delete Purchase Order",
+          title: "🗑️ New Delete Request",
           body: `${workerID} submitted a Delete request for Order ${order.orderID}. Pending Level 2 approval.`,
           tag: "pending-request"
         });
