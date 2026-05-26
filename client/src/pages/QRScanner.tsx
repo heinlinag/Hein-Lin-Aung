@@ -508,9 +508,13 @@ export default function QRScanner() {
                 <p className="text-xs text-gray-500 mt-0.5">(Latest 200)</p>
               </div>
               <button
-                onClick={() => refetchHistory()}
+                onClick={() => {
+                  refetchHistory();
+                  toast.success("History refreshed", { duration: 2000 });
+                }}
                 disabled={historyLoading}
                 className="flex items-center gap-1.5 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh scan history"
               >
                 <RefreshCw size={14} className={historyLoading ? "animate-spin" : ""} />
                 Refresh

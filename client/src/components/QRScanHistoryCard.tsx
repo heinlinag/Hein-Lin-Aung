@@ -20,6 +20,7 @@ export function QRScanHistoryCard({ log }: QRScanHistoryCardProps) {
   const eventTime = typeof log.createdAt === 'string' ? new Date(log.createdAt).toLocaleString() : log.createdAt.toLocaleString();
   const adjustment = log.oldQty != null && log.newQty != null ? log.newQty - log.oldQty : 0;
   const adjustmentText = adjustment > 0 ? `+${adjustment}` : `${adjustment}`;
+  const hasBalanceInfo = log.oldQty != null && log.newQty != null;
 
   return (
     <div
@@ -66,20 +67,32 @@ export function QRScanHistoryCard({ log }: QRScanHistoryCardProps) {
             </div>
 
             {/* Balance Update Info */}
-            {isBalanceUpdate && log.oldQty != null && log.newQty != null && (
-              <div className="flex items-center gap-2 mt-2.5 text-xs">
-                <div className="flex items-center gap-1.5">
-                  <span className="bg-orange-50 text-orange-700 px-2.5 py-1 rounded-md font-medium border border-orange-100">
-                    {log.oldQty} pcs
-                  </span>
-                  <ArrowRight size={12} className="text-gray-400" />
-                  <span className="bg-green-50 text-green-700 px-2.5 py-1 rounded-md font-medium border border-green-100">
-                    {log.newQty} pcs
+            {isBalanceUpdate && hasBalanceInfo && (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="bg-orange-50 text-orange-700 px-2.5 py-1.5 rounded-lg font-semibold border border-orange-200">
+                      {log.oldQty} pcs
+                    </span>
+                    <ArrowRight size={14} className="text-gray-300" />
+                    <span className="bg-green-50 text-green-700 px-2.5 py-1.5 rounded-lg font-semibold border border-green-200">
+                      {log.newQty} pcs
+                    </span>
+                  </div>
+                  <span className={`text-xs font-bold ml-1 ${adjustment > 0 ? "text-green-600" : "text-orange-600"}`}>
+                    {adjustment > 0 ? "↑" : "↓"} {adjustmentText} pcs
                   </span>
                 </div>
-                <span className={`font-semibold ${adjustment > 0 ? "text-green-600" : "text-orange-600"}`}>
-                  ({adjustmentText} pcs)
-                </span>
+                <div className="text-xs text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg">
+                  <span className="font-medium">Adjustment:</span> {adjustmentText} pcs
+                </div>
+              </div>
+            )}
+
+            {/* No Balance Info Fallback */}
+            {isBalanceUpdate && !hasBalanceInfo && (
+              <div className="mt-2 text-xs text-gray-400 italic">
+                Balance update recorded (details not available)
               </div>
             )}
           </div>
