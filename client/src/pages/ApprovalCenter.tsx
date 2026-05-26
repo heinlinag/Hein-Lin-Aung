@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { ActionHistoryCard, type ActionHistoryEvent } from "@/components/ActionHistoryCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -778,9 +779,25 @@ export default function ApprovalCenter() {
 
         {activeTab === "history" && (
           <>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-foreground">Recent Usage Events (Latest 200)</h3>
+              <button
+                onClick={async () => {
+                  setIsRefreshing(true);
+                  await utils.pendingRequests.actionLog.invalidate();
+                  setTimeout(() => setIsRefreshing(false), 700);
+                }}
+                className="text-muted-foreground hover:text-foreground p-2 rounded-lg hover:bg-gray-100 disabled:opacity-60 transition-colors"
+                title="Refresh history"
+                disabled={isRefreshing}
+              >
+                <RefreshCw size={18} className={isRefreshing ? "animate-spin" : ""} />
+              </button>
+            </div>
+
             {actionLogQuery.isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />)}
+                {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />)}
               </div>
             ) : !actionLogQuery.data || actionLogQuery.data.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -790,46 +807,49 @@ export default function ApprovalCenter() {
                 <p className="text-sm text-muted-foreground">No action history yet</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {(actionLogQuery.data as unknown as Array<{id:number;actionType:string;requestId:number;requestType:"delete"|"used_update";orderID:string;requestedBy:string;reviewedBy:string;approvedQty:number|null;requestedQty:number|null;cancelReason:string|null;details:string|null;createdAt:Date}>).map(log => {
-                  const isDirect = log.actionType.startsWith("direct_");
                   const isApprove = log.actionType === "approve";
                   const isCancel = log.actionType === "cancel";
-                  const iconBg = isApprove ? "bg-green-100" : isCancel ? "bg-red-100" : "bg-blue-100";
-                  const iconColor = isApprove ? "text-green-600" : isCancel ? "text-red-600" : "text-blue-600";
-                  const actionLabel = isApprove ? "Approved Request" : isCancel ? "Cancelled Request" :
-                    log.actionType === "direct_used_update" ? "Direct: Used Update" :
-                    log.actionType === "direct_old_stock" ? "Direct: Old Stock Clear" :
-                    log.actionType === "direct_delete" ? "Direct: Deleted Order" :
-                    log.actionType;
-                  return (
-                    <div key={log.id} className="border border-border rounded-xl p-4 bg-white shadow-sm">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${iconBg}`}>
-                            {isApprove ? <CheckCircle2 size={13} className={iconColor} /> : isCancel ? <XCircle size={13} className={iconColor} /> : <Zap size={13} className={iconColor} />}
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-foreground">{actionLabel}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Order <strong>{log.orderID}</strong>
-                              {isDirect ? ` · By ${log.reviewedBy}` : ` · Requested by ${log.requestedBy} · Reviewed by ${log.reviewedBy}`}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground flex-shrink-0">{new Date(log.createdAt).toLocaleString()}</span>
-                      </div>
-                      {log.details && (
-                        <p className="text-xs text-muted-foreground mt-2 bg-gray-50 rounded-lg p-2">{log.details}</p>
-                      )}
-                      {isApprove && log.approvedQty !== null && log.requestedQty !== null && log.approvedQty !== log.requestedQty && (
-                        <p className="text-xs text-orange-600 mt-2 bg-orange-50 rounded-lg p-2">Qty adjusted: {log.requestedQty} → {log.approvedQty} pcs</p>
-                      )}
-                      {isCancel && log.cancelReason && (
-                        <p className="text-xs text-muted-foreground mt-2 bg-gray-50 rounded-lg p-2">Cancel reason: {log.cancelReason}</p>
-                      )}
-                    </div>
-                  );
+                  
+                  let actionData: any = null;
+                  if (log.details) {
+                    try {
+                      actionData = JSON.parse(log.details);
+                    } catch { /* ignore */ }
+                  }
+
+                  let event: ActionHistoryEvent | null = null;
+
+                  if (isApprove) {
+                    event = {
+                      type: "approved",
+                      id: log.id,
+                      jobNo: actionData?.jobNo || "N/A",
+                      productionOrder: log.orderID,
+                      usageQty: log.requestedQty || 0,
+                      currentBalance: actionData?.currentBalance || 0,
+                      newBalance: actionData?.newBalance || 0,
+                      requestedBy: log.requestedBy,
+                      approvedBy: log.reviewedBy,
+                      createdAt: log.createdAt,
+                    };
+                  } else if (isCancel) {
+                    event = {
+                      type: "cancelled",
+                      id: log.id,
+                      jobNo: actionData?.jobNo,
+                      productionOrder: log.orderID,
+                      cancelReason: log.cancelReason || "No reason provided",
+                      requestedBy: log.requestedBy,
+                      cancelledBy: log.reviewedBy,
+                      createdAt: log.createdAt,
+                    };
+                  }
+
+                  return event ? (
+                    <ActionHistoryCard key={log.id} event={event} />
+                  ) : null;
                 })}
               </div>
             )}
