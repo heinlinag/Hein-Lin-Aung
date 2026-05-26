@@ -215,7 +215,7 @@ function RequestCard({
       <div className="space-y-2 py-2 border-t border-border">
         <div className="text-xs">
           <p className="text-muted-foreground">
-            <span className="font-semibold">Request by</span> {req.workerName} · {new Date(req.createdAt).toLocaleString()}
+            <span className="font-semibold">Purchase Order by</span> {req.workerName} · {new Date(req.createdAt).toLocaleString()}
           </p>
         </div>
         {isProcessApproved && req.processApprovedBy && (
@@ -568,9 +568,9 @@ export default function ApprovalCenter() {
       const req = allRequests.find(r => r.id === id);
       const snap = req ? JSON.parse(req.orderSnapshot) as OrderSnapshot : null;
       await approveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, approvedQty });
-      toast.success("Request approved and action executed.");
+      toast.success("Purchase Order approved and action executed.");
       notifyAll.mutate({
-        title: "✅ Request Approved",
+        title: "✅ Purchase Order Approved",
         body: snap
           ? `${worker.workerID} approved a ${req?.type === "delete" ? "Delete" : "Used Update"} request for Order ${snap.orderID}.`
           : `${worker.workerID} approved request #${id}.`,
@@ -594,9 +594,9 @@ export default function ApprovalCenter() {
       const req = allRequests.find(r => r.id === id);
       const snap = req ? JSON.parse(req.orderSnapshot) as OrderSnapshot : null;
       await cancelMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, cancelReason: reason });
-      toast.success("Request cancelled. No changes made.");
+      toast.success("Purchase Order cancelled. No changes made.");
       notifyAll.mutate({
-        title: "❌ Request Cancelled",
+        title: "❌ Purchase Order Cancelled",
         body: snap
           ? `${worker.workerID} cancelled a ${req?.type === "delete" ? "Delete" : "Used Update"} request for Order ${snap.orderID}. Reason: ${reason}`
           : `${worker.workerID} cancelled request #${id}.`,
@@ -619,9 +619,9 @@ export default function ApprovalCenter() {
       const req = allRequests.find(r => r.id === id);
       const snap = req ? JSON.parse(req.orderSnapshot) as OrderSnapshot : null;
       await processApproveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, processApprovedQty });
-      toast.success("Request marked as In Process. Level 2 will give final approval.");
+      toast.success("Purchase Order marked as In Process. Level 2 will give final approval.");
       notifyAll.mutate({
-        title: "🔄 Request In Process",
+        title: "🔄 Purchase Order In Process",
         body: snap
           ? `${worker.workerID} marked a ${req?.type === "delete" ? "Delete" : "Used Update"} request for Order ${snap.orderID} as In Process. Awaiting Level 2 final approval.`
           : `${worker.workerID} process-approved request #${id}.`,
@@ -684,7 +684,7 @@ export default function ApprovalCenter() {
             onClick={() => setActiveTab("history")}
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "history" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
           >
-            Action History
+            Stock Usage Balance History
           </button>
         </div>
 
@@ -797,7 +797,7 @@ export default function ApprovalCenter() {
                   const isCancel = log.actionType === "cancel";
                   const iconBg = isApprove ? "bg-green-100" : isCancel ? "bg-red-100" : "bg-blue-100";
                   const iconColor = isApprove ? "text-green-600" : isCancel ? "text-red-600" : "text-blue-600";
-                  const actionLabel = isApprove ? "Approved Request" : isCancel ? "Cancelled Request" :
+                  const actionLabel = isApprove ? "Approved Purchase Order" : isCancel ? "Cancelled Purchase Order" :
                     log.actionType === "direct_used_update" ? "Direct: Used Update" :
                     log.actionType === "direct_old_stock" ? "Direct: Old Stock Clear" :
                     log.actionType === "direct_delete" ? "Direct: Deleted Order" :
