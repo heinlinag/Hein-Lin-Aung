@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import AppLayout from "@/components/AppLayout";
 import { CheckCircle, XCircle, AlertTriangle, Loader2, ScanLine, RefreshCw, Package, Edit3, X, History, Clock, User, ArrowRight } from "lucide-react";
+import { QRScanHistoryCard } from "@/components/QRScanHistoryCard";
 
 interface ScannedOrder {
   orderId: string;
@@ -500,14 +501,18 @@ export default function QRScanner() {
 
         {/* ── SCANNED HISTORY TAB ── */}
         {activeTab === "history" && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-500">Recent scan events (latest 200)</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Recent Scan Events</h3>
+                <p className="text-xs text-gray-500 mt-0.5">(Latest 200)</p>
+              </div>
               <button
                 onClick={() => refetchHistory()}
-                className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium"
+                disabled={historyLoading}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <RefreshCw size={13} />
+                <RefreshCw size={14} className={historyLoading ? "animate-spin" : ""} />
                 Refresh
               </button>
             </div>
@@ -528,46 +533,7 @@ export default function QRScanner() {
             )}
 
             {!historyLoading && scanHistory && scanHistory.map((log) => (
-              <div
-                key={log.id}
-                className={`bg-white rounded-xl border shadow-sm p-4 ${log.action === "balance_update" ? "border-blue-200" : "border-gray-200"}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className={`p-2 rounded-lg shrink-0 ${log.action === "balance_update" ? "bg-blue-100" : "bg-gray-100"}`}>
-                      {log.action === "balance_update" ? (
-                        <Edit3 size={15} className="text-blue-600" />
-                      ) : (
-                        <ScanLine size={15} className="text-gray-600" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-gray-900 text-sm">{log.orderId}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${log.action === "balance_update" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
-                          {log.action === "balance_update" ? "Balance Updated" : "Scanned"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500">
-                        <User size={11} />
-                        <span className="font-medium text-gray-700">{log.scannedByName}</span>
-                        <span className="text-gray-400">({log.scannedBy})</span>
-                      </div>
-                      {log.action === "balance_update" && log.oldQty != null && log.newQty != null && (
-                        <div className="flex items-center gap-1.5 mt-1.5 text-xs">
-                          <span className="bg-orange-50 text-orange-700 px-2 py-0.5 rounded font-medium">{log.oldQty} pcs</span>
-                          <ArrowRight size={11} className="text-gray-400" />
-                          <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium">{log.newQty} pcs</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
-                    <Clock size={11} />
-                    <span>{new Date(log.createdAt).toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
+              <QRScanHistoryCard key={log.id} log={log} />
             ))}
           </div>
         )}

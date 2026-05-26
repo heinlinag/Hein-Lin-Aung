@@ -966,3 +966,36 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Show error messages for incorrect length
 - [x] Display "Tracking ID or Reference number only" message
 - [x] Prevent submission of invalid Tracking IDs
+
+## Enhanced Action History with Event Cards (May 26)
+- [x] Create ActionHistoryCard component for different event types (approved, cancelled, qr_scanner)
+- [x] Add refresh button with spinning animation to Action History header
+- [x] Display "Recent Usage Events (Latest 200)" title in history tab
+- [x] Parse action log details field to extract balance information
+- [x] Show approved events with Job No, Production Order, Usage Qty, Current/New Balance, Requested/Approved by
+- [x] Show cancelled events with Job No, Production Order, Cancel Reason, Requested/Cancelled by
+- [x] Show QR scanner events with Tracking ID, Production Order, Balance updates, Scanned by
+- [x] Add server-side tests for action log functionality (6 tests, all passing)
+- [x] Verify action logs are retrieved and ordered correctly
+- [x] Confirm details field JSON storage and retrieval
+
+## Future Improvements & Enhancements (Remaining)
+- [ ] Allow all admin operations without restrictions (May 25)
+- [ ] Add verification confirmation dialogs for critical admin actions (May 25)
+- [ ] System status page: add real backend status procedure with actual uptime/response time data (future)
+- [ ] System status page: replace hardcoded maintenance schedule with database-backed entries (future)
+- [ ] System status page: integrate real-time system metrics from server monitoring (future)
+- [ ] Video tutorials: create demo videos for Login, Submit Order, Approval Center workflows (future)
+- [ ] Notification system: add email notifications for maintenance windows (future)
+- [ ] Analytics dashboard: add usage statistics and performance metrics (future)
+
+## Enhanced Scanned History with Event Cards (May 26)
+- [x] Create QRScanHistoryCard component for different scan event types (scan, balance_update)
+- [x] Add refresh button with spinning animation to Scanned History header
+- [x] Display "Recent Scan Events (Latest 200)" title in history tab
+- [x] Show scan events with Tracking ID, Scanned by, timestamp
+- [x] Show balance update events with old/new quantities, adjustment amount, scanned by
+- [x] Add color-coded badges (blue for balance updates, gray for scans)
+- [x] Add server-side tests for QR scan history functionality (6 tests, all passing)
+- [x] Verify scan history is retrieved correctly
+- [x] Confirm chronological ordering of scan events
