@@ -966,3 +966,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Show error messages for incorrect length
 - [x] Display "Tracking ID or Reference number only" message
 - [x] Prevent submission of invalid Tracking IDs
+
+
+## Terminology Updates (May 26)
+- [x] Change "Request" to "Purchase Order" in Approval Center
+- [x] Change "Action History" to "Stock Usage Balance History"
+- [x] Update all related labels and UI text throughout the application
+- [x] Keep backend API names unchanged for compatibility
+- [x] Test all pages to ensure terminology is consistent
