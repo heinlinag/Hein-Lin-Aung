@@ -675,7 +675,7 @@ export default function ApprovalCenter() {
             onClick={() => setActiveTab("requests")}
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "requests" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
           >
-            Requests
+            Purchase Orders
             {pendingCount !== undefined && pendingCount > 0 && (
               <span className="ml-1.5 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">{pendingCount}</span>
             )}
