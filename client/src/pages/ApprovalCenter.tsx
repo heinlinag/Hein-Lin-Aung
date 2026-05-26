@@ -107,7 +107,7 @@ function RequestCard({
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">
-              {isDelete ? "Delete Request" : "NPRM Modify Order"}
+              {isDelete ? "Delete Purchase Order" : "NPRM Modify Order"}
             </p>
           </div>
         </div>
