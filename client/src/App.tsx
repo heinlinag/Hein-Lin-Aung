@@ -17,6 +17,7 @@ import ApprovalCenter from "./pages/ApprovalCenter";
 import Documentation from "./pages/Documentation";
 import SystemStatus from "./pages/SystemStatus";
 import FAQ from "./pages/FAQ";
+import HelpCenter from "./pages/HelpCenter";
 import QRScanner from "./pages/QRScanner";
 
 function Router() {
@@ -65,6 +66,9 @@ function Router() {
 
       {/* Public: FAQ */}
       <Route path="/faq" component={FAQ} />
+
+      {/* Public: Help Center */}
+      <Route path="/help" component={HelpCenter} />
 
       {/* Public: System Status */}
       <Route path="/status" component={SystemStatus} />
