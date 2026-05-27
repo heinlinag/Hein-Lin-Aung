@@ -2,6 +2,11 @@ import { z } from "zod";
 import { notifyOwner } from "./notification";
 import { adminProcedure, publicProcedure, router } from "./trpc";
 
+import { contactMessages } from "../../drizzle/schema";
+import { getDb } from "../db";
+import { desc, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+import { protectedProcedure } from "./trpc";
 // Track server startup time for uptime calculation
 const SERVER_START_TIME = Date.now();
 let lastHealthCheckTime = Date.now();
@@ -123,5 +128,91 @@ export const systemRouter = router({
       return {
         success: delivered,
       } as const;
+    }),
+
+  // Save contact form submission
+  submitContactMessage: publicProcedure
+    .input(
+      z.object({
+        name: z.string().min(1, "Name is required"),
+        email: z.string().email("Invalid email"),
+        subject: z.string().min(1, "Subject is required"),
+        message: z.string().min(10, "Message must be at least 10 characters"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+      const result = await db
+        .insert(contactMessages)
+        .values({
+          name: input.name,
+          email: input.email,
+          subject: input.subject,
+          message: input.message,
+          status: "new",
+        });
+      
+      // Notify owner about new contact message
+      try {
+        await notifyOwner({
+          title: "New Contact Message",
+          content: `New message from ${input.name} (${input.email})\n\nSubject: ${input.subject}\n\nMessage: ${input.message.substring(0, 100)}...`,
+        });
+      } catch (err) {
+        console.error("Failed to notify owner:", err);
+      }
+      
+      return { success: true };
+    }),
+
+  // Get all contact messages (admin only)
+  getContactMessages: protectedProcedure
+    .use(({ ctx, next }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      return next({ ctx });
+    })
+    .query(async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+      return await db
+        .select()
+        .from(contactMessages)
+        .orderBy(desc(contactMessages.createdAt))
+        .limit(200);
+    }),
+
+  // Mark contact message as read
+  markContactMessageAsRead: protectedProcedure
+    .use(({ ctx, next }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      return next({ ctx });
+    })
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+      await db
+        .update(contactMessages)
+        .set({ status: "read" })
+        .where(eq(contactMessages.id, input.id));
+      return { success: true };
+    }),
+
+  // Mark contact message as replied
+  markContactMessageAsReplied: protectedProcedure
+    .use(({ ctx, next }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      return next({ ctx });
+    })
+    .input(z.object({ id: z.number(), repliedBy: z.string() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+      await db
+        .update(contactMessages)
+        .set({ status: "replied", repliedBy: input.repliedBy, repliedAt: new Date() })
+        .where(eq(contactMessages.id, input.id));
+      return { success: true };
     }),
 });

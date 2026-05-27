@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
 import { ChevronDown, Mail, Phone, MessageCircle, Search, Send, AlertCircle, BookOpen, Wrench } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { toast } from "sonner";
@@ -187,7 +188,16 @@ function ContactSection() {
     subject: "",
     message: ""
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const submitMessage = trpc.system.submitContactMessage.useMutation({
+    onSuccess: () => {
+      toast.success("Message sent successfully! Administrator will contact you soon.");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to send message. Please try again.");
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,17 +205,7 @@ function ContactSection() {
       toast.error("Please fill in all fields");
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success("Message sent successfully! Administrator will contact you soon.");
-      setFormData({ name: "", email: "", subject: "", message: "" });
-    } catch (error) {
-      toast.error("Failed to send message. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    await submitMessage.mutateAsync(formData);
   };
 
   return (
@@ -288,11 +288,11 @@ function ContactSection() {
           </div>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={submitMessage.isPending}
             className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
           >
             <Send size={16} />
-            {isSubmitting ? "Sending..." : "Send Message"}
+            {submitMessage.isPending ? "Sending..." : "Send Message"}
           </button>
         </form>
       </div>

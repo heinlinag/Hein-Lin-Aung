@@ -141,6 +141,13 @@
       "when": 1779600284222,
       "tag": "0019_large_firedrake",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1779882444139,
+      "tag": "0020_oval_ego",
+      "breakpoints": true
     }
   ]
 }
