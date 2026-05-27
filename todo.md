@@ -1017,3 +1017,18 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [ ] Notification system: add email notifications for maintenance windows (future)
 - [ ] Analytics dashboard: add usage statistics and performance metrics (future)
 
+
+## Verification Dialogs & System Status (May 27)
+- [x] Add verification confirmation dialogs for critical admin actions
+  - [x] Delete Worker requires admin password verification
+  - [x] Enhanced dialog with warning icon and red styling
+  - [x] Disabled button until password is entered
+  - [x] Shows clear warning about irreversible action
+- [x] Create real backend status procedure with actual uptime/response time data
+  - [x] system.status procedure with uptime calculation
+  - [x] Track server response times and averages
+  - [x] Return 6 system components with individual response times
+  - [x] Integrate with System Status page to display real data
+  - [x] Show uptime in formatted hours/minutes
+  - [x] Display component status and response times
+- [x] Add server-side tests for health/status procedure (12 tests, all passing)
