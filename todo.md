@@ -979,7 +979,35 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Verify action logs are retrieved and ordered correctly
 - [x] Confirm details field JSON storage and retrieval
 
-## Future Improvements & Enhancements (Remaining)
+## Enhanced Scanned History with Event Cards (May 26)
+- [x] Create QRScanHistoryCard component for displaying different QR scan event types
+- [x] Add refresh button with spinning animation to Scanned History header
+- [x] Display "Recent Scan Events (Latest 200)" title in history tab
+- [x] Properly display balance updates with old/new quantities and adjustment amounts
+- [x] Add visual up/down indicators (↑/↓) for adjustment direction
+- [x] Improved card layout and visual hierarchy
+- [x] Fixed balance updates display with better color coding
+- [x] Improved refresh button with toast notification feedback
+- [x] Add server-side tests for QR scan history functionality (6 tests, all passing)
+- [x] Fixed mobile responsive layout for card display
+- [x] Reduced padding on mobile, better text wrapping
+- [x] Smaller icons on mobile for better fit
+
+## Help Center Page with Support Features (May 27)
+- [x] Create Help Center page component with 4 tabs (FAQ, How-to Guides, Troubleshooting, Contact)
+- [x] Add 8 comprehensive FAQ Q&A pairs with expandable interface
+- [x] Add 4 detailed step-by-step how-to guides
+- [x] Add 6 troubleshooting solutions with color-coded display
+- [x] Create contact form with Name, Email, Subject, Message fields
+- [x] Display Administrator contact information (Email, WhatsApp, Name)
+- [x] Pull admin contact from environment variables (VITE_ADMIN_EMAIL, VITE_ADMIN_WHATSAPP, VITE_ADMIN_NAME)
+- [x] Add Help Center route to App.tsx at /help
+- [x] Add Help Center link to AppLayout sidebar navigation
+- [x] Responsive design for mobile and desktop
+- [x] Search functionality for help topics (placeholder)
+- [x] Toast notifications for form submission
+
+## Future Improvements & Enhancements
 - [ ] Allow all admin operations without restrictions (May 25)
 - [ ] Add verification confirmation dialogs for critical admin actions (May 25)
 - [ ] System status page: add real backend status procedure with actual uptime/response time data (future)
@@ -989,13 +1017,3 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [ ] Notification system: add email notifications for maintenance windows (future)
 - [ ] Analytics dashboard: add usage statistics and performance metrics (future)
 
-## Enhanced Scanned History with Event Cards (May 26)
-- [x] Create QRScanHistoryCard component for different scan event types (scan, balance_update)
-- [x] Add refresh button with spinning animation to Scanned History header
-- [x] Display "Recent Scan Events (Latest 200)" title in history tab
-- [x] Show scan events with Tracking ID, Scanned by, timestamp
-- [x] Show balance update events with old/new quantities, adjustment amount, scanned by
-- [x] Add color-coded badges (blue for balance updates, gray for scans)
-- [x] Add server-side tests for QR scan history functionality (6 tests, all passing)
-- [x] Verify scan history is retrieved correctly
-- [x] Confirm chronological ordering of scan events

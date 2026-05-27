@@ -40,6 +40,7 @@ function WorkersTab() {
   const [newUserLevel, setNewUserLevel] = useState<"1" | "1.1" | "2">("2");
   const [addError, setAddError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
+  const [deleteVerifyPassword, setDeleteVerifyPassword] = useState("");
 
   // Edit state
   const [editTarget, setEditTarget] = useState<Worker | null>(null);
@@ -121,11 +122,16 @@ function WorkersTab() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    if (deleteVerifyPassword !== ADMIN_PASSWORD) {
+      toast.error("Incorrect admin password. Please try again.");
+      return;
+    }
     try {
       await deleteWorker.mutateAsync({ id: deleteTarget.id, adminPassword: ADMIN_PASSWORD });
-      toast.success("Worker deleted.");
+      toast.success("Worker deleted successfully.");
       utils.workers.list.invalidate();
       setDeleteTarget(null);
+      setDeleteVerifyPassword("");
     } catch (err: unknown) {
       const e = err as { message?: string };
       toast.error(e?.message ?? "Failed to delete worker.");
@@ -361,13 +367,30 @@ function WorkersTab() {
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-            <h3 className="font-bold text-foreground mb-2">Delete Worker</h3>
-            <p className="text-sm text-muted-foreground mb-4">Are you sure you want to delete <strong>{deleteTarget.name}</strong> ({deleteTarget.workerID})?</p>
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle size={20} className="text-destructive" />
+              <h3 className="font-bold text-foreground">Delete Worker - Verification Required</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              This action cannot be undone. You are about to permanently delete <strong>{deleteTarget.name}</strong> ({deleteTarget.workerID}) from the system.
+            </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <p className="text-xs text-red-700 font-semibold mb-2">⚠️ Enter admin password to confirm:</p>
+              <input
+                type="password"
+                value={deleteVerifyPassword}
+                onChange={e => setDeleteVerifyPassword(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleDelete()}
+                placeholder="Admin password"
+                className="w-full border border-red-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive"
+                autoFocus
+              />
+            </div>
             <div className="flex gap-2">
-              <button onClick={() => setDeleteTarget(null)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
-              <button onClick={handleDelete} disabled={deleteWorker.isPending} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+              <button onClick={() => { setDeleteTarget(null); setDeleteVerifyPassword(""); }} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
+              <button onClick={handleDelete} disabled={deleteWorker.isPending || !deleteVerifyPassword} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                 {deleteWorker.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
-                Delete
+                Delete Worker
               </button>
             </div>
           </div>

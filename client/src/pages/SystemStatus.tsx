@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { trpc } from '@/lib/trpc';
 import AppLayout from '@/components/AppLayout';
 import { Activity, Server, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -18,30 +19,29 @@ interface StatusUpdate {
 
 export default function SystemStatus() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo>({
-    uptime: '99.9%',
+    uptime: 'Loading...',
     status: 'operational',
     lastUpdate: new Date().toLocaleString(),
-    responseTime: 145,
+    responseTime: 0,
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [components, setComponents] = useState<any[]>([]);
+  const statusQuery = trpc.system.status.useQuery();
 
-  // Simulate checking system status
+  // Fetch real system status data
   useEffect(() => {
-    setLoading(true);
-    // In a real app, this would call an API endpoint
-    const timer = setTimeout(() => {
+    if (statusQuery.data) {
       setSystemInfo({
-        uptime: '99.9%',
-        status: 'operational',
-        lastUpdate: new Date().toLocaleString(),
-        responseTime: Math.floor(Math.random() * 100) + 100,
+        uptime: statusQuery.data.uptime.formatted,
+        status: (statusQuery.data.server.status as 'operational' | 'degraded' | 'down'),
+        lastUpdate: new Date(statusQuery.data.timestamp).toLocaleString(),
+        responseTime: statusQuery.data.server.responseTime,
       });
+      setComponents(statusQuery.data.components);
       setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
+    }
+  }, [statusQuery.data]);
 
   const recentUpdates: StatusUpdate[] = [
     {
@@ -294,30 +294,28 @@ export default function SystemStatus() {
           {/* System Components */}
           <div className="mb-12">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">System Components</h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              {[
-                { name: 'Web Server', status: 'operational' },
-                { name: 'Database', status: 'operational' },
-                { name: 'API Gateway', status: 'operational' },
-                { name: 'Authentication Service', status: 'operational' },
-                { name: 'Push Notifications', status: 'operational' },
-                { name: 'File Storage', status: 'operational' },
-                { name: 'Approval Workflow Engine', status: 'operational' },
-                { name: 'Level 1.1 Process Approve', status: 'operational' },
-                { name: 'Geo-Restriction Guard', status: 'operational' },
-                { name: 'Admin Panel Access Control', status: 'operational' },
-              ].map((component, idx) => (
-                <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
-                  <span className="font-semibold text-gray-900">{component.name}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-                    <span className="text-sm text-green-600 font-semibold">
-                      {component.status.charAt(0).toUpperCase() + component.status.slice(1)}
-                    </span>
+            {components.length > 0 ? (
+              <div className="grid md:grid-cols-2 gap-6">
+                {components.map((component, idx) => (
+                  <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-gray-900">{component.name}</span>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${component.status === 'operational' ? 'bg-green-600' : component.status === 'degraded' ? 'bg-yellow-600' : 'bg-red-600'}`}></div>
+                        <span className={`text-sm font-semibold ${component.status === 'operational' ? 'text-green-600' : component.status === 'degraded' ? 'text-yellow-600' : 'text-red-600'}`}>
+                          {component.status.charAt(0).toUpperCase() + component.status.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">Response: {component.responseTime}ms</p>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-8 text-center">
+                <p className="text-gray-600">Loading system components...</p>
+              </div>
+            )}
           </div>
 
           {/* Support Section */}
