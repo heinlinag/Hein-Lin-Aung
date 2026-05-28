@@ -1,8 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Printer } from "lucide-react";
 import JsBarcode from "jsbarcode";
-import { useEffect } from "react";
 
 interface A4LabelProps {
   orderId: string;
@@ -24,310 +23,19 @@ export const A4Label: React.FC<A4LabelProps> = ({
   bqComment,
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
-
-  const handlePrint = () => {
-    if (!printRef.current) return;
-
-    const printWindow = window.open("", "", "height=1100,width=850");
-    if (!printWindow) return;
-
-    const printContent = printRef.current.innerHTML;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>Order Label - ${orderId}</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            html, body {
-              width: 210mm;
-              height: 297mm;
-              margin: 0;
-              padding: 0;
-              background: white;
-              font-family: 'Segoe UI', Arial, sans-serif;
-            }
-            @page { size: A4; margin: 0; }
-            @media print {
-              html, body { width: 210mm; height: 297mm; }
-            }
-
-            .page {
-              width: 210mm;
-              height: 297mm;
-              padding: 12mm 14mm;
-              display: flex;
-              flex-direction: column;
-              background: white;
-            }
-
-            /* ── HEADER ── */
-            .header {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              padding-bottom: 6mm;
-              border-bottom: 2px solid #000;
-              margin-bottom: 7mm;
-            }
-            .header-left {
-              display: flex;
-              align-items: center;
-              gap: 5mm;
-            }
-            .logo {
-              width: 14mm;
-              height: 14mm;
-              object-fit: contain;
-            }
-            .brand-name {
-              font-size: 22px;
-              font-weight: 900;
-              color: #000;
-              letter-spacing: -0.3px;
-              line-height: 1.1;
-            }
-            .brand-sub {
-              font-size: 10px;
-              color: #000;
-              margin-top: 1mm;
-              letter-spacing: 0.5px;
-              text-transform: uppercase;
-            }
-            .header-right {
-              text-align: right;
-            }
-            .doc-type {
-              font-size: 11px;
-              font-weight: 700;
-              color: #000;
-              text-transform: uppercase;
-              letter-spacing: 1px;
-              background: white;
-              border: 1px solid #000;
-              padding: 2mm 5mm;
-              border-radius: 2px;
-            }
-            .print-date {
-              font-size: 9px;
-              color: #000;
-              margin-top: 2mm;
-            }
-
-            /* ── ORDER ID BANNER ── */
-            .order-banner {
-              background: white;
-              color: #000;
-              border: 2px solid #000;
-              padding: 5mm 8mm;
-              border-radius: 3px;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              margin-bottom: 7mm;
-            }
-            .order-id-label {
-              font-size: 11px;
-              font-weight: 600;
-              letter-spacing: 2px;
-              text-transform: uppercase;
-              opacity: 1;
-              color: #000;
-            }
-            .order-id-value {
-              font-size: 30px;
-              font-weight: 900;
-              letter-spacing: 1px;
-              line-height: 1;
-              color: #000;
-            }
-            .qty-pill {
-              background: white;
-              color: #000;
-              border: 1px solid #000;
-              font-size: 22px;
-              font-weight: 900;
-              padding: 3mm 7mm;
-              border-radius: 3px;
-              text-align: center;
-              line-height: 1.1;
-            }
-            .qty-pill-label {
-              font-size: 9px;
-              font-weight: 600;
-              text-transform: uppercase;
-              letter-spacing: 1px;
-              opacity: 0.7;
-              text-align: center;
-              margin-top: 1mm;
-            }
-
-            /* ── MAIN BODY ── */
-            .body {
-              display: flex;
-              gap: 8mm;
-              flex: 1;
-              margin-bottom: 7mm;
-            }
-
-            /* ── INFO PANEL ── */
-            .info-panel {
-              flex: 1;
-              display: flex;
-              flex-direction: column;
-              gap: 5mm;
-            }
-            .section {
-              border: 1px solid #000;
-              border-radius: 3px;
-              overflow: hidden;
-            }
-            .section-header {
-              background: white;
-              border-bottom: 1px solid #000;
-              padding: 2.5mm 5mm;
-              font-size: 10px;
-              font-weight: 800;
-              color: #000;
-              text-transform: uppercase;
-              letter-spacing: 1px;
-            }
-            .section-body {
-              padding: 4mm 5mm;
-              display: flex;
-              flex-direction: column;
-              gap: 3.5mm;
-              background: white;
-            }
-            .field-row {
-              display: flex;
-              align-items: flex-start;
-              gap: 3mm;
-            }
-            .field-label {
-              font-size: 10px;
-              font-weight: 700;
-              color: #000;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-              min-width: 28mm;
-              padding-top: 0.5mm;
-            }
-            .field-value {
-              font-size: 16px;
-              font-weight: 700;
-              color: #000;
-              flex: 1;
-              word-break: break-word;
-              line-height: 1.2;
-            }
-            .field-value.large {
-              font-size: 20px;
-              font-weight: 900;
-              color: #000;
-            }
-
-            /* ── QR PANEL ── */
-            .qr-panel {
-              width: 62mm;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 4mm;
-            }
-            .qr-box {
-              border: 2px solid #000;
-              border-radius: 4px;
-              padding: 4mm;
-              background: white;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 3mm;
-              width: 100%;
-            }
-            .qr-box svg {
-              width: 52mm !important;
-              height: 52mm !important;
-            }
-            .qr-caption {
-              font-size: 8px;
-              color: #000;
-              text-align: center;
-              font-weight: 600;
-              letter-spacing: 0.5px;
-              text-transform: uppercase;
-            }
-            .qr-order-id {
-              font-size: 11px;
-              font-weight: 900;
-              color: #000;
-              text-align: center;
-              letter-spacing: 1px;
-            }
-
-            /* ── FOOTER ──             .footer {
-              border-top: 1px solid #000;
-              padding-top: 5mm;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              font-size: 8px;
-              color: #000;
-            }px;
-              color: #aaa;
-              line-height: 1.6;
-            }
-            .footer-right {
-              font-size: 9px;
-              color: #aaa;
-              text-align: right;
-              line-height: 1.6;
-            }
-            .verified-badge {
-              display: inline-block;
-              background: #e8f4fd;
-              color: #0f4c75;
-              font-size: 8px;
-              font-weight: 700;
-              padding: 1mm 3mm;
-              border-radius: 2px;
-              text-transform: uppercase;
-              letter-spacing: 1px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="page">
-            ${printContent}
-          </div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 350);
-  };
-
-  // QR code contains ONLY Tracking ID
-  const qrValue = trackingId || "";
   const barcodeRef = useRef<SVGSVGElement>(null);
 
-  // Generate barcode when component mounts or trackingId changes
   useEffect(() => {
     if (barcodeRef.current && trackingId) {
       try {
         JsBarcode(barcodeRef.current, trackingId, {
           format: "CODE128",
-          width: 2,
-          height: 80,
+          width: 2.2,
+          height: 70,
           displayValue: false,
           margin: 0,
+          background: "#ffffff",
+          lineColor: "#000000",
         });
       } catch (error) {
         console.error("Barcode generation error:", error);
@@ -338,6 +46,345 @@ export const A4Label: React.FC<A4LabelProps> = ({
   const now = new Date();
   const printDate = now.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
   const printTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    const printWindow = window.open("", "", "height=1200,width=900");
+    if (!printWindow) return;
+
+    const printContent = printRef.current.innerHTML;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Stock Label — ${orderId}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            html, body {
+              width: 210mm;
+              height: 297mm;
+              background: #fff;
+              font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            @page { size: A4 portrait; margin: 0; }
+
+            .page {
+              width: 210mm;
+              height: 297mm;
+              padding: 10mm 12mm;
+              display: flex;
+              flex-direction: column;
+              background: #fff;
+              position: relative;
+            }
+
+            /* ── CORNER MARKS ── */
+            .corner { position: absolute; width: 6mm; height: 6mm; }
+            .corner-tl { top: 5mm; left: 5mm; border-top: 0.5mm solid #000; border-left: 0.5mm solid #000; }
+            .corner-tr { top: 5mm; right: 5mm; border-top: 0.5mm solid #000; border-right: 0.5mm solid #000; }
+            .corner-bl { bottom: 5mm; left: 5mm; border-bottom: 0.5mm solid #000; border-left: 0.5mm solid #000; }
+            .corner-br { bottom: 5mm; right: 5mm; border-bottom: 0.5mm solid #000; border-right: 0.5mm solid #000; }
+
+            /* ── HEADER ── */
+            .header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding-bottom: 5mm;
+              border-bottom: 0.8mm solid #000;
+              margin-bottom: 6mm;
+            }
+            .header-left { display: flex; align-items: center; gap: 4mm; }
+            .logo { width: 13mm; height: 13mm; object-fit: contain; }
+            .brand-name {
+              font-size: 20px;
+              font-weight: 900;
+              color: #000;
+              letter-spacing: -0.5px;
+              line-height: 1;
+            }
+            .brand-sub {
+              font-size: 8.5px;
+              color: #444;
+              margin-top: 1mm;
+              letter-spacing: 1.5px;
+              text-transform: uppercase;
+              font-weight: 500;
+            }
+            .header-right { text-align: right; }
+            .doc-badge {
+              display: inline-block;
+              background: #000;
+              color: #fff;
+              font-size: 9px;
+              font-weight: 800;
+              padding: 1.5mm 5mm;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+            }
+            .print-date {
+              font-size: 8px;
+              color: #555;
+              margin-top: 2mm;
+              letter-spacing: 0.3px;
+            }
+
+            /* ── ORDER BANNER ── */
+            .order-banner {
+              border: 0.8mm solid #000;
+              display: grid;
+              grid-template-columns: 1fr auto;
+              align-items: stretch;
+              margin-bottom: 6mm;
+              overflow: hidden;
+            }
+            .banner-main {
+              padding: 4mm 6mm;
+              border-right: 0.8mm solid #000;
+            }
+            .banner-label {
+              font-size: 8px;
+              font-weight: 700;
+              letter-spacing: 2.5px;
+              text-transform: uppercase;
+              color: #555;
+              margin-bottom: 1.5mm;
+            }
+            .banner-order-id {
+              font-size: 36px;
+              font-weight: 900;
+              color: #000;
+              letter-spacing: -0.5px;
+              line-height: 1;
+            }
+            .banner-tracking {
+              font-size: 10px;
+              font-weight: 600;
+              color: #333;
+              margin-top: 2mm;
+              letter-spacing: 0.5px;
+            }
+            .banner-qty {
+              padding: 4mm 8mm;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              background: #000;
+              min-width: 30mm;
+            }
+            .qty-number {
+              font-size: 32px;
+              font-weight: 900;
+              color: #fff;
+              line-height: 1;
+            }
+            .qty-unit {
+              font-size: 9px;
+              font-weight: 700;
+              color: #ccc;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              margin-top: 1mm;
+            }
+
+            /* ── MAIN BODY ── */
+            .body {
+              display: flex;
+              gap: 6mm;
+              flex: 1;
+              margin-bottom: 6mm;
+            }
+
+            /* ── INFO PANEL ── */
+            .info-panel {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              gap: 5mm;
+            }
+
+            .section {
+              border: 0.5mm solid #000;
+              overflow: hidden;
+            }
+            .section-header {
+              background: #000;
+              padding: 2mm 5mm;
+              font-size: 8.5px;
+              font-weight: 800;
+              color: #fff;
+              text-transform: uppercase;
+              letter-spacing: 2px;
+            }
+            .section-body {
+              padding: 4mm 5mm;
+              display: flex;
+              flex-direction: column;
+              gap: 3.5mm;
+              background: #fff;
+            }
+            .field-row {
+              display: flex;
+              align-items: baseline;
+              gap: 3mm;
+            }
+            .field-label {
+              font-size: 8px;
+              font-weight: 700;
+              color: #555;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              min-width: 26mm;
+              flex-shrink: 0;
+            }
+            .field-colon {
+              font-size: 10px;
+              color: #999;
+              flex-shrink: 0;
+            }
+            .field-value {
+              font-size: 18px;
+              font-weight: 800;
+              color: #000;
+              flex: 1;
+              word-break: break-word;
+              line-height: 1.1;
+            }
+            .field-value.xl {
+              font-size: 24px;
+              font-weight: 900;
+            }
+            .field-value.mono {
+              font-family: 'Courier New', monospace;
+              font-size: 14px;
+              font-weight: 700;
+              letter-spacing: 0.5px;
+              word-break: break-all;
+              line-height: 1.4;
+            }
+
+            /* ── DIVIDER LINE ── */
+            .divider {
+              height: 0.3mm;
+              background: #ddd;
+              margin: 1mm 0;
+            }
+
+            /* ── QR PANEL ── */
+            .qr-panel {
+              width: 58mm;
+              display: flex;
+              flex-direction: column;
+              gap: 4mm;
+            }
+            .qr-box {
+              border: 0.5mm solid #000;
+              padding: 4mm;
+              background: #fff;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 2.5mm;
+            }
+            .qr-box svg {
+              width: 48mm !important;
+              height: 48mm !important;
+            }
+            .qr-label {
+              font-size: 7px;
+              font-weight: 800;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              color: #555;
+            }
+            .qr-id {
+              font-size: 10px;
+              font-weight: 800;
+              color: #000;
+              letter-spacing: 0.5px;
+              text-align: center;
+              font-family: 'Courier New', monospace;
+            }
+            .barcode-box {
+              border: 0.5mm solid #000;
+              padding: 4mm 3mm;
+              background: #fff;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 2mm;
+            }
+            .barcode-box svg {
+              width: 50mm !important;
+              height: auto;
+            }
+            .barcode-id {
+              font-size: 8px;
+              font-weight: 700;
+              color: #000;
+              letter-spacing: 1px;
+              font-family: 'Courier New', monospace;
+              text-align: center;
+            }
+
+            /* ── FOOTER ── */
+            .footer {
+              border-top: 0.5mm solid #000;
+              padding-top: 4mm;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-end;
+            }
+            .footer-left {
+              font-size: 7.5px;
+              color: #555;
+              line-height: 1.7;
+            }
+            .footer-right {
+              text-align: right;
+            }
+            .verified-badge {
+              display: inline-block;
+              border: 0.4mm solid #000;
+              color: #000;
+              font-size: 7px;
+              font-weight: 800;
+              padding: 1mm 3mm;
+              letter-spacing: 1.5px;
+              text-transform: uppercase;
+            }
+            .footer-note {
+              font-size: 7px;
+              color: #777;
+              margin-top: 1mm;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+            ${printContent}
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 400);
+  };
+
+  const qrValue = trackingId || orderId;
 
   return (
     <div>
@@ -357,26 +404,28 @@ export const A4Label: React.FC<A4LabelProps> = ({
           <div className="header-left">
             <img src="/manus-storage/gspp-logo_988a5ce5.png" alt="GSPP" className="logo" />
             <div>
-              <div className="brand-name">PP4 Stock Board (NPRM)</div>
+              <div className="brand-name">PP4 Manual Slitter</div>
               <div className="brand-sub">Stock Management System</div>
             </div>
           </div>
           <div className="header-right">
-            <div className="doc-type">Stock Label</div>
-            <div className="print-date">Printed: {printDate} {printTime}</div>
+            <div className="doc-badge">Stock Label</div>
+            <div className="print-date">Printed: {printDate} &nbsp;{printTime}</div>
           </div>
         </div>
 
-        {/* ORDER ID BANNER */}
+        {/* ORDER BANNER */}
         <div className="order-banner">
-          <div>
-            <div className="order-id-label">Production Order</div>
-            <div className="order-id-value">{orderId}</div>
-            {trackingId && <div style={{ fontSize: '11px', fontWeight: '600', marginTop: '2mm', letterSpacing: '1px', opacity: 0.9 }}>Ref: {trackingId}</div>}
+          <div className="banner-main">
+            <div className="banner-label">Production Order</div>
+            <div className="banner-order-id">{orderId}</div>
+            {trackingId && (
+              <div className="banner-tracking">Ref: {trackingId}</div>
+            )}
           </div>
-          <div>
-            <div className="qty-pill">{orderQty}</div>
-            <div className="qty-pill-label">pcs</div>
+          <div className="banner-qty">
+            <div className="qty-number">{orderQty}</div>
+            <div className="qty-unit">pcs</div>
           </div>
         </div>
 
@@ -386,56 +435,84 @@ export const A4Label: React.FC<A4LabelProps> = ({
           {/* INFO PANEL */}
           <div className="info-panel">
 
+            {/* Product Details */}
             <div className="section">
               <div className="section-header">Product Details</div>
               <div className="section-body">
                 <div className="field-row">
                   <span className="field-label">Board Size</span>
-                  <span className="field-value large">{boardSize} mm</span>
+                  <span className="field-colon">:</span>
+                  <span className="field-value xl">{boardSize} <span style={{ fontSize: '14px', fontWeight: 600 }}>mm</span></span>
                 </div>
+                <div className="divider"></div>
                 <div className="field-row">
                   <span className="field-label">Flute Type</span>
-                  <span className="field-value large">{fluteType}</span>
+                  <span className="field-colon">:</span>
+                  <span className="field-value xl">{fluteType}</span>
                 </div>
               </div>
             </div>
 
+            {/* BQ Information */}
             <div className="section">
               <div className="section-header">BQ Information</div>
               <div className="section-body">
                 <div className="field-row">
-                  <span className="field-label">BQ</span>
+                  <span className="field-label">Master Card</span>
+                  <span className="field-colon">:</span>
                   <span className="field-value">{masterCard}</span>
+                </div>
+                {bqComment && (
+                  <>
+                    <div className="divider"></div>
+                    <div className="field-row">
+                      <span className="field-label">BQ Formula</span>
+                      <span className="field-colon">:</span>
+                      <span className="field-value mono">{bqComment}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Order Qty Summary */}
+            <div className="section">
+              <div className="section-header">Order Summary</div>
+              <div className="section-body">
+                <div className="field-row">
+                  <span className="field-label">Order Qty</span>
+                  <span className="field-colon">:</span>
+                  <span className="field-value xl">{orderQty} <span style={{ fontSize: '14px', fontWeight: 600 }}>pcs</span></span>
                 </div>
               </div>
             </div>
 
           </div>
 
-          {/* QR PANEL */}
+          {/* QR + BARCODE PANEL */}
           <div className="qr-panel">
             {trackingId ? (
               <>
                 <div className="qr-box">
+                  <div className="qr-label">Tracking QR</div>
                   <QRCodeSVG
                     value={qrValue}
-                    size={210}
+                    size={200}
                     level="H"
                     includeMargin={false}
                   />
-                  <div className="qr-caption">Tracking ID</div>
-                  <div className="qr-order-id">{trackingId}</div>
+                  <div className="qr-id">{trackingId}</div>
                 </div>
-                <div className="qr-box" style={{ gap: '2mm' }}>
-                  <div className="qr-caption">Barcode</div>
-                  <svg ref={barcodeRef} style={{ width: 'auto', height: '120px', transform: 'rotate(90deg)', transformOrigin: 'center', margin: '0 auto' }}></svg>
-                  <div className="qr-order-id" style={{ fontSize: '9px' }}>{trackingId}</div>
+                <div className="barcode-box">
+                  <div className="qr-label">Barcode</div>
+                  <svg ref={barcodeRef}></svg>
+                  <div className="barcode-id">{trackingId}</div>
                 </div>
               </>
             ) : (
-              <div className="qr-box" style={{ justifyContent: 'center', minHeight: '120mm' }}>
-                <div className="qr-caption" style={{ fontSize: '14px', fontWeight: 'bold' }}>N/A</div>
-                <div className="qr-caption">No Tracking ID</div>
+              <div className="qr-box" style={{ justifyContent: "center", minHeight: "100mm", gap: "4mm" }}>
+                <div className="qr-label" style={{ fontSize: "16px" }}>N/A</div>
+                <div className="qr-label">No Tracking ID</div>
               </div>
             )}
           </div>
@@ -445,12 +522,12 @@ export const A4Label: React.FC<A4LabelProps> = ({
         {/* FOOTER */}
         <div className="footer">
           <div className="footer-left">
-            <div>PP4 Manual Slitter · Stock Management System</div>
+            <div><strong>PP4 Manual Slitter</strong> · Stock Management System</div>
             <div>Generated: {printDate} at {printTime}</div>
           </div>
           <div className="footer-right">
             <span className="verified-badge">For Verification Only</span>
-            <div style={{ marginTop: "1mm" }}>Do not duplicate or alter this label</div>
+            <div className="footer-note">Do not duplicate or alter this label</div>
           </div>
         </div>
 

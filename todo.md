@@ -1068,3 +1068,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Submit Order Mobile Layout - Width & Length Stacked (May 28)
 - [x] Mobile view: Width and Length inputs stacked vertically (space-y-2) instead of side-by-side
+
+## Label A4 Next Level Upgrade (May 28)
+- [x] Upgrade A4Label component to premium print design (black & white, professional layout)
