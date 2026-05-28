@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { Send, Loader2, AlertTriangle } from "lucide-react";
+import { Send, Loader2, AlertTriangle, Package, Layers, Ruler, Hash, FileText, CheckCircle2, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 
@@ -21,6 +21,7 @@ export default function SubmitOrder() {
   const [bqComment, setBqComment] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [successData, setSuccessData] = useState<{ trackingId: string; orderID: string; fluteType: string; sizeW: number; sizeL: number; qty: number; bqComment: string } | null>(null);
+  const [currentStep, setCurrentStep] = useState(1);
 
   const notifyAll = trpc.push.sendToAll.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
@@ -37,6 +38,15 @@ export default function SubmitOrder() {
   );
   const isDuplicate = duplicateCheck.data?.exists === true;
 
+  // Track form progress
+  useEffect(() => {
+    const effectiveFluteType = fluteType === "Manual" ? manualFlute.trim() : fluteType;
+    if (bqComment.trim()) setCurrentStep(4);
+    else if (sizeW && sizeL && qty) setCurrentStep(3);
+    else if (orderID.trim() && effectiveFluteType) setCurrentStep(2);
+    else setCurrentStep(1);
+  }, [orderID, fluteType, manualFlute, sizeW, sizeL, qty, bqComment]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!worker) {
@@ -51,10 +61,9 @@ export default function SubmitOrder() {
       return;
     }
     if (isDuplicate) {
-      toast.error(`Production Order "${orderID.trim()}" already exists. Please use a different Production Order.`);
+      toast.error(`Production Order "${orderID.trim()}" already exists.`);
       return;
     }
-    // Show confirmation dialog before submitting
     setShowConfirm(true);
   };
 
@@ -89,142 +98,209 @@ export default function SubmitOrder() {
     }
   };
 
-  const inputCls = "w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white";
-  const labelCls = "block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5";
-
   return (
     <AppLayout pageTitle="Submit Order">
       {/* Worker Banner */}
       {worker && (
-        <div className="gspp-gradient text-white py-2 px-4 text-center text-xs">
-          Logged in as <strong>{worker.name}</strong> ({worker.workerID}) · {worker.department}
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-2.5 px-4 flex items-center justify-center gap-2 text-xs shadow-sm">
+          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+            <span className="text-[10px] font-bold">{worker.name.charAt(0)}</span>
+          </div>
+          <span>Logged in as <strong>{worker.name}</strong> ({worker.workerID}) &middot; {worker.department}</span>
         </div>
       )}
 
       <div className="px-4 lg:px-8 py-6 lg:py-8">
         <div className="max-w-2xl mx-auto lg:mx-0">
-          {/* Page heading (mobile only — desktop uses AppLayout pageTitle bar) */}
-          <h2 className="lg:hidden text-lg font-bold text-foreground mb-5" style={{ fontFamily: "Lora, serif" }}>
-            Submit Order
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Row 1: Production Order + Flute Type */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Production Order */}
+          {/* Page heading (mobile only) */}
+          <div className="lg:hidden mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <Package size={20} className="text-white" />
+              </div>
               <div>
-                <label className={labelCls}>
-                  Production Order <span className="text-destructive">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={orderID}
-                  onChange={e => setOrderID(e.target.value.toUpperCase())}
-                  placeholder="e.g. A-203"
-                  className={`${inputCls} ${isDuplicate ? "border-red-400 focus:ring-red-400" : ""}`}
-                />
-                {isDuplicate && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                    <span>⚠</span> Production Order <strong>{debouncedOrderID}</strong> already exists in the system.
-                  </p>
-                )}
-                {!isDuplicate && debouncedOrderID && duplicateCheck.data && (
-                  <p className="mt-1 text-xs text-green-600 flex items-center gap-1">
-                    <span>✓</span> Production Order is available.
-                  </p>
-                )}
+                <h2 className="text-xl font-bold text-foreground">Submit Order</h2>
+                <p className="text-xs text-muted-foreground">Create a new production order</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="mb-8 hidden sm:block">
+            <div className="flex items-center justify-between relative">
+              <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 rounded-full" />
+              <div className="absolute top-4 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500" style={{ width: `${((currentStep - 1) / 3) * 100}%` }} />
+              {[
+                { step: 1, label: "Order Info", icon: Package },
+                { step: 2, label: "Dimensions", icon: Ruler },
+                { step: 3, label: "BQ Formula", icon: FileText },
+                { step: 4, label: "Review", icon: CheckCircle2 },
+              ].map(({ step, label, icon: Icon }) => (
+                <div key={step} className="relative flex flex-col items-center z-10">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30" : "bg-gray-100 text-gray-400 border-2 border-gray-200"}`}>
+                    <Icon size={14} />
+                  </div>
+                  <span className={`text-[10px] mt-1.5 font-medium ${currentStep >= step ? "text-blue-600" : "text-gray-400"}`}>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Section 1: Order Info */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-5 transition-all hover:shadow-md">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <Package size={14} className="text-blue-600" />
+                </div>
+                <h3 className="text-sm font-bold text-foreground">Order Information</h3>
               </div>
 
-              {/* Flute Type */}
-              <div>
-                <label className={labelCls}>
-                  Flute Type <span className="text-destructive">*</span>
-                </label>
-                <select
-                  value={fluteType}
-                  onChange={e => setFluteType(e.target.value)}
-                  className={inputCls}
-                >
-                  <option value="">Select flute type</option>
-                  {FLUTE_TYPES.map(ft => (
-                    <option key={ft} value={ft}>{ft}</option>
-                  ))}
-                </select>
-                {fluteType === "Manual" && (
-                  <input
-                    type="text"
-                    value={manualFlute}
-                    onChange={e => setManualFlute(e.target.value)}
-                    placeholder="Enter custom flute type"
-                    className={`${inputCls} mt-2`}
-                  />
-                )}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Production Order */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Production Order <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={orderID}
+                      onChange={e => setOrderID(e.target.value.toUpperCase())}
+                      placeholder="Enter order ID"
+                      className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 bg-gray-50 focus:bg-white transition-all ${isDuplicate ? "border-red-300 focus:ring-red-400" : "border-gray-200 focus:ring-blue-400 focus:border-blue-400"}`}
+                    />
+                    {!isDuplicate && debouncedOrderID && duplicateCheck.data && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <CheckCircle2 size={16} className="text-green-500" />
+                      </div>
+                    )}
+                  </div>
+                  {isDuplicate && (
+                    <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
+                      <AlertTriangle size={12} /> <strong>{debouncedOrderID}</strong> already exists
+                    </p>
+                  )}
+                  {!isDuplicate && debouncedOrderID && duplicateCheck.data && (
+                    <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
+                      <CheckCircle2 size={12} /> Available
+                    </p>
+                  )}
+                </div>
+
+                {/* Flute Type */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Flute Type <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-4 gap-1.5 mb-2">
+                    {FLUTE_TYPES.filter(ft => ft !== "Manual").map(ft => (
+                      <button
+                        key={ft}
+                        type="button"
+                        onClick={() => setFluteType(ft)}
+                        className={`py-2 text-xs font-bold rounded-lg border-2 transition-all ${fluteType === ft ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm" : "border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50/50"}`}
+                      >
+                        {ft}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setFluteType("Manual")}
+                      className={`py-2 text-xs font-bold rounded-lg border-2 transition-all col-span-2 ${fluteType === "Manual" ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm" : "border-gray-200 text-gray-600 hover:border-purple-300 hover:bg-purple-50/50"}`}
+                    >
+                      Manual
+                    </button>
+                  </div>
+                  {fluteType === "Manual" && (
+                    <input
+                      type="text"
+                      value={manualFlute}
+                      onChange={e => setManualFlute(e.target.value)}
+                      placeholder="Enter custom flute type"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-gray-50 focus:bg-white transition-all"
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Row 2: Size W x L + Qty */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Size */}
-              <div>
-                <label className={labelCls}>
-                  Size (W × L) <span className="text-destructive">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Width (mm)</p>
+            {/* Section 2: Dimensions & Qty */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-5 transition-all hover:shadow-md">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
+                  <Ruler size={14} className="text-emerald-600" />
+                </div>
+                <h3 className="text-sm font-bold text-foreground">Dimensions & Quantity</h3>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Size */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Size (W x L) mm <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-2">
                     <input
                       type="number"
                       value={sizeW}
                       onChange={e => setSizeW(e.target.value)}
-                      placeholder="1530"
+                      placeholder="Width"
                       min={1}
-                      className={inputCls}
+                      className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
                     />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Length (mm)</p>
+                    <span className="text-gray-400 font-bold text-lg">&times;</span>
                     <input
                       type="number"
                       value={sizeL}
                       onChange={e => setSizeL(e.target.value)}
-                      placeholder="1800"
+                      placeholder="Length"
                       min={1}
-                      className={inputCls}
+                      className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* Order Qty */}
-              <div>
-                <label className={labelCls}>
-                  Order Qty (pcs) <span className="text-destructive">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={qty}
-                  onChange={e => setQty(e.target.value)}
-                  placeholder="100"
-                  min={1}
-                  className={inputCls}
-                />
+                {/* Order Qty */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Order Qty (pcs) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={qty}
+                      onChange={e => setQty(e.target.value)}
+                      placeholder="Enter quantity"
+                      min={1}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Hash size={14} className="text-gray-400" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* BQ Comment */}
-            <div>
-              <label className={labelCls}>
-                BQ Comment <span className="text-destructive">*</span>
-              </label>
-              <p className="text-xs text-muted-foreground mb-1.5">Board Quality formula string</p>
+            {/* Section 3: BQ Comment */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4 transition-all hover:shadow-md">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <Layers size={14} className="text-amber-600" />
+                </div>
+                <h3 className="text-sm font-bold text-foreground">BQ Comment</h3>
+                <span className="text-[10px] text-gray-400 ml-auto">Board Quality formula</span>
+              </div>
+
               {/* BQ Shortcut Buttons */}
-              <div className="flex flex-wrap gap-1.5 mb-2">
+              <div className="flex flex-wrap gap-2">
                 {["LR", "MP", "KL", "LP", "KC", "WT"].map(prefix => (
                   <button
                     key={prefix}
                     type="button"
                     onClick={() => setBqComment(prev => prev + prefix)}
-                    className="px-2.5 py-1 text-xs font-bold rounded-md border border-primary text-primary hover:bg-primary hover:text-white transition-colors font-mono"
+                    className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-b from-white to-gray-50 border-2 border-gray-200 text-gray-700 hover:border-amber-400 hover:text-amber-700 hover:bg-amber-50 transition-all shadow-sm active:scale-95 font-mono"
                   >
                     {prefix}
                   </button>
@@ -232,7 +308,7 @@ export default function SubmitOrder() {
                 <button
                   type="button"
                   onClick={() => setBqComment("")}
-                  className="px-2.5 py-1 text-xs font-bold rounded-md border border-destructive text-destructive hover:bg-destructive hover:text-white transition-colors ml-auto"
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg border-2 border-red-200 text-red-500 hover:bg-red-50 hover:border-red-400 transition-all ml-auto"
                 >
                   Clear
                 </button>
@@ -242,8 +318,14 @@ export default function SubmitOrder() {
                 onChange={e => setBqComment(e.target.value.toUpperCase())}
                 placeholder="e.g. LR170MP115MP115MP115LR170"
                 rows={3}
-                className={`${inputCls} resize-none font-mono`}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 bg-gray-50 focus:bg-white transition-all resize-none font-mono"
               />
+              {bqComment && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  <p className="text-[10px] text-amber-600 font-semibold mb-0.5">Preview</p>
+                  <p className="text-xs font-mono font-bold text-amber-800 break-all">{bqComment}</p>
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -251,12 +333,12 @@ export default function SubmitOrder() {
               <button
                 type="submit"
                 disabled={submitOrder.isPending}
-                className="w-full lg:w-auto lg:px-10 gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+                className="w-full lg:w-auto lg:px-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-xl py-3.5 text-sm font-bold hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 {submitOrder.isPending ? (
                   <><Loader2 size={16} className="animate-spin" /> Submitting...</>
                 ) : (
-                  <><Send size={16} /> Submit Order</>
+                  <><Send size={16} /> Submit Order <ArrowRight size={14} /></>
                 )}
               </button>
             </div>
@@ -264,54 +346,56 @@ export default function SubmitOrder() {
         </div>
       </div>
 
-      {/* Submit Order Confirmation Dialog */}
+      {/* Confirmation Dialog */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
-            <div className="p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle size={20} className="text-orange-600" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center">
+                  <AlertTriangle size={22} className="text-orange-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-base">Confirm Order Submission</h3>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-lg">Confirm Submission</h3>
+                  <p className="text-xs text-gray-500">Review your order details</p>
+                </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3 mb-4 space-y-1.5">
+              <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 mb-5 space-y-2.5 border border-gray-100">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Production Order</span>
                   <span className="font-bold text-blue-700">{orderID.trim()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Flute Type</span>
-                  <span className="font-semibold">{fluteType === "Manual" ? manualFlute.trim() : fluteType}</span>
+                  <span className="font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md text-xs">{fluteType === "Manual" ? manualFlute.trim() : fluteType}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Size</span>
-                  <span className="font-mono">{sizeW} × {sizeL} mm</span>
+                  <span className="font-mono text-xs">{sizeW} &times; {sizeL} mm</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm items-start">
                   <span className="text-gray-500">BQ</span>
-                  <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px] break-words">{bqComment}</span>
+                  <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md font-mono font-semibold text-[10px] break-words max-w-[60%] text-right">{bqComment}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Qty</span>
-                  <span className="font-semibold">{qty} pcs</span>
+                  <span className="font-bold text-lg text-emerald-700">{qty} <span className="text-xs font-normal text-gray-500">pcs</span></span>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-5">Are you sure you want to submit this order?</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="flex-1 border-2 border-gray-200 rounded-xl py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all"
                 >
-                  No, Cancel
+                  Cancel
                 </button>
                 <button
                   onClick={handleConfirmedSubmit}
                   disabled={submitOrder.isPending}
-                  className="flex-1 gspp-gradient rounded-lg py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl py-3 text-sm font-bold text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {submitOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                  Yes, Submit
+                  Confirm
                 </button>
               </div>
             </div>
@@ -319,78 +403,53 @@ export default function SubmitOrder() {
         </div>
       )}
 
-      {/* Success Screen Dialog */}
+      {/* Success Screen */}
       {successData && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
             <div className="p-6 text-center">
-              {/* Success Icon */}
+              {/* Success Animation */}
               <style>{`
-                @keyframes successCheckmark {
-                  0% {
-                    transform: scale(0) rotate(-45deg);
-                    opacity: 0;
-                  }
-                  50% {
-                    transform: scale(1.2) rotate(0deg);
-                  }
-                  100% {
-                    transform: scale(1) rotate(0deg);
-                    opacity: 1;
-                  }
+                @keyframes successPop {
+                  0% { transform: scale(0); opacity: 0; }
+                  50% { transform: scale(1.2); }
+                  100% { transform: scale(1); opacity: 1; }
                 }
-                @keyframes successBgPulse {
-                  0% {
-                    transform: scale(0.8);
-                    opacity: 0;
-                  }
-                  100% {
-                    transform: scale(1);
-                    opacity: 1;
-                  }
-                }
-                .success-checkmark {
-                  animation: successCheckmark 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
-                }
-                .success-bg {
-                  animation: successBgPulse 0.5s cubic-bezier(0.4, 0.0, 0.2, 1) both;
-                }
+                .success-pop { animation: successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
               `}</style>
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4 success-bg">
-                <svg className="w-8 h-8 text-green-600 success-checkmark" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center mx-auto mb-4 success-pop">
+                <CheckCircle2 size={40} className="text-green-600" />
               </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-2">Order Submitted Successfully!</h3>
-              <p className="text-sm text-gray-600 mb-6">Your order has been created and is ready for processing.</p>
+              <h3 className="font-bold text-gray-900 text-xl mb-1">Order Submitted!</h3>
+              <p className="text-sm text-gray-500 mb-6">Your order has been created successfully</p>
               
-              {/* Tracking ID Display */}
-              <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg p-4 mb-6 border border-teal-200">
-                <p className="text-xs text-teal-600 font-semibold mb-1 uppercase tracking-wide">Tracking ID (Reference Number)</p>
-                <p className="text-2xl font-bold text-teal-700 font-mono break-all">{successData.trackingId}</p>
+              {/* Tracking ID */}
+              <div className="bg-gradient-to-r from-teal-50 via-cyan-50 to-blue-50 rounded-xl p-4 mb-5 border border-teal-200">
+                <p className="text-[10px] text-teal-600 font-bold uppercase tracking-wider mb-1">Tracking ID</p>
+                <p className="text-xl font-bold text-teal-700 font-mono break-all">{successData.trackingId}</p>
               </div>
               
               {/* Order Summary */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left space-y-2">
+              <div className="bg-gray-50 rounded-xl p-4 mb-5 text-left space-y-2 border border-gray-100">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Production Order</span>
+                  <span className="text-gray-500">Production Order</span>
                   <span className="font-bold text-blue-700">{successData.orderID}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Flute Type</span>
+                  <span className="text-gray-500">Flute</span>
                   <span className="font-semibold">{successData.fluteType}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Size</span>
-                  <span className="font-mono">{successData.sizeW} × {successData.sizeL} mm</span>
+                  <span className="text-gray-500">Size</span>
+                  <span className="font-mono text-xs">{successData.sizeW} &times; {successData.sizeL} mm</span>
+                </div>
+                <div className="flex justify-between text-sm items-start">
+                  <span className="text-gray-500">BQ</span>
+                  <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono font-semibold text-[10px] break-words max-w-[60%] text-right">{successData.bqComment}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">BQ</span>
-                  <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px] break-words">{successData.bqComment}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Quantity</span>
-                  <span className="font-semibold">{successData.qty} pcs</span>
+                  <span className="text-gray-500">Qty</span>
+                  <span className="font-bold">{successData.qty} pcs</span>
                 </div>
               </div>
               
@@ -401,9 +460,9 @@ export default function SubmitOrder() {
                     setSuccessData(null);
                     navigate("/stock-history");
                   }}
-                  className="flex-1 gspp-gradient rounded-lg py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl py-3 text-sm font-bold text-white hover:shadow-lg transition-all"
                 >
-                  View in Stock History
+                  View Stock
                 </button>
                 <button
                   onClick={() => {
@@ -416,9 +475,9 @@ export default function SubmitOrder() {
                     setQty("");
                     setBqComment("");
                   }}
-                  className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="flex-1 border-2 border-gray-200 rounded-xl py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all"
                 >
-                  Submit Another
+                  New Order
                 </button>
               </div>
             </div>

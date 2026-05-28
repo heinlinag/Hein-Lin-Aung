@@ -89,40 +89,62 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-          <div className="flex-1">
-            <h3 className="font-bold text-foreground mb-2">Purchase Order</h3>
-            <div className="space-y-1 text-xs">
-              <p className="text-muted-foreground">Production Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
-              <p className="text-muted-foreground">Tracking ID: <span className="font-mono font-semibold text-foreground text-[10px]">{order.trackingId || "N/A"}</span></p>
-              <p className="text-muted-foreground">Flute Type: <span className="font-semibold text-foreground">{order.fluteType}</span></p>
-              <p className="text-muted-foreground">BQ: <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px] break-words">{order.bqComment}</span></p>
-              <p className="text-blue-600 font-semibold">Available Quantity: {availableQty} <span className="text-xs font-normal">pcs</span></p>
-              <p className="text-muted-foreground text-[10px] leading-tight">(Stock: {order.qty} pcs − In Process: {inProcessQty} pcs = Available: {availableQty} pcs)</p>
-              <p className="text-muted-foreground">Pending Request Purchase: <span className="font-semibold text-foreground">{pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</span></p>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        {/* Premium Gradient Header */}
+        <div className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 rounded-t-2xl p-4 text-white relative overflow-hidden shrink-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent_70%)]" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Zap size={16} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm">Purchase Order</h3>
+                  <p className="text-[10px] text-white/70">Level 2 — Direct Deduction</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"><X size={18} /></button>
             </div>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
+                <p className="text-white/60 text-[9px] uppercase">Production Order</p>
+                <p className="font-bold">{order.orderID}</p>
+              </div>
+              <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
+                <p className="text-white/60 text-[9px] uppercase">Flute Type</p>
+                <p className="font-bold">{order.fluteType}</p>
+              </div>
+              <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
+                <p className="text-white/60 text-[9px] uppercase">Tracking ID</p>
+                <p className="font-mono font-bold text-[10px]">{order.trackingId || "N/A"}</p>
+              </div>
+              <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
+                <p className="text-white/60 text-[9px] uppercase">Available Qty</p>
+                <p className="font-bold text-sm">{availableQty} <span className="text-[9px] font-normal">pcs</span></p>
+              </div>
+            </div>
+            <div className="mt-2 bg-white/10 rounded-lg px-2.5 py-1.5">
+              <p className="text-white/60 text-[9px] uppercase">BQ</p>
+              <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
+            </div>
+            <p className="text-[9px] text-white/50 mt-1.5">(Stock: {order.qty} − In Process: {inProcessQty} = Available: {availableQty}) | Pending: {pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0"><X size={18} /></button>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-            <Zap size={14} className="text-green-500 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-green-700"><strong>Level 2:</strong> Stock will be <strong>deducted immediately</strong> when you submit.</p>
-          </div>
 
           {step === "choose" && (
             <div>
-              <p className="text-sm font-semibold text-foreground mb-3">What do you want to use it for?</p>
-              <div className="space-y-2">
-                <button onClick={() => setStep("job")} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-primary hover:bg-blue-50 transition-all text-left">
-                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Zap size={16} className="text-primary" /></div>
-                  <div><p className="text-sm font-semibold text-foreground">Job No</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
+              <p className="text-sm font-bold text-foreground mb-3">What do you want to use it for?</p>
+              <div className="space-y-2.5">
+                <button onClick={() => setStep("job")} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-blue-400 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50/50 transition-all text-left group shadow-sm">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform"><Zap size={16} className="text-white" /></div>
+                  <div><p className="text-sm font-bold text-foreground">Job No</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
                 </button>
-                <button onClick={() => setStep("old_stock")} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-destructive hover:bg-red-50 transition-all text-left">
-                  <div className="w-9 h-9 bg-destructive/10 rounded-lg flex items-center justify-center"><Package size={16} className="text-destructive" /></div>
-                  <div><p className="text-sm font-semibold text-foreground">Old Stock</p><p className="text-xs text-muted-foreground">Clear entire order (move to Out of Stock)</p></div>
+                <button onClick={() => setStep("old_stock")} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-red-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50/50 transition-all text-left group shadow-sm">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform"><Package size={16} className="text-white" /></div>
+                  <div><p className="text-sm font-bold text-foreground">Old Stock</p><p className="text-xs text-muted-foreground">Clear entire order (move to Out of Stock)</p></div>
                 </button>
               </div>
             </div>
@@ -177,20 +199,20 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
                     if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs).`); return; }
                     setShowJobConfirm(true);
-                  }} className="w-full gspp-gradient text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                  }} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg hover:shadow-emerald-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
                     <Zap size={14} /> Submit Usage
                   </button>
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-3">
                       <AlertTriangle size={16} className="text-orange-600 flex-shrink-0" />
                       <p className="text-xs text-orange-700">Use <strong>{useQty} pcs</strong> for Job <strong>{jobNo}</strong>? This action cannot be undone.</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
-                      <button onClick={handleJobSubmit} disabled={logUsage.isPending} className="flex-1 gspp-gradient text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border-2 border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">Cancel</button>
+                      <button onClick={handleJobSubmit} disabled={logUsage.isPending} className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                         {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
-                        Yes, Confirm
+                        Confirm
                       </button>
                     </div>
                   </div>
@@ -201,12 +223,12 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
 
           {step === "old_stock" && !showOldConfirm && (
             <div>
-              <button onClick={() => setStep("choose")} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-                <p className="text-sm font-bold text-destructive mb-1">⚠ Warning</p>
-                <p className="text-sm text-red-700">Order will be completely cleared. All {order.qty} pcs will be marked as used and the order will move to <strong>Out of Stock</strong>.</p>
+              <button onClick={() => setStep("choose")} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1 font-medium">← Back</button>
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4 mb-4">
+                <p className="text-sm font-bold text-red-700 mb-1 flex items-center gap-1.5"><AlertTriangle size={14} /> Warning</p>
+                <p className="text-sm text-red-700">Order will be completely cleared. All <strong>{order.qty} pcs</strong> will be marked as used and the order will move to <strong>Out of Stock</strong>.</p>
               </div>
-              <button onClick={() => setShowOldConfirm(true)} className="w-full bg-destructive text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2">
+              <button onClick={() => setShowOldConfirm(true)} className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg hover:shadow-red-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
                 <Package size={14} /> Clear Order (Old Stock)
               </button>
             </div>
@@ -215,15 +237,18 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
           {step === "old_stock" && showOldConfirm && (
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle size={18} className="text-red-600" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={20} className="text-red-600" />
                 </div>
-                <p className="text-sm font-bold text-gray-900">Are you sure?</p>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">Final Confirmation</p>
+                  <p className="text-[10px] text-gray-500">This action cannot be undone</p>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mb-4">Order <strong>{order.orderID}</strong> will be set to Qty 0 and moved to Out of Stock. This action cannot be undone.</p>
+              <p className="text-xs text-muted-foreground mb-4">Order <strong>{order.orderID}</strong> will be set to Qty 0 and moved to Out of Stock.</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
-                <button onClick={handleOldStockSubmit} disabled={logUsage.isPending} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border-2 border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">Cancel</button>
+                <button onClick={handleOldStockSubmit} disabled={logUsage.isPending} className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                   {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
                   Yes, Clear
                 </button>
@@ -329,44 +354,58 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-          <div className="flex-1">
-            <h3 className="font-bold text-foreground mb-2">Purchase Order</h3>
-            <div className="space-y-1 text-xs">
-              <p className="text-muted-foreground">Production Order: <span className="font-semibold text-primary">{order.orderID}</span></p>
-              <p className="text-muted-foreground">Tracking ID: <span className="font-mono font-semibold text-foreground text-[10px]">{order.trackingId || "N/A"}</span></p>
-              <p className="text-muted-foreground">Flute Type: <span className="font-semibold text-foreground">{order.fluteType}</span></p>
-              <p className="text-muted-foreground">BQ: <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono font-semibold text-[10px] break-words">{order.bqComment}</span></p>
-              <p className="text-blue-600 font-semibold">Available Quantity: {availableQty} <span className="text-xs font-normal">pcs</span></p>
-              <p className="text-muted-foreground text-[10px] leading-tight">(Stock: {order.qty} pcs − In Process: {inProcessQty} pcs = Available: {availableQty} pcs)</p>
-              <p className="text-muted-foreground">Pending Request Purchase: <span className="font-semibold text-foreground">{pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</span></p>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        {/* Premium Gradient Header */}
+        <div className={`rounded-t-2xl p-4 text-white relative overflow-hidden shrink-0 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600" : "bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500"}`}>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent_70%)]" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  {userLevel === "1.1" ? <Zap size={16} className="text-white" /> : <Clock size={16} className="text-white" />}
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm">Purchase Order</h3>
+                  <p className="text-[10px] text-white/70">{userLevel === "1.1" ? "Level 1.1 — Auto Process" : "Level 1 — Requires Approval"}</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"><X size={18} /></button>
             </div>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
+                <p className="text-white/60 text-[9px] uppercase">Production Order</p>
+                <p className="font-bold">{order.orderID}</p>
+              </div>
+              <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
+                <p className="text-white/60 text-[9px] uppercase">Flute Type</p>
+                <p className="font-bold">{order.fluteType}</p>
+              </div>
+              <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
+                <p className="text-white/60 text-[9px] uppercase">Tracking ID</p>
+                <p className="font-mono font-bold text-[10px]">{order.trackingId || "N/A"}</p>
+              </div>
+              <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
+                <p className="text-white/60 text-[9px] uppercase">Available Qty</p>
+                <p className="font-bold text-sm">{availableQty} <span className="text-[9px] font-normal">pcs</span></p>
+              </div>
+            </div>
+            <div className="mt-2 bg-white/10 rounded-lg px-2.5 py-1.5">
+              <p className="text-white/60 text-[9px] uppercase">BQ</p>
+              <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
+            </div>
+            <p className="text-[9px] text-white/50 mt-1.5">(Stock: {order.qty} − In Process: {inProcessQty} = Available: {availableQty}) | Pending: {pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 flex-shrink-0"><X size={18} /></button>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
 
-          {userLevel === "1.1" ? (
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-              <Zap size={14} className="text-purple-500 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-purple-700"><strong>Level 1.1:</strong> Stock will be <strong>deducted immediately</strong> when you submit. Your request will then await Level 2 final approval.</p>
-            </div>
-          ) : (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-              <Clock size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-orange-700">Your request will be sent to a <strong>Level 1.1 user</strong> for processing, then a <strong>Level 2 user</strong> for final approval before taking effect.</p>
-            </div>
-          )}
-
           {step === "choose" && (
             <div>
-              <p className="text-sm font-semibold text-foreground mb-3">What do you want to use it for?</p>
-              <div className="space-y-2">
-                <button onClick={() => setStep("job")} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-primary hover:bg-blue-50 transition-all text-left">
-                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Zap size={16} className="text-primary" /></div>
-                  <div><p className="text-sm font-semibold text-foreground">Job No</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
+              <p className="text-sm font-bold text-foreground mb-3">What do you want to use it for?</p>
+              <div className="space-y-2.5">
+                <button onClick={() => setStep("job")} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-blue-400 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50/50 transition-all text-left group shadow-sm">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform"><Zap size={16} className="text-white" /></div>
+                  <div><p className="text-sm font-bold text-foreground">Job No</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
                 </button>
                 <button onClick={() => {
                   if (userLevel === "1") {
@@ -374,9 +413,9 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                   } else {
                     setStep("old_stock");
                   }
-                }} className="w-full flex items-center gap-3 p-3 border-2 border-border rounded-xl hover:border-destructive hover:bg-red-50 transition-all text-left">
-                  <div className="w-9 h-9 bg-destructive/10 rounded-lg flex items-center justify-center"><Package size={16} className="text-destructive" /></div>
-                  <div><p className="text-sm font-semibold text-foreground">Old Stock</p><p className="text-xs text-muted-foreground">Clear entire order (move to Out of Stock)</p></div>
+                }} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-red-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50/50 transition-all text-left group shadow-sm">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform"><Package size={16} className="text-white" /></div>
+                  <div><p className="text-sm font-bold text-foreground">Old Stock</p><p className="text-xs text-muted-foreground">Clear entire order (move to Out of Stock)</p></div>
                 </button>
               </div>
             </div>
@@ -435,12 +474,12 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     const qty = parseInt(useQty);
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
                     setShowJobConfirm(true);
-                  }} className="w-full bg-orange-500 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                  }} className={`w-full text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-purple-500/25" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-orange-500/25"}`}>
                     <Clock size={14} /> Submit for Approval
                   </button>
                 ) : (
                   <div className="space-y-3">
-                    <div className={`flex items-center gap-2 rounded-lg p-3 ${userLevel === "1.1" ? "bg-purple-50 border border-purple-200" : "bg-orange-50 border border-orange-200"}`}>
+                    <div className={`flex items-center gap-2 rounded-xl p-3 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200" : "bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200"}`}>
                       <AlertTriangle size={16} className={`flex-shrink-0 ${userLevel === "1.1" ? "text-purple-600" : "text-orange-600"}`} />
                       {userLevel === "1.1" ? (
                         <p className="text-xs text-purple-700">Submit to use <strong>{useQty} pcs</strong> for Job <strong>{jobNo}</strong>? Stock will be <strong>deducted immediately</strong>. Awaiting Level 2 final approval.</p>
@@ -449,10 +488,10 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                       )}
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
-                      <button onClick={handleJobRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                      <button onClick={() => setShowJobConfirm(false)} className="flex-1 border-2 border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">Cancel</button>
+                      <button onClick={handleJobRequest} disabled={submitRequest.isPending} className={`flex-1 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
                         {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
-                        Yes, Submit
+                        Confirm
                       </button>
                     </div>
                   </div>
@@ -463,12 +502,12 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
 
           {step === "old_stock" && !showOldConfirm && (
             <div>
-              <button onClick={() => setStep("choose")} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-                <p className="text-sm font-bold text-destructive mb-1">⚠ Warning</p>
-                <p className="text-sm text-red-700">Request to clear all {availableQty} pcs and move to Out of Stock will be sent for approval.</p>
+              <button onClick={() => setStep("choose")} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1 font-medium">← Back</button>
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4 mb-4">
+                <p className="text-sm font-bold text-red-700 mb-1 flex items-center gap-1.5"><AlertTriangle size={14} /> Warning</p>
+                <p className="text-sm text-red-700">Request to clear all <strong>{availableQty} pcs</strong> and move to Out of Stock will be sent for approval.</p>
               </div>
-              <button onClick={() => setShowOldConfirm(true)} className="w-full bg-orange-500 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2">
+              <button onClick={() => setShowOldConfirm(true)} className={`w-full text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-purple-500/25" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-orange-500/25"}`}>
                 <Package size={14} /> Request Old Stock Clear
               </button>
             </div>
@@ -477,17 +516,20 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
           {step === "old_stock" && showOldConfirm && (
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle size={18} className="text-orange-600" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={20} className="text-orange-600" />
                 </div>
-                <p className="text-sm font-bold text-gray-900">Confirm Request</p>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">Confirm Request</p>
+                  <p className="text-[10px] text-gray-500">Requires Level 2 approval</p>
+                </div>
               </div>
               <p className="text-xs text-muted-foreground mb-4">Submit a request to clear order <strong>{order.orderID}</strong> as Old Stock? A Level 2 user must approve before it takes effect.</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">No, Cancel</button>
-                <button onClick={handleOldStockRequest} disabled={submitRequest.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                <button onClick={() => setShowOldConfirm(false)} className="flex-1 border-2 border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">Cancel</button>
+                <button onClick={handleOldStockRequest} disabled={submitRequest.isPending} className={`flex-1 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
                   {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
-                  Yes, Submit Request
+                  Submit
                 </button>
               </div>
             </div>

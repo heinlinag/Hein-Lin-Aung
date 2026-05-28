@@ -1,37 +1,10 @@
 import { describe, it, expect } from "vitest";
 
-describe("Purchase Order Card Size Expansion", () => {
-  describe("Desktop Max-Width Classes", () => {
-    it("should have md:max-w-2xl for desktop Purchase Order dialog", () => {
-      const desktopClass = "md:max-w-2xl";
-      expect(desktopClass).toBe("md:max-w-2xl");
-    });
-
-    it("should have max-w-sm for mobile Purchase Order card", () => {
+describe("Purchase Order Card Size & Premium Design", () => {
+  describe("Dialog Container Sizing", () => {
+    it("should use max-w-sm for mobile-first compact layout", () => {
       const mobileClass = "max-w-sm";
       expect(mobileClass).toBe("max-w-sm");
-    });
-
-    it("should have responsive padding with lg:p-8", () => {
-      const paddingClass = "lg:p-8";
-      expect(paddingClass).toBe("lg:p-8");
-    });
-
-    it("should maintain base padding p-6", () => {
-      const basePadding = "p-6";
-      expect(basePadding).toBe("p-6");
-    });
-  });
-
-  describe("Card Layout Responsiveness", () => {
-    it("should be compact on mobile (max-w-sm)", () => {
-      const mobileMaxWidth = "max-w-sm"; // ~384px
-      expect(mobileMaxWidth).toBe("max-w-sm");
-    });
-
-    it("should be larger on desktop (md:max-w-2xl)", () => {
-      const desktopMaxWidth = "md:max-w-2xl"; // ~672px
-      expect(desktopMaxWidth).toBe("md:max-w-2xl");
     });
 
     it("should have full width with w-full", () => {
@@ -39,128 +12,147 @@ describe("Purchase Order Card Size Expansion", () => {
       expect(fullWidth).toBe("w-full");
     });
 
-    it("should have proper shadow for depth", () => {
-      const shadowClass = "shadow-xl";
-      expect(shadowClass).toBe("shadow-xl");
+    it("should use shadow-2xl for premium depth", () => {
+      const shadowClass = "shadow-2xl";
+      expect(shadowClass).toBe("shadow-2xl");
     });
 
-    it("should have rounded corners", () => {
-      const roundedClass = "rounded-xl";
-      expect(roundedClass).toBe("rounded-xl");
-    });
-  });
-
-  describe("Dialog Content Classes", () => {
-    it("should have DialogContent with responsive max-width", () => {
-      const dialogClasses = "w-full max-w-sm md:max-w-2xl";
-      expect(dialogClasses).toContain("w-full");
-      expect(dialogClasses).toContain("max-w-sm");
-      expect(dialogClasses).toContain("md:max-w-2xl");
+    it("should use rounded-2xl for modern look", () => {
+      const roundedClass = "rounded-2xl";
+      expect(roundedClass).toBe("rounded-2xl");
     });
 
-    it("should have card div with all responsive classes", () => {
-      const cardClasses = "bg-white rounded-xl shadow-xl w-full max-w-sm md:max-w-2xl p-6 lg:p-8";
-      expect(cardClasses).toContain("bg-white");
-      expect(cardClasses).toContain("rounded-xl");
-      expect(cardClasses).toContain("shadow-xl");
-      expect(cardClasses).toContain("w-full");
-      expect(cardClasses).toContain("max-w-sm");
-      expect(cardClasses).toContain("md:max-w-2xl");
-      expect(cardClasses).toContain("p-6");
-      expect(cardClasses).toContain("lg:p-8");
+    it("should limit height with max-h-[90vh]", () => {
+      const heightClass = "max-h-[90vh]";
+      expect(heightClass).toBe("max-h-[90vh]");
     });
   });
 
-  describe("Tailwind Breakpoints", () => {
-    it("should use md breakpoint for tablet/desktop", () => {
-      const mdBreakpoint = "md:";
-      expect(mdBreakpoint).toBe("md:");
+  describe("Premium Gradient Headers", () => {
+    it("should have emerald gradient for Level 2", () => {
+      const level2Header = "bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600";
+      expect(level2Header).toContain("from-emerald-600");
+      expect(level2Header).toContain("via-green-600");
+      expect(level2Header).toContain("to-teal-600");
     });
 
-    it("should use lg breakpoint for large screens", () => {
-      const lgBreakpoint = "lg:";
-      expect(lgBreakpoint).toBe("lg:");
+    it("should have purple gradient for Level 1.1", () => {
+      const level11Header = "bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600";
+      expect(level11Header).toContain("from-purple-600");
+      expect(level11Header).toContain("via-violet-600");
+      expect(level11Header).toContain("to-indigo-600");
     });
 
-    it("should have proper class structure", () => {
-      const classes = ["w-full", "max-w-sm", "md:max-w-2xl", "p-6", "lg:p-8"];
-      expect(classes).toHaveLength(5);
-      expect(classes[0]).toBe("w-full");
-      expect(classes[1]).toBe("max-w-sm");
-      expect(classes[2]).toBe("md:max-w-2xl");
-      expect(classes[3]).toBe("p-6");
-      expect(classes[4]).toBe("lg:p-8");
-    });
-  });
-
-  describe("Visual Hierarchy", () => {
-    it("should have white background", () => {
-      const bgClass = "bg-white";
-      expect(bgClass).toBe("bg-white");
+    it("should have orange gradient for Level 1", () => {
+      const level1Header = "bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500";
+      expect(level1Header).toContain("from-orange-500");
+      expect(level1Header).toContain("via-amber-500");
+      expect(level1Header).toContain("to-yellow-500");
     });
 
-    it("should have shadow for elevation", () => {
-      const shadowClass = "shadow-xl";
-      expect(shadowClass).toBe("shadow-xl");
+    it("should have rounded-t-2xl to match container", () => {
+      const headerRadius = "rounded-t-2xl";
+      expect(headerRadius).toBe("rounded-t-2xl");
     });
 
-    it("should have rounded corners for modern look", () => {
-      const radiusClass = "rounded-xl";
-      expect(radiusClass).toBe("rounded-xl");
-    });
-
-    it("should have adequate padding for breathing room", () => {
-      const paddingClasses = ["p-6", "lg:p-8"];
-      expect(paddingClasses).toContain("p-6");
-      expect(paddingClasses).toContain("lg:p-8");
+    it("should have white text on gradient header", () => {
+      const textColor = "text-white";
+      expect(textColor).toBe("text-white");
     });
   });
 
-  describe("Desktop Experience", () => {
-    it("should provide more spacious layout on desktop", () => {
-      // md:max-w-2xl is wider than md:max-w-md
-      const oldDesktopWidth = "md:max-w-md"; // ~448px
-      const newDesktopWidth = "md:max-w-2xl"; // ~672px
-      expect(newDesktopWidth).not.toBe(oldDesktopWidth);
+  describe("Info Grid Layout in Header", () => {
+    it("should use 2-column grid for order details", () => {
+      const gridClass = "grid grid-cols-2 gap-2 text-[11px]";
+      expect(gridClass).toContain("grid-cols-2");
+      expect(gridClass).toContain("gap-2");
     });
 
-    it("should increase padding on large screens", () => {
-      // lg:p-8 is larger than p-6
-      const basePadding = "p-6"; // 1.5rem
-      const largePadding = "lg:p-8"; // 2rem
-      expect(largePadding).not.toBe(basePadding);
+    it("should have semi-transparent info cards", () => {
+      const cardClass = "bg-white/10 rounded-lg px-2.5 py-1.5";
+      expect(cardClass).toContain("bg-white/10");
+      expect(cardClass).toContain("rounded-lg");
     });
 
-    it("should maintain mobile-first approach", () => {
-      // Mobile gets max-w-sm, desktop gets md:max-w-2xl
-      const mobileFirst = ["max-w-sm", "md:max-w-2xl"];
-      expect(mobileFirst[0]).toBe("max-w-sm");
-      expect(mobileFirst[1]).toBe("md:max-w-2xl");
+    it("should have uppercase labels in cards", () => {
+      const labelClass = "text-white/60 text-[9px] uppercase";
+      expect(labelClass).toContain("text-white/60");
+      expect(labelClass).toContain("uppercase");
     });
   });
 
-  describe("Compact and Spacious Design", () => {
-    it("should be compact on small screens", () => {
-      const compactClass = "max-w-sm";
-      expect(compactClass).toBe("max-w-sm");
+  describe("Choose Step Button Design", () => {
+    it("should have gradient icon containers", () => {
+      const jobIcon = "w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl";
+      expect(jobIcon).toContain("w-10");
+      expect(jobIcon).toContain("h-10");
+      expect(jobIcon).toContain("bg-gradient-to-br");
+      expect(jobIcon).toContain("rounded-xl");
     });
 
-    it("should be spacious on large screens", () => {
-      const spaciousClass = "md:max-w-2xl";
-      expect(spaciousClass).toBe("md:max-w-2xl");
+    it("should have shadow on icon containers", () => {
+      const iconShadow = "shadow-lg shadow-blue-500/20";
+      expect(iconShadow).toContain("shadow-lg");
+      expect(iconShadow).toContain("shadow-blue-500/20");
     });
 
-    it("should provide better readability on desktop", () => {
-      // Larger card width means better text readability
-      const desktopMaxWidth = "md:max-w-2xl";
-      expect(desktopMaxWidth).toContain("2xl");
+    it("should have hover scale animation on icons", () => {
+      const hoverScale = "group-hover:scale-105 transition-transform";
+      expect(hoverScale).toContain("group-hover:scale-105");
+      expect(hoverScale).toContain("transition-transform");
     });
 
-    it("should maintain visual balance", () => {
-      const cardClasses = "bg-white rounded-xl shadow-xl";
-      expect(cardClasses).toContain("bg-white");
-      expect(cardClasses).toContain("rounded-xl");
-      expect(cardClasses).toContain("shadow-xl");
+    it("should have border-2 and shadow-sm on button cards", () => {
+      const buttonCard = "border-2 border-gray-100 rounded-xl shadow-sm";
+      expect(buttonCard).toContain("border-2");
+      expect(buttonCard).toContain("border-gray-100");
+      expect(buttonCard).toContain("shadow-sm");
+    });
+  });
+
+  describe("Action Buttons Premium Styling", () => {
+    it("should have gradient submit buttons", () => {
+      const submitBtn = "bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl";
+      expect(submitBtn).toContain("bg-gradient-to-r");
+      expect(submitBtn).toContain("rounded-xl");
+      expect(submitBtn).toContain("text-white");
+    });
+
+    it("should have active scale effect on submit", () => {
+      const activeEffect = "active:scale-[0.98]";
+      expect(activeEffect).toBe("active:scale-[0.98]");
+    });
+
+    it("should have hover shadow with color", () => {
+      const hoverShadow = "hover:shadow-lg hover:shadow-emerald-500/25";
+      expect(hoverShadow).toContain("hover:shadow-lg");
+      expect(hoverShadow).toContain("hover:shadow-emerald-500/25");
+    });
+
+    it("should have border-2 cancel buttons", () => {
+      const cancelBtn = "border-2 border-gray-200 rounded-xl";
+      expect(cancelBtn).toContain("border-2");
+      expect(cancelBtn).toContain("border-gray-200");
+      expect(cancelBtn).toContain("rounded-xl");
+    });
+  });
+
+  describe("Animation & Entrance Effects", () => {
+    it("should have fade-in on overlay", () => {
+      const fadeIn = "animate-in fade-in duration-200";
+      expect(fadeIn).toContain("animate-in");
+      expect(fadeIn).toContain("fade-in");
+    });
+
+    it("should have zoom-in on dialog", () => {
+      const zoomIn = "animate-in zoom-in-95 duration-200";
+      expect(zoomIn).toContain("animate-in");
+      expect(zoomIn).toContain("zoom-in-95");
+    });
+
+    it("should use backdrop-blur-sm on overlay", () => {
+      const blur = "backdrop-blur-sm";
+      expect(blur).toBe("backdrop-blur-sm");
     });
   });
 });

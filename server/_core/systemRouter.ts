@@ -2,7 +2,7 @@ import { z } from "zod";
 import { notifyOwner } from "./notification";
 import { adminProcedure, publicProcedure, router } from "./trpc";
 
-import { contactMessages } from "../../drizzle/schema.ts";
+import { contactMessages } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";

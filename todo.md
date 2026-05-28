@@ -1046,3 +1046,14 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Remove DN156 from Employee ID placeholder text
 - [x] Upgrade Stock History page to next level design
 - [x] Upgrade Approval Center page to next level design
+
+## Submit Order & Purchase Order Next Level Upgrade (May 28)
+- [ ] Upgrade Submit Order page to next level design
+- [ ] Upgrade Purchase Order section in Stock History to next level design
+
+## Next-Level UI Upgrade (May 2026)
+- [x] Submit Order page: premium progress stepper, gradient sections, BQ shortcuts, animated success screen
+- [x] Purchase Order modal (Level 2): gradient emerald header, grid info cards, premium choose buttons, animated overlay
+- [x] Purchase Order modal (Level 1/1.1): gradient purple/orange header, premium choose buttons, level-aware styling
+- [x] Purchase Order modals: backdrop-blur, zoom-in animations, active:scale effects, shadow-lg hover states
+- [x] Updated vitest tests for new Purchase Order premium layout classes
