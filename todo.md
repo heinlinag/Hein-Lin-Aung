@@ -1065,3 +1065,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Submit Order Mobile Layout Fix (May 28)
 - [x] Fix Dimensions section on mobile: Size W×L and Qty stacked vertically on mobile
+
+## Submit Order Mobile Layout - Width & Length Stacked (May 28)
+- [x] Mobile view: Width and Length inputs stacked vertically (space-y-2) instead of side-by-side

@@ -240,23 +240,22 @@ export default function SubmitOrder() {
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                     Size (W x L) mm <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex items-center gap-1.5">
+                  <div className="space-y-2">
                     <input
                       type="number"
                       value={sizeW}
                       onChange={e => setSizeW(e.target.value)}
                       placeholder="Width"
                       min={1}
-                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
                     />
-                    <span className="text-gray-400 font-bold text-sm">&times;</span>
                     <input
                       type="number"
                       value={sizeL}
                       onChange={e => setSizeL(e.target.value)}
                       placeholder="Length"
                       min={1}
-                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
