@@ -646,44 +646,50 @@ export default function ApprovalCenter() {
 
         {/* Level info banner */}
         {isLevel1 && (
-          <div className="flex items-start gap-2 bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
-            <Info size={14} className="text-orange-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-orange-700">
-              You are a <strong>Level 1</strong> user. You can view all pending requests and cancel your own. Only Level 2 users can approve requests.
+          <div className="flex items-start gap-2.5 bg-gradient-to-r from-orange-50 to-amber-50/50 border border-orange-200/80 rounded-xl p-3.5 mb-5 shadow-sm">
+            <div className="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Info size={14} className="text-orange-600" />
+            </div>
+            <p className="text-xs text-orange-700 leading-relaxed">
+              <strong className="text-orange-800">Level 1</strong> — View pending requests and cancel your own. Level 2 users approve requests.
             </p>
           </div>
         )}
         {canProcessApprove && userLevel === "1.1" && (
-          <div className="flex items-start gap-2 bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
-            <Info size={14} className="text-purple-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-purple-700">
-              You are a <strong>Level 1.1</strong> user. You can mark Level 1 requests as <strong>In Process</strong> (currently being processed). Level 2 must still give final Approve or Cancel.
+          <div className="flex items-start gap-2.5 bg-gradient-to-r from-purple-50 to-violet-50/50 border border-purple-200/80 rounded-xl p-3.5 mb-5 shadow-sm">
+            <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Info size={14} className="text-purple-600" />
+            </div>
+            <p className="text-xs text-purple-700 leading-relaxed">
+              <strong className="text-purple-800">Level 1.1</strong> — Mark requests as <strong>In Process</strong>. Level 2 gives final approval.
             </p>
           </div>
         )}
         {canProcessApprove && userLevel === "2" && (
-          <div className="flex items-start gap-2 bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-            <Info size={14} className="text-green-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-green-700">
-              You are a <strong>Level 2</strong> user. You must first mark requests as <strong>In Process</strong> (preview quantity), then give final <strong>Approve or Cancel</strong>.
+          <div className="flex items-start gap-2.5 bg-gradient-to-r from-emerald-50 to-green-50/50 border border-emerald-200/80 rounded-xl p-3.5 mb-5 shadow-sm">
+            <div className="w-7 h-7 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Info size={14} className="text-emerald-600" />
+            </div>
+            <p className="text-xs text-emerald-700 leading-relaxed">
+              <strong className="text-emerald-800">Level 2</strong> — Mark as <strong>In Process</strong> first, then give final <strong>Approve or Cancel</strong>.
             </p>
           </div>
         )}
 
         {/* Main tab: Requests / History */}
-        <div className="flex gap-1 mb-4 border-b border-border">
+        <div className="flex gap-1 mb-5 bg-gray-100/80 p-1 rounded-xl w-fit">
           <button
             onClick={() => setActiveTab("requests")}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "requests" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-1.5 ${activeTab === "requests" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
           >
             Purchase Orders
             {pendingCount !== undefined && pendingCount > 0 && (
-              <span className="ml-1.5 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">{pendingCount}</span>
+              <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold min-w-[18px] text-center">{pendingCount}</span>
             )}
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "history" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-1.5 ${activeTab === "history" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
           >
             Action History
           </button>
@@ -692,33 +698,34 @@ export default function ApprovalCenter() {
         {activeTab === "requests" && (
           <>
             {/* Status filter sub-tabs */}
-            <div className="flex gap-1 mb-5 items-center">
+            <div className="flex gap-2 mb-5 items-center flex-wrap">
               {([
-                { key: "pending" as const, label: "Pending" },
-                { key: "approved" as const, label: "Approved" },
-                { key: "cancelled" as const, label: "Cancelled" },
-                { key: undefined, label: "All" },
-              ]).map(({ key, label }) => (
+                { key: "pending" as const, label: "Pending", emoji: "⏳" },
+                { key: "approved" as const, label: "Approved", emoji: "✅" },
+                { key: "cancelled" as const, label: "Cancelled", emoji: "❌" },
+                { key: undefined, label: "All", emoji: "📋" },
+              ]).map(({ key, label, emoji }) => (
                 <button
                   key={label}
                   onClick={() => { setStatusFilter(key); setJobNoSearch(""); }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 shadow-sm ${
                     statusFilter === key
-                      ? key === "pending" ? "bg-orange-500 text-white" : key === "approved" ? "bg-green-600 text-white" : key === "cancelled" ? "bg-gray-500 text-white" : "bg-primary text-white"
-                      : "bg-gray-100 text-muted-foreground hover:bg-gray-200"
+                      ? key === "pending" ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200" : key === "approved" ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-green-200" : key === "cancelled" ? "bg-gradient-to-r from-gray-500 to-gray-600 text-white" : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-blue-200"
+                      : "bg-white text-muted-foreground hover:bg-gray-50 border border-gray-200"
                   }`}
                 >
-                  {label}
+                  {emoji} {label}
                 </button>
               ))}
               <button
                 onClick={async () => {
                   setIsRefreshing(true);
                   await utils.pendingRequests.list.invalidate();
+                  toast.info("Refreshing requests...");
                   setTimeout(() => setIsRefreshing(false), 700);
                 }}
-                className="ml-auto text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-60 transition-colors"
-                title="Refresh"
+                className="ml-auto text-muted-foreground hover:text-primary p-2 rounded-xl hover:bg-primary/5 disabled:opacity-60 transition-all border border-transparent hover:border-primary/20"
+                title="Refresh requests"
                 disabled={isRefreshing}
               >
                 <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
@@ -727,16 +734,16 @@ export default function ApprovalCenter() {
             
             {/* Job No search when All tab is selected */}
             {statusFilter === undefined && (
-              <div className="relative w-full mb-4 max-w-xs">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="relative w-full mb-5 max-w-sm group">
+                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search Job No..."
+                  placeholder="Search by Job No..."
                   value={jobNoSearch}
                   onChange={e => setJobNoSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all"
                 />
               </div>
             )}
@@ -744,17 +751,18 @@ export default function ApprovalCenter() {
             {requestsQuery.isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse" />
+                  <div key={i} className="h-40 bg-gradient-to-r from-gray-100 to-gray-50 rounded-2xl animate-pulse" style={{animationDelay: `${i * 150}ms`}} />
                 ))}
               </div>
             ) : requests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                  <Clock size={28} className="text-muted-foreground/40" />
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                  <Clock size={30} className="text-muted-foreground/30" />
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground font-medium">
                   {jobNoSearch ? `No requests found for Job No "${jobNoSearch}"` : `No ${statusFilter ?? ""} requests found`}
                 </p>
+                <p className="text-xs text-muted-foreground/60 mt-1">New requests will appear here automatically</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -779,32 +787,38 @@ export default function ApprovalCenter() {
 
         {activeTab === "history" && (
           <>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-foreground">Recent Usage Events (Latest 200)</h3>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="text-sm font-bold text-foreground">Recent Usage Events</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Latest 200 actions</p>
+              </div>
               <button
                 onClick={async () => {
                   setIsRefreshing(true);
                   await utils.pendingRequests.actionLog.invalidate();
+                  toast.info("Refreshing history...");
                   setTimeout(() => setIsRefreshing(false), 700);
                 }}
-                className="text-muted-foreground hover:text-foreground p-2 rounded-lg hover:bg-gray-100 disabled:opacity-60 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary px-3 py-2 rounded-xl hover:bg-primary/5 disabled:opacity-60 transition-all border border-transparent hover:border-primary/20"
                 title="Refresh history"
                 disabled={isRefreshing}
               >
-                <RefreshCw size={18} className={isRefreshing ? "animate-spin" : ""} />
+                <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
+                <span className="hidden sm:inline">Refresh</span>
               </button>
             </div>
 
             {actionLogQuery.isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />)}
+                {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gradient-to-r from-gray-100 to-gray-50 rounded-2xl animate-pulse" style={{animationDelay: `${i * 100}ms`}} />)}
               </div>
             ) : !actionLogQuery.data || actionLogQuery.data.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                  <Clock size={28} className="text-muted-foreground/40" />
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                  <Clock size={30} className="text-muted-foreground/30" />
                 </div>
-                <p className="text-sm text-muted-foreground">No action history yet</p>
+                <p className="text-sm text-muted-foreground font-medium">No action history yet</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Approved and cancelled actions will appear here</p>
               </div>
             ) : (
               <div className="space-y-3">

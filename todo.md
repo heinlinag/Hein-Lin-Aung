@@ -171,7 +171,7 @@
 
 
 ## Future Improvements & Enhancements
-- [ ] System status page: add real backend status procedure with actual uptime/response time data (future)
+- [x] System status page: add real backend status procedure with actual uptime/response time data (completed May 27)
 - [ ] System status page: replace hardcoded maintenance schedule with database-backed entries (future)
 - [ ] System status page: integrate real-time system metrics from server monitoring (future)
 - [ ] Video tutorials: create demo videos for Login, Submit Order, Approval Center workflows (future)
@@ -945,7 +945,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add verification confirmation dialog for logout
 - [x] Optimize AdminPanel header for mobile with compact design
 - [ ] Allow all admin operations without restrictions
-- [ ] Add verification confirmation dialogs for critical admin actions
+- [x] Add verification confirmation dialogs for critical admin actions
 
 
 ## Responsive Design for 4 Device Types (May 25)
@@ -1009,8 +1009,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Future Improvements & Enhancements
 - [ ] Allow all admin operations without restrictions (May 25)
-- [ ] Add verification confirmation dialogs for critical admin actions (May 25)
-- [ ] System status page: add real backend status procedure with actual uptime/response time data (future)
+- [x] Add verification confirmation dialogs for critical admin actions (May 25)
+- [x] System status page: add real backend status procedure with actual uptime/response time data (completed May 27)
 - [ ] System status page: replace hardcoded maintenance schedule with database-backed entries (future)
 - [ ] System status page: integrate real-time system metrics from server monitoring (future)
 - [ ] Video tutorials: create demo videos for Login, Submit Order, Approval Center workflows (future)
@@ -1041,3 +1041,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Upgrade responsive design for all 5 device types (Mobile, Tablet, Laptop, Computer, Desktop)
 - [x] Upgrade Notification system to next level
 - [x] Update App Version info
+
+## Login Placeholder & Page Upgrades (May 28)
+- [x] Remove DN156 from Employee ID placeholder text
+- [x] Upgrade Stock History page to next level design
+- [x] Upgrade Approval Center page to next level design

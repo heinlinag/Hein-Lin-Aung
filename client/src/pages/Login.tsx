@@ -273,7 +273,7 @@ export default function Login() {
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Employee ID</label>
                   <div className="relative">
-                    <input type="text" value={workerID} onChange={(e) => setWorkerID(e.target.value)} placeholder="e.g. DN156" className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-100 text-sm font-medium focus:outline-none focus:ring-0 focus:border-blue-400 bg-gray-50/50 hover:bg-white transition-all placeholder:text-gray-300" autoFocus />
+                    <input type="text" value={workerID} onChange={(e) => setWorkerID(e.target.value)} placeholder="Enter your Employee ID" className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-100 text-sm font-medium focus:outline-none focus:ring-0 focus:border-blue-400 bg-gray-50/50 hover:bg-white transition-all placeholder:text-gray-300" autoFocus />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2"><User size={16} className="text-gray-300" /></div>
                   </div>
                 </div>

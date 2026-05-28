@@ -709,36 +709,39 @@ export default function StockHistory() {
 
   return (
     <AppLayout pageTitle="Stock History">
-      <div className="flex justify-between items-center px-4 lg:px-8 pt-4">
+      {/* Enhanced Header with Level Badge and Refresh */}
+      <div className="flex justify-between items-center px-4 lg:px-8 pt-5 pb-2">
         {(userLevel === "1" || userLevel === "1.1") && (
-          <div className="flex items-center gap-1.5 text-xs text-orange-600 font-semibold bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-lg">
-            <Clock size={12} /> {userLevel === "1.1" ? "Level 1.1 — Requests auto process-approved, awaiting Level 2" : "Level 1 — Actions require approval"}
+          <div className="flex items-center gap-2 text-xs text-orange-700 font-semibold bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 px-3 py-1.5 rounded-full shadow-sm">
+            <Clock size={13} className="animate-pulse" /> {userLevel === "1.1" ? "Level 1.1 — Auto-approved" : "Level 1 — Requires Approval"}
           </div>
         )}
         {userLevel === "2" && (
-          <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold bg-green-50 border border-green-200 px-2.5 py-1 rounded-lg">
-            Level 2 — Direct actions enabled
+          <div className="flex items-center gap-2 text-xs text-emerald-700 font-semibold bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 px-3 py-1.5 rounded-full shadow-sm">
+            <Zap size={13} /> Level 2 — Direct Actions
           </div>
         )}
         <RefreshButton onRefresh={() => utils.orders.list.invalidate()} />
       </div>
 
-      <main className="container lg:max-w-none lg:px-8 py-5">
-        <div className="flex gap-1 mb-5 border-b border-border">
-          <button onClick={() => setActiveTab("current")} className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "current" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-            Current Stock
+      <main className="container lg:max-w-none lg:px-8 py-4">
+        {/* Enhanced Tabs with pill style */}
+        <div className="flex gap-1 mb-5 bg-gray-100/80 p-1 rounded-xl w-fit">
+          <button onClick={() => setActiveTab("current")} className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${activeTab === "current" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+            <span className="flex items-center gap-1.5"><Package size={14} /> Current Stock</span>
           </button>
-          <button onClick={() => setActiveTab("out_of_stock")} className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === "out_of_stock" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-            Out of Stock
+          <button onClick={() => setActiveTab("out_of_stock")} className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${activeTab === "out_of_stock" ? "bg-white text-red-600 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+            <span className="flex items-center gap-1.5"><AlertTriangle size={14} /> Out of Stock</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input type="text" value={searchOrderID} onChange={e => setSearchOrderID(e.target.value.toUpperCase())} placeholder="Search Production Order…" className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white" />
+        {/* Enhanced Search with better styling */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+          <div className="relative group">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <input type="text" value={searchOrderID} onChange={e => setSearchOrderID(e.target.value.toUpperCase())} placeholder="Search Production Order…" className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all" />
           </div>
-          <select value={searchFlute} onChange={e => setSearchFlute(e.target.value)} className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white">
+          <select value={searchFlute} onChange={e => setSearchFlute(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all appearance-none cursor-pointer">
             <option value="">Select Flute Type</option>
             <option value="BA">BA</option>
             <option value="BE">BE</option>
@@ -747,24 +750,24 @@ export default function StockHistory() {
             <option value="C">C</option>
             <option value="E">E</option>
           </select>
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input type="text" value={searchBQ} onChange={e => setSearchBQ(e.target.value.toUpperCase())} placeholder={searchFlute ? "Search BQ Comment…" : "Please select Flute Type first"} disabled={!searchFlute} className="w-full border border-border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white disabled:bg-gray-50 disabled:text-muted-foreground" />
+          <div className="relative group">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <input type="text" value={searchBQ} onChange={e => setSearchBQ(e.target.value.toUpperCase())} placeholder={searchFlute ? "Search BQ Comment…" : "Select Flute Type first"} disabled={!searchFlute} className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all disabled:bg-gray-50/80 disabled:text-muted-foreground disabled:shadow-none" />
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-xs text-muted-foreground">{filtered.length} order{filtered.length !== 1 ? "s" : ""}</p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs text-muted-foreground font-medium">{filtered.length} order{filtered.length !== 1 ? "s" : ""} found</p>
           {activeTab === "current" && filtered.some(o => o.qty < LOW_STOCK_THRESHOLD) && (
-            <div className="flex items-center gap-1.5 text-xs text-orange-600 font-semibold bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-lg">
-              <AlertTriangle size={12} />
-              {filtered.filter(o => o.qty < LOW_STOCK_THRESHOLD).length} low stock
+            <div className="flex items-center gap-1.5 text-xs text-orange-700 font-semibold bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 px-3 py-1.5 rounded-full shadow-sm animate-pulse">
+              <AlertTriangle size={13} />
+              {filtered.filter(o => o.qty < LOW_STOCK_THRESHOLD).length} low stock alert{filtered.filter(o => o.qty < LOW_STOCK_THRESHOLD).length !== 1 ? "s" : ""}
             </div>
           )}
         </div>
 
         {ordersQuery.isLoading ? (
-          <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+          <div className="space-y-3">{[1,2,3,4].map(i => <div key={i} className="h-20 bg-gradient-to-r from-gray-100 to-gray-50 rounded-2xl animate-pulse" style={{animationDelay: `${i * 100}ms`}} />)}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Package size={40} className="text-muted-foreground/20 mb-3" />
@@ -855,7 +858,7 @@ export default function StockHistory() {
               {filtered.map(order => {
                 const isLowStock = activeTab === "current" && order.qty < LOW_STOCK_THRESHOLD;
                 return (
-                <div key={order.id} className={`border rounded-xl shadow-sm p-4 space-y-2 ${isLowStock ? "bg-orange-50 border-orange-200" : "bg-white border-border"}`}>
+                <div key={order.id} className={`border rounded-2xl shadow-sm p-4 space-y-3 transition-all duration-200 hover:shadow-md ${isLowStock ? "bg-gradient-to-br from-orange-50 to-amber-50/50 border-orange-200" : "bg-white border-gray-100 hover:border-primary/20"}`}>
                   {order.trackingId && <span className="hidden md:inline-block text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold">Ref: {order.trackingId}</span>}
                   <div className="flex items-start justify-between">
                     <div>
@@ -888,7 +891,7 @@ export default function StockHistory() {
                   {activeTab === "current" && (
                     <button
                       onClick={() => setUsedUpdateOrder(order)}
-                      className={`w-full text-white rounded-lg py-2 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2 ${(userLevel === "1" || userLevel === "1.1") ? "bg-orange-500" : "gspp-gradient"}`}
+                      className={`w-full text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] ${(userLevel === "1" || userLevel === "1.1") ? "bg-gradient-to-r from-orange-500 to-amber-500" : "gspp-gradient"}`}
                     >
                       <><Zap size={14} /> Purchase Order</>
                     </button>
