@@ -51,13 +51,29 @@ export async function getAllSubscriptions() {
 
 export async function sendPushNotification(
   subscriptions: { endpoint: string; p256dh: string; auth: string }[],
-  payload: { title: string; body: string; icon?: string; tag?: string }
+  payload: { 
+    title: string; 
+    body: string; 
+    icon?: string; 
+    tag?: string;
+    type?: "general" | "approval" | "order" | "scanner" | "system";
+    url?: string;
+    requireInteraction?: boolean;
+    actions?: Array<{ action: string; title: string }>;
+  }
 ) {
+  const enrichedPayload = {
+    ...payload,
+    type: payload.type || "general",
+    url: payload.url || "/",
+    requireInteraction: payload.requireInteraction || false,
+  };
+  
   const results = await Promise.allSettled(
     subscriptions.map(sub =>
       webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-        JSON.stringify(payload)
+        JSON.stringify(enrichedPayload)
       )
     )
   );

@@ -663,7 +663,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const subs = await getAllSubscriptions();
-        await sendPushNotification(subs, { title: input.title, body: input.body, tag: input.tag });
+        await sendPushNotification(subs, { title: input.title, body: input.body, tag: input.tag, type: "system", url: "/" });
         return { success: true };
       }),
     sendToLevel2: publicProcedure
@@ -676,10 +676,9 @@ export const appRouter = router({
         const allWorkers = await (await import("./db")).getAllWorkers();
         const level2IDs = allWorkers.filter((w: { userLevel: string }) => w.userLevel === "2").map((w: { workerID: string }) => w.workerID);
         const subs = await getSubscriptionsForWorkers(level2IDs);
-        await sendPushNotification(subs, { title: input.title, body: input.body, tag: input.tag });
+        await sendPushNotification(subs, { title: input.title, body: input.body, tag: input.tag, type: "system", url: "/" });
         return { success: true };
       }),
   }),
 });
 export type AppRouter = typeof appRouter
-import { contactMessages } from "@/drizzle/schema";;

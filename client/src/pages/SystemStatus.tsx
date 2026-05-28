@@ -52,7 +52,7 @@ export default function SystemStatus() {
     },
     {
       date: 'May 18, 2026',
-      title: 'Version Updated to v9030889b',
+      title: 'Version Updated to v3.0.0',
       description: 'All version references across Login, Home, and Documentation pages updated to reflect the latest checkpoint with Level 2 Stock History improvements and unified Purchase Order terminology.',
       type: 'update',
     },

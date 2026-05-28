@@ -1257,102 +1257,102 @@ function PendingRequestsTab() {
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { logoutAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests">("workers");
+  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages">("workers");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [, navigate] = useLocation();
 
   const statsQuery = trpc.orders.adminStats.useQuery(undefined, { refetchInterval: 30000 });
   const stats = statsQuery.data;
 
+  const tabs = [
+    { id: "workers" as const, label: "Workers", icon: <Users size={16} />, color: "blue" },
+    { id: "orders" as const, label: "Orders", icon: <Package size={16} />, color: "green" },
+    { id: "deleted_logs" as const, label: "Deleted Logs", icon: <History size={16} />, color: "red" },
+    { id: "pending_requests" as const, label: "Requests", icon: <ClipboardList size={16} />, color: "orange" },
+    { id: "contact_messages" as const, label: "Messages", icon: <Inbox size={16} />, color: "purple" },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-50 via-white to-blue-50 border-b border-blue-100 sticky top-0 z-10 shadow-sm">
-        <div className="container py-2.5 sm:py-4 flex items-center gap-2 sm:gap-4">
-          <button onClick={() => navigate("/")} className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
+      {/* Premium Header */}
+      <header className="bg-white/90 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-10 shadow-sm">
+        <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-3 flex items-center gap-3">
+          <button onClick={() => navigate("/")} className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-xl transition-all flex-shrink-0">
             <ArrowLeft size={20} />
           </button>
-          <img src={LOGO_URL} alt="GSPP" className="h-7 sm:h-9 w-7 sm:w-9 object-contain flex-shrink-0" />
-          <div className="border-l border-blue-200 pl-4">
-            <h1 className="text-sm sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Admin Panel</h1>
-            <p className="text-xs text-blue-600/70 font-medium">System Management & Configuration</p>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
+            <img src={LOGO_URL} alt="GSPP" className="h-7 w-7 object-contain" />
           </div>
-          <div className="ml-auto flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-sm font-bold text-blue-900">Administrator</div>
-              <div className="text-xs text-blue-600/70">Full System Access</div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base lg:text-lg font-bold text-gray-900">Admin Panel</h1>
+            <p className="text-[10px] lg:text-xs text-gray-500 font-medium">System Management & Configuration</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2 bg-green-50 border border-green-200/50 rounded-xl px-3 py-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-xs font-semibold text-green-700">Admin Active</span>
             </div>
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="flex items-center gap-2 text-sm border border-red-200 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-lg font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition-all shadow-sm hover:shadow-md"
+              className="flex items-center gap-1.5 text-xs lg:text-sm border border-red-200 px-3 py-2 rounded-xl font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition-all shadow-sm"
             >
-              <LogOut size={15} /> Logout
+              <LogOut size={14} /> <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Admin Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 text-center text-xs font-semibold shadow-md">
-        ✓ Logged in as <strong>Administrator</strong> — Full System Access
-      </div>
-
-      {/* Summary Stats */}
-      <div className="bg-gradient-to-b from-blue-50/50 to-white border-b border-blue-100">
-        <div className="container lg:max-w-none lg:px-8 py-8">
-          <h2 className="text-xs font-bold text-blue-600 mb-4 uppercase tracking-widest">📊 System Overview</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Current Orders */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl border border-blue-200 p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer">
-              <div className="h-12 w-12 rounded-lg bg-blue-600 group-hover:bg-blue-700 flex items-center justify-center flex-shrink-0 transition-colors">
-                <Package size={20} className="text-white" />
+      {/* Stats Grid */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 lg:p-5 shadow-sm hover:shadow-md transition-all group">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                <Package size={18} className="text-white" />
               </div>
-              <div className="flex-1">
-                <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Current Orders</p>
-                <p className="text-3xl font-bold text-blue-700 leading-none mt-1">
-                  {statsQuery.isLoading ? <span className="text-base text-muted-foreground">…</span> : (stats?.totalCurrent ?? 0)}
+              <div>
+                <p className="text-[10px] lg:text-xs text-gray-500 font-semibold uppercase tracking-wide">Current</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900 leading-none mt-0.5">
+                  {statsQuery.isLoading ? "..." : (stats?.totalCurrent ?? 0)}
                 </p>
               </div>
             </div>
-            {/* Out of Stock */}
-            <div className="bg-white rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm">
-              <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                <Inbox size={18} className="text-gray-500" />
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 lg:p-5 shadow-sm hover:shadow-md transition-all group">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center shadow-md shadow-gray-500/20 group-hover:scale-105 transition-transform">
+                <Inbox size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Out of Stock</p>
-                <p className="text-2xl font-bold text-foreground leading-none mt-0.5">
-                  {statsQuery.isLoading ? <span className="text-base text-muted-foreground">…</span> : (stats?.totalOutOfStock ?? 0)}
+                <p className="text-[10px] lg:text-xs text-gray-500 font-semibold uppercase tracking-wide">Out of Stock</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900 leading-none mt-0.5">
+                  {statsQuery.isLoading ? "..." : (stats?.totalOutOfStock ?? 0)}
                 </p>
               </div>
             </div>
-            {/* Pending Requests */}
-            <div
-              className="bg-white rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm cursor-pointer hover:border-orange-300 transition-colors"
-              onClick={() => setActiveTab("pending_requests")}
-            >
-              <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${(stats?.pendingRequests ?? 0) > 0 ? "bg-orange-100" : "bg-gray-100"}`}>
-                <ClipboardList size={18} className={(stats?.pendingRequests ?? 0) > 0 ? "text-orange-600" : "text-gray-500"} />
+          </div>
+          <div onClick={() => setActiveTab("pending_requests")} className="bg-white rounded-2xl border border-gray-100 p-4 lg:p-5 shadow-sm hover:shadow-md transition-all group cursor-pointer hover:border-orange-200">
+            <div className="flex items-center gap-3">
+              <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.pendingRequests ?? 0) > 0 ? "bg-gradient-to-br from-orange-500 to-amber-600 shadow-orange-500/20" : "bg-gradient-to-br from-gray-300 to-gray-400 shadow-gray-500/10"}`}>
+                <ClipboardList size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Pending Requests</p>
-                <p className={`text-2xl font-bold leading-none mt-0.5 ${(stats?.pendingRequests ?? 0) > 0 ? "text-orange-600" : "text-foreground"}`}>
-                  {statsQuery.isLoading ? <span className="text-base text-muted-foreground">…</span> : (stats?.pendingRequests ?? 0)}
+                <p className="text-[10px] lg:text-xs text-gray-500 font-semibold uppercase tracking-wide">Pending</p>
+                <p className={`text-xl lg:text-2xl font-bold leading-none mt-0.5 ${(stats?.pendingRequests ?? 0) > 0 ? "text-orange-600" : "text-gray-900"}`}>
+                  {statsQuery.isLoading ? "..." : (stats?.pendingRequests ?? 0)}
                 </p>
               </div>
             </div>
-            {/* Low Stock */}
-            <div
-              className="bg-white rounded-xl border border-border p-4 flex items-center gap-3 shadow-sm cursor-pointer hover:border-amber-300 transition-colors"
-              onClick={() => setActiveTab("orders")}
-            >
-              <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${(stats?.lowStockCount ?? 0) > 0 ? "bg-amber-100" : "bg-gray-100"}`}>
-                <AlertTriangle size={18} className={(stats?.lowStockCount ?? 0) > 0 ? "text-amber-600" : "text-gray-500"} />
+          </div>
+          <div onClick={() => setActiveTab("orders")} className="bg-white rounded-2xl border border-gray-100 p-4 lg:p-5 shadow-sm hover:shadow-md transition-all group cursor-pointer hover:border-amber-200">
+            <div className="flex items-center gap-3">
+              <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.lowStockCount ?? 0) > 0 ? "bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/20" : "bg-gradient-to-br from-gray-300 to-gray-400 shadow-gray-500/10"}`}>
+                <AlertTriangle size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Low Stock (≤{stats?.lowStockThreshold ?? 50})</p>
-                <p className={`text-2xl font-bold leading-none mt-0.5 ${(stats?.lowStockCount ?? 0) > 0 ? "text-amber-600" : "text-foreground"}`}>
-                  {statsQuery.isLoading ? <span className="text-base text-muted-foreground">…</span> : (stats?.lowStockCount ?? 0)}
+                <p className="text-[10px] lg:text-xs text-gray-500 font-semibold uppercase tracking-wide">Low Stock</p>
+                <p className={`text-xl lg:text-2xl font-bold leading-none mt-0.5 ${(stats?.lowStockCount ?? 0) > 0 ? "text-amber-600" : "text-gray-900"}`}>
+                  {statsQuery.isLoading ? "..." : (stats?.lowStockCount ?? 0)}
                 </p>
               </div>
             </div>
@@ -1360,58 +1360,61 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      <main className="container lg:max-w-none lg:px-8 py-8">
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 border-b border-blue-200 pb-0 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab("workers")}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-3 transition-all whitespace-nowrap ${activeTab === "workers" ? "border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-lg" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`}
-          >
-            <Users size={16} /> Workers
-          </button>
-          <button
-            onClick={() => setActiveTab("orders")}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-3 transition-all whitespace-nowrap ${activeTab === "orders" ? "border-green-600 text-green-600 bg-green-50/50 rounded-t-lg" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`}
-          >
-            <Package size={16} /> Orders
-          </button>
-          <button
-            onClick={() => setActiveTab("deleted_logs")}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-3 transition-all whitespace-nowrap ${activeTab === "deleted_logs" ? "border-red-600 text-red-600 bg-red-50/50 rounded-t-lg" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`}
-          >
-            <History size={16} /> Deleted Logs
-          </button>
-          <button
-            onClick={() => setActiveTab("pending_requests")}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-3 transition-all whitespace-nowrap ${activeTab === "pending_requests" ? "border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-lg" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`}
-          >
-            <ClipboardList size={16} /> Requests
-          </button>
+      {/* Tab Navigation */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8">
+        <div className="flex gap-1 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-1.5 overflow-x-auto shadow-sm">
+          {tabs.map((t) => {
+            const isActive = activeTab === t.id;
+            const colorMap: Record<string, string> = {
+              blue: isActive ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+              green: isActive ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+              red: isActive ? "bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+              orange: isActive ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+              purple: isActive ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg shadow-purple-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+            };
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={`flex items-center gap-1.5 px-3 lg:px-4 py-2.5 text-xs lg:text-sm font-semibold rounded-xl transition-all whitespace-nowrap ${colorMap[t.color]}`}
+              >
+                {t.icon}
+                <span className="hidden sm:inline">{t.label}</span>
+              </button>
+            );
+          })}
         </div>
+      </div>
 
-        {activeTab === "workers" && <WorkersTab />}
-        {activeTab === "orders" && <OrdersTab />}
-        {activeTab === "deleted_logs" && <DeletedLogsTab />}
-        {activeTab === "pending_requests" && <PendingRequestsTab />}
+      {/* Content */}
+      <main className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 lg:p-6">
+          {activeTab === "workers" && <WorkersTab />}
+          {activeTab === "orders" && <OrdersTab />}
+          {activeTab === "deleted_logs" && <DeletedLogsTab />}
+          {activeTab === "pending_requests" && <PendingRequestsTab />}
+          {activeTab === "contact_messages" && <ContactMessagesTab />}
+        </div>
       </main>
 
+      {/* Logout Confirmation */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-lg bg-red-100 flex items-center justify-center">
-                <LogOut size={24} className="text-red-600" />
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/20">
+                <LogOut size={24} className="text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-foreground">Confirm Logout</h3>
-                <p className="text-xs text-muted-foreground">Admin Session</p>
+                <h3 className="font-bold text-lg text-gray-900">Confirm Logout</h3>
+                <p className="text-xs text-gray-500">Admin Session</p>
               </div>
             </div>
-            <p className="text-sm text-foreground">Are you sure you want to logout from the Admin Panel? Your admin session will be terminated.</p>
+            <p className="text-sm text-gray-600">Are you sure you want to logout from the Admin Panel? Your admin session will be terminated.</p>
             <div className="flex gap-3 pt-4">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-foreground hover:bg-gray-50 transition-colors"
+                className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
@@ -1422,7 +1425,7 @@ export default function AdminPanel() {
                   setShowLogoutConfirm(false);
                   toast.success("Logged out successfully");
                 }}
-                className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-bold hover:bg-red-700 transition-colors"
+                className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl py-2.5 text-sm font-bold hover:from-red-600 hover:to-rose-700 transition-all shadow-md shadow-red-500/20"
               >
                 Logout
               </button>

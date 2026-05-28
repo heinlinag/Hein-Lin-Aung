@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
@@ -7,57 +7,58 @@ import AppLayout from "@/components/AppLayout";
 import { useState, useEffect } from "react";
 
 const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
+const APP_VERSION = "v3.0.0";
 
 const baseFeatures = [
   {
-    icon: <ScanLine size={48} className="text-teal-300 drop-shadow-lg" />,
+    icon: <ScanLine size={28} className="text-white" />,
     title: "QR Scanner",
-    description: "Scan QR codes on stock labels to verify orders and update balances in real time.",
+    description: "Scan QR codes to verify orders and update balances in real time.",
     href: "/qr-scanner",
-    cardClass: "feature-card-teal",
+    gradient: "from-teal-500 to-cyan-600",
+    shadowColor: "shadow-teal-500/20",
     btnLabel: "Open Scanner",
-    iconBg: "bg-gradient-to-br from-teal-500/40 via-cyan-500/30 to-cyan-400/20",
     accentColor: "teal",
   },
   {
-    icon: <ClipboardList size={48} className="text-blue-300 drop-shadow-lg" />,
+    icon: <ClipboardList size={28} className="text-white" />,
     title: "Submit Order",
-    description: "Submit a new Manual Slitter order with Flute Type, Size, Qty and BQ comment.",
+    description: "Submit a new Manual Slitter order with Flute Type, Size, and Qty.",
     href: "/submit-order",
-    cardClass: "feature-card-blue",
+    gradient: "from-blue-500 to-indigo-600",
+    shadowColor: "shadow-blue-500/20",
     btnLabel: "Submit Order",
-    iconBg: "bg-gradient-to-br from-blue-500/40 via-indigo-500/30 to-indigo-400/20",
     accentColor: "blue",
   },
   {
-    icon: <Package size={48} className="text-green-300 drop-shadow-lg" />,
+    icon: <Package size={28} className="text-white" />,
     title: "Stock History",
-    description: "View current stock and out-of-stock orders. Update usage and filter by BQ.",
+    description: "View current stock and out-of-stock orders. Filter by BQ.",
     href: "/stock-history",
-    cardClass: "feature-card-green",
+    gradient: "from-emerald-500 to-green-600",
+    shadowColor: "shadow-emerald-500/20",
     btnLabel: "View Stock",
-    iconBg: "bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-emerald-400/20",
     accentColor: "green",
   },
   {
-    icon: <History size={48} className="text-purple-300 drop-shadow-lg" />,
+    icon: <History size={28} className="text-white" />,
     title: "Usage History",
-    description: "Track how orders have been used — by Job No or Old Stock clearance.",
+    description: "Track how orders have been used by Job No or Old Stock.",
     href: "/usage-history",
-    cardClass: "feature-card-purple",
+    gradient: "from-purple-500 to-violet-600",
+    shadowColor: "shadow-purple-500/20",
     btnLabel: "View Usage",
-    iconBg: "bg-gradient-to-br from-purple-500/40 via-violet-500/30 to-violet-400/20",
     accentColor: "purple",
   },
   {
-    icon: <CheckCircle2 size={48} className="text-orange-300 drop-shadow-lg" />,
+    icon: <CheckCircle2 size={28} className="text-white" />,
     title: "Approval Center",
-    description: "Review and manage pending requests for delete and used-update actions.",
+    description: "Review and manage pending requests for actions.",
     href: "/approval-center",
-    cardClass: "feature-card-orange",
-    btnLabel: "Open Approval Center",
+    gradient: "from-orange-500 to-amber-600",
+    shadowColor: "shadow-orange-500/20",
+    btnLabel: "Open Approvals",
     showBadge: true,
-    iconBg: "bg-gradient-to-br from-orange-500/40 via-amber-500/30 to-amber-400/20",
     accentColor: "orange",
   },
 ];
@@ -80,28 +81,28 @@ function NotificationBanner({ onDismiss }: { onDismiss: () => void }) {
   };
 
   return (
-    <div className="mx-4 lg:mx-8 mt-4 mb-0 max-w-6xl lg:mx-auto">
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
-        <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-          <Bell size={16} className="text-blue-600" />
+    <div className="mx-4 lg:mx-8 mt-4 mb-0 max-w-6xl xl:mx-auto">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-sm">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+          <Bell size={18} className="text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-blue-900 leading-tight">Enable Notifications</p>
-          <p className="text-xs text-blue-700 opacity-80 leading-tight mt-0.5">
-            Get instant alerts when your requests are approved or new orders arrive.
+          <p className="text-sm font-bold text-gray-900 leading-tight">Enable Notifications</p>
+          <p className="text-xs text-gray-600 leading-tight mt-0.5">
+            Get instant alerts when requests are approved.
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleEnable}
             disabled={requesting}
-            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
+            className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-60 shadow-md shadow-blue-500/20"
           >
             {requesting ? "..." : "Enable"}
           </button>
           <button
             onClick={onDismiss}
-            className="p-1.5 rounded-lg text-blue-400 hover:text-blue-600 hover:bg-blue-100 transition-colors"
+            className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             title="Dismiss"
           >
             <X size={14} />
@@ -124,7 +125,6 @@ export default function Home() {
   );
   const pendingCount = (pendingQuery.data ?? []).length;
 
-  // Notification permission banner state
   const DISMISS_KEY = "notif_banner_dismissed";
   const [showNotifBanner, setShowNotifBanner] = useState(false);
 
@@ -140,42 +140,90 @@ export default function Home() {
     setShowNotifBanner(false);
   };
 
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good Morning";
+    if (h < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
+  const levelConfig = {
+    "1": { label: "Level 1", bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200" },
+    "1.1": { label: "Level 1.1", bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200" },
+    "2": { label: "Level 2", bg: "bg-green-100", text: "text-green-700", border: "border-green-200" },
+  };
+  const lvl = levelConfig[userLevel as keyof typeof levelConfig] || levelConfig["2"];
+
   return (
     <AppLayout>
-      {/* Hero banner */}
-      <div className="gspp-gradient py-10 px-4 text-white text-center relative">
-        {/* Bell badge (mobile only — desktop uses sidebar) */}
-        <button
-          onClick={() => navigate("/approval-center")}
-          className="lg:hidden absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-          title="Approval Center"
-        >
-          <CheckCircle2 size={20} className="text-white" />
-          {pendingCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow">
-              {pendingCount > 99 ? "99+" : pendingCount}
-            </span>
-          )}
-        </button>
-        <img
-          src={LOGO_URL}
-          alt="GSPP"
-          className="h-16 w-16 object-contain mx-auto mb-3 bg-white rounded-full p-1 shadow-md"
-        />
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "Lora, serif" }}>
-          PP4 Manual Slitter
-        </h2>
-        <p className="text-sm opacity-90">Stock Management System</p>
-        {worker && (
-          <div className="mt-2 inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-xs font-medium">
-            <span>Welcome, {worker.name}</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${
-              userLevel === "1" ? "bg-orange-400 text-white" : userLevel === "1.1" ? "bg-purple-500 text-white" : "bg-green-400 text-white"
-            }`}>
-              Level {userLevel}
-            </span>
+      {/* Hero banner - Premium design */}
+      <div className="gspp-gradient relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4" />
+        </div>
+
+        <div className="relative px-4 lg:px-8 py-8 lg:py-10">
+          {/* Mobile bell badge */}
+          <button
+            onClick={() => navigate("/approval-center")}
+            className="lg:hidden absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-all border border-white/20"
+            title="Approval Center"
+          >
+            <CheckCircle2 size={18} className="text-white" />
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg">
+                {pendingCount > 99 ? "99+" : pendingCount}
+              </span>
+            )}
+          </button>
+
+          <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:items-center lg:gap-6">
+            {/* Logo and title */}
+            <div className="flex items-center gap-4 mb-4 lg:mb-0">
+              <div className="w-14 h-14 lg:w-16 lg:h-16 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 shadow-xl">
+                <img src={LOGO_URL} alt="GSPP" className="h-10 w-10 lg:h-12 lg:w-12 object-contain" />
+              </div>
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold text-white" style={{ fontFamily: "Lora, serif" }}>
+                  PP4 Manual Slitter
+                </h2>
+                <p className="text-white/70 text-xs lg:text-sm font-medium">Stock Management System</p>
+              </div>
+            </div>
+
+            {/* User info */}
+            {worker && (
+              <div className="lg:ml-auto flex items-center gap-3">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/15">
+                  <p className="text-white/60 text-[10px] font-medium uppercase tracking-wider">{getGreeting()}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-white font-bold text-sm">{worker.name}</p>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${lvl.bg} ${lvl.text}`}>
+                      {lvl.label}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Quick stats */}
+          {pendingCount > 0 && (
+            <div className="max-w-6xl mx-auto mt-4">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/15">
+                <Activity size={14} className="text-orange-300" />
+                <span className="text-white/80 text-xs font-medium">
+                  {pendingCount} pending {pendingCount === 1 ? "approval" : "approvals"}
+                </span>
+                <button onClick={() => navigate("/approval-center")} className="text-white/90 text-xs font-bold hover:text-white flex items-center gap-0.5">
+                  View <ArrowRight size={12} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Notification permission banner */}
@@ -183,58 +231,71 @@ export default function Home() {
 
       {/* Feature cards grid */}
       <div className="px-4 lg:px-8 py-6 lg:py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 xl:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 max-w-6xl mx-auto lg:mx-0">
-          {baseFeatures.map((f) => (
-            <div
-              key={f.href}
-              className={`rounded-xl p-5 shadow-sm ${f.cardClass} relative flex flex-col`}
-            >
-              <div className="flex items-start gap-4 mb-4 flex-1">
-                <div className={`${f.iconBg} rounded-2xl p-4 flex-shrink-0 backdrop-blur-md border border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 hover:border-white/50 relative group`}>
-                  {/* Glow effect */}
-                  <div className="absolute inset-0 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{
-                    background: f.accentColor === 'teal' ? 'rgba(20, 184, 166, 0.3)' : 
-                               f.accentColor === 'blue' ? 'rgba(59, 130, 246, 0.3)' :
-                               f.accentColor === 'green' ? 'rgba(34, 197, 94, 0.3)' :
-                               f.accentColor === 'purple' ? 'rgba(168, 85, 247, 0.3)' :
-                               'rgba(249, 115, 22, 0.3)'
-                  }} />
-                  <div className="relative z-10">
-                    {f.icon}
-                  </div>
+        <div className="max-w-6xl mx-auto">
+          {/* Section header */}
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900" style={{ fontFamily: "Lora, serif" }}>Quick Actions</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Access your most used features</p>
+            </div>
+            <div className="hidden lg:flex items-center gap-1.5 text-xs text-gray-400">
+              <TrendingUp size={12} />
+              <span>5 features available</span>
+            </div>
+          </div>
+
+          {/* Cards grid - responsive */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {baseFeatures.map((f) => (
+              <div
+                key={f.href}
+                onClick={() => navigate(f.href)}
+                className={`group relative rounded-2xl p-5 bg-white border border-gray-100 shadow-sm hover:shadow-xl ${f.shadowColor} transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden`}
+              >
+                {/* Background gradient on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${f.gradient} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300`} />
+
+                {/* Badge on Approval Center */}
+                {f.showBadge && pendingCount > 0 && (
+                  <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-lg notif-badge z-10">
+                    {pendingCount > 99 ? "99+" : pendingCount}
+                  </span>
+                )}
+
+                {/* Icon */}
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center mb-4 shadow-lg ${f.shadowColor} group-hover:scale-110 transition-transform duration-300`}>
+                  {f.icon}
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg leading-tight text-white" style={{ fontFamily: "Lora, serif" }}>
-                    {f.title}
-                    {f.href === "/approval-center" && (userLevel === "1" || userLevel === "1.1") && (
-                      <span className="ml-2 text-xs font-normal opacity-80">{userLevel === "1.1" ? "(View & Process)" : "(View & Cancel)"}</span>
-                    )}
-                  </h3>
-                  <p className="text-sm opacity-85 mt-0.5 text-white/90">{f.description}</p>
+
+                {/* Content */}
+                <h3 className="font-bold text-gray-900 text-base mb-1.5 group-hover:text-gray-800">
+                  {f.title}
+                </h3>
+                <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">
+                  {f.description}
+                </p>
+
+                {/* Action */}
+                <div className="flex items-center gap-1 text-xs font-semibold text-gray-400 group-hover:text-blue-600 transition-colors">
+                  <span>{f.btnLabel}</span>
+                  <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-              {/* Badge on Approval Center */}
-              {f.showBadge && pendingCount > 0 && (
-                <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow">
-                  {pendingCount > 99 ? "99+" : pendingCount}
-                </span>
-              )}
-              <button
-                onClick={() => navigate(f.href)}
-                className="w-full bg-white/20 hover:bg-white/35 active:bg-white/40 transition-all duration-300 rounded-lg py-2.5 text-sm font-semibold text-white border border-white/30 hover:border-white/50 hover:shadow-lg transform hover:-translate-y-1"
-              >
-                {f.btnLabel}
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-border py-4 text-center px-4">
-        <p className="text-xs text-muted-foreground">
-          PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()} &middot; v9030889b
-        </p>
+      <footer className="border-t border-gray-100 py-4 text-center px-4 bg-gray-50/50">
+        <div className="flex items-center justify-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+          <p className="text-xs text-gray-500 font-medium">
+            PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()}
+          </p>
+          <span className="text-[10px] text-gray-300">|</span>
+          <span className="text-xs font-mono font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{APP_VERSION}</span>
+        </div>
       </footer>
     </AppLayout>
   );
