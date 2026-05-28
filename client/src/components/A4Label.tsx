@@ -402,7 +402,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
         {/* HEADER */}
         <div className="header">
           <div className="header-left">
-            <img src="/manus-storage/gspp-logo_988a5ce5.png" alt="GSPP" className="logo" />
+            <img src="/manus-storage/gspp_logo_icon_486e662b.png" alt="GSPP" className="logo" />
             <div>
               <div className="brand-name">PP4 Manual Slitter</div>
               <div className="brand-sub">Stock Management System</div>

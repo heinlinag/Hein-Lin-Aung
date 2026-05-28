@@ -6,7 +6,7 @@ import { Loader2, User, ShieldCheck, Eye, EyeOff, MessageCircle, CheckCircle2, L
 import { toast } from "sonner";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
-const GSPP_LOGO = "/manus-storage/gspp-logo_988a5ce5.png";
+const GSPP_LOGO = "/manus-storage/gspp_logo_icon_486e662b.png";
 const APP_VERSION = "v3.0.0";
 
 type Tab = "worker" | "admin";

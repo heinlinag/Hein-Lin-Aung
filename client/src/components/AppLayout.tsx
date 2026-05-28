@@ -14,7 +14,7 @@ import { trpc } from "@/lib/trpc";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
 
-const LOGO_URL = "/manus-storage/gspp-logo_988a5ce5.png";
+const LOGO_URL = "/manus-storage/gspp_logo_icon_486e662b.png";
 
 interface NavItem {
   href: string;
