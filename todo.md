@@ -1048,8 +1048,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Upgrade Approval Center page to next level design
 
 ## Submit Order & Purchase Order Next Level Upgrade (May 28)
-- [ ] Upgrade Submit Order page to next level design
-- [ ] Upgrade Purchase Order section in Stock History to next level design
+- [x] Upgrade Submit Order page to next level design
+- [x] Upgrade Purchase Order section in Stock History to next level design
 
 ## Next-Level UI Upgrade (May 2026)
 - [x] Submit Order page: premium progress stepper, gradient sections, BQ shortcuts, animated success screen
@@ -1062,3 +1062,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Reduce spacing between sections on all devices (mobile/tablet/laptop/desktop)
 - [x] Make Dimensions section more compact: Size W×L and Qty on same row on desktop, stacked properly on mobile
 - [x] Reduce overall padding and gaps for compact feel across all breakpoints
+
+## Submit Order Mobile Layout Fix (May 28)
+- [x] Fix Dimensions section on mobile: Size W×L and Qty stacked vertically on mobile

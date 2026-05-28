@@ -234,7 +234,7 @@ export default function SubmitOrder() {
                 <h3 className="text-sm font-bold text-foreground">Dimensions & Quantity</h3>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+              <div className="space-y-3">
                 {/* Size */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
