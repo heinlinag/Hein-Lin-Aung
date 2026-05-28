@@ -6,7 +6,7 @@ import { useLocation } from "wouter";
 import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-const LOGO_URL = "/manus-storage/gspp_logo_icon_486e662b.png";
+const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
 const ADMIN_PASSWORD = "Qwer@7090heinann";
 
 type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; createdAt: Date };

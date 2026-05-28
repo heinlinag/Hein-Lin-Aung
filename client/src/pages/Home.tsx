@@ -6,7 +6,7 @@ import { trpc } from "@/lib/trpc";
 import AppLayout from "@/components/AppLayout";
 import { useState, useEffect } from "react";
 
-const LOGO_URL = "/manus-storage/gspp_logo_icon_486e662b.png";
+const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
 const APP_VERSION = "v3.0.0";
 
 const baseFeatures = [

@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 import { LogOut, User, ArrowLeft } from "lucide-react";
 
-const LOGO_URL = "/manus-storage/gspp_logo_icon_486e662b.png";
+const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
 
 interface PageHeaderProps {
   showBack?: boolean;
