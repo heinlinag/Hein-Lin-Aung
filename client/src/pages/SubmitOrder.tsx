@@ -110,26 +110,26 @@ export default function SubmitOrder() {
         </div>
       )}
 
-      <div className="px-4 lg:px-8 py-6 lg:py-8">
+      <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5">
         <div className="max-w-2xl mx-auto lg:mx-0">
           {/* Page heading (mobile only) */}
-          <div className="lg:hidden mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <Package size={20} className="text-white" />
+          <div className="lg:hidden mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20">
+                <Package size={16} className="text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-foreground">Submit Order</h2>
-                <p className="text-xs text-muted-foreground">Create a new production order</p>
+                <h2 className="text-lg font-bold text-foreground">Submit Order</h2>
+                <p className="text-[10px] text-muted-foreground">Create a new production order</p>
               </div>
             </div>
           </div>
 
           {/* Progress Steps */}
-          <div className="mb-8 hidden sm:block">
+          <div className="mb-4 hidden sm:block">
             <div className="flex items-center justify-between relative">
-              <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 rounded-full" />
-              <div className="absolute top-4 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500" style={{ width: `${((currentStep - 1) / 3) * 100}%` }} />
+              <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-gray-200 rounded-full" />
+              <div className="absolute top-3.5 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500" style={{ width: `${((currentStep - 1) / 3) * 100}%` }} />
               {[
                 { step: 1, label: "Order Info", icon: Package },
                 { step: 2, label: "Dimensions", icon: Ruler },
@@ -137,29 +137,29 @@ export default function SubmitOrder() {
                 { step: 4, label: "Review", icon: CheckCircle2 },
               ].map(({ step, label, icon: Icon }) => (
                 <div key={step} className="relative flex flex-col items-center z-10">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30" : "bg-gray-100 text-gray-400 border-2 border-gray-200"}`}>
-                    <Icon size={14} />
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/30" : "bg-gray-100 text-gray-400 border-2 border-gray-200"}`}>
+                    <Icon size={12} />
                   </div>
-                  <span className={`text-[10px] mt-1.5 font-medium ${currentStep >= step ? "text-blue-600" : "text-gray-400"}`}>{label}</span>
+                  <span className={`text-[9px] mt-1 font-medium ${currentStep >= step ? "text-blue-600" : "text-gray-400"}`}>{label}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {/* Section 1: Order Info */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-5 transition-all hover:shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <Package size={14} className="text-blue-600" />
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 space-y-3 transition-all hover:shadow-md">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center">
+                  <Package size={12} className="text-blue-600" />
                 </div>
                 <h3 className="text-sm font-bold text-foreground">Order Information</h3>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {/* Production Order */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                     Production Order <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -168,7 +168,7 @@ export default function SubmitOrder() {
                       value={orderID}
                       onChange={e => setOrderID(e.target.value.toUpperCase())}
                       placeholder="Enter order ID"
-                      className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 bg-gray-50 focus:bg-white transition-all ${isDuplicate ? "border-red-300 focus:ring-red-400" : "border-gray-200 focus:ring-blue-400 focus:border-blue-400"}`}
+                      className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 bg-gray-50 focus:bg-white transition-all ${isDuplicate ? "border-red-300 focus:ring-red-400" : "border-gray-200 focus:ring-blue-400 focus:border-blue-400"}`}
                     />
                     {!isDuplicate && debouncedOrderID && duplicateCheck.data && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -190,16 +190,16 @@ export default function SubmitOrder() {
 
                 {/* Flute Type */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                     Flute Type <span className="text-red-500">*</span>
                   </label>
-                  <div className="grid grid-cols-4 gap-1.5 mb-2">
+                  <div className="grid grid-cols-4 gap-1.5">
                     {FLUTE_TYPES.filter(ft => ft !== "Manual").map(ft => (
                       <button
                         key={ft}
                         type="button"
                         onClick={() => setFluteType(ft)}
-                        className={`py-2 text-xs font-bold rounded-lg border-2 transition-all ${fluteType === ft ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm" : "border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50/50"}`}
+                        className={`py-1.5 text-xs font-bold rounded-lg border-2 transition-all ${fluteType === ft ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm" : "border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50/50"}`}
                       >
                         {ft}
                       </button>
@@ -207,7 +207,7 @@ export default function SubmitOrder() {
                     <button
                       type="button"
                       onClick={() => setFluteType("Manual")}
-                      className={`py-2 text-xs font-bold rounded-lg border-2 transition-all col-span-2 ${fluteType === "Manual" ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm" : "border-gray-200 text-gray-600 hover:border-purple-300 hover:bg-purple-50/50"}`}
+                      className={`py-1.5 text-xs font-bold rounded-lg border-2 transition-all col-span-2 ${fluteType === "Manual" ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm" : "border-gray-200 text-gray-600 hover:border-purple-300 hover:bg-purple-50/50"}`}
                     >
                       Manual
                     </button>
@@ -218,7 +218,7 @@ export default function SubmitOrder() {
                       value={manualFlute}
                       onChange={e => setManualFlute(e.target.value)}
                       placeholder="Enter custom flute type"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-gray-50 focus:bg-white transition-all"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-gray-50 focus:bg-white transition-all"
                     />
                   )}
                 </div>
@@ -226,44 +226,44 @@ export default function SubmitOrder() {
             </div>
 
             {/* Section 2: Dimensions & Qty */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-5 transition-all hover:shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  <Ruler size={14} className="text-emerald-600" />
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 space-y-3 transition-all hover:shadow-md">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-emerald-50 flex items-center justify-center">
+                  <Ruler size={12} className="text-emerald-600" />
                 </div>
                 <h3 className="text-sm font-bold text-foreground">Dimensions & Quantity</h3>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
                 {/* Size */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                     Size (W x L) mm <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <input
                       type="number"
                       value={sizeW}
                       onChange={e => setSizeW(e.target.value)}
                       placeholder="Width"
                       min={1}
-                      className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
                     />
-                    <span className="text-gray-400 font-bold text-lg">&times;</span>
+                    <span className="text-gray-400 font-bold text-sm">&times;</span>
                     <input
                       type="number"
                       value={sizeL}
                       onChange={e => setSizeL(e.target.value)}
                       placeholder="Length"
                       min={1}
-                      className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Order Qty */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                     Order Qty (pcs) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -273,7 +273,7 @@ export default function SubmitOrder() {
                       onChange={e => setQty(e.target.value)}
                       placeholder="Enter quantity"
                       min={1}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       <Hash size={14} className="text-gray-400" />
@@ -284,23 +284,23 @@ export default function SubmitOrder() {
             </div>
 
             {/* Section 3: BQ Comment */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4 transition-all hover:shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
-                  <Layers size={14} className="text-amber-600" />
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 space-y-2.5 transition-all hover:shadow-md">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-amber-50 flex items-center justify-center">
+                  <Layers size={12} className="text-amber-600" />
                 </div>
                 <h3 className="text-sm font-bold text-foreground">BQ Comment</h3>
                 <span className="text-[10px] text-gray-400 ml-auto">Board Quality formula</span>
               </div>
 
               {/* BQ Shortcut Buttons */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {["LR", "MP", "KL", "LP", "KC", "WT"].map(prefix => (
                   <button
                     key={prefix}
                     type="button"
                     onClick={() => setBqComment(prev => prev + prefix)}
-                    className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-b from-white to-gray-50 border-2 border-gray-200 text-gray-700 hover:border-amber-400 hover:text-amber-700 hover:bg-amber-50 transition-all shadow-sm active:scale-95 font-mono"
+                    className="px-2.5 py-1 text-xs font-bold rounded-md bg-gradient-to-b from-white to-gray-50 border border-gray-200 text-gray-700 hover:border-amber-400 hover:text-amber-700 hover:bg-amber-50 transition-all shadow-sm active:scale-95 font-mono"
                   >
                     {prefix}
                   </button>
@@ -308,7 +308,7 @@ export default function SubmitOrder() {
                 <button
                   type="button"
                   onClick={() => setBqComment("")}
-                  className="px-3 py-1.5 text-xs font-bold rounded-lg border-2 border-red-200 text-red-500 hover:bg-red-50 hover:border-red-400 transition-all ml-auto"
+                  className="px-2.5 py-1 text-xs font-bold rounded-md border border-red-200 text-red-500 hover:bg-red-50 hover:border-red-400 transition-all ml-auto"
                 >
                   Clear
                 </button>
@@ -317,8 +317,8 @@ export default function SubmitOrder() {
                 value={bqComment}
                 onChange={e => setBqComment(e.target.value.toUpperCase())}
                 placeholder="e.g. LR170MP115MP115MP115LR170"
-                rows={3}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 bg-gray-50 focus:bg-white transition-all resize-none font-mono"
+                rows={2}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 bg-gray-50 focus:bg-white transition-all resize-none font-mono"
               />
               {bqComment && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
@@ -329,11 +329,11 @@ export default function SubmitOrder() {
             </div>
 
             {/* Submit Button */}
-            <div className="pt-2">
+            <div className="pt-1">
               <button
                 type="submit"
                 disabled={submitOrder.isPending}
-                className="w-full lg:w-auto lg:px-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-xl py-3.5 text-sm font-bold hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[0.98]"
+                className="w-full lg:w-auto lg:px-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 {submitOrder.isPending ? (
                   <><Loader2 size={16} className="animate-spin" /> Submitting...</>

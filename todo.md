@@ -1057,3 +1057,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Purchase Order modal (Level 1/1.1): gradient purple/orange header, premium choose buttons, level-aware styling
 - [x] Purchase Order modals: backdrop-blur, zoom-in animations, active:scale effects, shadow-lg hover states
 - [x] Updated vitest tests for new Purchase Order premium layout classes
+
+## Submit Order Compact Layout Fix (May 2026)
+- [x] Reduce spacing between sections on all devices (mobile/tablet/laptop/desktop)
+- [x] Make Dimensions section more compact: Size W×L and Qty on same row on desktop, stacked properly on mobile
+- [x] Reduce overall padding and gaps for compact feel across all breakpoints
