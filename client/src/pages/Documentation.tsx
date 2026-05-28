@@ -147,14 +147,27 @@ export default function Documentation() {
                       Complete guide for employees to use the Stock Management System
                     </p>
                   </div>
-                  <a
-                    href={EMPLOYEE_GUIDE_URL}
-                    download="Employee_User_Guide.pdf"
-                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors whitespace-nowrap"
-                  >
-                    <Download size={20} />
-                    Download PDF
-                  </a>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <a
+                      href={EMPLOYEE_GUIDE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-5 py-3 bg-white border-2 border-blue-600 text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-colors whitespace-nowrap"
+                    >
+                      <FileText size={20} />
+                      View PDF
+                    </a>
+                    <a
+                      href={EMPLOYEE_GUIDE_URL}
+                      download="Employee_User_Guide_v3.1.0.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-5 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors whitespace-nowrap"
+                    >
+                      <Download size={20} />
+                      Download PDF
+                    </a>
+                  </div>
                 </div>
               </div>
 
@@ -217,14 +230,27 @@ export default function Documentation() {
                       Complete guide for administrators to manage the Stock Management System
                     </p>
                   </div>
-                  <a
-                    href={ADMIN_GUIDE_URL}
-                    download="Admin_Documentation.pdf"
-                    className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors whitespace-nowrap"
-                  >
-                    <Download size={20} />
-                    Download PDF
-                  </a>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <a
+                      href={ADMIN_GUIDE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-5 py-3 bg-white border-2 border-green-600 text-green-600 font-semibold rounded-xl hover:bg-green-50 transition-colors whitespace-nowrap"
+                    >
+                      <FileText size={20} />
+                      View PDF
+                    </a>
+                    <a
+                      href={ADMIN_GUIDE_URL}
+                      download="Admin_Documentation_v3.1.0.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-5 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors whitespace-nowrap"
+                    >
+                      <Download size={20} />
+                      Download PDF
+                    </a>
+                  </div>
                 </div>
               </div>
 
@@ -279,22 +305,26 @@ export default function Documentation() {
             <div className="grid md:grid-cols-2 gap-4">
               <a
                 href={EMPLOYEE_GUIDE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-3 p-4 bg-white rounded-lg hover:shadow-md transition-shadow"
               >
                 <FileText className="text-blue-600" size={24} />
                 <div>
                   <div className="font-semibold text-gray-900">Employee User Guide</div>
-                  <div className="text-sm text-gray-500">PDF Download</div>
+                  <div className="text-sm text-gray-500">View / Download PDF — v3.1.0</div>
                 </div>
               </a>
               <a
                 href={ADMIN_GUIDE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-3 p-4 bg-white rounded-lg hover:shadow-md transition-shadow"
               >
                 <Shield className="text-green-600" size={24} />
                 <div>
                   <div className="font-semibold text-gray-900">Admin Documentation</div>
-                  <div className="text-sm text-gray-500">PDF Download</div>
+                  <div className="text-sm text-gray-500">View / Download PDF — v3.1.0</div>
                 </div>
               </a>
             </div>
