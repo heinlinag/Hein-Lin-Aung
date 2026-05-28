@@ -3,8 +3,8 @@ import { useLocation } from "wouter";
 import AppLayout from "@/components/AppLayout";
 import { FileText, Download, BookOpen, Shield, HelpCircle } from "lucide-react";
 
-const EMPLOYEE_GUIDE_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663608581478/AzwFmHviKQDRtTtP.pdf";
-const ADMIN_GUIDE_URL = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663608581478/rJZMrLLFokwcBZDz.pdf";
+const EMPLOYEE_GUIDE_URL = "/manus-storage/Employee_User_Guide_v3.1.0_995f26df.pdf";
+const ADMIN_GUIDE_URL = "/manus-storage/Admin_Documentation_v3.1.0_4b46e34e.pdf";
 
 type Tab = "employee" | "admin";
 
@@ -21,25 +21,29 @@ export default function Documentation() {
         "Login Access — Employee Login (Level 1, 1.1 & 2)",
         "1-Hour Session & Re-login",
         "User Profile Dropdown",
+        "Geo-Restriction (Malaysia & Myanmar only)",
       ],
     },
     {
       title: "Core Features",
       sections: [
         "Home Dashboard & Welcome Toast",
-        "Submit Order (Production Order, Flute, Size, Qty, BQ)",
-        "Stock History — Low-Stock Alerts & Usage Update",
+        "Submit Order — compact responsive layout (Mobile / Tablet / Desktop)",
+        "Stock History — Low-Stock Alerts & Purchase Order Modals",
         "Usage History — Master Card, Board Size, Scores",
         "Approval Center — Pending / In Process / Approved / Cancelled",
         "Process Approve Workflow (Level 1.1)",
+        "QR Scanner — Tracking ID Verification & Balance Update",
+        "A4 Label Print — Premium B&W print with QR & Barcode",
       ],
     },
     {
       title: "Support & Navigation",
       sections: [
-        "FAQ — 42 Q&A across 8 categories",
-        "System Status Page",
+        "FAQ — 42+ Q&A across 8 categories",
+        "System Status Page — Real-time monitoring",
         "Notifications — Browser Push Alerts",
+        "Help Center — Guides, Troubleshooting & Contact",
         "Troubleshooting & Contact Administrator",
       ],
     },
@@ -53,6 +57,7 @@ export default function Documentation() {
         "Password-Protected Admin Panel",
         "Admin Panel Dashboard & Summary Stats",
         "Level 1 / 1.1 / 2 Role Management",
+        "Role-Based Feature Access Control",
       ],
     },
     {
@@ -63,6 +68,7 @@ export default function Documentation() {
         "Approval Workflow — Approve / Cancel / Process",
         "Deleted Logs & Full Audit Trail",
         "Push Notification Subscriptions",
+        "QR Scan History & Verification Logs",
       ],
     },
     {
@@ -70,7 +76,8 @@ export default function Documentation() {
       sections: [
         "Real-Time System Statistics",
         "Geo-Restriction (Malaysia & Myanmar only)",
-        "System Status Monitoring",
+        "System Status Monitoring & Uptime",
+        "A4 Label Generation & Print Management",
         "Best Practices & Maintenance",
         "Troubleshooting & WhatsApp Support",
       ],
@@ -174,17 +181,19 @@ export default function Documentation() {
                 <div className="grid md:grid-cols-2 gap-4">
                   {[
                     "Employee Login with 1-hour sessions (Level 1, 1.1 & 2)",
-                    "Submit new orders with auto-uppercase Production Order",
-                    "Real-time duplicate Production Order checking",
-                    "Stock History with low-stock alerts & usage update",
+                    "Submit new orders — compact responsive layout across all devices",
+                    "Real-time duplicate Production Order checking with auto-uppercase",
+                    "Stock History with low-stock alerts & premium Purchase Order modals",
                     "Usage History — Master Card, Board Size, Scores",
                     "Approval Center — Pending / In Process / Approved / Cancelled",
                     "Process Approve workflow for Level 1.1 users",
                     "Action History — full request trail per card",
+                    "QR Scanner — Tracking ID verification & balance update",
+                    "A4 Label Print — premium B&W layout with QR code & barcode",
                     "User Profile dropdown with FAQ, Docs & Status links",
                     "Browser push notifications for approvals",
                     "BQ Comment shortcuts (LR, MP, KL, LP, KC, WT)",
-                    "Mobile and desktop responsive design",
+                    "Mobile, tablet, laptop, and desktop responsive design",
                   ].map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-3">
                       <span className="text-blue-600 font-bold text-lg">✓</span>
@@ -250,6 +259,8 @@ export default function Documentation() {
                     "Real-time system statistics dashboard",
                     "Export orders to Excel / PDF",
                     "Push notification subscription management",
+                    "QR scan history & verification log management",
+                    "A4 Label print management per order",
                     "Geo-restriction enforcement (MY & MM only)",
                   ].map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-3">
@@ -292,7 +303,7 @@ export default function Documentation() {
           {/* Footer Info */}
           <div className="mt-12 text-center text-gray-600">
             <p className="mb-2">
-              <strong>Version:</strong> v3.0.0 | <strong>Last Updated:</strong> May 28, 2026
+              <strong>Version:</strong> v3.1.0 | <strong>Last Updated:</strong> May 28, 2026
             </p>
             <p>
               For additional support, contact your system administrator

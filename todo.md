@@ -1071,3 +1071,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Label A4 Next Level Upgrade (May 28)
 - [x] Upgrade A4Label component to premium print design (black & white, professional layout)
+
+## Documentation & PDF Update (May 28)
+- [x] Update Documentation page with current version and features
+- [x] Update FAQ page with current version info
+- [x] Update System Status page with current version
+- [x] Generate updated Employee User Guide PDF
+- [x] Generate updated Administrator Documentation PDF
+- [x] Upload PDFs and link them in the app

@@ -45,6 +45,30 @@ export default function SystemStatus() {
 
   const recentUpdates: StatusUpdate[] = [
     {
+      date: 'May 28, 2026',
+      title: 'Version Updated to v3.1.0 — UI/UX Next Level Upgrade',
+      description: 'Submit Order page, Purchase Order modals in Stock History, and A4 Label component upgraded to next-level premium design. Submit Order is now fully compact and responsive across Mobile, Tablet, Laptop, and Desktop. Documentation, FAQ, and System Status pages updated to reflect all current features.',
+      type: 'update',
+    },
+    {
+      date: 'May 28, 2026',
+      title: 'A4 Label Premium Print Design',
+      description: 'A4 Label upgraded to premium black-and-white print layout: corner registration marks, solid black section headers, inverted black QR block, monospace BQ formula, barcode with tracking ID, and verification footer badge.',
+      type: 'update',
+    },
+    {
+      date: 'May 28, 2026',
+      title: 'Submit Order — Compact Responsive Layout',
+      description: 'Submit Order page redesigned to be compact across all device sizes. Width and Length inputs now stack vertically on mobile. Spacing, padding, and gaps reduced for a cleaner, more efficient form experience.',
+      type: 'update',
+    },
+    {
+      date: 'May 28, 2026',
+      title: 'Purchase Order Modals — Premium Gradient Design',
+      description: 'All three Purchase Order modal levels (Level 2: Emerald, Level 1.1: Purple/Violet, Level 1: Orange/Amber) upgraded with gradient headers, backdrop-blur overlays, zoom-in animations, and gradient confirm/cancel buttons.',
+      type: 'update',
+    },
+    {
       date: 'May 18, 2026',
       title: 'Level 2 Stock History Updated to Match Level 1/1.1 Design',
       description: 'Level 2 users now see the same comprehensive Purchase Order dialog with full order context, quantity breakdown, and pending requests count. All user levels now have consistent terminology and UI/UX.',
@@ -138,12 +162,12 @@ export default function SystemStatus() {
 
   const maintenanceSchedule = [
     {
-      date: 'May 12, 2026',
+      date: 'June 2, 2026',
       time: '02:00 - 03:00 UTC',
       description: 'Scheduled database optimization',
     },
     {
-      date: 'May 19, 2026',
+      date: 'June 9, 2026',
       time: '03:00 - 04:00 UTC',
       description: 'Server security patches and updates',
     },
