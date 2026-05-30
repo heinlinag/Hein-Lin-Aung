@@ -106,7 +106,7 @@ function App() {
             */}
             <Switch>
               {/* Public worldwide: Order Card by Tracking ID — no login, no geo restriction */}
-              <Route path="/:trackingId(PP[A-Z0-9]+)" component={PublicOrderCard} />
+              <Route path="/check.qr/:trackingId" component={PublicOrderCard} />
               {/* Everything else: geo-restricted to MY/MM */}
               <Route>
                 <GeoRestrictedRouter />
