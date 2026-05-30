@@ -20,6 +20,7 @@ import FAQ from "./pages/FAQ";
 import HelpCenter from "./pages/HelpCenter";
 import QRScanner from "./pages/QRScanner";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import PublicOrderCard from "./pages/PublicOrderCard";
 
 function Router() {
   return (
@@ -81,8 +82,9 @@ function Router() {
         </LoginGate>
       </Route>
 
+      {/* Public: Order Card by Tracking ID — no login required */}
+      <Route path="/:trackingId" component={PublicOrderCard} />
       <Route path="/404" component={NotFound} />
-      <Route component={NotFound} />
     </Switch>
   );
 }

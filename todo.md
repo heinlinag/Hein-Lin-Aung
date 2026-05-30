@@ -1096,3 +1096,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add notification triggers in StockHistory: job usage, old stock clear, delete (Level 2 direct + Level 1 request)
 - [x] Add notification triggers in ApprovalCenter: approve, cancel, processApprove
 - [x] Add NotificationBell to DashboardLayout mobile header (next to page title)
+
+## Public Order Card Page (May 30)
+- [x] Add publicProcedure to fetch order by trackingId (no auth required) — reused existing trpc.orders.qrVerifyByTrackingId
+- [x] Create PublicOrderCard page: Production Order, Balance, Flute Type, Board Size, BQ, Status
+- [x] Register route /:trackingId in App.tsx (public, no geo/auth guard)
