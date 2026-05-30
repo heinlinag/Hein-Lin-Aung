@@ -384,7 +384,10 @@ export const A4Label: React.FC<A4LabelProps> = ({
     }, 400);
   };
 
-  const qrValue = trackingId || orderId;
+  // QR encodes full public URL so any scanner app opens the order card directly
+  const qrValue = trackingId
+    ? `https://stockdash.click/check.qr/${trackingId}`
+    : orderId;
 
   return (
     <div>

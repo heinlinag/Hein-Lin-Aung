@@ -130,8 +130,14 @@ export default function QRScanner() {
   const handleScanSuccess = (text: string) => {
     stopScanner();
     try {
-      // QR code now contains ONLY Tracking ID (plain text, not JSON)
-      const trackingId = text.trim().toUpperCase();
+      let raw = text.trim();
+      // Strip the full public URL prefix if present (e.g. https://stockdash.click/check.qr/PP...)
+      const URL_PREFIX = "https://stockdash.click/check.qr/";
+      if (raw.toLowerCase().includes("/check.qr/")) {
+        const idx = raw.toLowerCase().indexOf("/check.qr/");
+        raw = raw.slice(idx + "/check.qr/".length);
+      }
+      const trackingId = raw.toUpperCase();
       if (!trackingId || trackingId.length < 1) throw new Error("Invalid QR");
       setScannedData({ orderId: trackingId, qty: 0, bq: "", boardSize: "" });
       setVerifyTrackingId(trackingId);
