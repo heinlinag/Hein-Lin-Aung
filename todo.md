@@ -1079,3 +1079,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Generate updated Employee User Guide PDF
 - [x] Generate updated Administrator Documentation PDF
 - [x] Upload PDFs and link them in the app
+
+## PWA Support (May 30)
+- [x] Generate PWA icons (192x192, 512x512) from GSPP logo
+- [x] Create manifest.json with app name, icons, theme colors
+- [x] Create service worker (sw.js) for offline caching
+- [x] Register service worker in index.html
+- [x] Add install prompt UI component (banner/button)
+- [x] Link manifest in index.html

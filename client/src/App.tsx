@@ -19,6 +19,7 @@ import SystemStatus from "./pages/SystemStatus";
 import FAQ from "./pages/FAQ";
 import HelpCenter from "./pages/HelpCenter";
 import QRScanner from "./pages/QRScanner";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
 function Router() {
   return (
@@ -95,6 +96,7 @@ function App() {
             <Toaster />
             <GeoGuard>
               <Router />
+              <PWAInstallPrompt />
             </GeoGuard>
           </TooltipProvider>
         </AuthProvider>
