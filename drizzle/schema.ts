@@ -213,3 +213,37 @@ export const contactMessages = mysqlTable("contactMessages", {
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = typeof contactMessages.$inferInsert;
 
+
+// In-App Notifications table — real-time activity feed for all users
+export const appNotifications = mysqlTable("appNotifications", {
+  id: int("id").autoincrement().primaryKey(),
+  type: mysqlEnum("type", [
+    "order_request",
+    "order_approved",
+    "order_cancelled",
+    "order_in_process",
+    "order_deleted",
+    "out_of_stock",
+    "new_order",
+    "login",
+    "system",
+  ]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  // Order context
+  orderID: varchar("orderID", { length: 64 }),
+  productionOrder: varchar("productionOrder", { length: 64 }),
+  jobNo: varchar("jobNo", { length: 64 }),
+  qty: int("qty"),
+  fluteType: varchar("fluteType", { length: 64 }),
+  // Actor
+  workerID: varchar("workerID", { length: 64 }),
+  workerName: varchar("workerName", { length: 128 }),
+  // Tracking
+  trackingId: varchar("trackingId", { length: 64 }),
+  // Read state — comma-separated workerIDs who have read this
+  readBy: varchar("readBy", { length: 2000 }).default("").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AppNotification = typeof appNotifications.$inferSelect;
+export type InsertAppNotification = typeof appNotifications.$inferInsert;

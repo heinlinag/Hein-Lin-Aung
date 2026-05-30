@@ -15,6 +15,8 @@ import { ClipboardList, History, Settings2, Menu } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
+import NotificationBell from './NotificationBell';
+import { useAuth } from '@/contexts/AuthContext';
 
 const menuItems = [
   { icon: ClipboardList, label: "Submit Order", path: "/submit-order" },
@@ -177,13 +179,7 @@ function DashboardLayoutContent({
       <SidebarInset>
         {/* Mobile header */}
         {isMobile && (
-          <div className="flex border-b border-border h-14 items-center justify-between bg-background px-4 sticky top-0 z-40">
-            <SidebarTrigger className="h-8 w-8 rounded" />
-            <span className="font-serif text-sm font-semibold text-foreground">
-              {activeMenuItem?.label ?? "Stock Management"}
-            </span>
-            <div className="w-8" />
-          </div>
+          <MobileHeader activeLabel={activeMenuItem?.label} />
         )}
         {/* Main content */}
         <main className="flex-1 bg-background">
@@ -191,5 +187,22 @@ function DashboardLayoutContent({
         </main>
       </SidebarInset>
     </>
+  );
+}
+
+function MobileHeader({ activeLabel }: { activeLabel?: string }) {
+  const { worker } = useAuth();
+  return (
+    <div className="flex border-b border-border h-14 items-center justify-between bg-background px-4 sticky top-0 z-40">
+      <SidebarTrigger className="h-8 w-8 rounded" />
+      <span className="font-serif text-sm font-semibold text-foreground">
+        {activeLabel ?? "Stock Management"}
+      </span>
+      {worker ? (
+        <NotificationBell workerID={worker.workerID} workerName={worker.name} />
+      ) : (
+        <div className="w-8" />
+      )}
+    </div>
   );
 }

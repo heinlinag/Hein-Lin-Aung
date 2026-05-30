@@ -39,6 +39,7 @@ type OrderSnapshot = {
   sizeL: number;
   qty: number;
   bqComment: string;
+  trackingId?: string;
 };
 
 type ActionData = {
@@ -530,6 +531,7 @@ export default function ApprovalCenter() {
   const cancelMutation = trpc.pendingRequests.cancel.useMutation();
   const processApproveMutation = trpc.pendingRequests.processApprove.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
+  const createNotif = trpc.notifications.create.useMutation();
 
   const allRequests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
   
@@ -577,6 +579,22 @@ export default function ApprovalCenter() {
           : `${worker.workerID} approved request #${id}.`,
         tag: "request-approved"
       });
+      if (snap) {
+        const actionDataParsed = req?.actionData ? JSON.parse(req.actionData) : null;
+        createNotif.mutate({
+          type: "order_approved",
+          title: `Purchase Order ${snap.orderID} — Approved`,
+          message: req?.type === "delete"
+            ? `Order Delete request for Production Order (${snap.orderID}) has been Approved by ${worker.workerID}. Order will be removed from stock.`
+            : `Purchase Order is Production Order (${snap.orderID}) to use it for NPRM Modify Order Job No (${actionDataParsed?.jobNo ?? "N/A"}) ${approvedQty ?? actionDataParsed?.usedQty ?? 0} pcs. Request Approved by ${worker.workerID}.`,
+          orderID: snap.orderID,
+          jobNo: actionDataParsed?.jobNo,
+          qty: approvedQty ?? actionDataParsed?.usedQty,
+          fluteType: snap.fluteType,
+          workerID: req?.requestedBy,
+          trackingId: snap.trackingId,
+        });
+      }
       utils.pendingRequests.list.invalidate();
       utils.orders.list.invalidate();
       if (activeTab === "history") utils.pendingRequests.actionLog.invalidate();
@@ -603,6 +621,17 @@ export default function ApprovalCenter() {
           : `${worker.workerID} cancelled request #${id}.`,
         tag: "request-cancelled"
       });
+      if (snap) {
+        createNotif.mutate({
+          type: "order_cancelled",
+          title: `Purchase Order ${snap.orderID} — Cancelled`,
+          message: `Purchase Order request for Production Order (${snap.orderID}) has been Cancelled by ${worker.workerID}. Reason: ${reason}`,
+          orderID: snap.orderID,
+          fluteType: snap.fluteType,
+          workerID: req?.requestedBy,
+          trackingId: snap.trackingId,
+        });
+      }
       utils.pendingRequests.list.invalidate();
       if (activeTab === "history") utils.pendingRequests.actionLog.invalidate();
     } catch (err: unknown) {
@@ -628,6 +657,20 @@ export default function ApprovalCenter() {
           : `${worker.workerID} process-approved request #${id}.`,
         tag: "request-in-process"
       });
+      if (snap) {
+        const actionDataParsed2 = req?.actionData ? JSON.parse(req.actionData) : null;
+        createNotif.mutate({
+          type: "order_in_process",
+          title: `Purchase Order ${snap.orderID} — In Process`,
+          message: `Purchase Order is Production Order (${snap.orderID}) to use it for NPRM Modify Order Job No (${actionDataParsed2?.jobNo ?? "N/A"}) ${processApprovedQty ?? actionDataParsed2?.usedQty ?? 0} pcs. Request marked In Process by ${worker.workerID}. Awaiting Level 2 final approval.`,
+          orderID: snap.orderID,
+          jobNo: actionDataParsed2?.jobNo,
+          qty: processApprovedQty ?? actionDataParsed2?.usedQty,
+          fluteType: snap.fluteType,
+          workerID: req?.requestedBy,
+          trackingId: snap.trackingId,
+        });
+      }
       utils.pendingRequests.list.invalidate();
     } catch (err: unknown) {
       const e = err as { message?: string };

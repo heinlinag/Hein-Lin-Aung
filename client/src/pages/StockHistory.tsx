@@ -34,6 +34,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   const [scores, setScores] = useState("");
   const logUsage = trpc.orders.logUsage.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
+  const createNotif = trpc.notifications.create.useMutation();
   const utils = trpc.useUtils();
   const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery({ orderId: order.id });
   const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
@@ -59,6 +60,16 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
         body: `Order ${order.orderID}: ${qty} pcs used for Job ${jobNo}. Remaining: ${newQty} pcs.`,
         tag: "used-update"
       });
+      createNotif.mutate({
+        type: "order_in_process",
+        title: `Purchase Order ${order.orderID} — Used for Job`,
+        message: `Purchase Order is Production Order (${order.orderID}) to use it for NPRM Modify Order Job No (${jobNo}) ${qty} pcs. Remaining: ${newQty} pcs.`,
+        orderID: order.orderID,
+        jobNo,
+        qty,
+        fluteType: order.fluteType,
+        trackingId: order.trackingId,
+      });
       setRemaining(newQty);
       setJobNo(""); setUseQty(""); setMasterCard(""); setBoardSizeW(""); setBoardSizeL(""); setScores("");
       utils.orders.list.invalidate();
@@ -78,6 +89,15 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
         title: "📦 Old Stock Cleared",
         body: `Order ${order.orderID} (${order.qty} pcs) has been cleared and moved to Out of Stock.`,
         tag: "used-update"
+      });
+      createNotif.mutate({
+        type: "out_of_stock",
+        title: `Order ${order.orderID} — Moved to Out of Stock`,
+        message: `Purchase Order (${order.orderID}) has been cleared as Old Stock. All ${order.qty} pcs have been consumed and moved to Out of Stock.`,
+        orderID: order.orderID,
+        qty: order.qty,
+        fluteType: order.fluteType,
+        trackingId: order.trackingId,
       });
       utils.orders.list.invalidate();
       utils.orders.getUsage.invalidate();
@@ -278,6 +298,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const [showPermissionDenied, setShowPermissionDenied] = useState(false);
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
+  const createNotif = trpc.notifications.create.useMutation();
   const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery({ orderId: order.id });
   const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
   const availableQty = Math.max(0, order.qty - inProcessQty);
@@ -315,6 +336,19 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
           : `${workerID} submitted a Used Update request for Order ${order.orderID}. Pending Level 2 approval.`,
         tag: "pending-request"
       });
+      createNotif.mutate({
+        type: isProcessed ? "order_in_process" : "order_request",
+        title: isProcessed
+          ? `Purchase Order ${order.orderID} — Request In Process`
+          : `Purchase Order ${order.orderID} — New Request`,
+        message: `Purchase Order is Production Order (${order.orderID}) to use it for NPRM Modify Order Job No (${jobNo}) ${qty} pcs.${isProcessed ? " Auto process-approved. Awaiting Level 2 final approval." : " Pending Level 2 approval."}`,
+        orderID: order.orderID,
+        jobNo,
+        qty,
+        fluteType: order.fluteType,
+        workerID,
+        trackingId: order.trackingId,
+      });
       onSuccess();
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -331,7 +365,8 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
         requestedBy: workerID,
         actionData: JSON.stringify({ jobNo: null, usedQty: order.qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "old_stock", newQty: 0 }),
       });
-      if (oldResult.autoProcessApproved) {
+      const isOldProcessed = oldResult.autoProcessApproved;
+      if (isOldProcessed) {
         toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");
         notifyAll.mutate({
           title: "🔄 Request In Process",
@@ -346,6 +381,20 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
           tag: "pending-request"
         });
       }
+      createNotif.mutate({
+        type: isOldProcessed ? "order_in_process" : "order_request",
+        title: isOldProcessed
+          ? `Purchase Order ${order.orderID} — Old Stock In Process`
+          : `Purchase Order ${order.orderID} — Old Stock Request`,
+        message: isOldProcessed
+          ? `Purchase Order (${order.orderID}) Old Stock clear request auto process-approved. ${order.qty} pcs awaiting Level 2 final approval.`
+          : `Purchase Order (${order.orderID}) Old Stock clear request submitted by ${workerID}. ${order.qty} pcs pending Level 2 approval.`,
+        orderID: order.orderID,
+        qty: order.qty,
+        fluteType: order.fluteType,
+        workerID,
+        trackingId: order.trackingId,
+      });
       onSuccess();
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -603,6 +652,7 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
   const [workerID, setWorkerID] = useState("");
   const [error, setError] = useState("");
   const deleteOrder = trpc.orders.deleteFromHistory.useMutation();
+  const createNotif = trpc.notifications.create.useMutation();
 
   const handleDelete = async () => {
     setError("");
@@ -610,6 +660,16 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
     try {
       await deleteOrder.mutateAsync({ id: order.id, orderID: order.orderID, fluteType: order.fluteType, sizeW: order.sizeW, sizeL: order.sizeL, qty: order.qty, bqComment: order.bqComment, workerID: workerID.trim() });
       toast.success("Order deleted.");
+      createNotif.mutate({
+        type: "order_deleted",
+        title: `Order ${order.orderID} — Deleted`,
+        message: `Production Order (${order.orderID}) has been permanently deleted by ${workerID.trim()}. ${order.qty} pcs removed from stock.`,
+        orderID: order.orderID,
+        qty: order.qty,
+        fluteType: order.fluteType,
+        workerID: workerID.trim(),
+        trackingId: order.trackingId,
+      });
       onSuccess();
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -642,6 +702,7 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
   const [showConfirm, setShowConfirm] = useState(false);
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
+  const createNotif = trpc.notifications.create.useMutation();
 
   const handleRequest = async () => {
     setError("");
@@ -652,7 +713,8 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
         orderSnapshot: JSON.stringify(order),
         requestedBy: workerID,
       });
-      if (delResult.autoProcessApproved) {
+      const isDelProcessed = delResult.autoProcessApproved;
+      if (isDelProcessed) {
         toast.success("Delete request submitted & auto process-approved! Awaiting Level 2 final approval.");
         notifyAll.mutate({
           title: "🔄 Delete Request In Process",
@@ -667,6 +729,19 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
           tag: "pending-request"
         });
       }
+      createNotif.mutate({
+        type: isDelProcessed ? "order_in_process" : "order_request",
+        title: isDelProcessed
+          ? `Order ${order.orderID} — Delete Request In Process`
+          : `Order ${order.orderID} — Delete Request`,
+        message: isDelProcessed
+          ? `Delete request for Order (${order.orderID}) auto process-approved by ${workerID}. Awaiting Level 2 final approval.`
+          : `Order Delete request submitted by ${workerID} for Production Order (${order.orderID}). Pending Level 2 approval.`,
+        orderID: order.orderID,
+        fluteType: order.fluteType,
+        workerID,
+        trackingId: order.trackingId,
+      });
       onSuccess();
     } catch (err: unknown) {
       const e = err as { message?: string };

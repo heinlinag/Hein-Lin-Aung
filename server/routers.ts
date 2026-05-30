@@ -680,5 +680,56 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // ─── In-App Notifications ──────────────────────────────────────────────────────────────────────────────────
+  notifications: router({
+    // Get recent notifications (last 50)
+    list: publicProcedure.query(async () => {
+      const { getRecentNotifications } = await import("./db");
+      return await getRecentNotifications(50);
+    }),
+
+    // Create a new notification (called from frontend on events)
+    create: publicProcedure
+      .input(z.object({
+        type: z.enum(["order_request", "order_approved", "order_cancelled", "order_in_process", "order_deleted", "out_of_stock", "new_order", "login", "system"]),
+        title: z.string(),
+        message: z.string(),
+        orderID: z.string().optional(),
+        productionOrder: z.string().optional(),
+        jobNo: z.string().optional(),
+        qty: z.number().optional(),
+        fluteType: z.string().optional(),
+        workerID: z.string().optional(),
+        workerName: z.string().optional(),
+        trackingId: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { createAppNotification } = await import("./db");
+        await createAppNotification(input);
+        return { success: true };
+      }),
+
+    // Mark notifications as read for a worker
+    markRead: publicProcedure
+      .input(z.object({
+        workerID: z.string(),
+        ids: z.array(z.number()),
+      }))
+      .mutation(async ({ input }) => {
+        const { markNotificationsRead } = await import("./db");
+        await markNotificationsRead(input.workerID, input.ids);
+        return { success: true };
+      }),
+
+    // Get unread count for a worker
+    unreadCount: publicProcedure
+      .input(z.object({ workerID: z.string() }))
+      .query(async ({ input }) => {
+        const { getUnreadCount } = await import("./db");
+        const count = await getUnreadCount(input.workerID);
+        return { count };
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter

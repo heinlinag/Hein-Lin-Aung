@@ -1,0 +1,11 @@
+{
+  "query": "CREATE TABLE `appNotifications` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`type` enum('order_request','order_approved','order_cancelled','order_in_process','order_deleted','out_of_stock','new_order','login','system') NOT NULL,\n\t`title` varchar(255) NOT NULL,\n\t`message` text NOT NULL,\n\t`orderID` varchar(64),\n\t`productionOrder` varchar(64),\n\t`jobNo` varchar(64),\n\t`qty` int,\n\t`fluteType` varchar(64),\n\t`workerID` varchar(64),\n\t`workerName` varchar(128),\n\t`trackingId` varchar(64),\n\t`readBy` text NOT NULL DEFAULT (''),\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `appNotifications_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute CREATE TABLE `appNotifications` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`type` enum('order_request','order_approved','order_cancelled','order_in_process','order_deleted','out_of_stock','new_order','login','system') NOT NULL,\n\t`title` varchar(255) NOT NULL,\n\t`message` text NOT NULL,\n\t`orderID` varchar(64),\n\t`productionOrder` varchar(64),\n\t`jobNo` varchar(64),\n\t`qty` int,\n\t`fluteType` varchar(64),\n\t`workerID` varchar(64),\n\t`workerName` varchar(128),\n\t`trackingId` varchar(64),\n\t`readBy` text NOT NULL DEFAULT (''),\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `appNotifications_id` PRIMARY KEY(`id`)\n);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 14 column 36 near \"''),",
+    "\t`createdAt` timestamp NOT NULL DEFAULT (now()),",
+    "\tCONSTRAINT `appNotifications_id` PRIMARY KEY(`id`)",
+    ")\""
+  ]
+}

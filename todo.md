@@ -1087,3 +1087,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Register service worker in index.html
 - [x] Add install prompt UI component (banner/button)
 - [x] Link manifest in index.html
+
+## Notification System Upgrade - Real-Time & Rich Messages (May 30)
+- [x] Add in-app appNotifications DB table (type, title, message, orderID, jobNo, qty, fluteType, workerID, trackingId, createdAt)
+- [x] Add server procedures: notifications.create, notifications.list, notifications.markRead, notifications.unreadCount
+- [x] Upgrade notification messages for all event types: order_request, order_approved, order_cancelled, order_in_process, order_deleted, out_of_stock
+- [x] Create NotificationBell component with real-time polling (5s interval), unread badge, rich message panel
+- [x] Add notification triggers in StockHistory: job usage, old stock clear, delete (Level 2 direct + Level 1 request)
+- [x] Add notification triggers in ApprovalCenter: approve, cancel, processApprove
+- [x] Add NotificationBell to DashboardLayout mobile header (next to page title)

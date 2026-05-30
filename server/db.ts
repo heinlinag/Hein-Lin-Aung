@@ -1,6 +1,6 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql as sqlExpr } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog } from "../drizzle/schema";
+import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -357,4 +357,60 @@ export async function getInProcessQtyForOrder(orderId: number): Promise<number> 
     }
   }
   return total;
+}
+
+// ─── In-App Notifications ─────────────────────────────────────────────────────
+
+export async function createAppNotification(data: Omit<InsertAppNotification, "id" | "createdAt" | "readBy">): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.insert(appNotifications).values({ ...data, readBy: "" });
+  } catch (e) {
+    console.warn("[Notification] Failed to save:", e);
+  }
+}
+
+export async function getRecentNotifications(limit = 50): Promise<AppNotification[]> {
+  const db = await getDb();
+  if (!db) return [];
+  try {
+    return await db.select().from(appNotifications).orderBy(desc(appNotifications.createdAt)).limit(limit);
+  } catch { return []; }
+}
+
+export async function markNotificationsRead(workerID: string, ids: number[]): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    for (const id of ids) {
+      // Append workerID to readBy if not already present
+      await db.execute(sqlExpr`
+        UPDATE appNotifications
+        SET readBy = CASE
+          WHEN readBy = '' THEN ${workerID}
+          WHEN FIND_IN_SET(${workerID}, readBy) = 0 THEN CONCAT(readBy, ',', ${workerID})
+          ELSE readBy
+        END
+        WHERE id = ${id}
+      `);
+    }
+  } catch (e) {
+    console.warn("[Notification] Failed to mark read:", e);
+  }
+}
+
+export async function getUnreadCount(workerID: string): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  try {
+    const rows = await db.execute(sqlExpr`
+      SELECT COUNT(*) as cnt FROM appNotifications
+      WHERE FIND_IN_SET(${workerID}, readBy) = 0
+      ORDER BY createdAt DESC
+      LIMIT 200
+    `);
+    const result = rows as unknown as [Array<{ cnt: number }>];
+    return Number(result[0]?.[0]?.cnt ?? 0);
+  } catch { return 0; }
 }
