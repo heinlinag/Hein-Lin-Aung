@@ -114,8 +114,8 @@ export default function PWAInstallPrompt() {
                 <p className="text-sm font-bold text-gray-900">Install StockDash</p>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
                   {isIOS
-                    ? "Home screen မှာ add လုပ်ပြီး app လို သုံးနိုင်မယ်"
-                    : "Phone home screen မှာ install လုပ်ပြီး app လို ဖွင့်နိုင်မယ်"}
+                    ? "Add to your home screen and use it like a native app"
+                    : "Install on your phone home screen and open it like a native app"}
                 </p>
               </div>
 
@@ -161,7 +161,7 @@ export default function PWAInstallPrompt() {
                   </div>
                   <div>
                     <p className="font-bold text-gray-900 text-sm">iPhone/iPad Install Guide</p>
-                    <p className="text-xs text-gray-500">Home Screen မှာ Add လုပ်နည်း</p>
+                    <p className="text-xs text-gray-500">How to Add to Home Screen</p>
                   </div>
                 </div>
                 <button
@@ -174,9 +174,9 @@ export default function PWAInstallPrompt() {
 
               <div className="space-y-3">
                 {[
-                  { step: "1", icon: "⬆️", text: "Browser ရဲ့ Share button ကို နှိပ်ပါ (Safari ရဲ့ bottom toolbar မှာ)" },
-                  { step: "2", icon: "➕", text: "\"Add to Home Screen\" ကို ရွေးပါ" },
-                  { step: "3", icon: "✅", text: "\"Add\" ကို နှိပ်ပြီး confirm လုပ်ပါ" },
+                  { step: "1", icon: "⬆️", text: "Tap the Share button in Safari's bottom toolbar" },
+                  { step: "2", icon: "➕", text: "Select \"Add to Home Screen\"" },
+                  { step: "3", icon: "✅", text: "Tap \"Add\" to confirm" },
                 ].map(({ step, icon, text }) => (
                   <div key={step} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
                     <div className="w-7 h-7 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
@@ -191,7 +191,7 @@ export default function PWAInstallPrompt() {
               </div>
 
               <p className="text-xs text-gray-400 text-center mt-4">
-                Safari browser ကိုသာ သုံးပါ (Chrome/Firefox မရပါ)
+                Use Safari browser only (Chrome/Firefox not supported)
               </p>
 
               <button
