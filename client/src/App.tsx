@@ -22,70 +22,73 @@ import QRScanner from "./pages/QRScanner";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import PublicOrderCard from "./pages/PublicOrderCard";
 
-function Router() {
+/** Routes that require geo-restriction (MY/MM only) */
+function GeoRestrictedRouter() {
   return (
-    <Switch>
-      {/* Public: Login page */}
-      <Route path="/login" component={Login} />
+    <GeoGuard>
+      <Switch>
+        {/* Public: Login page */}
+        <Route path="/login" component={Login} />
 
-      {/* Worker-protected pages (1hr session) */}
-      <Route path="/">
-        <LoginGate>
-          <Home />
-        </LoginGate>
-      </Route>
-      <Route path="/submit-order">
-        <LoginGate>
-          <SubmitOrder />
-        </LoginGate>
-      </Route>
-      <Route path="/stock-history">
-        <LoginGate>
-          <StockHistory />
-        </LoginGate>
-      </Route>
-      <Route path="/usage-history">
-        <LoginGate>
-          <UsageHistory />
-        </LoginGate>
-      </Route>
+        {/* Worker-protected pages (1hr session) */}
+        <Route path="/">
+          <LoginGate>
+            <Home />
+          </LoginGate>
+        </Route>
+        <Route path="/submit-order">
+          <LoginGate>
+            <SubmitOrder />
+          </LoginGate>
+        </Route>
+        <Route path="/stock-history">
+          <LoginGate>
+            <StockHistory />
+          </LoginGate>
+        </Route>
+        <Route path="/usage-history">
+          <LoginGate>
+            <UsageHistory />
+          </LoginGate>
+        </Route>
 
-      {/* Approval Center: Level 2 workers only */}
-      <Route path="/approval-center">
-        <LoginGate>
-          <ApprovalCenter />
-        </LoginGate>
-      </Route>
+        {/* Approval Center: Level 2 workers only */}
+        <Route path="/approval-center">
+          <LoginGate>
+            <ApprovalCenter />
+          </LoginGate>
+        </Route>
 
-      {/* QR Scanner */}
-      <Route path="/qr-scanner">
-        <LoginGate>
-          <QRScanner />
-        </LoginGate>
-      </Route>
-      {/* Public: Documentation */}
-      <Route path="/docs" component={Documentation} />
+        {/* QR Scanner */}
+        <Route path="/qr-scanner">
+          <LoginGate>
+            <QRScanner />
+          </LoginGate>
+        </Route>
 
-      {/* Public: FAQ */}
-      <Route path="/faq" component={FAQ} />
+        {/* Public: Documentation */}
+        <Route path="/docs" component={Documentation} />
 
-      {/* Public: Help Center */}
-      <Route path="/help" component={HelpCenter} />
+        {/* Public: FAQ */}
+        <Route path="/faq" component={FAQ} />
 
-      {/* Public: System Status */}
-      <Route path="/status" component={SystemStatus} />
+        {/* Public: Help Center */}
+        <Route path="/help" component={HelpCenter} />
 
-      {/* Admin-protected page (one-time per visit) */}
-      <Route path="/admin">
-        <LoginGate requireAdmin>
-          <AdminPanel />
-        </LoginGate>
-      </Route>
+        {/* Public: System Status */}
+        <Route path="/status" component={SystemStatus} />
 
-      {/* Public: Order Card by Tracking ID — no login required */}
-      <Route path="/:trackingId" component={PublicOrderCard} />
-      <Route path="/404" component={NotFound} />
-    </Switch>
+        {/* Admin-protected page (one-time per visit) */}
+        <Route path="/admin">
+          <LoginGate requireAdmin>
+            <AdminPanel />
+          </LoginGate>
+        </Route>
+
+        <Route path="/404" component={NotFound} />
+      </Switch>
+      <PWAInstallPrompt />
+    </GeoGuard>
   );
 }
 
@@ -96,10 +99,19 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
-            <GeoGuard>
-              <Router />
-              <PWAInstallPrompt />
-            </GeoGuard>
+            {/*
+              Top-level Switch: public order card routes bypass GeoGuard entirely
+              so anyone worldwide can scan a QR code and view order details.
+              All other routes go through GeoGuard (MY/MM only).
+            */}
+            <Switch>
+              {/* Public worldwide: Order Card by Tracking ID — no login, no geo restriction */}
+              <Route path="/:trackingId(PP[A-Z0-9]+)" component={PublicOrderCard} />
+              {/* Everything else: geo-restricted to MY/MM */}
+              <Route>
+                <GeoRestrictedRouter />
+              </Route>
+            </Switch>
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>
