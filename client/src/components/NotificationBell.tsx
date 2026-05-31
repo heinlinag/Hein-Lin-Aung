@@ -190,10 +190,10 @@ export default function NotificationBell({ workerID, workerName }: NotificationB
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // tRPC queries
+  // tRPC queries — poll every 3s when open, 8s when closed
   const listQuery = trpc.notifications.list.useQuery(undefined, {
-    refetchInterval: open ? 5000 : 15000, // Poll faster when panel is open
-    staleTime: 4000,
+    refetchInterval: open ? 3000 : 8000,
+    staleTime: 2000,
   });
   const markReadMutation = trpc.notifications.markRead.useMutation({
     onSuccess: () => listQuery.refetch(),
@@ -221,6 +221,17 @@ export default function NotificationBell({ workerID, workerName }: NotificationB
       markReadMutation.mutate({ workerID, ids: unreadIds });
     }
   }, [notifications, workerID, markReadMutation]);
+
+  // Listen for PUSH_RECEIVED from service worker → immediate refetch
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === "PUSH_RECEIVED") {
+        listQuery.refetch();
+      }
+    };
+    navigator.serviceWorker?.addEventListener("message", handler);
+    return () => navigator.serviceWorker?.removeEventListener("message", handler);
+  }, [listQuery]);
 
   // Close on outside click
   useEffect(() => {

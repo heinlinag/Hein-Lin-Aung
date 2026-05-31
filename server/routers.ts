@@ -641,7 +641,8 @@ export const appRouter = router({
   // ─── Push Notifications ─────────────────────────────────────────────────────────────────
   push: router({
     getVapidKey: publicProcedure.query(() => {
-      return { publicKey: "BAQN0wvOeqzGaDPxLZm76ZG6Iw2L1IfRZ8h5GzcxYJFFm4AT3RybTyiM0r8825pWeKZJ7MOSz9yZwBZ-_AI1q-g" };
+      const key = process.env.VITE_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || "";
+      return { publicKey: key };
     }),
     subscribe: publicProcedure
       .input(z.object({
@@ -655,28 +656,81 @@ export const appRouter = router({
         await saveSubscription(input.workerID, input.subscription);
         return { success: true };
       }),
+    unsubscribe: publicProcedure
+      .input(z.object({ workerID: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { removeSubscription } = await import("./push");
+        await removeSubscription(input.workerID);
+        return { success: true };
+      }),
     sendToAll: publicProcedure
       .input(z.object({
         title: z.string(),
         body: z.string(),
+        type: z.enum(["general", "approval", "order", "scanner", "system"]).optional(),
+        url: z.string().optional(),
         tag: z.string().optional(),
+        orderID: z.string().optional(),
+        jobNo: z.string().optional(),
+        requireInteraction: z.boolean().optional(),
       }))
       .mutation(async ({ input }) => {
         const subs = await getAllSubscriptions();
-        await sendPushNotification(subs, { title: input.title, body: input.body, tag: input.tag, type: "system", url: "/" });
+        await sendPushNotification(subs, {
+          title: input.title,
+          body: input.body,
+          tag: input.tag,
+          type: input.type || "order",
+          url: input.url || "/stock-history",
+          requireInteraction: input.requireInteraction ?? true,
+        });
+        return { success: true };
+      }),
+    sendToWorkers: publicProcedure
+      .input(z.object({
+        workerIDs: z.array(z.string()),
+        title: z.string(),
+        body: z.string(),
+        type: z.enum(["general", "approval", "order", "scanner", "system"]).optional(),
+        url: z.string().optional(),
+        tag: z.string().optional(),
+        orderID: z.string().optional(),
+        jobNo: z.string().optional(),
+        requireInteraction: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const subs = await getSubscriptionsForWorkers(input.workerIDs);
+        await sendPushNotification(subs, {
+          title: input.title,
+          body: input.body,
+          tag: input.tag,
+          type: input.type || "order",
+          url: input.url || "/stock-history",
+          requireInteraction: input.requireInteraction ?? true,
+        });
         return { success: true };
       }),
     sendToLevel2: publicProcedure
       .input(z.object({
         title: z.string(),
         body: z.string(),
+        type: z.enum(["general", "approval", "order", "scanner", "system"]).optional(),
+        url: z.string().optional(),
         tag: z.string().optional(),
+        requireInteraction: z.boolean().optional(),
       }))
       .mutation(async ({ input }) => {
         const allWorkers = await (await import("./db")).getAllWorkers();
         const level2IDs = allWorkers.filter((w: { userLevel: string }) => w.userLevel === "2").map((w: { workerID: string }) => w.workerID);
         const subs = await getSubscriptionsForWorkers(level2IDs);
-        await sendPushNotification(subs, { title: input.title, body: input.body, tag: input.tag, type: "system", url: "/" });
+        await sendPushNotification(subs, {
+          title: input.title,
+          body: input.body,
+          tag: input.tag,
+          type: input.type || "order",
+          url: input.url || "/stock-history",
+          requireInteraction: input.requireInteraction ?? true,
+        });
         return { success: true };
       }),
   }),

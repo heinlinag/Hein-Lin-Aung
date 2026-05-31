@@ -1101,3 +1101,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add publicProcedure to fetch order by trackingId (no auth required) — reused existing trpc.orders.qrVerifyByTrackingId
 - [x] Create PublicOrderCard page: Production Order, Balance, Flute Type, Board Size, BQ, Status
 - [x] Register route /:trackingId in App.tsx (public, no geo/auth guard)
+
+## Web Push Background Notifications - VAPID (May 31)
+- [x] Generate VAPID keys and store as env secrets (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VITE_VAPID_PUBLIC_KEY)
+- [x] Add pushSubscriptions DB table (workerID, endpoint, p256dh, auth)
+- [x] Add server procedures: push.subscribe, push.unsubscribe, push.sendToAll, push.sendToWorkers, push.sendToLevel2, push.getVapidKey
+- [x] Update service worker v3.0: push event handler, PUSH_RECEIVED postMessage to open clients, correct icon path /icons/icon-192.png
+- [x] Update frontend: NotificationBell polling reduced to 3s (open) / 8s (closed), PUSH_RECEIVED SW message listener for immediate refetch
+- [x] Wire push.sendToAll to all order event triggers: request, approve, cancel, delete, in-process, out-of-stock in StockHistory and ApprovalCenter
+- [x] Push payloads include: type, url, orderID, jobNo, requireInteraction for rich background notifications
+- [x] tsc --noEmit passes cleanly (0 errors); watcher shows stale incremental cache errors (false positives)

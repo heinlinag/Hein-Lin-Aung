@@ -572,12 +572,20 @@ export default function ApprovalCenter() {
       const snap = req ? JSON.parse(req.orderSnapshot) as OrderSnapshot : null;
       await approveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, approvedQty });
       toast.success("Request approved and action executed.");
+      const actionDataForApprove = req?.actionData ? JSON.parse(req.actionData) : null;
       notifyAll.mutate({
-        title: "✅ Request Approved",
+        title: "Order Request Approved",
         body: snap
-          ? `${worker.workerID} approved a ${req?.type === "delete" ? "Delete" : "Used Update"} request for Order ${snap.orderID}.`
-          : `${worker.workerID} approved request #${id}.`,
-        tag: "request-approved"
+          ? req?.type === "delete"
+            ? `Purchase Order (${snap.orderID}) delete request has been Approved by ${worker.workerID}.`
+            : `Purchase Order is Production Order (${snap.orderID}) to use it for NPRM Modify Order Job No (${actionDataForApprove?.jobNo ?? "N/A"}) ${approvedQty ?? actionDataForApprove?.usedQty ?? 0} pcs. Request Approved by ${worker.workerID}.`
+          : `Request #${id} has been Approved by ${worker.workerID}.`,
+        type: "order",
+        url: "/stock-history",
+        tag: "approved-" + (snap?.orderID ?? id),
+        orderID: snap?.orderID,
+        jobNo: actionDataForApprove?.jobNo,
+        requireInteraction: true,
       });
       if (snap) {
         const actionDataParsed = req?.actionData ? JSON.parse(req.actionData) : null;
@@ -615,11 +623,15 @@ export default function ApprovalCenter() {
       await cancelMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, cancelReason: reason });
       toast.success("Request cancelled. No changes made.");
       notifyAll.mutate({
-        title: "❌ Request Cancelled",
+        title: "Order Request Cancelled",
         body: snap
-          ? `${worker.workerID} cancelled a ${req?.type === "delete" ? "Delete" : "Used Update"} request for Order ${snap.orderID}. Reason: ${reason}`
-          : `${worker.workerID} cancelled request #${id}.`,
-        tag: "request-cancelled"
+          ? `Purchase Order (${snap.orderID}) ${req?.type === "delete" ? "delete" : "used update"} request has been Cancelled by ${worker.workerID}. Reason: ${reason}`
+          : `Request #${id} has been Cancelled by ${worker.workerID}.`,
+        type: "order",
+        url: "/stock-history",
+        tag: "cancelled-" + (snap?.orderID ?? id),
+        orderID: snap?.orderID,
+        requireInteraction: false,
       });
       if (snap) {
         createNotif.mutate({
@@ -650,12 +662,18 @@ export default function ApprovalCenter() {
       const snap = req ? JSON.parse(req.orderSnapshot) as OrderSnapshot : null;
       await processApproveMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID, processApprovedQty });
       toast.success("Request marked as In Process. Level 2 will give final approval.");
+      const actionDataForProcess = req?.actionData ? JSON.parse(req.actionData) : null;
       notifyAll.mutate({
-        title: "🔄 Request In Process",
+        title: "Order Request In Process",
         body: snap
-          ? `${worker.workerID} marked a ${req?.type === "delete" ? "Delete" : "Used Update"} request for Order ${snap.orderID} as In Process. Awaiting Level 2 final approval.`
-          : `${worker.workerID} process-approved request #${id}.`,
-        tag: "request-in-process"
+          ? `Purchase Order is Production Order (${snap.orderID}) to use it for NPRM Modify Order Job No (${actionDataForProcess?.jobNo ?? "N/A"}) ${processApprovedQty ?? actionDataForProcess?.usedQty ?? 0} pcs. Marked In Process by ${worker.workerID}. Awaiting Level 2 final approval.`
+          : `Request #${id} marked In Process by ${worker.workerID}.`,
+        type: "approval",
+        url: "/approval-center",
+        tag: "in-process-" + (snap?.orderID ?? id),
+        orderID: snap?.orderID,
+        jobNo: actionDataForProcess?.jobNo,
+        requireInteraction: true,
       });
       if (snap) {
         const actionDataParsed2 = req?.actionData ? JSON.parse(req.actionData) : null;

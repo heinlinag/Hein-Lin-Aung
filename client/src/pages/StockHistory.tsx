@@ -56,9 +56,14 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
       await logUsage.mutateAsync({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", orderId: order.id, newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null });
       toast.success(`Used ${qty} pcs for Job ${jobNo}. Remaining: ${newQty} pcs.`);
       notifyAll.mutate({
-        title: "⚡ Stock Used (Job No)",
-        body: `Order ${order.orderID}: ${qty} pcs used for Job ${jobNo}. Remaining: ${newQty} pcs.`,
-        tag: "used-update"
+        title: "Stock Used — Job No",
+        body: `Purchase Order (${order.orderID}) Job No (${jobNo}) ${qty} pcs used. Remaining: ${newQty} pcs.`,
+        type: "order",
+        url: "/stock-history",
+        tag: "used-update-" + order.orderID,
+        orderID: order.orderID,
+        jobNo,
+        requireInteraction: false,
       });
       createNotif.mutate({
         type: "order_in_process",
@@ -86,9 +91,13 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
       await logUsage.mutateAsync({ jobNo: null, usedQty: order.qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "old_stock", orderId: order.id, newQty: 0 });
       toast.success("Order cleared and moved to Out of Stock.");
       notifyAll.mutate({
-        title: "📦 Old Stock Cleared",
-        body: `Order ${order.orderID} (${order.qty} pcs) has been cleared and moved to Out of Stock.`,
-        tag: "used-update"
+        title: "Out of Stock — Order Cleared",
+        body: `Purchase Order (${order.orderID}) ${order.qty} pcs cleared as Old Stock and moved to Out of Stock.`,
+        type: "order",
+        url: "/stock-history",
+        tag: "out-of-stock-" + order.orderID,
+        orderID: order.orderID,
+        requireInteraction: false,
       });
       createNotif.mutate({
         type: "out_of_stock",
@@ -330,11 +339,16 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
       }
       const isProcessed = jobResult.autoProcessApproved;
       notifyAll.mutate({
-        title: isProcessed ? "🔄 Request In Process" : "📋 New Approval Request",
+        title: isProcessed ? "Request In Process" : "New Approval Request",
         body: isProcessed
-          ? `${workerID} submitted Used Update for Order ${order.orderID} — auto process-approved. Awaiting Level 2.`
-          : `${workerID} submitted a Used Update request for Order ${order.orderID}. Pending Level 2 approval.`,
-        tag: "pending-request"
+          ? `Purchase Order is Production Order (${order.orderID}) to use it for NPRM Modify Order Job No (${jobNo}) ${qty} pcs. Auto process-approved. Awaiting Level 2 final approval.`
+          : `Purchase Order is Production Order (${order.orderID}) to use it for NPRM Modify Order Job No (${jobNo}) ${qty} pcs. Pending Level 2 approval.`,
+        type: "approval",
+        url: "/approval-center",
+        tag: "request-" + order.orderID,
+        orderID: order.orderID,
+        jobNo,
+        requireInteraction: true,
       });
       createNotif.mutate({
         type: isProcessed ? "order_in_process" : "order_request",
@@ -369,16 +383,24 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
       if (isOldProcessed) {
         toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");
         notifyAll.mutate({
-          title: "🔄 Request In Process",
-          body: `${workerID} submitted Old Stock clear for Order ${order.orderID} — auto process-approved. Awaiting Level 2.`,
-          tag: "pending-request"
+          title: "Old Stock Request In Process",
+          body: `Purchase Order (${order.orderID}) Old Stock clear — ${order.qty} pcs. Auto process-approved. Awaiting Level 2 final approval.`,
+          type: "approval",
+          url: "/approval-center",
+          tag: "old-stock-" + order.orderID,
+          orderID: order.orderID,
+          requireInteraction: true,
         });
       } else {
         toast.success("Request submitted! Awaiting Level 2 approval.");
         notifyAll.mutate({
-          title: "📋 New Approval Request",
-          body: `${workerID} submitted an Old Stock clear request for Order ${order.orderID}. Pending Level 2 approval.`,
-          tag: "pending-request"
+          title: "New Old Stock Request",
+          body: `Purchase Order (${order.orderID}) Old Stock clear request — ${order.qty} pcs. Pending Level 2 approval.`,
+          type: "approval",
+          url: "/approval-center",
+          tag: "old-stock-" + order.orderID,
+          orderID: order.orderID,
+          requireInteraction: true,
         });
       }
       createNotif.mutate({
@@ -652,6 +674,7 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
   const [workerID, setWorkerID] = useState("");
   const [error, setError] = useState("");
   const deleteOrder = trpc.orders.deleteFromHistory.useMutation();
+  const notifyAll = trpc.push.sendToAll.useMutation();
   const createNotif = trpc.notifications.create.useMutation();
 
   const handleDelete = async () => {
@@ -660,6 +683,15 @@ function DeleteDialog({ order, onClose, onSuccess }: { order: Order; onClose: ()
     try {
       await deleteOrder.mutateAsync({ id: order.id, orderID: order.orderID, fluteType: order.fluteType, sizeW: order.sizeW, sizeL: order.sizeL, qty: order.qty, bqComment: order.bqComment, workerID: workerID.trim() });
       toast.success("Order deleted.");
+      notifyAll.mutate({
+        title: "Order Deleted",
+        body: `Purchase Order (${order.orderID}) has been permanently deleted by ${workerID.trim()}. ${order.qty} pcs removed from stock.`,
+        type: "order",
+        url: "/stock-history",
+        tag: "deleted-" + order.orderID,
+        orderID: order.orderID,
+        requireInteraction: false,
+      });
       createNotif.mutate({
         type: "order_deleted",
         title: `Order ${order.orderID} — Deleted`,
@@ -717,16 +749,24 @@ function DeleteRequestDialog({ order, workerID, onClose, onSuccess }: { order: O
       if (isDelProcessed) {
         toast.success("Delete request submitted & auto process-approved! Awaiting Level 2 final approval.");
         notifyAll.mutate({
-          title: "🔄 Delete Request In Process",
-          body: `${workerID} submitted a Delete request for Order ${order.orderID} — auto process-approved. Awaiting Level 2.`,
-          tag: "pending-request"
+          title: "Delete Request In Process",
+          body: `Purchase Order (${order.orderID}) delete request auto process-approved by ${workerID}. Awaiting Level 2 final approval.`,
+          type: "approval",
+          url: "/approval-center",
+          tag: "delete-" + order.orderID,
+          orderID: order.orderID,
+          requireInteraction: true,
         });
       } else {
         toast.success("Delete request submitted! Awaiting Level 2 approval.");
         notifyAll.mutate({
-          title: "🗑️ New Delete Request",
-          body: `${workerID} submitted a Delete request for Order ${order.orderID}. Pending Level 2 approval.`,
-          tag: "pending-request"
+          title: "New Delete Request",
+          body: `Purchase Order (${order.orderID}) delete request submitted by ${workerID}. Pending Level 2 approval.`,
+          type: "approval",
+          url: "/approval-center",
+          tag: "delete-" + order.orderID,
+          orderID: order.orderID,
+          requireInteraction: true,
         });
       }
       createNotif.mutate({
