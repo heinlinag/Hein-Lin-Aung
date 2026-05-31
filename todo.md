@@ -944,7 +944,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Change "Lock" button to "Logout" with improved design
 - [x] Add verification confirmation dialog for logout
 - [x] Optimize AdminPanel header for mobile with compact design
-- [ ] Allow all admin operations without restrictions
+- [x] Allow all admin operations without restrictions
 - [x] Add verification confirmation dialogs for critical admin actions
 
 
@@ -1008,7 +1008,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Toast notifications for form submission
 
 ## Future Improvements & Enhancements
-- [ ] Allow all admin operations without restrictions (May 25)
+- [x] Allow all admin operations without restrictions (May 25)
 - [x] Add verification confirmation dialogs for critical admin actions (May 25)
 - [x] System status page: add real backend status procedure with actual uptime/response time data (completed May 27)
 - [ ] System status page: replace hardcoded maintenance schedule with database-backed entries (future)
@@ -1123,3 +1123,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] All 566 tests passing (25 test files)
 - [x] tsc --noEmit: 0 errors
 - [x] Cleaned 5 stale duplicate push subscriptions from DB (old May 5 entries)
+
+## Excel Export Improvement (May 31)
+- [x] Replace single-sheet Excel export with 2-sheet workbook (Current Stock + Out of Stock)
+- [x] Each sheet has: title rows (merged), generated date/time, total records, column headers, data rows, total qty summary row
+- [x] Auto-set column widths for all 10 columns (no manual adjustment needed)
+- [x] Filename: PP4_StockHistory_YYYY-MM-DD.xlsx
+- [x] Remove PDF export button and jspdf/jspdf-autotable usage
+- [x] Remove unused FileDown import
+- [x] tsc --noEmit: 0 errors | 566/566 tests passing

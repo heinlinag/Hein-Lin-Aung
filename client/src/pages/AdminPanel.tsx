@@ -3,7 +3,7 @@ import { ContactMessagesTab } from "@/components/ContactMessagesTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileDown, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -404,51 +404,54 @@ function WorkersTab() {
 // ─── Export Helpers ───────────────────────────────────────────────────────────
 function exportToExcel(orders: Order[]) {
   import("xlsx").then(XLSX => {
-    const data = orders.map(o => ({
-      "Production Order": o.orderID,
-      "Flute Type": o.fluteType,
-      "Width (mm)": o.sizeW,
-      "Length (mm)": o.sizeL,
-      "Qty (pcs)": o.qty,
-      "BQ Comment": o.bqComment,
-      "Status": o.status === "current" ? "Current Stock" : "Out of Stock",
-      "Submitted By": o.submittedBy ?? "-",
-      "Date": new Date(o.createdAt).toLocaleString(),
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Orders");
-    XLSX.writeFile(wb, `PP4_Orders_${new Date().toISOString().slice(0,10)}.xlsx`);
-  });
-}
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    const timeStr = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
-function exportToPDF(orders: Order[]) {
-  import("jspdf").then(({ jsPDF }) => {
-    import("jspdf-autotable").then(() => {
-      const doc = new jsPDF({ orientation: "landscape" });
-      doc.setFontSize(14);
-      doc.text("PP4 Manual Slitter — Orders Report", 14, 15);
-      doc.setFontSize(9);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
-      (doc as unknown as { autoTable: (opts: unknown) => void }).autoTable({
-        startY: 27,
-        head: [["Production Order", "Flute", "W×L (mm)", "Qty", "BQ Comment", "Status", "Submitted By", "Date"]],
-        body: orders.map(o => [
+    function buildSheet(subset: Order[], sheetLabel: string) {
+      const HEADERS = ["No.", "Production Order", "Flute Type", "Width (mm)", "Length (mm)", "Size (W×L)", "Qty (pcs)", "BQ Comment", "Submitted By", "Date Submitted"];
+      const rows: (string | number)[][] = [
+        [`PP4 Manual Slitter — Stock History Report`],
+        [`Sheet: ${sheetLabel}`],
+        [`Generated: ${dateStr} ${timeStr}`],
+        [`Total Records: ${subset.length}`],
+        [],
+        HEADERS,
+        ...subset.map((o, i) => [
+          i + 1,
           o.orderID,
           o.fluteType,
+          o.sizeW,
+          o.sizeL,
           `${o.sizeW}×${o.sizeL}`,
           o.qty,
           o.bqComment,
-          o.status === "current" ? "Current" : "Out of Stock",
           o.submittedBy ?? "-",
-          new Date(o.createdAt).toLocaleDateString(),
+          new Date(o.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
         ]),
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [37, 99, 235] },
-        alternateRowStyles: { fillColor: [245, 247, 250] },
-      });
-      doc.save(`PP4_Orders_${new Date().toISOString().slice(0,10)}.pdf`);
-    });
+        [],
+        ["", "", "", "", "", "TOTAL QTY", subset.reduce((s, o) => s + o.qty, 0), "", "", ""],
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws["!cols"] = [
+        { wch: 5 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 13 },
+        { wch: 13 }, { wch: 10 }, { wch: 24 }, { wch: 16 }, { wch: 16 },
+      ];
+      ws["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 9 } },
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 9 } },
+      ];
+      return ws;
+    }
+
+    const current = orders.filter(o => o.status === "current");
+    const outOfStock = orders.filter(o => o.status === "out_of_stock");
+    XLSX.utils.book_append_sheet(wb, buildSheet(current, "Current Stock"), "Current Stock");
+    XLSX.utils.book_append_sheet(wb, buildSheet(outOfStock, "Out of Stock"), "Out of Stock");
+    XLSX.writeFile(wb, `PP4_StockHistory_${now.toISOString().slice(0, 10)}.xlsx`);
   });
 }
 // ─── Orders Tab ────────────────────────────────────────────────────────────────
@@ -572,17 +575,9 @@ function OrdersTab() {
             onClick={() => exportToExcel(orders)}
             disabled={orders.length === 0}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-green-600 text-green-700 hover:bg-green-50 transition-colors disabled:opacity-40"
-            title="Export to Excel"
+            title="Download Excel (Current Stock + Out of Stock sheets)"
           >
-            <FileSpreadsheet size={13} /> Excel
-          </button>
-          <button
-            onClick={() => exportToPDF(orders)}
-            disabled={orders.length === 0}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-500 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
-            title="Export to PDF"
-          >
-            <FileDown size={13} /> PDF
+            <FileSpreadsheet size={13} /> Download Excel
           </button>
           <RefreshButton onRefresh={() => utils.orders.list.invalidate()} />
         </div>
