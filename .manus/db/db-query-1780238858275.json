@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM pushSubscriptions WHERE id IN (2370001, 2340007, 2340005, 2250001, 1590005);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute DELETE FROM pushSubscriptions WHERE id IN (2370001, 2340007, 2340005, 2250001, 1590005);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1631
+}

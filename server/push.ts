@@ -72,23 +72,31 @@ export async function sendPushNotification(
 
   const enrichedPayload = {
     ...payload,
-    icon: payload.icon || "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    icon: payload.icon || "/icon-192.png",
+    badge: "/icon-192.png",
     type: payload.type || "general",
     url: payload.url || "/",
     requireInteraction: payload.requireInteraction ?? false,
   };
   
+  const db = await getDb();
   const results = await Promise.allSettled(
-    subscriptions.map(sub =>
-      webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-        JSON.stringify(enrichedPayload)
-      ).catch(err => {
-        // 410 Gone = subscription expired, ignore silently
-        if (err?.statusCode !== 410) console.error("[Push] send error:", err?.message);
-      })
-    )
+    subscriptions.map(async sub => {
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          JSON.stringify(enrichedPayload)
+        );
+      } catch (err: unknown) {
+        const e = err as { statusCode?: number; message?: string };
+        if (e?.statusCode === 410 || e?.statusCode === 404) {
+          // Subscription expired or invalid — auto-remove from DB
+          if (db) await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, sub.endpoint));
+        } else {
+          console.error("[Push] send error:", e?.message);
+        }
+      }
+    })
   );
   return results;
 }

@@ -1,8 +1,8 @@
-// StockDash PWA Service Worker v3.0 (Push + Offline Cache)
+// StockDash PWA Service Worker v3.1 (Push + Offline Cache)
 const APP_NAME = "PP4 Manual Slitter";
-const ICON_URL = "/icons/icon-192.png";
-const CACHE_NAME = 'stockdash-v3';
-const STATIC_ASSETS = ['/', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png'];
+const ICON_URL = "/icon-192.png";
+const CACHE_NAME = 'stockdash-v3.1';
+const STATIC_ASSETS = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png'];
 
 // Push notification handler
 self.addEventListener("push", function (event) {

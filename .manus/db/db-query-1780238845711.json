@@ -1,0 +1,13 @@
+{
+  "query": "SHOW TABLES LIKE '%push%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute SHOW TABLES LIKE '%push%';",
+  "rows": [
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy (%push%)": "pushSubscriptions"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_N47vrNGsXh2iCF9nsiVmGy (%push%)\npushSubscriptions\n",
+  "stderr": "",
+  "execution_time_ms": 2245
+}

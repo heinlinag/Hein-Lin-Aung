@@ -1,0 +1,76 @@
+{
+  "query": "SELECT id, workerID, LEFT(endpoint, 60) as endpoint_preview, createdAt FROM pushSubscriptions ORDER BY createdAt DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute SELECT id, workerID, LEFT(endpoint, 60) as endpoint_preview, createdAt FROM pushSubscriptions ORDER BY createdAt DESC LIMIT 20;",
+  "rows": [
+    {
+      "id": "16920004",
+      "workerID": "DN156",
+      "endpoint_preview": "https://fcm.googleapis.com/fcm/send/fRuOZzIhTE4:APA91bEuFRGD",
+      "createdAt": "2026-05-31 14:45:19"
+    },
+    {
+      "id": "16260002",
+      "workerID": "ALOM",
+      "endpoint_preview": "https://fcm.googleapis.com/fcm/send/fBiYfjFF5Nk:APA91bH1UUtd",
+      "createdAt": "2026-05-30 10:23:19"
+    },
+    {
+      "id": "15690001",
+      "workerID": "CHUAH",
+      "endpoint_preview": "https://fcm.googleapis.com/fcm/send/e7woWLSEsqM:APA91bF18q7G",
+      "createdAt": "2026-05-29 06:00:47"
+    },
+    {
+      "id": "15570007",
+      "workerID": "KHADIJAH",
+      "endpoint_preview": "https://wns2-pn1p.notify.windows.com/w/?token=BQYAAACy%2bbsd",
+      "createdAt": "2026-05-29 02:41:02"
+    },
+    {
+      "id": "14820001",
+      "workerID": "CHAI",
+      "endpoint_preview": "https://wns2-pn1p.notify.windows.com/w/?token=BQYAAACy%2bbsd",
+      "createdAt": "2026-05-28 04:29:43"
+    },
+    {
+      "id": "12990002",
+      "workerID": "SYLVIA",
+      "endpoint_preview": "https://fcm.googleapis.com/fcm/send/eJgt_p6hKDo:APA91bHfbsrJ",
+      "createdAt": "2026-05-24 05:16:15"
+    },
+    {
+      "id": "2370001",
+      "workerID": "chai",
+      "endpoint_preview": "https://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3",
+      "createdAt": "2026-05-05 10:49:05"
+    },
+    {
+      "id": "2340007",
+      "workerID": "sylvia",
+      "endpoint_preview": "https://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3",
+      "createdAt": "2026-05-05 10:21:07"
+    },
+    {
+      "id": "2340005",
+      "workerID": "chuah",
+      "endpoint_preview": "https://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3",
+      "createdAt": "2026-05-05 10:19:34"
+    },
+    {
+      "id": "2250001",
+      "workerID": "Alom",
+      "endpoint_preview": "https://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3",
+      "createdAt": "2026-05-05 09:32:03"
+    },
+    {
+      "id": "1590005",
+      "workerID": "hanis",
+      "endpoint_preview": "https://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3",
+      "createdAt": "2026-05-04 15:44:58"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tworkerID\tendpoint_preview\tcreatedAt\n16920004\tDN156\thttps://fcm.googleapis.com/fcm/send/fRuOZzIhTE4:APA91bEuFRGD\t2026-05-31 14:45:19\n16260002\tALOM\thttps://fcm.googleapis.com/fcm/send/fBiYfjFF5Nk:APA91bH1UUtd\t2026-05-30 10:23:19\n15690001\tCHUAH\thttps://fcm.googleapis.com/fcm/send/e7woWLSEsqM:APA91bF18q7G\t2026-05-29 06:00:47\n15570007\tKHADIJAH\thttps://wns2-pn1p.notify.windows.com/w/?token=BQYAAACy%2bbsd\t2026-05-29 02:41:02\n14820001\tCHAI\thttps://wns2-pn1p.notify.windows.com/w/?token=BQYAAACy%2bbsd\t2026-05-28 04:29:43\n12990002\tSYLVIA\thttps://fcm.googleapis.com/fcm/send/eJgt_p6hKDo:APA91bHfbsrJ\t2026-05-24 05:16:15\n2370001\tchai\thttps://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3\t2026-05-05 10:49:05\n2340007\tsylvia\thttps://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3\t2026-05-05 10:21:07\n2340005\tchuah\thttps://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3\t2026-05-05 10:19:34\n2250001\tAlom\thttps://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3\t2026-05-05 09:32:03\n1590005\thanis\thttps://fcm.googleapis.com/fcm/send/eoH_O-PMUUk:APA91bEjgD_3\t2026-05-04 15:44:58\n",
+  "stderr": "",
+  "execution_time_ms": 1531
+}

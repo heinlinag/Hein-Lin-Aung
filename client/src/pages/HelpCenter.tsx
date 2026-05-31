@@ -219,7 +219,7 @@ function ContactSection() {
             </div>
             <div className="min-w-0">
               <p className="text-xs text-gray-600">Email</p>
-              <p className="font-medium text-gray-900 break-all">{import.meta.env.VITE_ADMIN_EMAIL || "admin@gspp.com"}</p>
+              <a href={`mailto:${import.meta.env.VITE_ADMIN_EMAIL || "admin@gspp.com"}`} className="font-medium text-blue-600 hover:underline break-all">{import.meta.env.VITE_ADMIN_EMAIL || "admin@gspp.com"}</a>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -228,7 +228,7 @@ function ContactSection() {
             </div>
             <div className="min-w-0">
               <p className="text-xs text-gray-600">WhatsApp</p>
-              <p className="font-medium text-gray-900">{import.meta.env.VITE_ADMIN_WHATSAPP || "+95 9 XXX XXX XXX"}</p>
+              <a href={`https://wa.me/${(import.meta.env.VITE_ADMIN_WHATSAPP || "+95 9 XXX XXX XXX").replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="font-medium text-green-600 hover:underline">{import.meta.env.VITE_ADMIN_WHATSAPP || "+95 9 XXX XXX XXX"}</a>
             </div>
           </div>
           <div className="flex items-center gap-3">

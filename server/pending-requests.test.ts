@@ -56,41 +56,42 @@ describe("pendingRequests.getInProcessQty", () => {
     vi.mocked(db.getInProcessQtyForOrder).mockResolvedValue(0);
     const caller = appRouter.createCaller(createProtectedCtx("2"));
     const result = await caller.pendingRequests.getInProcessQty({ orderId: 1 });
-    expect(result).toBe(0);
+    // Router returns { inProcessQty: number }
+    expect(result).toEqual({ inProcessQty: 0 });
   });
 
   it("returns correct in-process qty when requests exist", async () => {
     vi.mocked(db.getInProcessQtyForOrder).mockResolvedValue(70);
     const caller = appRouter.createCaller(createProtectedCtx("2"));
     const result = await caller.pendingRequests.getInProcessQty({ orderId: 1 });
-    expect(result).toBe(70);
+    expect(result).toEqual({ inProcessQty: 70 });
   });
 
   it("returns sum of multiple in-process requests", async () => {
     vi.mocked(db.getInProcessQtyForOrder).mockResolvedValue(150);
     const caller = appRouter.createCaller(createProtectedCtx("2"));
     const result = await caller.pendingRequests.getInProcessQty({ orderId: 1 });
-    expect(result).toBe(150);
+    expect(result).toEqual({ inProcessQty: 150 });
     expect(db.getInProcessQtyForOrder).toHaveBeenCalledWith(1);
   });
 
   it("works for all user levels", async () => {
     vi.mocked(db.getInProcessQtyForOrder).mockResolvedValue(50);
-    
+
     // Test Level 1
     let caller = appRouter.createCaller(createProtectedCtx("1"));
     let result = await caller.pendingRequests.getInProcessQty({ orderId: 1 });
-    expect(result).toBe(50);
-    
+    expect(result).toEqual({ inProcessQty: 50 });
+
     // Test Level 1.1
     caller = appRouter.createCaller(createProtectedCtx("1.1"));
     result = await caller.pendingRequests.getInProcessQty({ orderId: 1 });
-    expect(result).toBe(50);
-    
+    expect(result).toEqual({ inProcessQty: 50 });
+
     // Test Level 2
     caller = appRouter.createCaller(createProtectedCtx("2"));
     result = await caller.pendingRequests.getInProcessQty({ orderId: 1 });
-    expect(result).toBe(50);
+    expect(result).toEqual({ inProcessQty: 50 });
   });
 });
 
@@ -103,14 +104,15 @@ describe("pendingRequests.getPendingUsedQty", () => {
     vi.mocked(db.getPendingUsedQtyForOrder).mockResolvedValue(0);
     const caller = appRouter.createCaller(createProtectedCtx("2"));
     const result = await caller.pendingRequests.getPendingUsedQty({ orderId: 1 });
-    expect(result).toBe(0);
+    // Router returns { pendingUsedQty: number }
+    expect(result).toEqual({ pendingUsedQty: 0 });
   });
 
   it("returns correct pending used qty when requests exist", async () => {
     vi.mocked(db.getPendingUsedQtyForOrder).mockResolvedValue(45);
     const caller = appRouter.createCaller(createProtectedCtx("2"));
     const result = await caller.pendingRequests.getPendingUsedQty({ orderId: 1 });
-    expect(result).toBe(45);
+    expect(result).toEqual({ pendingUsedQty: 45 });
   });
 
   it("calculates available qty correctly (stock - pending)", async () => {
@@ -118,7 +120,7 @@ describe("pendingRequests.getPendingUsedQty", () => {
     vi.mocked(db.getPendingUsedQtyForOrder).mockResolvedValue(45);
     const caller = appRouter.createCaller(createProtectedCtx("2"));
     const result = await caller.pendingRequests.getPendingUsedQty({ orderId: 1 });
-    const availableQty = 300 - result; // 300 - 45 = 255
+    const availableQty = 300 - result.pendingUsedQty; // 300 - 45 = 255
     expect(availableQty).toBe(255);
   });
 });
@@ -131,7 +133,8 @@ describe("pendingRequests.list", () => {
   it("returns empty array when no pending requests exist", async () => {
     vi.mocked(db.getPendingRequests).mockResolvedValue([]);
     const caller = appRouter.createCaller(createProtectedCtx("2"));
-    const result = await caller.pendingRequests.list();
+    // list() requires an input object (status is optional)
+    const result = await caller.pendingRequests.list({});
     expect(result).toEqual([]);
   });
 
@@ -160,7 +163,7 @@ describe("pendingRequests.list", () => {
     ];
     vi.mocked(db.getPendingRequests).mockResolvedValue(mockRequests as any);
     const caller = appRouter.createCaller(createProtectedCtx("2"));
-    const result = await caller.pendingRequests.list();
+    const result = await caller.pendingRequests.list({});
     expect(result).toHaveLength(1);
     expect(result[0].status).toBe("pending");
   });
@@ -170,14 +173,19 @@ describe("pendingRequests.submit", () => {
   beforeEach(() => {
     vi.mocked(db.createPendingRequest).mockReset();
     vi.mocked(db.processApprovePendingRequest).mockReset();
+    vi.mocked(db.getWorkerByWorkerID).mockReset();
   });
 
   it("creates pending request for Level 1 user", async () => {
     vi.mocked(db.createPendingRequest).mockResolvedValue({ id: 1 } as any);
+    vi.mocked(db.getWorkerByWorkerID).mockResolvedValue({
+      id: 1, workerID: "W-001", name: "Test Worker", department: "Production", userLevel: "1", createdAt: new Date(),
+    } as any);
     const caller = appRouter.createCaller(createProtectedCtx("1"));
     const result = await caller.pendingRequests.submit({
       type: "used_update",
       orderId: 1,
+      requestedBy: "W-001",
       actionData: JSON.stringify({ usedQty: 50 }),
       orderSnapshot: JSON.stringify({ orderID: "A-206" }),
     });
@@ -188,10 +196,14 @@ describe("pendingRequests.submit", () => {
   it("auto process-approves for Level 1.1 user", async () => {
     vi.mocked(db.createPendingRequest).mockResolvedValue({ id: 1 } as any);
     vi.mocked(db.processApprovePendingRequest).mockResolvedValue(undefined);
+    vi.mocked(db.getWorkerByWorkerID).mockResolvedValue({
+      id: 1, workerID: "W-001", name: "Test Worker", department: "Production", userLevel: "1.1", createdAt: new Date(),
+    } as any);
     const caller = appRouter.createCaller(createProtectedCtx("1.1"));
     const result = await caller.pendingRequests.submit({
       type: "used_update",
       orderId: 1,
+      requestedBy: "W-001",
       actionData: JSON.stringify({ usedQty: 50 }),
       orderSnapshot: JSON.stringify({ orderID: "A-206" }),
     });
@@ -200,15 +212,17 @@ describe("pendingRequests.submit", () => {
     expect(db.processApprovePendingRequest).toHaveBeenCalledOnce();
   });
 
-  it("rejects submission without authentication", async () => {
+  it("rejects submission when worker not found", async () => {
+    vi.mocked(db.getWorkerByWorkerID).mockResolvedValue(null as any);
     const caller = appRouter.createCaller(createPublicCtx());
     await expect(
       caller.pendingRequests.submit({
         type: "used_update",
         orderId: 1,
+        requestedBy: "INVALID-WORKER",
         actionData: JSON.stringify({ usedQty: 50 }),
         orderSnapshot: JSON.stringify({ orderID: "A-206" }),
       })
-    ).rejects.toThrow("UNAUTHORIZED");
+    ).rejects.toThrow("Invalid Employee ID");
   });
 });

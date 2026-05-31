@@ -1111,3 +1111,15 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Wire push.sendToAll to all order event triggers: request, approve, cancel, delete, in-process, out-of-stock in StockHistory and ApprovalCenter
 - [x] Push payloads include: type, url, orderID, jobNo, requireInteraction for rich background notifications
 - [x] tsc --noEmit passes cleanly (0 errors); watcher shows stale incremental cache errors (false positives)
+
+## Link & Error Fixes (May 31)
+- [x] Fix service worker icon paths: /icons/icon-192.png → /icon-192.png (no subdirectory)
+- [x] Fix push.ts icon/badge paths: /icons/icon-192.png → /icon-192.png
+- [x] Add 410/404 stale subscription auto-cleanup in push.ts
+- [x] Bump sw.js cache name to stockdash-v3.1 to force SW update on all clients
+- [x] Make Email and WhatsApp clickable links in HelpCenter contact section
+- [x] Add catch-all route in App.tsx to show NotFound for any unknown path
+- [x] Fix all 12 pending-requests.test.ts failures (stale test expectations vs actual router behavior)
+- [x] All 566 tests passing (25 test files)
+- [x] tsc --noEmit: 0 errors
+- [x] Cleaned 5 stale duplicate push subscriptions from DB (old May 5 entries)

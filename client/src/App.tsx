@@ -86,6 +86,8 @@ function GeoRestrictedRouter() {
         </Route>
 
         <Route path="/404" component={NotFound} />
+        {/* Catch-all: redirect unknown paths to 404 */}
+        <Route component={NotFound} />
       </Switch>
       <PWAInstallPrompt />
     </GeoGuard>
