@@ -313,3 +313,23 @@ export const groupMessages = mysqlTable("groupMessages", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type GroupMessage = typeof groupMessages.$inferSelect;
+
+// Emoji reactions on DM and Group messages
+export const messageReactions = mysqlTable("messageReactions", {
+  id: int("id").autoincrement().primaryKey(),
+  messageType: mysqlEnum("messageType", ["dm", "group"]).notNull(),
+  messageID: int("messageID").notNull(),
+  workerID: varchar("workerID", { length: 64 }).notNull(),
+  emoji: varchar("emoji", { length: 8 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type MessageReaction = typeof messageReactions.$inferSelect;
+
+// Group message read receipts — tracks which workers have read each group message
+export const groupMessageReads = mysqlTable("groupMessageReads", {
+  id: int("id").autoincrement().primaryKey(),
+  groupMessageID: int("groupMessageID").notNull(),
+  workerID: varchar("workerID", { length: 64 }).notNull(),
+  readAt: timestamp("readAt").defaultNow().notNull(),
+});
+export type GroupMessageRead = typeof groupMessageReads.$inferSelect;

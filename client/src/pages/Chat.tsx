@@ -19,6 +19,14 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+interface Reaction {
+  id: number;
+  messageType: "dm" | "group";
+  messageID: number;
+  workerID: string;
+  emoji: string;
+  createdAt: Date;
+}
 interface Worker {
   id: number;
   workerID: string;
@@ -281,14 +289,65 @@ function NewGroupModal({ workerID, onClose, onCreate }: {
   );
 }
 
-// ─── DM Thread ────────────────────────────────────────────────────────────────
-function DMThread({ conv, workerID, onBack }: { conv: Conversation; workerID: string; onBack?: () => void }) {
+// ─── Emoji Picker (quick 6 emojis) ──────────────────────────────────────────────────────────────
+const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "😡"];
+function EmojiPicker({ onSelect, onClose }: { onSelect: (emoji: string) => void; onClose: () => void }) {
+  return (
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div className="absolute bottom-full mb-1 z-50 bg-white rounded-2xl shadow-xl border border-gray-100 px-2 py-1.5 flex gap-1">
+        {QUICK_EMOJIS.map(e => (
+          <button key={e} onClick={() => { onSelect(e); onClose(); }}
+            className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 rounded-lg transition-colors">
+            {e}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ─── Reaction Bar ────────────────────────────────────────────────────────────────────
+function ReactionBar({ reactions, workerID, onToggle }: { reactions: Reaction[]; workerID: string; onToggle: (emoji: string) => void }) {
+  if (reactions.length === 0) return null;
+  const grouped: Record<string, { count: number; mine: boolean }> = {};
+  reactions.forEach(r => {
+    if (!grouped[r.emoji]) grouped[r.emoji] = { count: 0, mine: false };
+    grouped[r.emoji].count++;
+    if (r.workerID === workerID) grouped[r.emoji].mine = true;
+  });
+  return (
+    <div className="flex flex-wrap gap-1 mt-1">
+      {Object.entries(grouped).map(([emoji, { count, mine }]) => (
+        <button key={emoji} onClick={() => onToggle(emoji)}
+          className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors
+            ${mine ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}>
+          <span>{emoji}</span>
+          <span className="font-medium">{count}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── DM Thread ────────────────────────────────────────────────────────────────────
+function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; workerID: string; workerName: string; onBack?: () => void }) {
   const [text, setText] = useState("");
+  const [emojiPickerMsgID, setEmojiPickerMsgID] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const utils = trpc.useUtils();
 
   const { data: messages = [] } = trpc.chat.getMessages.useQuery({ conversationID: conv.id }, { refetchInterval: 2000 });
+  const msgIDs = (messages as ConvMessage[]).map(m => m.id);
+  const { data: reactions = [] } = trpc.reactions.getForMessages.useQuery(
+    { messageType: "dm", messageIDs: msgIDs },
+    { enabled: msgIDs.length > 0, refetchInterval: 3000 }
+  );
+
+  const toggleReaction = trpc.reactions.toggle.useMutation({
+    onSettled: () => utils.reactions.getForMessages.invalidate({ messageType: "dm", messageIDs: msgIDs }),
+  });
 
   const sendMsg = trpc.chat.sendMessage.useMutation({
     onMutate: async (vars) => {
@@ -320,7 +379,7 @@ function DMThread({ conv, workerID, onBack }: { conv: Conversation; workerID: st
   function handleSend() {
     const trimmed = text.trim();
     if (!trimmed) return;
-    sendMsg.mutate({ conversationID: conv.id, senderID: workerID, text: trimmed });
+    sendMsg.mutate({ conversationID: conv.id, senderID: workerID, senderName: workerName, text: trimmed });
     setText("");
     inputRef.current?.focus();
   }
@@ -366,16 +425,36 @@ function DMThread({ conv, workerID, onBack }: { conv: Conversation; workerID: st
             </div>
             {msgs.map((msg: ConvMessage) => {
               const isMine = msg.senderID === workerID;
+              const msgReactions = (reactions as Reaction[]).filter(r => r.messageID === msg.id);
               return (
-                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} mb-0.5`}>
+                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} mb-1`}>
                   {!isMine && <div className="w-8 mr-1 flex-shrink-0" />}
-                  <div className={`max-w-[75%] md:max-w-[60%] px-3 py-2 rounded-2xl shadow-sm text-sm leading-relaxed
-                    ${isMine ? "bg-[#dcf8c6] rounded-tr-sm" : "bg-white rounded-tl-sm"}`}>
-                    <p className="break-words whitespace-pre-wrap text-gray-900">{msg.text}</p>
-                    <div className={`flex items-center gap-1 mt-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
-                      <span className="text-[10px] text-gray-400">{formatMessageTime(msg.createdAt)}</span>
-                      {isMine && (msg.readAt ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} className="text-gray-400" />)}
+                  <div className="relative group">
+                    <div className={`max-w-[75%] md:max-w-[60%] px-3 py-2 rounded-2xl shadow-sm text-sm leading-relaxed
+                      ${isMine ? "bg-[#dcf8c6] rounded-tr-sm" : "bg-white rounded-tl-sm"}`}>
+                      <p className="break-words whitespace-pre-wrap text-gray-900">{msg.text}</p>
+                      <div className={`flex items-center gap-1 mt-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
+                        <span className="text-[10px] text-gray-400">{formatMessageTime(msg.createdAt)}</span>
+                        {isMine && (msg.readAt ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} className="text-gray-400" />)}
+                      </div>
                     </div>
+                    {/* Emoji reaction trigger */}
+                    <button
+                      onClick={() => setEmojiPickerMsgID(emojiPickerMsgID === msg.id ? null : msg.id)}
+                      className={`absolute -top-2 ${isMine ? "left-0 -translate-x-full mr-1" : "right-0 translate-x-full ml-1"} opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity w-6 h-6 bg-white rounded-full shadow border border-gray-200 flex items-center justify-center text-xs hover:bg-gray-50`}
+                      title="React"
+                    >😊</button>
+                    {emojiPickerMsgID === msg.id && (
+                      <EmojiPicker
+                        onSelect={(emoji) => toggleReaction.mutate({ messageType: "dm", messageID: msg.id, workerID, emoji })}
+                        onClose={() => setEmojiPickerMsgID(null)}
+                      />
+                    )}
+                    <ReactionBar
+                      reactions={msgReactions}
+                      workerID={workerID}
+                      onToggle={(emoji) => toggleReaction.mutate({ messageType: "dm", messageID: msg.id, workerID, emoji })}
+                    />
                   </div>
                 </div>
               );
@@ -405,12 +484,22 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
 }) {
   const [text, setText] = useState("");
   const [showMembers, setShowMembers] = useState(false);
+  const [emojiPickerMsgID, setEmojiPickerMsgID] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const utils = trpc.useUtils();
 
   const { data: messages = [] } = trpc.groupChat.getMessages.useQuery({ groupID: group.id }, { refetchInterval: 2000 });
   const { data: members = [] } = trpc.groupChat.getMembers.useQuery({ groupID: group.id }, { refetchOnWindowFocus: false });
+  const msgIDs = (messages as GroupMessage[]).map(m => m.id);
+  const { data: reactions = [] } = trpc.reactions.getForMessages.useQuery(
+    { messageType: "group", messageIDs: msgIDs },
+    { enabled: msgIDs.length > 0, refetchInterval: 3000 }
+  );
+
+  const toggleReaction = trpc.reactions.toggle.useMutation({
+    onSettled: () => utils.reactions.getForMessages.invalidate({ messageType: "group", messageIDs: msgIDs }),
+  });
 
   const sendMsg = trpc.groupChat.sendMessage.useMutation({
     onMutate: async (vars) => {
@@ -496,16 +585,35 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
               const isMine = msg.senderID === workerID;
               const prevMsg = i > 0 ? msgs[i - 1] : null;
               const showSenderName = !isMine && (!prevMsg || prevMsg.senderID !== msg.senderID);
+              const msgReactions = (reactions as Reaction[]).filter(r => r.messageID === msg.id);
               return (
-                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} mb-0.5`}>
+                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} mb-1`}>
                   {!isMine && <div className="w-8 mr-1 flex-shrink-0" />}
-                  <div className={`max-w-[75%] md:max-w-[60%] px-3 py-2 rounded-2xl shadow-sm text-sm leading-relaxed
-                    ${isMine ? "bg-[#dcf8c6] rounded-tr-sm" : "bg-white rounded-tl-sm"}`}>
-                    {showSenderName && <div className="text-xs font-semibold text-[#075e54] mb-0.5">{msg.senderName}</div>}
-                    <p className="break-words whitespace-pre-wrap text-gray-900">{msg.text}</p>
-                    <div className={`flex items-center gap-1 mt-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
-                      <span className="text-[10px] text-gray-400">{formatMessageTime(msg.createdAt)}</span>
+                  <div className="relative group">
+                    <div className={`max-w-[75%] md:max-w-[60%] px-3 py-2 rounded-2xl shadow-sm text-sm leading-relaxed
+                      ${isMine ? "bg-[#dcf8c6] rounded-tr-sm" : "bg-white rounded-tl-sm"}`}>
+                      {showSenderName && <div className="text-xs font-semibold text-[#075e54] mb-0.5">{msg.senderName}</div>}
+                      <p className="break-words whitespace-pre-wrap text-gray-900">{msg.text}</p>
+                      <div className={`flex items-center gap-1 mt-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
+                        <span className="text-[10px] text-gray-400">{formatMessageTime(msg.createdAt)}</span>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => setEmojiPickerMsgID(emojiPickerMsgID === msg.id ? null : msg.id)}
+                      className={`absolute -top-2 ${isMine ? "left-0 -translate-x-full mr-1" : "right-0 translate-x-full ml-1"} opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity w-6 h-6 bg-white rounded-full shadow border border-gray-200 flex items-center justify-center text-xs hover:bg-gray-50`}
+                      title="React"
+                    >😊</button>
+                    {emojiPickerMsgID === msg.id && (
+                      <EmojiPicker
+                        onSelect={(emoji) => toggleReaction.mutate({ messageType: "group", messageID: msg.id, workerID, emoji })}
+                        onClose={() => setEmojiPickerMsgID(null)}
+                      />
+                    )}
+                    <ReactionBar
+                      reactions={msgReactions}
+                      workerID={workerID}
+                      onToggle={(emoji) => toggleReaction.mutate({ messageType: "group", messageID: msg.id, workerID, emoji })}
+                    />
                   </div>
                 </div>
               );
@@ -811,7 +919,7 @@ export default function Chat() {
       </div>
     </div>
   ) : selected.type === "dm" ? (
-    <DMThread conv={selected.conv} workerID={workerID} />
+    <DMThread conv={selected.conv} workerID={workerID} workerName={workerName} />
   ) : (
     <GroupThread group={selected.group} workerID={workerID} workerName={workerName} onLeave={handleLeaveGroup} />
   );
@@ -863,7 +971,7 @@ export default function Chat() {
         {mobileView === "list" ? (
           <SidebarList {...sidebarProps} />
         ) : selected?.type === "dm" ? (
-          <DMThread conv={selected.conv} workerID={workerID} onBack={() => setMobileView("list")} />
+          <DMThread conv={selected.conv} workerID={workerID} workerName={workerName} onBack={() => setMobileView("list")} />
         ) : selected?.type === "group" ? (
           <GroupThread group={selected.group} workerID={workerID} workerName={workerName}
             onBack={() => setMobileView("list")} onLeave={handleLeaveGroup} />
