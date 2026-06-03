@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
 import AppLayout from "@/components/AppLayout";
+import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { useState, useEffect } from "react";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -225,6 +226,9 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* Announcement marquee ticker */}
+      <AnnouncementBanner />
 
       {/* Notification permission banner */}
       {showNotifBanner && <NotificationBanner onDismiss={dismissBanner} />}

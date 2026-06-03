@@ -385,3 +385,14 @@
   background: oklch(52% 0.19 240 / 20%);
   color: oklch(25% 0.05 240);
 }
+
+/* ── Announcement Marquee Ticker ── */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee linear infinite;
+  will-change: transform;
+}
