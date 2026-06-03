@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, History, CheckCircle2, Settings, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine, Home, MessageCircle, Users,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine, Home, MessageCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -31,7 +31,6 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/approval-center", label: "Approval Center", icon: <CheckCircle2 size={18} /> },
   { href: "/qr-scanner",      label: "QR Scanner",      icon: <ScanLine size={18} /> },
   { href: "/chat",            label: "Messages",        icon: <MessageCircle size={18} /> },
-  { href: "/chat_group",      label: "Group Chat",      icon: <Users size={18} /> },
   { href: "/admin",           label: "Admin Panel",     icon: <Settings size={18} />, adminOnly: true },
 ];
 

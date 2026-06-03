@@ -22,7 +22,6 @@ import QRScanner from "./pages/QRScanner";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import PublicOrderCard from "./pages/PublicOrderCard";
 import Chat from "./pages/Chat";
-import ChatGroup from "./pages/ChatGroup";
 
 
 /** Routes that require geo-restriction (MY/MM only) */
@@ -73,13 +72,6 @@ function GeoRestrictedRouter() {
         <Route path="/chat">
           <LoginGate>
             <Chat />
-          </LoginGate>
-        </Route>
-
-        {/* Group Chat */}
-        <Route path="/chat_group">
-          <LoginGate>
-            <ChatGroup />
           </LoginGate>
         </Route>
 

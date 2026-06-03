@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp, MessageCircle, Users } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
@@ -71,16 +71,6 @@ const baseFeatures = [
     shadowColor: "shadow-teal-700/20",
     btnLabel: "Open Messages",
     accentColor: "teal",
-  },
-  {
-    icon: <Users size={28} className="text-white" />,
-    title: "Group Chat",
-    description: "Create group chats with up to 10 team members.",
-    href: "/chat_group",
-    gradient: "from-cyan-600 to-sky-700",
-    shadowColor: "shadow-sky-500/20",
-    btnLabel: "Open Groups",
-    accentColor: "sky",
   },
 ];
 
