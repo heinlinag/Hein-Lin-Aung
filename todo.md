@@ -1144,3 +1144,26 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Wire AnnouncementBanner into App.tsx GeoRestrictedRouter (appears above all pages)
 - [x] 16 new announcement tests passing (26 test files, 582 tests total)
 - [x] tsc --noEmit: 0 errors
+
+## Worker-to-Worker Direct Messaging / Chat (Jun 3)
+- [ ] Add DB tables: conversations (id, worker1ID, worker2ID, lastMessageAt, orderRef) and messages (id, conversationID, senderID, text, createdAt, readAt)
+- [ ] Add server procedures: chat.getConversations, chat.getOrCreateConversation, chat.getMessages, chat.sendMessage, chat.markRead
+- [ ] Build Chat page (/chat) with conversation list (left panel) and message thread (right panel)
+- [ ] Add Message button to Approval Center order cards (opens chat with submitter, pre-fills order context)
+- [ ] Add Message button to Stock History production order rows (opens chat with relevant worker, pre-fills order context)
+- [ ] Add Chat icon to AppLayout navigation (with unread badge)
+- [ ] Auto-scroll to latest message in thread
+- [ ] Mark messages as read when conversation is opened
+- [ ] Write vitest tests for chat procedures
+
+## Worker-to-Worker Direct Messaging (Chat) (Jun 3)
+- [x] Add conversations and chatMessages DB tables (schema + migration 0023)
+- [x] Add chat router procedures: getConversations, getOrCreate, getMessages, sendMessage, markRead, getUnreadCount, getWorkers
+- [x] Build Chat page UI: conversation list (left panel), message thread (right panel), mobile-responsive
+- [x] Chat deep-link support: /chat?with=WORKERID&ref=ORDERID&label=LABEL
+- [x] Add Message button to Approval Center request cards (opens chat with submitter + order context)
+- [x] Add Message button to StockHistory desktop table and mobile cards (opens chat with submitter + order context)
+- [x] Add /chat route to App.tsx (LoginGate protected)
+- [x] Add Messages nav item to AppLayout sidebar and mobile nav
+- [x] Write chat.test.ts: 10 tests passing
+- [x] All 596 tests passing (27 test files), tsc --noEmit: 0 errors

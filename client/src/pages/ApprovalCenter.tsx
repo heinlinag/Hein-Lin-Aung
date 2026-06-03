@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, MessageCircle } from "lucide-react";
+import { useLocation } from "wouter";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { ActionHistoryCard, type ActionHistoryEvent } from "@/components/ActionHistoryCard";
@@ -74,6 +75,7 @@ function RequestCard({
   canProcessApprove: boolean;
   currentWorkerID?: string;
 }) {
+  const [, navigate] = useLocation();
   // Cancel reason dialog state (local to card)
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReasonLocal, setCancelReasonLocal] = useState("");
@@ -250,7 +252,27 @@ function RequestCard({
 
 
 
-      {/* Actions - Update Info Dropdown */}
+      {/* Actions row: Message + Update Info */}
+      <div className="flex items-center justify-between pt-1 gap-2">
+        {/* Message button — always visible, opens chat with requester about this order */}
+        {currentWorkerID && req.requestedBy !== currentWorkerID && (
+          <button
+            onClick={() => {
+              const orderRef = snapshot?.orderID ?? "";
+              const label = snapshot ? `${snapshot.orderID} · ${snapshot.fluteType} ${snapshot.sizeW}×${snapshot.sizeL}` : "";
+              navigate(`/chat?with=${encodeURIComponent(req.requestedBy)}&ref=${encodeURIComponent(orderRef)}&label=${encodeURIComponent(label)}`);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200"
+            title={`Message ${req.workerName}`}
+          >
+            <MessageCircle size={13} />
+            Message
+          </button>
+        )}
+        <div className="flex-1" />
+      </div>
+
+      {/* Update Info Dropdown */}
       {isPending && (canCancel || canApprove || canProcessApprove) && (
         <div className="flex justify-end pt-1">
           <DropdownMenu>

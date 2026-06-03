@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock } from "lucide-react";
+import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock, MessageCircle } from "lucide-react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -843,6 +844,7 @@ function RefreshButton({ onRefresh, size = 16 }: { onRefresh: () => void; size?:
 export default function StockHistory() {
 
   const { worker } = useAuth();
+  const [, navigate] = useLocation();
   const userLevel = worker?.userLevel ?? "2";
 
   const [activeTab, setActiveTab] = useState<"current" | "out_of_stock">("current");
@@ -984,6 +986,18 @@ export default function StockHistory() {
                               Purchase Order
                             </button>
                           )}
+                          {order.submittedBy && order.submittedBy !== worker?.workerID && (
+                            <button
+                              onClick={() => {
+                                const label = `${order.orderID} · ${order.fluteType} ${order.sizeW}×${order.sizeL}`;
+                                navigate(`/chat?with=${encodeURIComponent(order.submittedBy!)}&ref=${encodeURIComponent(order.orderID)}&label=${encodeURIComponent(label)}`);
+                              }}
+                              className="text-muted-foreground hover:text-indigo-600 p-1 rounded-lg hover:bg-indigo-50 transition-colors"
+                              title={`Message ${order.submittedBy}`}
+                            >
+                              <MessageCircle size={14} />
+                            </button>
+                          )}
                           <A4Label
                             orderId={order.orderID}
                             trackingId={order.trackingId}
@@ -1045,6 +1059,17 @@ export default function StockHistory() {
                   </div>
                   <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Tracking ID: <span className="font-mono font-semibold text-foreground">{order.trackingId || "N/A"}</span></p>
+                  {order.submittedBy && order.submittedBy !== worker?.workerID && (
+                    <button
+                      onClick={() => {
+                        const label = `${order.orderID} · ${order.fluteType} ${order.sizeW}×${order.sizeL}`;
+                        navigate(`/chat?with=${encodeURIComponent(order.submittedBy!)}&ref=${encodeURIComponent(order.orderID)}&label=${encodeURIComponent(label)}`);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors border border-indigo-200"
+                    >
+                      <MessageCircle size={14} /> Message
+                    </button>
+                  )}
                   {activeTab === "current" && (
                     <button
                       onClick={() => setUsedUpdateOrder(order)}
