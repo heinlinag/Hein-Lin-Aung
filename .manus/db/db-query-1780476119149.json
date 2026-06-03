@@ -1,9 +1,0 @@
-{
-  "query": "CREATE TABLE `chatMessages` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`conversationID` int NOT NULL,\n\t`senderID` varchar(64) NOT NULL,\n\t`text` text NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`readAt` timestamp,\n\tCONSTRAINT `chatMessages_id` PRIMARY KEY(`id`)\n);\nCREATE TABLE `conversations` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`worker1ID` varchar(64) NOT NULL,\n\t`worker2ID` varchar(64) NOT NULL,\n\t`orderRef` varchar(64),\n\t`orderLabel` varchar(255),\n\t`lastMessageAt` timestamp NOT NULL DEFAULT (now()),\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `conversations_id` PRIMARY KEY(`id`)\n);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute CREATE TABLE `chatMessages` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`conversationID` int NOT NULL,\n\t`senderID` varchar(64) NOT NULL,\n\t`text` text NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`readAt` timestamp,\n\tCONSTRAINT `chatMessages_id` PRIMARY KEY(`id`)\n);\nCREATE TABLE `conversations` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`worker1ID` varchar(64) NOT NULL,\n\t`worker2ID` varchar(64) NOT NULL,\n\t`orderRef` varchar(64),\n\t`orderLabel` varchar(255),\n\t`lastMessageAt` timestamp NOT NULL DEFAULT (now()),\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `conversations_id` PRIMARY KEY(`id`)\n);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 3388
-}

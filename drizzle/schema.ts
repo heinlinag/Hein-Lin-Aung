@@ -261,30 +261,3 @@ export const announcements = mysqlTable("announcements", {
 });
 export type Announcement = typeof announcements.$inferSelect;
 export type InsertAnnouncement = typeof announcements.$inferInsert;
-
-// ── Chat / Direct Messaging ──────────────────────────────────────────────────
-// A conversation between two workers (optionally linked to an order)
-export const conversations = mysqlTable("conversations", {
-  id: int("id").autoincrement().primaryKey(),
-  worker1ID: varchar("worker1ID", { length: 64 }).notNull(),
-  worker2ID: varchar("worker2ID", { length: 64 }).notNull(),
-  // Optional order context (pre-filled when opened from an order card)
-  orderRef: varchar("orderRef", { length: 64 }),          // productionOrder or orderID
-  orderLabel: varchar("orderLabel", { length: 255 }),      // human-readable label shown in thread
-  lastMessageAt: timestamp("lastMessageAt").defaultNow().notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-export type Conversation = typeof conversations.$inferSelect;
-export type InsertConversation = typeof conversations.$inferInsert;
-
-// Individual messages inside a conversation
-export const chatMessages = mysqlTable("chatMessages", {
-  id: int("id").autoincrement().primaryKey(),
-  conversationID: int("conversationID").notNull(),
-  senderID: varchar("senderID", { length: 64 }).notNull(),
-  text: text("text").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  readAt: timestamp("readAt"),   // null = unread by recipient
-});
-export type ChatMessage = typeof chatMessages.$inferSelect;
-export type InsertChatMessage = typeof chatMessages.$inferInsert;

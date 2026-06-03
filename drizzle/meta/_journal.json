@@ -162,13 +162,6 @@
       "when": 1780320622575,
       "tag": "0022_wet_synch",
       "breakpoints": true
-    },
-    {
-      "idx": 23,
-      "version": "5",
-      "when": 1780476103980,
-      "tag": "0023_material_synch",
-      "breakpoints": true
     }
   ]
 }
