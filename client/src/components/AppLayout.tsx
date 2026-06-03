@@ -319,8 +319,8 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
       {/* ── Main content area ──────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile/Tablet top header */}
-        <header className="lg:hidden border-b border-gray-200/60 bg-white/95 backdrop-blur-md sticky top-0 z-20 shadow-sm">
+        {/* Mobile/Tablet top header — always shown on Chat page (fullHeight), hidden on lg+ for other pages */}
+        <header className={`${fullHeight ? "flex" : "lg:hidden"} border-b border-gray-200/60 bg-white/95 backdrop-blur-md sticky top-0 z-20 shadow-sm`}>
           <div className="px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
             <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
