@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, History, CheckCircle2, Settings, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine, Home, MessageCircle,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine, Home,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -30,16 +30,12 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/usage-history",   label: "Usage History",   icon: <History size={18} /> },
   { href: "/approval-center", label: "Approval Center", icon: <CheckCircle2 size={18} /> },
   { href: "/qr-scanner",      label: "QR Scanner",      icon: <ScanLine size={18} /> },
-  { href: "/chat",            label: "Messages",        icon: <MessageCircle size={18} /> },
   { href: "/admin",           label: "Admin Panel",     icon: <Settings size={18} />, adminOnly: true },
 ];
 
 interface AppLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
-  headerActions?: React.ReactNode;
-  /** When true: hides desktop page title bar and sets main to overflow-hidden (for full-height pages like Chat) */
-  fullHeight?: boolean;
 }
 
 function levelLabel(level: string) {
@@ -48,7 +44,7 @@ function levelLabel(level: string) {
   return                      { text: "Level 2",   bg: "bg-green-100",  fg: "text-green-700",  badge: "bg-green-200 text-green-700" };
 }
 
-export default function AppLayout({ children, pageTitle, headerActions, fullHeight }: AppLayoutProps) {
+export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
   const [location, navigate] = useLocation();
   const { worker, logoutWorker, loginAdmin } = useAuth();
   const userLevel = worker?.userLevel ?? "2";
@@ -106,12 +102,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     { refetchInterval: 30000 }
   );
   const pendingCount = (pendingQuery.data ?? []).length;
-
-  const unreadMsgQuery = trpc.chat.getUnreadCount.useQuery(
-    { workerID: worker?.workerID ?? "" },
-    { refetchInterval: 5000, enabled: !!worker?.workerID }
-  );
-  const unreadMsgCount = unreadMsgQuery.data?.count ?? 0;
 
   const handleLogout = () => {
     logoutWorker();
@@ -296,11 +286,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                   {pendingCount > 99 ? "99+" : pendingCount}
                 </span>
               )}
-              {item.href === "/chat" && unreadMsgCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
-                  {unreadMsgCount > 99 ? "99+" : unreadMsgCount}
-                </span>
-              )}
             </button>
           ))}
         </nav>
@@ -319,9 +304,9 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
       {/* ── Main content area ──────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile/Tablet top header — always shown on Chat page (fullHeight), hidden on lg+ for other pages */}
-        <header className={`${fullHeight ? "flex" : "lg:hidden"} border-b border-gray-200/60 bg-white/95 backdrop-blur-md sticky top-0 z-20 shadow-sm`}>
-          <div className="px-3 py-2 flex items-center gap-2">
+        {/* Mobile/Tablet top header */}
+        <header className="lg:hidden border-b border-gray-200/60 bg-white/95 backdrop-blur-md sticky top-0 z-20 shadow-sm">
+          <div className="px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
             <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
                 <img src={LOGO_URL} alt="GSPP" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" />
@@ -332,17 +317,15 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               <div className="text-[10px] sm:text-[11px] text-gray-500 leading-tight">Stock Management System</div>
             </div>
             {worker && (
-              <div className="flex items-center gap-1.5 shrink-0">
-                {headerActions && (
-                  <div className="shrink-0">{headerActions}</div>
-                )}
+              <div className="flex items-center gap-2 shrink-0">
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(v => !v)}
-                    className="flex items-center gap-1 bg-blue-50 text-blue-700 rounded-full px-2 py-1 text-[10px] font-semibold hover:bg-blue-100 transition-colors border border-blue-100"
+                    className="flex items-center gap-1.5 bg-blue-50 text-blue-700 rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold hover:bg-blue-100 transition-colors border border-blue-100"
                   >
-                    <User size={10} className="shrink-0" />
-                    <span>Profile</span>
+                    <User size={11} className="shrink-0" />
+                    <span className="hidden xs:inline">User Profile</span>
+                    <span className="xs:hidden">Profile</span>
                   </button>
                   {profileOpen && <ProfileDropdown />}
                 </div>
@@ -351,16 +334,17 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
           </div>
         </header>
 
-         {/* Desktop page title bar */}
-        {pageTitle && !fullHeight && (
+        {/* Desktop page title bar */}
+        {pageTitle && (
           <div className="hidden lg:flex items-center px-8 py-4 border-b border-border bg-white">
             <h1 className="text-base sm:text-lg md:text-xl font-bold text-foreground" style={{ fontFamily: "Lora, serif" }}>
               {pageTitle}
             </h1>
           </div>
         )}
+
         {/* Page content */}
-        <main className={`flex-1 min-h-0 ${fullHeight ? "overflow-hidden" : "overflow-y-auto"}`}>
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </div>

@@ -396,14 +396,3 @@
   animation: marquee linear infinite;
   will-change: transform;
 }
-
-/* Seamless 3x loop: Ann1→Ann2→Ann3→Ann1→... */
-@keyframes marquee-loop {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-33.3333%); }
-}
-.animate-marquee-loop {
-  display: inline-flex;
-  animation: marquee-loop linear infinite;
-  will-change: transform;
-}

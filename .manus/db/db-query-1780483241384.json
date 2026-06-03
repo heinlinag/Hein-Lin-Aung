@@ -1,9 +1,0 @@
-{
-  "query": "CREATE TABLE `groupMessageReads` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`groupMessageID` int NOT NULL,\n\t`workerID` varchar(64) NOT NULL,\n\t`readAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `groupMessageReads_id` PRIMARY KEY(`id`)\n);\nCREATE TABLE `messageReactions` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`messageType` enum('dm','group') NOT NULL,\n\t`messageID` int NOT NULL,\n\t`workerID` varchar(64) NOT NULL,\n\t`emoji` varchar(8) NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `messageReactions_id` PRIMARY KEY(`id`)\n);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute CREATE TABLE `groupMessageReads` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`groupMessageID` int NOT NULL,\n\t`workerID` varchar(64) NOT NULL,\n\t`readAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `groupMessageReads_id` PRIMARY KEY(`id`)\n);\nCREATE TABLE `messageReactions` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`messageType` enum('dm','group') NOT NULL,\n\t`messageID` int NOT NULL,\n\t`workerID` varchar(64) NOT NULL,\n\t`emoji` varchar(8) NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `messageReactions_id` PRIMARY KEY(`id`)\n);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 2090
-}

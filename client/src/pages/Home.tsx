@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp, MessageCircle } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
@@ -61,17 +61,6 @@ const baseFeatures = [
     btnLabel: "Open Approvals",
     showBadge: true,
     accentColor: "orange",
-  },
-  {
-    icon: <MessageCircle size={28} className="text-white" />,
-    title: "Messages",
-    description: "Send direct messages to other workers in real time.",
-    href: "/chat",
-    gradient: "from-[#075e54] to-[#128c7e]",
-    shadowColor: "shadow-teal-700/20",
-    btnLabel: "Open Messages",
-    showMessageBadge: true,
-    accentColor: "teal",
   },
 ];
 
@@ -136,12 +125,6 @@ export default function Home() {
     { refetchInterval: 30000 }
   );
   const pendingCount = (pendingQuery.data ?? []).length;
-
-  const unreadMsgQuery = trpc.chat.getUnreadCount.useQuery(
-    { workerID: worker?.workerID ?? "" },
-    { refetchInterval: 5000, enabled: !!worker?.workerID }
-  );
-  const unreadMsgCount = unreadMsgQuery.data?.count ?? 0;
 
   const DISMISS_KEY = "notif_banner_dismissed";
   const [showNotifBanner, setShowNotifBanner] = useState(false);
@@ -280,12 +263,6 @@ export default function Home() {
                 {f.showBadge && pendingCount > 0 && (
                   <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-lg notif-badge z-10">
                     {pendingCount > 99 ? "99+" : pendingCount}
-                  </span>
-                )}
-                {/* Badge on Messages */}
-                {(f as { showMessageBadge?: boolean }).showMessageBadge && unreadMsgCount > 0 && (
-                  <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-lg notif-badge z-10">
-                    {unreadMsgCount > 99 ? "99+" : unreadMsgCount}
                   </span>
                 )}
 
