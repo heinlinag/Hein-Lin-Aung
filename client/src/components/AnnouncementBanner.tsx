@@ -27,15 +27,22 @@ export function AnnouncementBanner() {
   const items = active as Announcement[];
   if (items.length === 0) return null;
 
-  // Build the ticker text: "TITLE — message" for each announcement, separated by a divider
+  // Build the ticker text: "TITLE — message" for each announcement
   const tickerItems = items.map((a: Announcement) => ({
     id: a.id,
     type: a.type as AnnType,
     label: `${a.title} — ${a.message}`,
   }));
 
-  // Duplicate for seamless loop
-  const doubled = [...tickerItems, ...tickerItems];
+  // Quadruple for seamless loop — ensures enough content to fill wide screens
+  const repeated = [...tickerItems, ...tickerItems, ...tickerItems, ...tickerItems];
+
+  // Speed-based duration: estimate ~7.5px per char at text-xs, target 100px/s scroll speed
+  // The animation moves -50% (half of 4x = 2x worth), so duration = (2x pixel width) / speed
+  const totalCharsOnce = tickerItems.reduce((sum, t) => sum + t.label.length + 15, 0);
+  const estimatedPxOnce = totalCharsOnce * 7.5;
+  // We move 2 copies worth (since we have 4x and move -50%)
+  const duration = Math.max(10, Math.round((estimatedPxOnce * 2) / 100));
 
   return (
     <div className="w-full bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 overflow-hidden relative">
@@ -54,9 +61,9 @@ export function AnnouncementBanner() {
       <div className="flex items-center py-2 pl-24 overflow-hidden">
         <div
           className="flex items-center gap-0 whitespace-nowrap animate-marquee"
-          style={{ animationDuration: `${Math.max(20, tickerItems.length * 12)}s` }}
+          style={{ animationDuration: `${duration}s` }}
         >
-          {doubled.map((item, idx) => (
+          {repeated.map((item, idx) => (
             <span key={`${item.id}-${idx}`} className="inline-flex items-center gap-1.5 mr-10">
               {/* Colored dot */}
               <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${TYPE_DOT[item.type]}`} />
