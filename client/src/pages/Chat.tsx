@@ -954,7 +954,7 @@ export default function Chat() {
   );
 
   return (
-    <AppLayout pageTitle="Messages" headerActions={mobileHeaderActions}>
+    <AppLayout pageTitle="Messages" headerActions={mobileHeaderActions} fullHeight>
     <div className="h-full flex overflow-hidden bg-[#f0f2f5]">
       {/* ── Desktop/Tablet: Side-by-side ── */}
       <div className="hidden md:flex w-full h-full">

@@ -1146,6 +1146,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] tsc --noEmit: 0 errors
 
 ## Chat Feature Enhancements (Jun 3)
+- [x] Desktop/Tablet/Laptop/Computer: Show "Messages" title in Chat sidebar header (fullHeight prop in AppLayout)
 
 ### Message Read Receipts (✓✓ ticks)
 - [x] DM: chatMessages table already has readAt column — use it for read receipt

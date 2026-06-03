@@ -38,6 +38,8 @@ interface AppLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
   headerActions?: React.ReactNode;
+  /** When true: hides desktop page title bar and sets main to overflow-hidden (for full-height pages like Chat) */
+  fullHeight?: boolean;
 }
 
 function levelLabel(level: string) {
@@ -46,7 +48,7 @@ function levelLabel(level: string) {
   return                      { text: "Level 2",   bg: "bg-green-100",  fg: "text-green-700",  badge: "bg-green-200 text-green-700" };
 }
 
-export default function AppLayout({ children, pageTitle, headerActions }: AppLayoutProps) {
+export default function AppLayout({ children, pageTitle, headerActions, fullHeight }: AppLayoutProps) {
   const [location, navigate] = useLocation();
   const { worker, logoutWorker, loginAdmin } = useAuth();
   const userLevel = worker?.userLevel ?? "2";
@@ -350,17 +352,16 @@ export default function AppLayout({ children, pageTitle, headerActions }: AppLay
           </div>
         </header>
 
-        {/* Desktop page title bar */}
-        {pageTitle && (
+         {/* Desktop page title bar */}
+        {pageTitle && !fullHeight && (
           <div className="hidden lg:flex items-center px-8 py-4 border-b border-border bg-white">
             <h1 className="text-base sm:text-lg md:text-xl font-bold text-foreground" style={{ fontFamily: "Lora, serif" }}>
               {pageTitle}
             </h1>
           </div>
         )}
-
         {/* Page content */}
-        <main className="flex-1 min-h-0 overflow-y-auto">
+        <main className={`flex-1 min-h-0 ${fullHeight ? "overflow-hidden" : "overflow-y-auto"}`}>
           {children}
         </main>
       </div>
