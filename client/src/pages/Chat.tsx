@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/contexts/AuthContext";
+import AppLayout from "@/components/AppLayout";
 import {
   MessageCircle, Search, Plus, ArrowLeft, Send,
   X, UserCircle2, MessageSquareDot, Check, CheckCheck,
@@ -587,8 +588,8 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
 
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Header */}
-      <div className="bg-[#075e54] text-white px-4 py-4 flex items-center justify-between flex-shrink-0">
+      {/* Header — hidden on mobile (AppLayout provides header), visible on desktop sidebar */}
+      <div className="hidden md:flex bg-[#075e54] text-white px-4 py-4 items-center justify-between flex-shrink-0">
         <h1 className="text-lg font-semibold">Messages</h1>
         <div className="relative">
           <Button variant="ghost" size="icon" onClick={() => setShowDropdown(v => !v)}
@@ -722,6 +723,7 @@ export default function Chat() {
   const [mobileView, setMobileView] = useState<"list" | "thread">("list");
   const [showNewMessage, setShowNewMessage] = useState(false);
   const [showNewGroup, setShowNewGroup] = useState(false);
+  const [showMobileDropdown, setShowMobileDropdown] = useState(false);
   const utils = trpc.useUtils();
 
   const workerID = worker?.workerID || "";
@@ -814,8 +816,38 @@ export default function Chat() {
     <GroupThread group={selected.group} workerID={workerID} workerName={workerName} onLeave={handleLeaveGroup} />
   );
 
+  const mobileHeaderActions = (
+    <div className="relative">
+      <button
+        onClick={() => setShowMobileDropdown(v => !v)}
+        className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors"
+        title="New"
+      >
+        <Plus size={16} />
+      </button>
+      {showMobileDropdown && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowMobileDropdown(false)} />
+          <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden min-w-[160px]">
+            <button onClick={() => { setShowMobileDropdown(false); setShowNewMessage(true); }}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-gray-900 text-sm">
+              <MessageCircle size={16} className="text-[#075e54]" />
+              New Message
+            </button>
+            <button onClick={() => { setShowMobileDropdown(false); setShowNewGroup(true); }}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-gray-900 text-sm border-t border-gray-50">
+              <Users size={16} className="text-[#128c7e]" />
+              New Group
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   return (
-    <div className="h-[calc(100vh-4rem)] flex overflow-hidden bg-[#f0f2f5]">
+    <AppLayout pageTitle="Messages" headerActions={mobileHeaderActions}>
+    <div className="h-full flex overflow-hidden bg-[#f0f2f5]">
       {/* ── Desktop/Tablet: Side-by-side ── */}
       <div className="hidden md:flex w-full h-full">
         <div className="w-[360px] lg:w-[400px] flex-shrink-0 border-r border-gray-200 h-full overflow-hidden">
@@ -841,5 +873,6 @@ export default function Chat() {
       {showNewMessage && <NewMessageModal workerID={workerID} onClose={() => setShowNewMessage(false)} onSelect={handleNewWorker} />}
       {showNewGroup && <NewGroupModal workerID={workerID} onClose={() => setShowNewGroup(false)} onCreate={handleGroupCreated} />}
     </div>
+    </AppLayout>
   );
 }

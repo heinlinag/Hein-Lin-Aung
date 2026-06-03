@@ -37,6 +37,7 @@ const NAV_ITEMS: NavItem[] = [
 interface AppLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
+  headerActions?: React.ReactNode;
 }
 
 function levelLabel(level: string) {
@@ -45,7 +46,7 @@ function levelLabel(level: string) {
   return                      { text: "Level 2",   bg: "bg-green-100",  fg: "text-green-700",  badge: "bg-green-200 text-green-700" };
 }
 
-export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
+export default function AppLayout({ children, pageTitle, headerActions }: AppLayoutProps) {
   const [location, navigate] = useLocation();
   const { worker, logoutWorker, loginAdmin } = useAuth();
   const userLevel = worker?.userLevel ?? "2";
@@ -330,6 +331,9 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
             </div>
             {worker && (
               <div className="flex items-center gap-2 shrink-0">
+                {headerActions && (
+                  <div className="shrink-0">{headerActions}</div>
+                )}
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(v => !v)}
@@ -356,7 +360,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
         )}
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 min-h-0 overflow-y-auto">
           {children}
         </main>
       </div>
