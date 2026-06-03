@@ -423,22 +423,32 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
             <div className="flex justify-center my-3">
               <span className="bg-white/80 text-gray-500 text-xs px-3 py-1 rounded-full shadow-sm">{formatDateSeparator(new Date(date))}</span>
             </div>
-            {msgs.map((msg: ConvMessage) => {
+            {msgs.map((msg: ConvMessage, i: number) => {
               const isMine = msg.senderID === workerID;
               const msgReactions = (reactions as Reaction[]).filter(r => r.messageID === msg.id);
+              const prevMsg = i > 0 ? msgs[i - 1] : null;
+              const nextMsg = i < msgs.length - 1 ? msgs[i + 1] : null;
+              const isFirst = !prevMsg || prevMsg.senderID !== msg.senderID;
+              const isLast = !nextMsg || nextMsg.senderID !== msg.senderID;
+              // WhatsApp-style radius: tail only on last bubble of a group
+              const radius = isMine
+                ? `rounded-[18px] ${isLast ? "rounded-br-[4px]" : ""}`
+                : `rounded-[18px] ${isLast ? "rounded-bl-[4px]" : ""}`;
               return (
-                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} mb-1`}>
+                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} ${isLast ? "mb-1" : "mb-0.5"}`}>
                   {!isMine && <div className="w-8 mr-1 flex-shrink-0" />}
                   <div className="relative group">
-                    <div className={`max-w-[75%] md:max-w-[60%] px-3 py-1.5 rounded-2xl shadow-sm text-sm
-                      ${isMine ? "bg-[#dcf8c6] rounded-tr-sm" : "bg-white rounded-tl-sm"}`}>
-                      <p className="break-words whitespace-pre-wrap text-gray-900 leading-snug">
-                        {msg.text}
-                        <span className="inline-flex items-center gap-0.5 ml-1.5 align-bottom opacity-0 select-none" aria-hidden>&#8203;</span>
-                      </p>
-                      <div className={`flex items-center gap-0.5 -mt-1 mb-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
-                        <span className="text-[10px] text-gray-400 leading-none">{formatMessageTime(msg.createdAt)}</span>
-                        {isMine && (msg.readAt ? <CheckCheck size={11} className="text-blue-500" /> : <Check size={11} className="text-gray-400" />)}
+                    <div className={`max-w-[75%] md:max-w-[65%] px-3 py-[6px] shadow-sm text-sm ${radius}
+                      ${isMine ? "bg-[#e7ffdb]" : "bg-white"}`}>
+                      {/* WhatsApp inline timestamp trick: float spacer reserves room for timestamp */}
+                      <span className="float-right ml-2 mt-1 flex items-center gap-0.5 opacity-0 pointer-events-none select-none text-[11px]" aria-hidden>
+                        {formatMessageTime(msg.createdAt)}
+                        {isMine && <CheckCheck size={12} />}
+                      </span>
+                      <p className="break-words whitespace-pre-wrap text-[14.2px] text-gray-900 leading-[1.4]">{msg.text}</p>
+                      <div className={`flex items-center gap-0.5 justify-end -mt-0.5`}>
+                        <span className="text-[11px] text-gray-400 leading-none">{formatMessageTime(msg.createdAt)}</span>
+                        {isMine && (msg.readAt ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} className="text-gray-400" />)}
                       </div>
                     </div>
                     {/* Emoji reaction trigger */}
@@ -587,18 +597,32 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
             {msgs.map((msg: GroupMessage, i: number) => {
               const isMine = msg.senderID === workerID;
               const prevMsg = i > 0 ? msgs[i - 1] : null;
+              const nextMsg = i < msgs.length - 1 ? msgs[i + 1] : null;
               const showSenderName = !isMine && (!prevMsg || prevMsg.senderID !== msg.senderID);
+              const isLast = !nextMsg || nextMsg.senderID !== msg.senderID;
               const msgReactions = (reactions as Reaction[]).filter(r => r.messageID === msg.id);
+              const radius = isMine
+                ? `rounded-[18px] ${isLast ? "rounded-br-[4px]" : ""}`
+                : `rounded-[18px] ${isLast ? "rounded-bl-[4px]" : ""}`;
               return (
-                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} mb-1`}>
-                  {!isMine && <div className="w-8 mr-1 flex-shrink-0" />}
+                <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} ${isLast ? "mb-1" : "mb-0.5"}`}>
+                  {/* Left avatar for received messages — only show on last of group */}
+                  {!isMine ? (
+                    <div className="w-8 mr-1 flex-shrink-0 self-end">
+                      {isLast && <Avatar name={msg.senderName || "?"} size="sm" />}
+                    </div>
+                  ) : null}
                   <div className="relative group">
-                    <div className={`max-w-[75%] md:max-w-[60%] px-3 py-1.5 rounded-2xl shadow-sm text-sm
-                      ${isMine ? "bg-[#dcf8c6] rounded-tr-sm" : "bg-white rounded-tl-sm"}`}>
+                    <div className={`max-w-[75%] md:max-w-[65%] px-3 py-[6px] shadow-sm text-sm ${radius}
+                      ${isMine ? "bg-[#e7ffdb]" : "bg-white"}`}>
                       {showSenderName && <div className="text-xs font-semibold text-[#075e54] mb-0.5">{msg.senderName}</div>}
-                      <p className="break-words whitespace-pre-wrap text-gray-900 leading-snug">{msg.text}</p>
-                      <div className={`flex items-center gap-0.5 -mt-1 mb-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
-                        <span className="text-[10px] text-gray-400 leading-none">{formatMessageTime(msg.createdAt)}</span>
+                      {/* float spacer for timestamp width reservation */}
+                      <span className="float-right ml-2 mt-1 flex items-center gap-0.5 opacity-0 pointer-events-none select-none text-[11px]" aria-hidden>
+                        {formatMessageTime(msg.createdAt)}
+                      </span>
+                      <p className="break-words whitespace-pre-wrap text-[14.2px] text-gray-900 leading-[1.4]">{msg.text}</p>
+                      <div className="flex items-center gap-0.5 justify-end -mt-0.5">
+                        <span className="text-[11px] text-gray-400 leading-none">{formatMessageTime(msg.createdAt)}</span>
                       </div>
                     </div>
                     <button
