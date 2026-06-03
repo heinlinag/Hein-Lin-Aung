@@ -430,12 +430,15 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
                 <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} mb-1`}>
                   {!isMine && <div className="w-8 mr-1 flex-shrink-0" />}
                   <div className="relative group">
-                    <div className={`max-w-[75%] md:max-w-[60%] px-3 py-2 rounded-2xl shadow-sm text-sm leading-relaxed
+                    <div className={`max-w-[75%] md:max-w-[60%] px-3 py-1.5 rounded-2xl shadow-sm text-sm
                       ${isMine ? "bg-[#dcf8c6] rounded-tr-sm" : "bg-white rounded-tl-sm"}`}>
-                      <p className="break-words whitespace-pre-wrap text-gray-900">{msg.text}</p>
-                      <div className={`flex items-center gap-1 mt-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
-                        <span className="text-[10px] text-gray-400">{formatMessageTime(msg.createdAt)}</span>
-                        {isMine && (msg.readAt ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} className="text-gray-400" />)}
+                      <p className="break-words whitespace-pre-wrap text-gray-900 leading-snug">
+                        {msg.text}
+                        <span className="inline-flex items-center gap-0.5 ml-1.5 align-bottom opacity-0 select-none" aria-hidden>&#8203;</span>
+                      </p>
+                      <div className={`flex items-center gap-0.5 -mt-1 mb-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
+                        <span className="text-[10px] text-gray-400 leading-none">{formatMessageTime(msg.createdAt)}</span>
+                        {isMine && (msg.readAt ? <CheckCheck size={11} className="text-blue-500" /> : <Check size={11} className="text-gray-400" />)}
                       </div>
                     </div>
                     {/* Emoji reaction trigger */}
@@ -590,12 +593,12 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
                 <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} mb-1`}>
                   {!isMine && <div className="w-8 mr-1 flex-shrink-0" />}
                   <div className="relative group">
-                    <div className={`max-w-[75%] md:max-w-[60%] px-3 py-2 rounded-2xl shadow-sm text-sm leading-relaxed
+                    <div className={`max-w-[75%] md:max-w-[60%] px-3 py-1.5 rounded-2xl shadow-sm text-sm
                       ${isMine ? "bg-[#dcf8c6] rounded-tr-sm" : "bg-white rounded-tl-sm"}`}>
                       {showSenderName && <div className="text-xs font-semibold text-[#075e54] mb-0.5">{msg.senderName}</div>}
-                      <p className="break-words whitespace-pre-wrap text-gray-900">{msg.text}</p>
-                      <div className={`flex items-center gap-1 mt-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
-                        <span className="text-[10px] text-gray-400">{formatMessageTime(msg.createdAt)}</span>
+                      <p className="break-words whitespace-pre-wrap text-gray-900 leading-snug">{msg.text}</p>
+                      <div className={`flex items-center gap-0.5 -mt-1 mb-0.5 ${isMine ? "justify-end" : "justify-start"}`}>
+                        <span className="text-[10px] text-gray-400 leading-none">{formatMessageTime(msg.createdAt)}</span>
                       </div>
                     </div>
                     <button
@@ -928,10 +931,10 @@ export default function Chat() {
     <div className="relative">
       <button
         onClick={() => setShowMobileDropdown(v => !v)}
-        className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors"
+        className="p-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors"
         title="New"
       >
-        <Plus size={16} />
+        <Plus size={14} />
       </button>
       {showMobileDropdown && (
         <>

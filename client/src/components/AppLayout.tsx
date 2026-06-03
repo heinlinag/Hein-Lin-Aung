@@ -321,7 +321,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile/Tablet top header — always shown on Chat page (fullHeight), hidden on lg+ for other pages */}
         <header className={`${fullHeight ? "flex" : "lg:hidden"} border-b border-gray-200/60 bg-white/95 backdrop-blur-md sticky top-0 z-20 shadow-sm`}>
-          <div className="px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
+          <div className="px-3 py-2 flex items-center gap-2">
             <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
                 <img src={LOGO_URL} alt="GSPP" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" />
@@ -332,18 +332,17 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               <div className="text-[10px] sm:text-[11px] text-gray-500 leading-tight">Stock Management System</div>
             </div>
             {worker && (
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 {headerActions && (
                   <div className="shrink-0">{headerActions}</div>
                 )}
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(v => !v)}
-                    className="flex items-center gap-1.5 bg-blue-50 text-blue-700 rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold hover:bg-blue-100 transition-colors border border-blue-100"
+                    className="flex items-center gap-1 bg-blue-50 text-blue-700 rounded-full px-2 py-1 text-[10px] font-semibold hover:bg-blue-100 transition-colors border border-blue-100"
                   >
-                    <User size={11} className="shrink-0" />
-                    <span className="hidden xs:inline">User Profile</span>
-                    <span className="xs:hidden">Profile</span>
+                    <User size={10} className="shrink-0" />
+                    <span>Profile</span>
                   </button>
                   {profileOpen && <ProfileDropdown />}
                 </div>
