@@ -104,9 +104,10 @@ export function AnnouncementsTab() {
           <RefreshButton onRefresh={() => utils.announcements.listAll.invalidate()} />
           <button
             onClick={() => setShowForm(v => !v)}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+            title="New Announcement"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
           >
-            <Plus size={13} /> New Announcement
+            <Plus size={16} />
           </button>
         </div>
       </div>
