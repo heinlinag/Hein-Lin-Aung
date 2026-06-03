@@ -162,6 +162,34 @@
       "when": 1780320622575,
       "tag": "0022_wet_synch",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1780476103980,
+      "tag": "0023_material_synch",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1780477857646,
+      "tag": "0024_hard_chronomancer",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1780478862263,
+      "tag": "0025_wealthy_old_lace",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1780483225802,
+      "tag": "0026_panoramic_puff_adder",
+      "breakpoints": true
     }
   ]
 }

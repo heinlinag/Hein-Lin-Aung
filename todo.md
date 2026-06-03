@@ -1144,3 +1144,31 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Wire AnnouncementBanner into App.tsx GeoRestrictedRouter (appears above all pages)
 - [x] 16 new announcement tests passing (26 test files, 582 tests total)
 - [x] tsc --noEmit: 0 errors
+
+## Chat Feature Enhancements (Jun 3)
+- [x] Desktop/Tablet/Laptop/Computer: Show "Messages" title in Chat sidebar header (fullHeight prop in AppLayout)
+
+### Message Read Receipts (✓✓ ticks)
+- [x] DM: chatMessages table already has readAt column — use it for read receipt
+- [x] Server: add chat.markRead procedure (already exists) — verify it sets readAt timestamp
+- [x] Server: update getMessages to return readAt for each message
+- [x] UI: show single ✓ (sent) and double ✓✓ (read) tick on DM messages (WhatsApp style)
+- [x] UI: blue ✓✓ when read, gray ✓✓ when delivered but unread
+- [x] Group: groupMessages table — add readBy JSON column (array of workerIDs who read)
+- [x] Server: add groupChat.markGroupRead to record reader in readBy array
+- [x] UI: show ✓✓ on group messages when all members have read
+
+### Push Notifications for Chat Messages
+- [x] Server: wire push.sendToWorkers in chat.sendMessage — notify recipient of new DM
+- [x] Server: wire push.sendToWorkers in groupChat.sendGroupMessage — notify all group members except sender
+- [x] Push payload: type="new_message", url="/chat", senderName, preview text, requireInteraction: false
+- [x] Group push payload: type="new_group_message", url="/chat", groupName, senderName, preview
+
+### Emoji Reactions on Messages
+- [x] Schema: add messageReactions table (id, messageType [dm/group], messageID, workerID, emoji, createdAt)
+- [x] Generate and apply migration SQL
+- [x] Server: add reactions.toggle, reactions.getForMessages procedures
+- [x] UI DM: hover on message → emoji picker (6 quick emojis: 👍❤️😂😮😢😡)
+- [x] UI Group: same emoji picker on group messages
+- [x] UI: show reaction counts below messages (grouped by emoji)
+- [x] UI: tap own reaction to remove it
