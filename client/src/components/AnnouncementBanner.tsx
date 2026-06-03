@@ -27,27 +27,27 @@ export function AnnouncementBanner() {
   const items = active as Announcement[];
   if (items.length === 0) return null;
 
-  // Build the ticker text: "TITLE — message" for each announcement
+  // Build ticker items
   const tickerItems = items.map((a: Announcement) => ({
     id: a.id,
     type: a.type as AnnType,
     label: `${a.title} — ${a.message}`,
   }));
 
-  // Quadruple for seamless loop — ensures enough content to fill wide screens
-  const repeated = [...tickerItems, ...tickerItems, ...tickerItems, ...tickerItems];
+  // Triple the items: [Ann1, Ann2, Ann3, Ann1, Ann2, Ann3, Ann1, Ann2, Ann3]
+  // Animation moves -33.333% (1 copy worth) so it loops: Ann1→Ann2→Ann3→Ann1→...
+  const tripled = [...tickerItems, ...tickerItems, ...tickerItems];
 
-  // Speed-based duration: estimate ~7.5px per char at text-xs, target 100px/s scroll speed
-  // The animation moves -50% (half of 4x = 2x worth), so duration = (2x pixel width) / speed
+  // Speed: ~7.5px per char at text-xs, target 100px/s
+  // Duration covers 1 copy (33.333% of total width)
   const totalCharsOnce = tickerItems.reduce((sum, t) => sum + t.label.length + 15, 0);
   const estimatedPxOnce = totalCharsOnce * 7.5;
-  // We move 2 copies worth (since we have 4x and move -50%)
-  const duration = Math.max(10, Math.round((estimatedPxOnce * 2) / 100));
+  const duration = Math.max(8, Math.round(estimatedPxOnce / 100));
 
   return (
     <div className="w-full bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50 overflow-hidden relative">
-      {/* Left label */}
-      <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center gap-1.5 px-3 bg-gradient-to-r from-slate-800 via-slate-800 to-transparent pr-6">
+      {/* Left NOTICE label — fixed, always visible */}
+      <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center gap-1.5 px-3 bg-gradient-to-r from-slate-800 via-slate-800/95 to-transparent pr-8">
         <Megaphone size={12} className="text-indigo-400 flex-shrink-0" />
         <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest whitespace-nowrap">
           Notice
@@ -60,11 +60,11 @@ export function AnnouncementBanner() {
       {/* Scrolling ticker */}
       <div className="flex items-center py-2 pl-24 overflow-hidden">
         <div
-          className="flex items-center gap-0 whitespace-nowrap animate-marquee"
+          className="flex items-center gap-0 whitespace-nowrap animate-marquee-loop"
           style={{ animationDuration: `${duration}s` }}
         >
-          {repeated.map((item, idx) => (
-            <span key={`${item.id}-${idx}`} className="inline-flex items-center gap-1.5 mr-10">
+          {tripled.map((item, idx) => (
+            <span key={`${item.id}-${idx}`} className="inline-flex items-center gap-1.5 mr-12">
               {/* Colored dot */}
               <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${TYPE_DOT[item.type]}`} />
               {/* Icon */}
@@ -79,7 +79,7 @@ export function AnnouncementBanner() {
               {/* Text */}
               <span className="text-xs text-slate-200 font-medium">{item.label}</span>
               {/* Separator */}
-              <span className="ml-8 text-slate-600 text-xs">◆</span>
+              <span className="ml-10 text-slate-500 text-xs">◆</span>
             </span>
           ))}
         </div>
