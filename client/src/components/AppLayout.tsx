@@ -104,6 +104,12 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
   );
   const pendingCount = (pendingQuery.data ?? []).length;
 
+  const unreadMsgQuery = trpc.chat.getUnreadCount.useQuery(
+    { workerID: worker?.workerID ?? "" },
+    { refetchInterval: 5000, enabled: !!worker?.workerID }
+  );
+  const unreadMsgCount = unreadMsgQuery.data?.count ?? 0;
+
   const handleLogout = () => {
     logoutWorker();
     navigate("/login");
@@ -285,6 +291,11 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
               {item.href === "/approval-center" && pendingCount > 0 && (
                 <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
                   {pendingCount > 99 ? "99+" : pendingCount}
+                </span>
+              )}
+              {item.href === "/chat" && unreadMsgCount > 0 && (
+                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
+                  {unreadMsgCount > 99 ? "99+" : unreadMsgCount}
                 </span>
               )}
             </button>
