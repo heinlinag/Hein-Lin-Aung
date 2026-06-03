@@ -21,6 +21,7 @@ import HelpCenter from "./pages/HelpCenter";
 import QRScanner from "./pages/QRScanner";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import PublicOrderCard from "./pages/PublicOrderCard";
+import { AnnouncementBanner } from "./components/AnnouncementBanner";
 
 /** Routes that require geo-restriction (MY/MM only) */
 function GeoRestrictedRouter() {
@@ -89,6 +90,7 @@ function GeoRestrictedRouter() {
         {/* Catch-all: redirect unknown paths to 404 */}
         <Route component={NotFound} />
       </Switch>
+      <AnnouncementBanner />
       <PWAInstallPrompt />
     </GeoGuard>
   );

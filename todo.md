@@ -1132,3 +1132,15 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Remove PDF export button and jspdf/jspdf-autotable usage
 - [x] Remove unused FileDown import
 - [x] tsc --noEmit: 0 errors | 566/566 tests passing
+
+## Custom In-App Announcement Banner (Jun 3)
+- [x] Add announcements DB table (id, title, message, type, isActive, createdBy, createdAt, expiresAt)
+- [x] Add boolean import to drizzle schema
+- [x] Generate and apply migration SQL (0022_wet_synch.sql)
+- [x] Add server procedures: announcements.listActive, listAll, create, setActive, delete
+- [x] Build AnnouncementsTab component for Admin Panel (create form, type selector, preview, list with activate/deactivate/delete)
+- [x] Add Announcements tab to Admin Panel navigation (Megaphone icon, indigo color)
+- [x] Build AnnouncementBanner component (shown on all pages, dismissible per session, expand/collapse long messages, auto-refresh every 60s)
+- [x] Wire AnnouncementBanner into App.tsx GeoRestrictedRouter (appears above all pages)
+- [x] 16 new announcement tests passing (26 test files, 582 tests total)
+- [x] tsc --noEmit: 0 errors

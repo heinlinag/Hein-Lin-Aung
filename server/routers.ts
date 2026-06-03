@@ -785,5 +785,86 @@ export const appRouter = router({
         return { count };
       }),
   }),
+
+  // ─── Announcements ─────────────────────────────────────────────────────────
+  announcements: router({
+    // Get all active (non-expired) announcements — public
+    listActive: publicProcedure.query(async () => {
+      const { getDb } = await import("./db");
+      const { announcements } = await import("../drizzle/schema");
+      const { and, eq, or, isNull, gt } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) return [];
+      const now = new Date();
+      const rows = await db
+        .select()
+        .from(announcements)
+        .where(
+          and(
+            eq(announcements.isActive, true),
+            or(isNull(announcements.expiresAt), gt(announcements.expiresAt, now))
+          )
+        )
+        .orderBy(announcements.createdAt);
+      return rows;
+    }),
+    // Admin: list all announcements (including inactive)
+    listAll: publicProcedure.query(async () => {
+      const { getDb } = await import("./db");
+      const { announcements } = await import("../drizzle/schema");
+      const { desc } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(announcements).orderBy(desc(announcements.createdAt));
+    }),
+    // Admin: create a new announcement
+    create: publicProcedure
+      .input(z.object({
+        title: z.string().min(1).max(255),
+        message: z.string().min(1),
+        type: z.enum(["info", "warning", "success", "error"]).default("info"),
+        createdBy: z.string(),
+        expiresAt: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { announcements } = await import("../drizzle/schema");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        await db.insert(announcements).values({
+          title: input.title,
+          message: input.message,
+          type: input.type,
+          createdBy: input.createdBy,
+          isActive: true,
+          expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+        });
+        return { success: true };
+      }),
+    // Admin: toggle active/inactive
+    setActive: publicProcedure
+      .input(z.object({ id: z.number(), isActive: z.boolean() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { announcements } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        await db.update(announcements).set({ isActive: input.isActive }).where(eq(announcements.id, input.id));
+        return { success: true };
+      }),
+    // Admin: delete announcement
+    delete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { announcements } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        await db.delete(announcements).where(eq(announcements.id, input.id));
+        return { success: true };
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter

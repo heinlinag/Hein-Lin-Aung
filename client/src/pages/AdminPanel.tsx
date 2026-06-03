@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { ContactMessagesTab } from "@/components/ContactMessagesTab";
+import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -1252,7 +1253,7 @@ function PendingRequestsTab() {
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { logoutAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages">("workers");
+  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements">("workers");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [, navigate] = useLocation();
 
@@ -1265,6 +1266,7 @@ export default function AdminPanel() {
     { id: "deleted_logs" as const, label: "Deleted Logs", icon: <History size={16} />, color: "red" },
     { id: "pending_requests" as const, label: "Requests", icon: <ClipboardList size={16} />, color: "orange" },
     { id: "contact_messages" as const, label: "Messages", icon: <Inbox size={16} />, color: "purple" },
+    { id: "announcements" as const, label: "Announcements", icon: <Megaphone size={16} />, color: "indigo" },
   ];
 
   return (
@@ -1389,6 +1391,7 @@ export default function AdminPanel() {
           {activeTab === "deleted_logs" && <DeletedLogsTab />}
           {activeTab === "pending_requests" && <PendingRequestsTab />}
           {activeTab === "contact_messages" && <ContactMessagesTab />}
+          {activeTab === "announcements" && <AnnouncementsTab />}
         </div>
       </main>
 
