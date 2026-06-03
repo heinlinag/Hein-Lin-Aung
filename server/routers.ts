@@ -866,5 +866,232 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // ─── Direct Message Chat ────────────────────────────────────────────────────
+  chat: router({
+    // Get all conversations for the current worker
+    getConversations: publicProcedure
+      .input(z.object({ workerID: z.string() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { conversations, chatMessages, workers } = await import("../drizzle/schema");
+        const { eq, or, desc, and, ne } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        const convs = await db.select().from(conversations)
+          .where(or(eq(conversations.worker1ID, input.workerID), eq(conversations.worker2ID, input.workerID)))
+          .orderBy(desc(conversations.lastMessageAt));
+        // Enrich with other worker info and last message
+        const enriched = await Promise.all(convs.map(async (conv) => {
+          const otherID = conv.worker1ID === input.workerID ? conv.worker2ID : conv.worker1ID;
+          const [other] = await db.select().from(workers).where(eq(workers.workerID, otherID)).limit(1);
+          const [lastMsg] = await db.select().from(chatMessages)
+            .where(eq(chatMessages.conversationID, conv.id))
+            .orderBy(desc(chatMessages.createdAt)).limit(1);
+          const unreadCount = await db.select().from(chatMessages)
+            .where(and(eq(chatMessages.conversationID, conv.id), ne(chatMessages.senderID, input.workerID)))
+            .then(rows => rows.filter(r => !r.readAt).length);
+          return { ...conv, otherWorker: other || null, lastMessage: lastMsg || null, unreadCount };
+        }));
+        return enriched;
+      }),
+
+    // Get or create a DM conversation
+    getOrCreate: publicProcedure
+      .input(z.object({ workerID: z.string(), otherWorkerID: z.string() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { conversations } = await import("../drizzle/schema");
+        const { eq, or, and } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        const [existing] = await db.select().from(conversations)
+          .where(or(
+            and(eq(conversations.worker1ID, input.workerID), eq(conversations.worker2ID, input.otherWorkerID)),
+            and(eq(conversations.worker1ID, input.otherWorkerID), eq(conversations.worker2ID, input.workerID))
+          )).limit(1);
+        if (existing) return existing;
+        const [result] = await db.insert(conversations).values({
+          worker1ID: input.workerID,
+          worker2ID: input.otherWorkerID,
+        }).$returningId();
+        const [created] = await db.select().from(conversations).where(eq(conversations.id, result.id)).limit(1);
+        return created;
+      }),
+
+    // Get messages for a conversation (latest 200)
+    getMessages: publicProcedure
+      .input(z.object({ conversationID: z.number() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { chatMessages } = await import("../drizzle/schema");
+        const { eq, asc } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        return db.select().from(chatMessages)
+          .where(eq(chatMessages.conversationID, input.conversationID))
+          .orderBy(asc(chatMessages.createdAt)).limit(200);
+      }),
+
+    // Send a DM
+    sendMessage: publicProcedure
+      .input(z.object({ conversationID: z.number(), senderID: z.string(), text: z.string().min(1).max(2000) }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { chatMessages, conversations } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        await db.insert(chatMessages).values({ conversationID: input.conversationID, senderID: input.senderID, text: input.text });
+        await db.update(conversations).set({ lastMessageAt: new Date() }).where(eq(conversations.id, input.conversationID));
+        return { success: true };
+      }),
+
+    // Mark messages as read
+    markRead: publicProcedure
+      .input(z.object({ conversationID: z.number(), workerID: z.string() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { chatMessages } = await import("../drizzle/schema");
+        const { eq, and, isNull, ne } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.update(chatMessages)
+          .set({ readAt: new Date() })
+          .where(and(eq(chatMessages.conversationID, input.conversationID), ne(chatMessages.senderID, input.workerID), isNull(chatMessages.readAt)));
+        return { success: true };
+      }),
+
+    // Get total unread DM count for a worker
+    getUnreadCount: publicProcedure
+      .input(z.object({ workerID: z.string() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { chatMessages, conversations } = await import("../drizzle/schema");
+        const { eq, or, and, isNull, ne } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return { count: 0 };
+        const convs = await db.select().from(conversations)
+          .where(or(eq(conversations.worker1ID, input.workerID), eq(conversations.worker2ID, input.workerID)));
+        let total = 0;
+        for (const conv of convs) {
+          const unread = await db.select().from(chatMessages)
+            .where(and(eq(chatMessages.conversationID, conv.id), ne(chatMessages.senderID, input.workerID), isNull(chatMessages.readAt)));
+          total += unread.length;
+        }
+        return { count: total };
+      }),
+
+    // Get all workers (for new conversation picker)
+    getWorkers: publicProcedure
+      .input(z.object({ workerID: z.string() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { workers } = await import("../drizzle/schema");
+        const { ne, asc } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        return db.select().from(workers).where(ne(workers.workerID, input.workerID)).orderBy(asc(workers.name));
+      }),
+  }),
+
+  // ─── Group Chat ─────────────────────────────────────────────────────────────
+  groupChat: router({
+    // Get all groups the worker is a member of
+    getGroups: publicProcedure
+      .input(z.object({ workerID: z.string() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { groupChats, groupMembers, groupMessages } = await import("../drizzle/schema");
+        const { eq, desc } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        const memberships = await db.select().from(groupMembers).where(eq(groupMembers.workerID, input.workerID));
+        const groups = await Promise.all(memberships.map(async (m) => {
+          const [group] = await db.select().from(groupChats).where(eq(groupChats.id, m.groupID)).limit(1);
+          if (!group) return null;
+          const members = await db.select().from(groupMembers).where(eq(groupMembers.groupID, group.id));
+          const [lastMsg] = await db.select().from(groupMessages)
+            .where(eq(groupMessages.groupID, group.id))
+            .orderBy(desc(groupMessages.createdAt)).limit(1);
+          return { ...group, memberCount: members.length, memberIDs: members.map(x => x.workerID), lastMessage: lastMsg || null };
+        }));
+        return groups.filter(Boolean).sort((a, b) => new Date(b!.lastMessageAt).getTime() - new Date(a!.lastMessageAt).getTime());
+      }),
+
+    // Create a group (max 10 members including creator)
+    create: publicProcedure
+      .input(z.object({ name: z.string().min(1).max(128), createdBy: z.string(), memberIDs: z.array(z.string()).min(1).max(9) }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { groupChats, groupMembers } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        const [result] = await db.insert(groupChats).values({ name: input.name, createdBy: input.createdBy }).$returningId();
+        const allMembers = [input.createdBy, ...input.memberIDs.filter(id => id !== input.createdBy)];
+        await db.insert(groupMembers).values(allMembers.map(workerID => ({ groupID: result.id, workerID })));
+        const [group] = await db.select().from(groupChats).where(eq(groupChats.id, result.id)).limit(1);
+        return group;
+      }),
+
+    // Get messages for a group (latest 200)
+    getMessages: publicProcedure
+      .input(z.object({ groupID: z.number() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { groupMessages } = await import("../drizzle/schema");
+        const { eq, asc } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        return db.select().from(groupMessages)
+          .where(eq(groupMessages.groupID, input.groupID))
+          .orderBy(asc(groupMessages.createdAt)).limit(200);
+      }),
+
+    // Send a group message
+    sendMessage: publicProcedure
+      .input(z.object({ groupID: z.number(), senderID: z.string(), senderName: z.string(), text: z.string().min(1).max(2000) }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { groupMessages, groupChats } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        await db.insert(groupMessages).values({ groupID: input.groupID, senderID: input.senderID, senderName: input.senderName, text: input.text });
+        await db.update(groupChats).set({ lastMessageAt: new Date() }).where(eq(groupChats.id, input.groupID));
+        return { success: true };
+      }),
+
+    // Get members of a group
+    getMembers: publicProcedure
+      .input(z.object({ groupID: z.number() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { groupMembers, workers } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        const members = await db.select().from(groupMembers).where(eq(groupMembers.groupID, input.groupID));
+        const enriched = await Promise.all(members.map(async (m) => {
+          const [worker] = await db.select().from(workers).where(eq(workers.workerID, m.workerID)).limit(1);
+          return { ...m, worker: worker || null };
+        }));
+        return enriched;
+      }),
+
+    // Leave a group
+    leave: publicProcedure
+      .input(z.object({ groupID: z.number(), workerID: z.string() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { groupMembers } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        await db.delete(groupMembers).where(and(eq(groupMembers.groupID, input.groupID), eq(groupMembers.workerID, input.workerID)));
+        return { success: true };
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter

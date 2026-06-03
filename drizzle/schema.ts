@@ -261,3 +261,55 @@ export const announcements = mysqlTable("announcements", {
 });
 export type Announcement = typeof announcements.$inferSelect;
 export type InsertAnnouncement = typeof announcements.$inferInsert;
+
+// ─── Messaging System ──────────────────────────────────────────────────────────
+// Direct Message conversations (1-on-1)
+export const conversations = mysqlTable("conversations", {
+  id: int("id").autoincrement().primaryKey(),
+  worker1ID: varchar("worker1ID", { length: 64 }).notNull(),
+  worker2ID: varchar("worker2ID", { length: 64 }).notNull(),
+  lastMessageAt: timestamp("lastMessageAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type Conversation = typeof conversations.$inferSelect;
+
+// Direct messages
+export const chatMessages = mysqlTable("chatMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationID: int("conversationID").notNull(),
+  senderID: varchar("senderID", { length: 64 }).notNull(),
+  text: text("text").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  readAt: timestamp("readAt"),
+});
+export type ChatMessage = typeof chatMessages.$inferSelect;
+
+// Group chats (max 10 members)
+export const groupChats = mysqlTable("groupChats", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  createdBy: varchar("createdBy", { length: 64 }).notNull(),
+  lastMessageAt: timestamp("lastMessageAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type GroupChat = typeof groupChats.$inferSelect;
+
+// Group chat members
+export const groupMembers = mysqlTable("groupMembers", {
+  id: int("id").autoincrement().primaryKey(),
+  groupID: int("groupID").notNull(),
+  workerID: varchar("workerID", { length: 64 }).notNull(),
+  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+});
+export type GroupMember = typeof groupMembers.$inferSelect;
+
+// Group messages
+export const groupMessages = mysqlTable("groupMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  groupID: int("groupID").notNull(),
+  senderID: varchar("senderID", { length: 64 }).notNull(),
+  senderName: varchar("senderName", { length: 128 }).notNull(),
+  text: text("text").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type GroupMessage = typeof groupMessages.$inferSelect;
