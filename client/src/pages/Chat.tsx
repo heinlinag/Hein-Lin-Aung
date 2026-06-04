@@ -723,8 +723,8 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
 
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Header — hidden on mobile (AppLayout provides header), visible on desktop sidebar */}
-      <div className="hidden md:flex bg-[#075e54] text-white px-4 py-4 items-center justify-between flex-shrink-0">
+      {/* Header — hidden on all screen sizes (AppLayout provides header on mobile, desktop sidebar shows no header) */}
+      <div className="hidden bg-[#075e54] text-white px-4 py-4 items-center justify-between flex-shrink-0">
         <h1 className="text-lg font-semibold">Messages</h1>
         <div className="relative">
           <Button variant="ghost" size="icon" onClick={() => setShowDropdown(v => !v)}

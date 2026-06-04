@@ -190,6 +190,20 @@
       "when": 1780483225802,
       "tag": "0026_panoramic_puff_adder",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1780490612873,
+      "tag": "0027_soft_leo",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1780490962213,
+      "tag": "0028_careless_wendigo",
+      "breakpoints": true
     }
   ]
 }
