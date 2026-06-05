@@ -59,6 +59,7 @@ export const pendingRequests = mysqlTable("pendingRequests", {
   processApprovedQty: int("processApprovedQty"),   // Level 1.1 process-approved qty (optional override)
   processApprovedBy: varchar("processApprovedBy", { length: 128 }), // Level 1.1 worker name/ID
   processApprovedAt: timestamp("processApprovedAt"), // when Level 1.1 process-approved
+  isUrgent: boolean("isUrgent").default(false).notNull(), // Level 1 can mark as urgent
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   reviewedAt: timestamp("reviewedAt"),
 });

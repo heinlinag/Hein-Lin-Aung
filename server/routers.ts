@@ -626,6 +626,27 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return getApprovalActionLog(input.limit);
       }),
+    toggleUrgent: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        workerID: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
+        const req = await getPendingRequestById(input.id);
+        if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+        if (worker.userLevel !== "1") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1 workers can mark requests as urgent" });
+        if (req.requestedBy !== input.workerID) throw new TRPCError({ code: "FORBIDDEN", message: "Can only toggle urgent on your own requests" });
+        if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Can only toggle urgent on pending requests" });
+        const { getDb } = await import("./db");
+        const { pendingRequests } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database connection failed" });
+        await db.update(pendingRequests).set({ isUrgent: !req.isUrgent }).where(eq(pendingRequests.id, input.id));
+        return { success: true, isUrgent: !req.isUrgent };
+      }),
   }),
   // ─── Admin ──────────────────────────────────────────────────────────────────────────────
   admin: router({

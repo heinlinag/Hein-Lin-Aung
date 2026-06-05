@@ -28,6 +28,7 @@ type PendingRequest = {
   processApprovedBy: string | null;
   processApprovedQty: number | null;
   processApprovedAt: Date | null;
+  isUrgent: boolean;
   createdAt: Date;
   reviewedAt: Date | null;
 };
@@ -113,8 +114,13 @@ function RequestCard({
             </p>
           </div>
         </div>
-        {/* Single Status Badge - Show ONLY current stage */}
-        <div className="flex-shrink-0">
+        {/* Status Badge + Urgent Badge */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {!isDelete && req.isUrgent && isPending && (
+            <span className="text-xs px-2.5 py-1.5 rounded-full font-semibold bg-red-100 text-red-700 flex items-center gap-1">
+              <AlertTriangle size={12} /> Order is Urgent
+            </span>
+          )}
           {req.status === "cancelled" ? (
             <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-gray-200 text-gray-600 flex items-center gap-1.5">
               <XCircle size={14} /> Cancelled
@@ -307,6 +313,18 @@ function RequestCard({
                 >
                   <CheckCircle2 size={16} className="text-green-600 flex-shrink-0" />
                   <span className="text-sm font-medium text-foreground">Approved</span>
+                </DropdownMenuItem>
+              )}
+              {!isDelete && req.requestedBy === currentWorkerID && isPending && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    const toggleUrgent = trpc.pendingRequests.toggleUrgent.useMutation();
+                    toggleUrgent.mutate({ id: req.id, workerID: currentWorkerID || "" });
+                  }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
+                >
+                  <AlertTriangle size={16} className={`flex-shrink-0 ${req.isUrgent ? "text-orange-600" : "text-gray-400"}`} />
+                  <span className="text-sm font-medium text-foreground">{req.isUrgent ? "Remove Urgent" : "Arrange it Urgent"}</span>
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
