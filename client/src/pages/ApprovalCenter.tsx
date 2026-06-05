@@ -471,12 +471,12 @@ function RequestCard({
                 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                   <AlertTriangle size={20} className="text-orange-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-base">Cannot Cancel Request</h3>
+                <h3 className="font-bold text-gray-900 text-base">Can't Deliver your cancel</h3>
               </div>
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
                 <p className="text-sm text-orange-800 leading-relaxed">
-                  Your request <strong>({req.workerName})</strong> has already been processed by{" "}
-                  <strong>{req.processApprovedBy}</strong>. You cannot cancel it at this stage.
+                  Your request is we are decline. Order Modified NPRM has already been processed by{" "}
+                  <strong>({req.processApprovedBy})</strong>. You cannot cancel it at this stage.
                 </p>
                 <p className="text-xs text-orange-600 mt-2">
                   Please contact your Administrator if you need this request to be cancelled.
