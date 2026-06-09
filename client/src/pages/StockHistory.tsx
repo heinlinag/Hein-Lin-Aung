@@ -622,6 +622,24 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     ) : userLevel === "1" ? (
                       <p className="text-xs text-muted-foreground mt-1">This is your target request qty. Stock will be updated only after Level 1.1 processes it.</p>
                     ) : null}
+                    {/* Production Order pcs needed calculation */}
+                    {(() => {
+                      const targetQty = parseInt(useQty);
+                      const jW3 = parseInt(boardSizeW);
+                      const jL3 = parseInt(boardSizeL);
+                      if (!useQty || isNaN(targetQty) || targetQty <= 0) return null;
+                      if (!boardSizeW || !boardSizeL || isNaN(jW3) || isNaN(jL3) || jW3 <= 0 || jL3 <= 0) return null;
+                      const fit = calcBoardFit(order.sizeW, order.sizeL, jW3, jL3);
+                      const pcsPerSlit = fit.piecesW * fit.piecesL;
+                      if (pcsPerSlit <= 0) return null;
+                      const prodPcsNeeded = Math.ceil(targetQty / pcsPerSlit);
+                      return (
+                        <div className="mt-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5">
+                          <p className="text-xs text-blue-800 font-semibold">Production Order pcs needed: <span className="text-sm font-bold">{prodPcsNeeded} pcs</span></p>
+                          <p className="text-xs text-blue-600">{targetQty} pcs ÷ {pcsPerSlit} pcs/slit = {(targetQty / pcsPerSlit).toFixed(2)} → {prodPcsNeeded} pcs from Production Order</p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
                 {jobError && <p className="text-xs text-destructive">{jobError}</p>}
