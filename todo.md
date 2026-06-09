@@ -1172,8 +1172,3 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] UI Group: same emoji picker on group messages
 - [x] UI: show reaction counts below messages (grouped by emoji)
 - [x] UI: tap own reaction to remove it
-
-## Remove Approval Center Badge (Jun 9)
-- [x] Remove "2" badge from Approval Center card on Home.tsx
-- [x] Keep Messages unread badge (showMessageBadge)
-- [x] All 594 tests passing

@@ -204,20 +204,6 @@
       "when": 1780490962213,
       "tag": "0028_careless_wendigo",
       "breakpoints": true
-    },
-    {
-      "idx": 29,
-      "version": "5",
-      "when": 1780675680074,
-      "tag": "0029_odd_madripoor",
-      "breakpoints": true
-    },
-    {
-      "idx": 30,
-      "version": "5",
-      "when": 1780676287234,
-      "tag": "0030_fresh_cloak",
-      "breakpoints": true
     }
   ]
 }

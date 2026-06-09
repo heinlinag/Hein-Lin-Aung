@@ -1,1 +1,0 @@
-ALTER TABLE `pendingRequests` ADD `isUrgent` boolean DEFAULT false NOT NULL;

@@ -1,1 +1,0 @@
-ALTER TABLE `pendingRequests` DROP COLUMN `isUrgent`;
