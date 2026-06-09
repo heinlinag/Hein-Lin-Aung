@@ -568,6 +568,15 @@ export default function ApprovalCenter() {
     { status: statusFilter },
     { refetchInterval: 10000 }
   );
+  // Separate queries for badge count (under_review + pending combined)
+  const underReviewCountQuery = trpc.pendingRequests.list.useQuery(
+    { status: "under_review" },
+    { refetchInterval: 15000 }
+  );
+  const pendingOnlyCountQuery = trpc.pendingRequests.list.useQuery(
+    { status: "pending" },
+    { refetchInterval: 15000 }
+  );
   const actionLogQuery = trpc.pendingRequests.actionLog.useQuery(
     { limit: 100 },
     { enabled: activeTab === "history" }
@@ -773,7 +782,9 @@ export default function ApprovalCenter() {
     }
   };
 
-  const pendingCount = statusFilter === "pending" ? requests.length : undefined;
+  // Badge count = under_review + pending combined
+  const badgeCount = (underReviewCountQuery.data?.length ?? 0) + (pendingOnlyCountQuery.data?.length ?? 0);
+  const pendingCount = badgeCount > 0 ? badgeCount : undefined;
 
   return (
     <AppLayout pageTitle="Approval Center">
