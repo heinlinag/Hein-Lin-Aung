@@ -72,20 +72,22 @@ function BoardSizeCalcPanel({ prodW, prodL, jobW, jobL, trackingId }: { prodW: n
     );
   }
 
+  const orderLabel = trackingId ? `(${trackingId})` : "";
+
   if (hasTight) {
     const tightAxis = calc.statusW === "tight" && calc.statusL === "tight" ? "W & L" :
       calc.statusW === "tight" ? "W" : "L";
     return (
       <div className="rounded-xl border bg-amber-50 border-amber-200 p-3 space-y-1.5">
         <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">⚠️ Tight Fit ({tightAxis}) — Less than 50mm allowance</p>
-        <p className="text-xs font-bold text-amber-800">After Modify Order 1 pcs slit = <span className="text-lg">{totalPcs} pcs</span></p>
+        <p className="text-xs font-bold text-amber-800">Production Order {orderLabel} 1 pcs slit = <span className="text-lg">{totalPcs} pcs</span></p>
       </div>
     );
   }
 
   return (
     <div className="rounded-xl border bg-emerald-50 border-emerald-200 p-3">
-      <p className="text-xs font-bold text-emerald-800">After Modify Order 1 pcs slit = <span className="text-lg">{totalPcs} pcs</span></p>
+      <p className="text-xs font-bold text-emerald-800">Production Order {orderLabel} 1 pcs slit = <span className="text-lg">{totalPcs} pcs</span></p>
     </div>
   );
 }
