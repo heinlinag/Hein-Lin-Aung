@@ -22,7 +22,7 @@ type PendingRequest = {
   requestedBy: string;
   workerName: string;
   actionData: string | null;
-  status: "under_review" | "pending" | "approved" | "cancelled";
+  status: "pending" | "approved" | "cancelled";
   reviewedBy: string | null;
   cancelReason: string | null;
   processApprovedBy: string | null;
@@ -60,7 +60,6 @@ function RequestCard({
   onCancel,
   onProcessApprove,
   onToggleUrgent,
-  onReview,
   isProcessing,
   canApprove,
   canCancel,
@@ -72,7 +71,6 @@ function RequestCard({
   onCancel: (id: number, reason: string) => void;
   onProcessApprove: (id: number, processApprovedQty?: number) => void;
   onToggleUrgent: (id: number) => void;
-  onReview: (id: number) => void;
   isProcessing: boolean;
   canApprove: boolean;
   canCancel: boolean;
@@ -97,7 +95,6 @@ function RequestCard({
   try { if (req.actionData) action = JSON.parse(req.actionData); } catch { /* ignore */ }
 
   const isDelete = req.type === "delete";
-  const isUnderReview = req.status === "under_review";
   const isPending = req.status === "pending";
   const isProcessApproved = !!req.processApprovedBy;
 
@@ -105,7 +102,6 @@ function RequestCard({
     <div className={`border rounded-xl p-4 space-y-3 ${
       req.status === "approved" ? "bg-green-50 border-green-200" :
       req.status === "cancelled" ? "bg-gray-50 border-gray-200 opacity-70" :
-      req.status === "under_review" ? "bg-yellow-50 border-yellow-200 shadow-sm" :
       "bg-white border-border shadow-sm"
     }`}>
       {/* Header */}
@@ -134,10 +130,6 @@ function RequestCard({
           ) : req.status === "approved" ? (
             <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1.5">
               <CheckCircle2 size={14} /> Approved
-            </span>
-          ) : isUnderReview ? (
-            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-yellow-100 text-yellow-700 flex items-center gap-1.5">
-              <Clock size={14} /> Under Review
             </span>
           ) : isProcessApproved ? (
             <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-purple-100 text-purple-700 flex items-center gap-1.5">
@@ -265,27 +257,6 @@ function RequestCard({
       </div>
 
 
-
-      {/* Under Review Actions - Level 2 can move to Pending */}
-      {isUnderReview && canApprove && (
-        <div className="flex justify-end pt-1 gap-2">
-          <button
-            onClick={() => setShowCancelDialog(true)}
-            disabled={isProcessing}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50"
-          >
-            <XCircle size={14} /> Cancel
-          </button>
-          <button
-            onClick={() => onReview(req.id)}
-            disabled={isProcessing}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-500 text-white text-sm font-semibold hover:bg-yellow-600 disabled:opacity-50"
-          >
-            {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-            Move to Pending
-          </button>
-        </div>
-      )}
 
       {/* Actions - Update Info Dropdown */}
       {isPending && (canCancel || canApprove || canProcessApprove) && (
@@ -553,7 +524,7 @@ function RequestCard({
 
 export default function ApprovalCenter() {
   const { worker } = useAuth();
-  const [statusFilter, setStatusFilter] = useState<"under_review" | "pending" | "approved" | "cancelled" | undefined>("under_review");
+  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "cancelled" | undefined>("pending");
   const [activeTab, setActiveTab] = useState<"requests" | "history">("requests");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
@@ -568,15 +539,6 @@ export default function ApprovalCenter() {
     { status: statusFilter },
     { refetchInterval: 10000 }
   );
-  // Separate queries for badge count (under_review + pending combined)
-  const underReviewCountQuery = trpc.pendingRequests.list.useQuery(
-    { status: "under_review" },
-    { refetchInterval: 15000 }
-  );
-  const pendingOnlyCountQuery = trpc.pendingRequests.list.useQuery(
-    { status: "pending" },
-    { refetchInterval: 15000 }
-  );
   const actionLogQuery = trpc.pendingRequests.actionLog.useQuery(
     { limit: 100 },
     { enabled: activeTab === "history" }
@@ -586,7 +548,6 @@ export default function ApprovalCenter() {
   const cancelMutation = trpc.pendingRequests.cancel.useMutation();
   const processApproveMutation = trpc.pendingRequests.processApprove.useMutation();
   const toggleUrgentMutation = trpc.pendingRequests.toggleUrgent.useMutation();
-  const reviewMutation = trpc.pendingRequests.review.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const createNotif = trpc.notifications.create.useMutation();
 
@@ -767,24 +728,7 @@ export default function ApprovalCenter() {
     }
   };
 
-  const handleReview = async (id: number) => {
-    if (!worker) return;
-    setProcessingId(id);
-    try {
-      await reviewMutation.mutateAsync({ id, reviewerWorkerID: worker.workerID });
-      toast.success("Request moved to Pending.");
-      utils.pendingRequests.list.invalidate();
-    } catch (err: unknown) {
-      const e = err as { message?: string };
-      toast.error(e?.message ?? "Failed to move request to pending.");
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
-  // Badge count = under_review + pending combined
-  const badgeCount = (underReviewCountQuery.data?.length ?? 0) + (pendingOnlyCountQuery.data?.length ?? 0);
-  const pendingCount = badgeCount > 0 ? badgeCount : undefined;
+  const pendingCount = statusFilter === "pending" ? requests.length : undefined;
 
   return (
     <AppLayout pageTitle="Approval Center">
@@ -847,7 +791,6 @@ export default function ApprovalCenter() {
             {/* Status filter sub-tabs */}
             <div className="flex gap-2 mb-5 items-center flex-wrap">
               {([
-                { key: "under_review" as const, label: "Under Review", emoji: "🔍" },
                 { key: "pending" as const, label: "Pending", emoji: "⏳" },
                 { key: "approved" as const, label: "Approved", emoji: "✅" },
                 { key: "cancelled" as const, label: "Cancelled", emoji: "❌" },
@@ -858,7 +801,7 @@ export default function ApprovalCenter() {
                   onClick={() => { setStatusFilter(key); setJobNoSearch(""); }}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 shadow-sm ${
                     statusFilter === key
-                      ? key === "under_review" ? "bg-gradient-to-r from-yellow-500 to-amber-400 text-white shadow-yellow-200" : key === "pending" ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200" : key === "approved" ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-green-200" : key === "cancelled" ? "bg-gradient-to-r from-gray-500 to-gray-600 text-white" : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-blue-200"
+                      ? key === "pending" ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200" : key === "approved" ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-green-200" : key === "cancelled" ? "bg-gradient-to-r from-gray-500 to-gray-600 text-white" : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-blue-200"
                       : "bg-white text-muted-foreground hover:bg-gray-50 border border-gray-200"
                   }`}
                 >
@@ -922,7 +865,6 @@ export default function ApprovalCenter() {
                     onCancel={handleCancel}
                     onProcessApprove={handleProcessApprove}
                     onToggleUrgent={handleToggleUrgent}
-                    onReview={handleReview}
                     isProcessing={processingId === req.id}
                     canApprove={canApprove}
                     canCancel={canApprove || canProcessApprove || req.requestedBy === worker?.workerID}
