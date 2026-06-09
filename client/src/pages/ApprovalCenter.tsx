@@ -353,6 +353,38 @@ function RequestCard({
                       <strong>{req.workerName}</strong> requested Target Black QTY of <strong>{action.usedQty} pcs</strong> from Production Order <strong>{snapshot?.orderID ?? "—"}</strong>.
                     </p>
                   </div>
+                  {/* Needed slit calculation */}
+                  {(() => {
+                    const bW = action.boardSizeW;
+                    const bL = action.boardSizeL;
+                    const sW = snapshot?.sizeW;
+                    const sL = snapshot?.sizeL;
+                    const tgt = action.usedQty;
+                    if (bW && bL && sW && sL && tgt) {
+                      const ALLOWED_GAP = 50;
+                      const calcAxis = (prod: number, job: number) => {
+                        if (prod < job) return 0;
+                        if (prod === job) return 1;
+                        const usable = prod - ALLOWED_GAP;
+                        if (usable < job) return 0;
+                        return Math.floor(usable / job);
+                      };
+                      const pcsPerSlit = calcAxis(sW, bW) * calcAxis(sL, bL);
+                      if (pcsPerSlit > 0) {
+                        const neededSlit = Math.ceil(tgt / pcsPerSlit);
+                        return (
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+                            <p className="text-xs font-semibold text-purple-700">needed slit ({neededSlit} pcs) this order</p>
+                          </div>
+                        );
+                      }
+                    }
+                    return (
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                        <p className="text-xs text-gray-500">needed slit (N/A) this order</p>
+                      </div>
+                    );
+                  })()}
                   <div>
                     <label className="block text-xs font-semibold text-purple-700 mb-1">How many pcs did you use from Order {snapshot?.orderID ?? ""}? <span className="text-destructive">*</span></label>
                     <input
