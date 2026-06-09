@@ -53,68 +53,36 @@ function BoardSizeCalcPanel({ prodW, prodL, jobW, jobL }: { prodW: number; prodL
   const calc = calcBoardFit(prodW, prodL, jW, jL);
   const hasImpossible = calc.statusW === "impossible" || calc.statusL === "impossible";
   const hasTight = !hasImpossible && (calc.statusW === "tight" || calc.statusL === "tight");
+  const totalPcs = calc.piecesW * calc.piecesL;
 
-  const AxisRow = ({ axis, prodSize, jobSize, pieces, remain, status }: {
-    axis: string; prodSize: number; jobSize: number; pieces: number; remain: number;
-    status: "ok" | "tight" | "impossible";
-  }) => {
-    const diff = prodSize - jobSize;
-    if (status === "impossible") {
-      return (
-        <div className="flex items-start gap-2">
-          <span className="text-xs font-bold text-red-600 w-4 shrink-0">{axis}</span>
-          <div>
-            <p className="text-xs text-red-700 font-semibold">❌ Cannot cut — Production {axis} ({prodSize}mm) &lt; Job Board {axis} ({jobSize}mm)</p>
-            <p className="text-xs text-red-600">Difference: {diff}mm. Board is too large for this Production Order.</p>
-          </div>
-        </div>
-      );
-    }
-    if (status === "tight") {
-      return (
-        <div className="flex items-start gap-2">
-          <span className="text-xs font-bold text-amber-600 w-4 shrink-0">{axis}</span>
-          <div>
-            <p className="text-xs text-amber-700 font-semibold">⚠️ Tight fit — Production {axis} ({prodSize}mm) ≈ Job Board {axis} ({jobSize}mm)</p>
-            <p className="text-xs text-amber-600">Less than 50mm allowance remaining. Cutting is risky but possible.</p>
-          </div>
-        </div>
-      );
-    }
+  if (hasImpossible) {
+    // Identify which axis is impossible
+    const badAxis = calc.statusW === "impossible" && calc.statusL === "impossible" ? "W & L" :
+      calc.statusW === "impossible" ? "W" : "L";
+    const badProd = calc.statusW === "impossible" ? prodW : prodL;
+    const badJob = calc.statusW === "impossible" ? jW : jL;
     return (
-      <div className="flex items-start gap-2">
-        <span className="text-xs font-bold text-emerald-600 w-4 shrink-0">{axis}</span>
-        <div>
-          <p className="text-xs text-emerald-700 font-semibold">✅ {pieces} pcs fit — {prodSize - ALLOWED_GAP}mm usable (after 50mm gap) ÷ {jobSize}mm = {pieces} pcs</p>
-          <p className="text-xs text-emerald-600">Leftover: {remain}mm</p>
-        </div>
+      <div className="rounded-xl border bg-red-50 border-red-200 p-3 space-y-1.5">
+        <p className="text-xs font-bold text-red-700 uppercase tracking-wide">⛔ Cannot Cut ({badAxis})</p>
+        <p className="text-xs text-red-600">Production Order {badAxis} ({badProd}mm) is smaller than Board Size {badAxis} ({badJob}mm). NPRM Modify Order cannot be processed.</p>
       </div>
     );
-  };
+  }
+
+  if (hasTight) {
+    const tightAxis = calc.statusW === "tight" && calc.statusL === "tight" ? "W & L" :
+      calc.statusW === "tight" ? "W" : "L";
+    return (
+      <div className="rounded-xl border bg-amber-50 border-amber-200 p-3 space-y-1.5">
+        <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">⚠️ Tight Fit ({tightAxis}) — Less than 50mm allowance</p>
+        <p className="text-xs font-bold text-amber-800">After Modify Order 1 pcs slit = <span className="text-lg">{totalPcs} pcs</span></p>
+      </div>
+    );
+  }
 
   return (
-    <div className={`rounded-xl border p-3 space-y-2 ${
-      hasImpossible ? "bg-red-50 border-red-200" :
-      hasTight ? "bg-amber-50 border-amber-200" :
-      "bg-emerald-50 border-emerald-200"
-    }`}>
-      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
-        📏 Board Fit Calculation — Ref: Production Order {prodW}×{prodL}mm
-      </p>
-      <div className="space-y-1.5">
-        <AxisRow axis="W" prodSize={prodW} jobSize={jW} pieces={calc.piecesW} remain={calc.remainW} status={calc.statusW} />
-        <AxisRow axis="L" prodSize={prodL} jobSize={jL} pieces={calc.piecesL} remain={calc.remainL} status={calc.statusL} />
-      </div>
-      {hasImpossible && (
-        <p className="text-xs font-bold text-red-700 bg-red-100 rounded-lg px-2.5 py-1.5">
-          ⛔ NPRM Modify Order cannot be processed — Board size exceeds Production Order dimensions.
-        </p>
-      )}
-      {hasTight && (
-        <p className="text-xs font-semibold text-amber-700 bg-amber-100 rounded-lg px-2.5 py-1.5">
-          ⚠️ Please ensure at least 50mm allowance is maintained for safe cutting.
-        </p>
-      )}
+    <div className="rounded-xl border bg-emerald-50 border-emerald-200 p-3">
+      <p className="text-xs font-bold text-emerald-800">After Modify Order 1 pcs slit = <span className="text-lg">{totalPcs} pcs</span></p>
     </div>
   );
 }
