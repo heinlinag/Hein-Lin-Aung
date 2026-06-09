@@ -260,7 +260,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
               <div className="space-y-2.5">
                 {/* Row 1: Job No */}
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">NPRM Modify Order No (8 digits)</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Job No (8 digits)</label>
                   <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
                 </div>
                 {/* Row 2: MasterCard + Board Size side by side on desktop, stacked on mobile */}
@@ -584,7 +584,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <button onClick={() => { setStep("choose"); setJobError(""); }} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">NPRM Modify Order No (8 digits)</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Job No (8 digits)</label>
                   <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
                 </div>
                 {/* Row 2: MasterCard + Board Size side by side on desktop, stacked on mobile */}
