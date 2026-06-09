@@ -29,12 +29,12 @@ function MobileCard({ entry }: { entry: UsageEntry }) {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono font-bold text-foreground text-base">
-                {entry.jobNo || <span className="text-muted-foreground italic text-sm">No NPRM Modify Order No</span>}
+                {entry.jobNo || <span className="text-muted-foreground italic text-sm">No Job No</span>}
               </span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                 entry.purpose === "job" ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700"
               }`}>
-                {entry.purpose === "job" ? "NPRM Modify Order No" : "Old Stock"}
+                {entry.purpose === "job" ? "Job No" : "Old Stock"}
               </span>
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
@@ -142,7 +142,7 @@ export default function UsageHistory() {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search by Production Order, NPRM Modify Order No, Master Card, Employee ID..."
+            placeholder="Search by Production Order, Job No, Master Card, Employee ID..."
             className="w-full pl-8 pr-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
@@ -164,7 +164,7 @@ export default function UsageHistory() {
                 <table className="w-full min-w-[1000px] text-sm">
                   <thead className="bg-muted/40 border-b border-border">
                     <tr>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">NPRM Modify Order No</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Job No</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Used Qty</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Production Order</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Flute</th>
@@ -211,7 +211,7 @@ export default function UsageHistory() {
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                             entry.purpose === "job" ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700"
                           }`}>
-                            {entry.purpose === "job" ? "NPRM Modify Order No" : "Old Stock"}
+                            {entry.purpose === "job" ? "Job No" : "Old Stock"}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground">

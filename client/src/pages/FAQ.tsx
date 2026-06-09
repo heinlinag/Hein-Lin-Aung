@@ -47,7 +47,7 @@ const faqData = [
       },
       {
         question: 'How do I submit a Used Update request as a Level 1 or Level 1.1 user?',
-        answer: 'In Stock History, click the "Used Update" button on any current stock order. Choose either:\n• NPRM Modify Order No — Enter an 8-digit NPRM Modify Order number, BQ, Board Size (W×L), Flute Type, and quantity used.\n• Old Stock — Confirm to mark the entire order as used and move it to Out of Stock.\nYour request will be sent to the Approval Center.',
+        answer: 'In Stock History, click the "Used Update" button on any current stock order. Choose either:\n• Job No — Enter an 8-digit job number, BQ, Board Size (W×L), Flute Type, and quantity used.\n• Old Stock — Confirm to mark the entire order as used and move it to Out of Stock.\nYour request will be sent to the Approval Center.',
       },
       {
         question: 'How do I approve or cancel a pending request as a Level 2 user?',
@@ -110,8 +110,8 @@ const faqData = [
         answer: 'Available Qty = Current stock quantity minus the total quantity already reserved by pending Used Update requests. This ensures you do not over-request stock that is already being processed.',
       },
       {
-        question: 'What is the difference between "NPRM Modify Order No" and "Old Stock" in Used Update?',
-        answer: '• NPRM Modify Order No — Enter an 8-digit NPRM Modify Order number, BQ, Board Size (W×L mm), Flute Type, and the quantity used. This logs the usage for tracking in Usage History.\n• Old Stock — Marks the entire order as fully consumed and moves it to Out of Stock. Use this when the remaining stock is being cleared as old/expired material.',
+        question: 'What is the difference between "Job No" and "Old Stock" in Used Update?',
+        answer: '• Job No — Enter an 8-digit job number, BQ, Board Size (W×L mm), Flute Type, and the quantity used. This logs the usage for tracking in Usage History.\n• Old Stock — Marks the entire order as fully consumed and moves it to Out of Stock. Use this when the remaining stock is being cleared as old/expired material.',
       },
       {
         question: 'What is the BQ field in Used Update?',
@@ -123,7 +123,7 @@ const faqData = [
       },
       {
         question: 'Where can I see past usage records?',
-        answer: 'Go to the Usage History page from the Home Dashboard. It shows all logged usage entries including NPRM Modify Order No, Used Qty, Production Order, Flute Type, BQ, Board Size, and other details.',
+        answer: 'Go to the Usage History page from the Home Dashboard. It shows all logged usage entries including Job No, Used Qty, Production Order, Flute Type, BQ, Board Size, and other details.',
       },
       {
         question: 'How do I print an A4 label for an order?',
@@ -183,7 +183,7 @@ const faqData = [
       },
       {
         question: 'What information is shown on a Used Update request card?',
-        answer: 'Each Used Update request card shows: Production Order, Flute Type, BQ, current quantity, requested used quantity, NPRM Modify Order No, Board Size (W×L), purpose (NPRM Modify Order No or Old Stock), submitted by, and submission time. If process-approved, it also shows who process-approved it and when.',
+        answer: 'Each Used Update request card shows: Production Order, Flute Type, BQ, current quantity, requested used quantity, Job No, Board Size (W×L), purpose (Job No or Old Stock), submitted by, and submission time. If process-approved, it also shows who process-approved it and when.',
       },
       {
         question: 'Can a Level 2 user override the approved quantity?',

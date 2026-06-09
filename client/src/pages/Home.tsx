@@ -44,7 +44,7 @@ const baseFeatures = [
   {
     icon: <History size={28} className="text-white" />,
     title: "Usage History",
-    description: "Track how orders have been used by NPRM Modify Order No or Old Stock.",
+    description: "Track how orders have been used by Job No or Old Stock.",
     href: "/usage-history",
     gradient: "from-purple-500 to-violet-600",
     shadowColor: "shadow-purple-500/20",

@@ -120,7 +120,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
 
   const handleJobSubmit = async () => {
     setJobError("");
-    if (!/^\d{8}$/.test(jobNo)) { setJobError("NPRM Modify Order No must be exactly 8 digits (e.g. 02123456)."); return; }
+    if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
     if (!masterCard.trim()) { setJobError("MasterCard is required."); return; }
     if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
     const qty = parseInt(useQty);
@@ -131,7 +131,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
       await logUsage.mutateAsync({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", orderId: order.id, newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null });
       toast.success(`Used ${qty} pcs for Job ${jobNo}. Remaining: ${newQty} pcs.`);
       notifyAll.mutate({
-        title: "Stock Used — NPRM Modify Order No",
+        title: "Stock Used — Job No",
         body: `Purchase Order (${order.orderID}) Job No (${jobNo}) ${qty} pcs used. Remaining: ${newQty} pcs.`,
         type: "order",
         url: "/stock-history",
@@ -244,7 +244,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
               <div className="space-y-2.5">
                 <button onClick={() => setStep("job")} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-blue-400 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50/50 transition-all text-left group shadow-sm">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform"><Zap size={16} className="text-white" /></div>
-                  <div><p className="text-sm font-bold text-foreground">NPRM Modify Order</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
+                  <div><p className="text-sm font-bold text-foreground">Job No</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
                 </button>
                 <button onClick={() => setStep("old_stock")} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-red-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50/50 transition-all text-left group shadow-sm">
                   <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform"><Package size={16} className="text-white" /></div>
@@ -258,9 +258,9 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
             <div>
               <button onClick={() => { setStep("choose"); setJobError(""); }} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
               <div className="space-y-2.5">
-                {/* Row 1: NPRM Modify Order No */}
+                {/* Row 1: Job No */}
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">NPRM Modify Order No (8 digits)</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Job No (8 digits)</label>
                   <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
                 </div>
                 {/* Row 2: MasterCard + Board Size side by side on desktop, stacked on mobile */}
@@ -298,7 +298,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                 {!showJobConfirm ? (
                   <button onClick={() => {
                     setJobError("");
-                    if (!/^\d{8}$/.test(jobNo)) { setJobError("NPRM Modify Order No must be exactly 8 digits (e.g. 02123456)."); return; }
+                    if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
                     if (!masterCard.trim()) { setJobError("MasterCard is required."); return; }
                     if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
                     // Block if board size is impossible (prod < job)
@@ -404,7 +404,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
 
   const handleJobRequest = async () => {
     setJobError("");
-    if (!/^\d{8}$/.test(jobNo)) { setJobError("NPRM Modify Order No must be exactly 8 digits (e.g. 02123456)."); return; }
+    if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
     if (!masterCard.trim()) { setJobError("MasterCard is required."); return; }
     if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
     const qty = parseInt(useQty);
@@ -563,7 +563,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <div className="space-y-2.5">
                 <button onClick={() => setStep("job")} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-blue-400 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50/50 transition-all text-left group shadow-sm">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform"><Zap size={16} className="text-white" /></div>
-                  <div><p className="text-sm font-bold text-foreground">NPRM Modify Order</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
+                  <div><p className="text-sm font-bold text-foreground">Job No</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
                 </button>
                 <button onClick={() => {
                   if (userLevel === "1") {
@@ -584,7 +584,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <button onClick={() => { setStep("choose"); setJobError(""); }} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">NPRM Modify Order No (8 digits)</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Job No (8 digits)</label>
                   <input type="text" value={jobNo} onChange={e => { setJobNo(e.target.value.replace(/\D/g, "").slice(0, 8)); setJobError(""); }} placeholder="02123456" maxLength={8} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" autoFocus />
                 </div>
                 {/* Row 2: MasterCard + Board Size side by side on desktop, stacked on mobile */}
@@ -645,7 +645,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                 {!showJobConfirm ? (
                   <button onClick={() => {
                     setJobError("");
-                    if (!/^\d{8}$/.test(jobNo)) { setJobError("NPRM Modify Order No must be exactly 8 digits (e.g. 02123456)."); return; }
+                    if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
                     if (!masterCard.trim()) { setJobError("MasterCard is required."); return; }
                     if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
                     // Block if board size is impossible (prod < job)
