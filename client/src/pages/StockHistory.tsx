@@ -11,13 +11,115 @@ import { A4Label } from "@/components/A4Label";
 
 const LOW_STOCK_THRESHOLD = 50;
 
+// ─── Board Size Calculation Helper ────────────────────────────────────────────
+const ALLOWED_GAP = 50; // 50mm allowance
+
+type BoardCalcResult = {
+  piecesW: number;       // how many pieces fit along W
+  piecesL: number;       // how many pieces fit along L
+  remainW: number;       // leftover mm along W
+  remainL: number;       // leftover mm along L
+  statusW: "ok" | "tight" | "impossible"; // tight = exactly equal (warning), impossible = prod < job
+  statusL: "ok" | "tight" | "impossible";
+};
+
+function calcBoardFit(prodW: number, prodL: number, jobW: number, jobL: number): BoardCalcResult {
+  const calcAxis = (prod: number, job: number) => {
+    if (prod < job) return { pieces: 0, remain: 0, status: "impossible" as const };
+    if (prod === job) return { pieces: 1, remain: 0, status: "tight" as const };
+    const usable = prod - ALLOWED_GAP;
+    if (usable < job) return { pieces: 0, remain: 0, status: "tight" as const }; // prod > job but not enough after allowance
+    const pieces = Math.floor(usable / job);
+    const remain = usable - pieces * job;
+    return { pieces, remain, status: "ok" as const };
+  };
+  const w = calcAxis(prodW, jobW);
+  const l = calcAxis(prodL, jobL);
+  return { piecesW: w.pieces, piecesL: l.pieces, remainW: w.remain, remainL: l.remain, statusW: w.status, statusL: l.status };
+}
+
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock";
   submittedBy: string | null; createdAt: Date;
 };
 
-// ─── Used Update Dialog (Level 2: direct action) ───────────────────────────────
+// ─── BoardSizeCalcPanel ─────────────────────────────────────────────────────────────────────────────
+function BoardSizeCalcPanel({ prodW, prodL, jobW, jobL }: { prodW: number; prodL: number; jobW: string; jobL: string }) {
+  const jW = parseInt(jobW);
+  const jL = parseInt(jobL);
+  if (!jobW || !jobL || isNaN(jW) || isNaN(jL) || jW <= 0 || jL <= 0) return null;
+
+  const calc = calcBoardFit(prodW, prodL, jW, jL);
+  const hasImpossible = calc.statusW === "impossible" || calc.statusL === "impossible";
+  const hasTight = !hasImpossible && (calc.statusW === "tight" || calc.statusL === "tight");
+
+  const AxisRow = ({ axis, prodSize, jobSize, pieces, remain, status }: {
+    axis: string; prodSize: number; jobSize: number; pieces: number; remain: number;
+    status: "ok" | "tight" | "impossible";
+  }) => {
+    const diff = prodSize - jobSize;
+    if (status === "impossible") {
+      return (
+        <div className="flex items-start gap-2">
+          <span className="text-xs font-bold text-red-600 w-4 shrink-0">{axis}</span>
+          <div>
+            <p className="text-xs text-red-700 font-semibold">❌ Cannot cut — Production {axis} ({prodSize}mm) &lt; Job Board {axis} ({jobSize}mm)</p>
+            <p className="text-xs text-red-600">Difference: {diff}mm. Board is too large for this Production Order.</p>
+          </div>
+        </div>
+      );
+    }
+    if (status === "tight") {
+      return (
+        <div className="flex items-start gap-2">
+          <span className="text-xs font-bold text-amber-600 w-4 shrink-0">{axis}</span>
+          <div>
+            <p className="text-xs text-amber-700 font-semibold">⚠️ Tight fit — Production {axis} ({prodSize}mm) ≈ Job Board {axis} ({jobSize}mm)</p>
+            <p className="text-xs text-amber-600">Less than 50mm allowance remaining. Cutting is risky but possible.</p>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-start gap-2">
+        <span className="text-xs font-bold text-emerald-600 w-4 shrink-0">{axis}</span>
+        <div>
+          <p className="text-xs text-emerald-700 font-semibold">✅ {pieces} pcs fit — {prodSize - ALLOWED_GAP}mm usable (after 50mm gap) ÷ {jobSize}mm = {pieces} pcs</p>
+          <p className="text-xs text-emerald-600">Leftover: {remain}mm</p>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className={`rounded-xl border p-3 space-y-2 ${
+      hasImpossible ? "bg-red-50 border-red-200" :
+      hasTight ? "bg-amber-50 border-amber-200" :
+      "bg-emerald-50 border-emerald-200"
+    }`}>
+      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+        📏 Board Fit Calculation — Ref: Production Order {prodW}×{prodL}mm
+      </p>
+      <div className="space-y-1.5">
+        <AxisRow axis="W" prodSize={prodW} jobSize={jW} pieces={calc.piecesW} remain={calc.remainW} status={calc.statusW} />
+        <AxisRow axis="L" prodSize={prodL} jobSize={jL} pieces={calc.piecesL} remain={calc.remainL} status={calc.statusL} />
+      </div>
+      {hasImpossible && (
+        <p className="text-xs font-bold text-red-700 bg-red-100 rounded-lg px-2.5 py-1.5">
+          ⛔ NPRM Modify Order cannot be processed — Board size exceeds Production Order dimensions.
+        </p>
+      )}
+      {hasTight && (
+        <p className="text-xs font-semibold text-amber-700 bg-amber-100 rounded-lg px-2.5 py-1.5">
+          ⚠️ Please ensure at least 50mm allowance is maintained for safe cutting.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Used Update Dialog (Level 2: direct action) ──────────────────────────────────────────────
 function UsedUpdateDialog({ order, onClose, onSuccess }: {
   order: Order; onClose: () => void; onSuccess: () => void;
 }) {
@@ -203,6 +305,8 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                     </div>
                   </div>
                 </div>
+                {/* Board Size Calculation Panel */}
+                <BoardSizeCalcPanel prodW={order.sizeW} prodL={order.sizeL} jobW={boardSizeW} jobL={boardSizeL} />
                 {/* Row 3: Scores + Qty side by side on desktop, stacked on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
@@ -224,6 +328,16 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                     if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
                     if (!masterCard.trim()) { setJobError("MasterCard is required."); return; }
                     if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
+                    // Block if board size is impossible (prod < job)
+                    if (boardSizeW && boardSizeL) {
+                      const jW = parseInt(boardSizeW); const jL = parseInt(boardSizeL);
+                      if (!isNaN(jW) && !isNaN(jL)) {
+                        const c = calcBoardFit(order.sizeW, order.sizeL, jW, jL);
+                        if (c.statusW === "impossible" || c.statusL === "impossible") {
+                          setJobError("Board size exceeds Production Order dimensions. NPRM Modify Order cannot be processed."); return;
+                        }
+                      }
+                    }
                     const qty = parseInt(useQty);
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
                     if (qty > availableQty) { setJobError(`Cannot exceed available quantity (${availableQty} pcs).`); return; }
@@ -515,6 +629,8 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     </div>
                   </div>
                 </div>
+                {/* Board Size Calculation Panel */}
+                <BoardSizeCalcPanel prodW={order.sizeW} prodL={order.sizeL} jobW={boardSizeW} jobL={boardSizeL} />
                 {/* Row 3: Scores + Qty side by side on desktop, stacked on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
@@ -542,6 +658,16 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
                     if (!masterCard.trim()) { setJobError("MasterCard is required."); return; }
                     if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
+                    // Block if board size is impossible (prod < job)
+                    if (boardSizeW && boardSizeL) {
+                      const jW2 = parseInt(boardSizeW); const jL2 = parseInt(boardSizeL);
+                      if (!isNaN(jW2) && !isNaN(jL2)) {
+                        const c2 = calcBoardFit(order.sizeW, order.sizeL, jW2, jL2);
+                        if (c2.statusW === "impossible" || c2.statusL === "impossible") {
+                          setJobError("Board size exceeds Production Order dimensions. NPRM Modify Order cannot be processed."); return;
+                        }
+                      }
+                    }
                     const qty = parseInt(useQty);
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
                     setShowJobConfirm(true);

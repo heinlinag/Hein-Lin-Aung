@@ -157,7 +157,47 @@ export const maintenanceSchedule = mysqlTable("maintenanceSchedule", {
 export type MaintenanceSchedule = typeof maintenanceSchedule.$inferSelect;
 export type InsertMaintenanceSchedule = typeof maintenanceSchedule.$inferInsert;
 
+// System Metrics table — stores real-time system performance metrics
+export const systemMetrics = mysqlTable("systemMetrics", {
+  id: int("id").autoincrement().primaryKey(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  responseTime: int("responseTime").notNull(), // milliseconds
+  requestCount: int("requestCount").notNull(), // requests in this interval
+  errorCount: int("errorCount").default(0).notNull(),
+  cpuUsage: varchar("cpuUsage", { length: 10 }), // percentage as string (e.g., "45.67")
+  memoryUsage: varchar("memoryUsage", { length: 10 }), // percentage as string (e.g., "78.90")
+  databaseLatency: int("databaseLatency"), // milliseconds
+  status: mysqlEnum("status", ["operational", "degraded", "down"]).default("operational").notNull(),
+});
+export type SystemMetrics = typeof systemMetrics.$inferSelect;
+export type InsertSystemMetrics = typeof systemMetrics.$inferInsert;
 
+// Analytics Events table — tracks user actions and system events for analytics
+export const analyticsEvents = mysqlTable("analyticsEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  eventType: varchar("eventType", { length: 64 }).notNull(), // e.g., 'order_submitted', 'request_approved', 'login'
+  workerID: varchar("workerID", { length: 64 }), // nullable for system events
+  orderId: varchar("orderId", { length: 64 }), // nullable if not related to order
+  metadata: text("metadata"), // JSON string for additional data
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+
+// Email Notifications table — tracks email notifications sent to users
+export const emailNotifications = mysqlTable("emailNotifications", {
+  id: int("id").autoincrement().primaryKey(),
+  recipientEmail: varchar("recipientEmail", { length: 320 }).notNull(),
+  recipientName: varchar("recipientName", { length: 128 }),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  body: text("body").notNull(),
+  type: mysqlEnum("type", ["maintenance", "alert", "update", "notification"]).notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "failed"]).default("pending").notNull(),
+  sentAt: timestamp("sentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type EmailNotification = typeof emailNotifications.$inferSelect;
+export type InsertEmailNotification = typeof emailNotifications.$inferInsert;
 
 // Contact Messages table — stores contact form submissions from Help Center
 export const contactMessages = mysqlTable("contactMessages", {

@@ -1182,3 +1182,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display red "Order is Urgent" badge on NPRM cards when urgent
 - [x] Auto-remove urgent flag when request is approved
 - [x] All 594 tests passing
+
+## Board Size Calculation System (Jun 9)
+- [x] Add useBoardSizeCalc hook/helper with pieces-per-W and pieces-per-L logic (50mm allowance)
+- [x] Show calculation result panel below Board Size inputs in UsedUpdateDialog (Level 2)
+- [x] Show calculation result panel below Board Size inputs in UsedUpdateRequestDialog (Level 1/1.1)
+- [x] Block submit when Production L < Job Board L or Production W < Job Board W (error state)
+- [x] Show warning (but allow submit) when Production L == Job Board L or Production W == Job Board W
+- [x] Display pieces count result (floor((Production - 50) / JobBoard)) for both W and L

@@ -225,20 +225,6 @@
       "when": 1780983333606,
       "tag": "0031_harsh_hannibal_king",
       "breakpoints": true
-    },
-    {
-      "idx": 32,
-      "version": "5",
-      "when": 1780989169681,
-      "tag": "0032_wandering_rockslide",
-      "breakpoints": true
-    },
-    {
-      "idx": 33,
-      "version": "5",
-      "when": 1780991184300,
-      "tag": "0033_round_jasper_sitwell",
-      "breakpoints": true
     }
   ]
 }
