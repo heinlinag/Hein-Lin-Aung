@@ -45,7 +45,7 @@ type Order = {
 };
 
 // ─── BoardSizeCalcPanel ─────────────────────────────────────────────────────────────────────────────
-function BoardSizeCalcPanel({ prodW, prodL, jobW, jobL }: { prodW: number; prodL: number; jobW: string; jobL: string }) {
+function BoardSizeCalcPanel({ prodW, prodL, jobW, jobL, trackingId }: { prodW: number; prodL: number; jobW: string; jobL: string; trackingId?: string }) {
   const jW = parseInt(jobW);
   const jL = parseInt(jobL);
   if (!jobW || !jobL || isNaN(jW) || isNaN(jL) || jW <= 0 || jL <= 0) return null;
@@ -56,15 +56,18 @@ function BoardSizeCalcPanel({ prodW, prodL, jobW, jobL }: { prodW: number; prodL
   const totalPcs = calc.piecesW * calc.piecesL;
 
   if (hasImpossible) {
-    // Identify which axis is impossible
-    const badAxis = calc.statusW === "impossible" && calc.statusL === "impossible" ? "W & L" :
-      calc.statusW === "impossible" ? "W" : "L";
-    const badProd = calc.statusW === "impossible" ? prodW : prodL;
-    const badJob = calc.statusW === "impossible" ? jW : jL;
+    const orderRef = trackingId ? `(${trackingId})` : "";
+    const lines: React.ReactNode[] = [];
+    if (calc.statusW === "impossible") {
+      lines.push(<p key="w" className="text-xs text-red-600">Production Order {orderRef} is size W ({prodW}mm) is smaller than you request Board Size W ({jW}mm). NPRM Modify Order cannot be processed.</p>);
+    }
+    if (calc.statusL === "impossible") {
+      lines.push(<p key="l" className="text-xs text-red-600">Production Order {orderRef} is size L ({prodL}mm) is smaller than you request Board Size L ({jL}mm). NPRM Modify Order cannot be processed.</p>);
+    }
     return (
       <div className="rounded-xl border bg-red-50 border-red-200 p-3 space-y-1.5">
-        <p className="text-xs font-bold text-red-700 uppercase tracking-wide">⛔ Cannot Cut ({badAxis})</p>
-        <p className="text-xs text-red-600">Production Order {badAxis} ({badProd}mm) is smaller than Board Size {badAxis} ({badJob}mm). NPRM Modify Order cannot be processed.</p>
+        <p className="text-xs font-bold text-red-700 uppercase tracking-wide">⛔ Cannot Cut</p>
+        {lines}
       </div>
     );
   }
@@ -274,7 +277,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                   </div>
                 </div>
                 {/* Board Size Calculation Panel */}
-                <BoardSizeCalcPanel prodW={order.sizeW} prodL={order.sizeL} jobW={boardSizeW} jobL={boardSizeL} />
+                <BoardSizeCalcPanel prodW={order.sizeW} prodL={order.sizeL} jobW={boardSizeW} jobL={boardSizeL} trackingId={order.trackingId} />
                 {/* Row 3: Scores + Qty side by side on desktop, stacked on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
@@ -598,7 +601,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                   </div>
                 </div>
                 {/* Board Size Calculation Panel */}
-                <BoardSizeCalcPanel prodW={order.sizeW} prodL={order.sizeL} jobW={boardSizeW} jobL={boardSizeL} />
+                <BoardSizeCalcPanel prodW={order.sizeW} prodL={order.sizeL} jobW={boardSizeW} jobL={boardSizeL} trackingId={order.trackingId} />
                 {/* Row 3: Scores + Qty side by side on desktop, stacked on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
