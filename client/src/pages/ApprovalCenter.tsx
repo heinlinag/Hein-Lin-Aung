@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, Flag } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { ActionHistoryCard, type ActionHistoryEvent } from "@/components/ActionHistoryCard";
@@ -28,6 +28,7 @@ type PendingRequest = {
   processApprovedBy: string | null;
   processApprovedQty: number | null;
   processApprovedAt: Date | null;
+  isUrgent: boolean;
   createdAt: Date;
   reviewedAt: Date | null;
 };
@@ -58,6 +59,7 @@ function RequestCard({
   onApprove,
   onCancel,
   onProcessApprove,
+  onToggleUrgent,
   isProcessing,
   canApprove,
   canCancel,
@@ -68,6 +70,7 @@ function RequestCard({
   onApprove: (id: number, approvedQty?: number) => void;
   onCancel: (id: number, reason: string) => void;
   onProcessApprove: (id: number, processApprovedQty?: number) => void;
+  onToggleUrgent: (id: number) => void;
   isProcessing: boolean;
   canApprove: boolean;
   canCancel: boolean;
@@ -111,6 +114,11 @@ function RequestCard({
             <p className="text-sm font-bold text-foreground">
               {isDelete ? "Delete Request" : "NPRM Modify Order"}
             </p>
+            {req.isUrgent && isPending && (
+              <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1 mt-1">
+                <Flag size={12} className="fill-red-700" /> Order is Urgent
+              </span>
+            )}
           </div>
         </div>
         {/* Single Status Badge - Show ONLY current stage */}
@@ -307,6 +315,15 @@ function RequestCard({
                 >
                   <CheckCircle2 size={16} className="text-green-600 flex-shrink-0" />
                   <span className="text-sm font-medium text-foreground">Approved</span>
+                </DropdownMenuItem>
+              )}
+              {req.requestedBy === currentWorkerID && req.type === "used_update" && (
+                <DropdownMenuItem
+                  onClick={() => onToggleUrgent(req.id)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
+                >
+                  <Flag size={16} className={req.isUrgent ? "text-orange-600 fill-orange-600" : "text-orange-600"} />
+                  <span className="text-sm font-medium text-foreground">{req.isUrgent ? "Remove Urgent" : "Mark Urgent"}</span>
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -530,6 +547,7 @@ export default function ApprovalCenter() {
   const approveMutation = trpc.pendingRequests.approve.useMutation();
   const cancelMutation = trpc.pendingRequests.cancel.useMutation();
   const processApproveMutation = trpc.pendingRequests.processApprove.useMutation();
+  const toggleUrgentMutation = trpc.pendingRequests.toggleUrgent.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const createNotif = trpc.notifications.create.useMutation();
 
@@ -698,6 +716,18 @@ export default function ApprovalCenter() {
     }
   };
 
+  const handleToggleUrgent = async (id: number) => {
+    if (!worker) return;
+    try {
+      await toggleUrgentMutation.mutateAsync({ id, workerID: worker.workerID });
+      toast.success("Urgent status updated.");
+      utils.pendingRequests.list.invalidate();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to update urgent status.");
+    }
+  };
+
   const pendingCount = statusFilter === "pending" ? requests.length : undefined;
 
   return (
@@ -834,6 +864,7 @@ export default function ApprovalCenter() {
                     onApprove={handleApprove}
                     onCancel={handleCancel}
                     onProcessApprove={handleProcessApprove}
+                    onToggleUrgent={handleToggleUrgent}
                     isProcessing={processingId === req.id}
                     canApprove={canApprove}
                     canCancel={canApprove || canProcessApprove || req.requestedBy === worker?.workerID}

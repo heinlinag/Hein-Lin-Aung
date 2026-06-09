@@ -30,6 +30,7 @@ import {
   processApprovePendingRequest,
   createApprovalActionLog,
   getApprovalActionLog,
+  toggleUrgent,
 } from "./db";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
@@ -625,6 +626,22 @@ export const appRouter = router({
       .input(z.object({ limit: z.number().int().positive().max(200).default(100) }))
       .query(async ({ input }) => {
         return getApprovalActionLog(input.limit);
+      }),
+    toggleUrgent: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        workerID: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
+        if (worker.userLevel !== "1") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 1 workers can mark as urgent" });
+        const req = await getPendingRequestById(input.id);
+        if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+        if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
+        if (req.requestedBy !== input.workerID) throw new TRPCError({ code: "FORBIDDEN", message: "You can only mark your own requests as urgent" });
+        const newUrgentStatus = await toggleUrgent(input.id);
+        return { success: true, isUrgent: newUrgentStatus };
       }),
   }),
   // ─── Admin ──────────────────────────────────────────────────────────────────────────────

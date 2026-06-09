@@ -299,6 +299,8 @@ export async function updatePendingRequestStatus(
   const updateData: Record<string, unknown> = { status, reviewedBy, reviewedAt: new Date() };
   if (opts?.cancelReason !== undefined) updateData.cancelReason = opts.cancelReason;
   if (opts?.approvedQty !== undefined) updateData.approvedQty = opts.approvedQty;
+  // Auto-remove urgent flag when request is approved (processed)
+  if (status === "approved") updateData.isUrgent = false;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await db.update(pendingRequests).set(updateData as any).where(eq(pendingRequests.id, id));
 }
@@ -318,6 +320,18 @@ export async function processApprovePendingRequest(
   if (processApprovedQty !== undefined) updateData.processApprovedQty = processApprovedQty;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await db.update(pendingRequests).set(updateData as any).where(eq(pendingRequests.id, id));
+}
+
+// Toggle urgent status on a pending request (Level 1 only)
+export async function toggleUrgent(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const req = await getPendingRequestById(id);
+  if (!req) throw new Error("Request not found");
+  const newUrgentStatus = !req.isUrgent;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await db.update(pendingRequests).set({ isUrgent: newUrgentStatus } as any).where(eq(pendingRequests.id, id));
+  return newUrgentStatus;
 }
 
 // ─── Approval Action Log ──────────────────────────────────────────────────────

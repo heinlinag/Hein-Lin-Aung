@@ -1172,3 +1172,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] UI Group: same emoji picker on group messages
 - [x] UI: show reaction counts below messages (grouped by emoji)
 - [x] UI: tap own reaction to remove it
+
+
+## NPRM Modify Order Urgent Feature (Jun 9)
+- [x] Add isUrgent column to pendingRequests table (database migration)
+- [x] Create toggleUrgent helper in server/db.ts
+- [x] Add toggleUrgent tRPC procedure (Level 1 only)
+- [x] Add Mark Urgent button to Update Info dropdown in ApprovalCenter
+- [x] Display red "Order is Urgent" badge on NPRM cards when urgent
+- [x] Auto-remove urgent flag when request is approved
+- [x] All 594 tests passing
