@@ -52,7 +52,7 @@ export const pendingRequests = mysqlTable("pendingRequests", {
   requestedBy: varchar("requestedBy", { length: 64 }).notNull(), // workerID
   workerName: varchar("workerName", { length: 128 }).notNull(),
   actionData: text("actionData"), // JSON: for used_update: { jobNo, usedQty, purpose, newQty }
-  status: mysqlEnum("status", ["pending", "approved", "cancelled"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["under_review", "pending", "approved", "cancelled"]).default("under_review").notNull(),
   reviewedBy: varchar("reviewedBy", { length: 128 }),
   cancelReason: text("cancelReason"), // required when status = cancelled
   approvedQty: int("approvedQty"),    // Level 2 can override requested qty before approving

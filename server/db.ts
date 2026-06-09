@@ -254,13 +254,22 @@ export async function createPendingRequest(data: {
   return insertId;
 }
 
-export async function getPendingRequests(status?: "pending" | "approved" | "cancelled") {
+export async function getPendingRequests(status?: "under_review" | "pending" | "approved" | "cancelled") {
   const db = await getDb();
   if (!db) return [];
   if (status) {
     return db.select().from(pendingRequests).where(eq(pendingRequests.status, status)).orderBy(desc(pendingRequests.createdAt));
   }
   return db.select().from(pendingRequests).orderBy(desc(pendingRequests.createdAt));
+}
+
+// Move request from under_review to pending (Level 2 review action)
+export async function reviewPendingRequest(id: number, reviewerName: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(pendingRequests)
+    .set({ status: "pending", reviewedBy: reviewerName })
+    .where(eq(pendingRequests.id, id));
 }
 
 export async function getPendingRequestById(id: number) {
@@ -270,14 +279,19 @@ export async function getPendingRequestById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// Returns total pending used qty for a given orderId (used_update requests still pending)
+// Returns total pending used qty for a given orderId (used_update requests still under_review or pending)
 export async function getPendingUsedQtyForOrder(orderId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
+  const { or } = await import("drizzle-orm");
   const rows = await db
     .select()
     .from(pendingRequests)
-    .where(and(eq(pendingRequests.orderId, orderId), eq(pendingRequests.status, "pending"), eq(pendingRequests.type, "used_update")));
+    .where(and(
+      eq(pendingRequests.orderId, orderId),
+      or(eq(pendingRequests.status, "pending"), eq(pendingRequests.status, "under_review")),
+      eq(pendingRequests.type, "used_update")
+    ));
   let total = 0;
   for (const row of rows) {
     try {

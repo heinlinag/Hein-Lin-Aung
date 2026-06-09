@@ -1182,3 +1182,17 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display red "Order is Urgent" badge on NPRM cards when urgent
 - [x] Auto-remove urgent flag when request is approved
 - [x] All 594 tests passing
+
+## Under Review Status for NPRM Modify Order (Jun 9)
+- [x] Add under_review to pendingRequests status enum (database migration)
+- [x] Update getPendingRequests to accept under_review filter
+- [x] Update getPendingUsedQtyForOrder to include under_review requests in available qty calc
+- [x] Add reviewPendingRequest helper in server/db.ts
+- [x] Add review tRPC procedure (Level 2 only) to move under_review → pending
+- [x] Update list procedure to accept under_review status filter
+- [x] Update ApprovalCenter PendingRequest type to include under_review status
+- [x] Add Under Review tab to status filter tabs (default tab)
+- [x] Add yellow Under Review badge on request cards
+- [x] Add Move to Pending button for Level 2 on under_review cards
+- [x] Level 1 requests now start as under_review instead of pending
+- [x] All 594 tests passing

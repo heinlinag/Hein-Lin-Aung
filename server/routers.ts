@@ -31,6 +31,7 @@ import {
   createApprovalActionLog,
   getApprovalActionLog,
   toggleUrgent,
+  reviewPendingRequest,
 } from "./db";
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
@@ -425,9 +426,24 @@ export const appRouter = router({
         return { success: true, autoProcessApproved: worker.userLevel === "1.1" };
       }),
     list: publicProcedure
-      .input(z.object({ status: z.enum(["pending", "approved", "cancelled"]).optional() }))
+      .input(z.object({ status: z.enum(["under_review", "pending", "approved", "cancelled"]).optional() }))
       .query(async ({ input }) => {
         return getPendingRequests(input.status);
+      }),
+    review: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        reviewerWorkerID: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const reviewer = await getWorkerByWorkerID(input.reviewerWorkerID);
+        if (!reviewer) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
+        if (reviewer.userLevel !== "2") throw new TRPCError({ code: "FORBIDDEN", message: "Only Level 2 workers can review requests" });
+        const req = await getPendingRequestById(input.id);
+        if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+        if (req.status !== "under_review") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is not under review" });
+        await reviewPendingRequest(input.id, reviewer.name);
+        return { success: true };
       }),
     getPendingUsedQty: publicProcedure
       .input(z.object({ orderId: z.number().int().positive() }))
