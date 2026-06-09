@@ -635,8 +635,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                       const prodPcsNeeded = Math.ceil(targetQty / pcsPerSlit);
                       return (
                         <div className="mt-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5">
-                          <p className="text-xs text-blue-800 font-semibold">Production Order pcs needed: <span className="text-sm font-bold">{prodPcsNeeded} pcs</span></p>
-                          <p className="text-xs text-blue-600">{targetQty} pcs ÷ {pcsPerSlit} pcs/slit = {(targetQty / pcsPerSlit).toFixed(2)} → {prodPcsNeeded} pcs from Production Order</p>
+                          <p className="text-xs text-blue-800 font-semibold">needed slit (<span className="font-bold">{prodPcsNeeded} pcs</span>) NPRM Modify Order</p>
                         </div>
                       );
                     })()}
