@@ -1,0 +1,28 @@
+{
+  "query": "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME > 'pushSubscriptions' ORDER BY TABLE_NAME;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME > 'pushSubscriptions' ORDER BY TABLE_NAME;",
+  "rows": [
+    {
+      "TABLE_NAME": "qrScanLog"
+    },
+    {
+      "TABLE_NAME": "systemMetrics"
+    },
+    {
+      "TABLE_NAME": "systemStatus"
+    },
+    {
+      "TABLE_NAME": "usageHistory"
+    },
+    {
+      "TABLE_NAME": "users"
+    },
+    {
+      "TABLE_NAME": "workers"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\nqrScanLog\nsystemMetrics\nsystemStatus\nusageHistory\nusers\nworkers\n",
+  "stderr": "",
+  "execution_time_ms": 1789
+}

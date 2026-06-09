@@ -1,0 +1,26 @@
+{
+  "query": "SELECT 'systemStatus' as tbl, COUNT(*) as cnt FROM systemStatus UNION ALL SELECT 'systemMetrics', COUNT(*) FROM systemMetrics UNION ALL SELECT 'analyticsEvents', COUNT(*) FROM analyticsEvents UNION ALL SELECT 'emailNotifications', COUNT(*) FROM emailNotifications;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute SELECT 'systemStatus' as tbl, COUNT(*) as cnt FROM systemStatus UNION ALL SELECT 'systemMetrics', COUNT(*) FROM systemMetrics UNION ALL SELECT 'analyticsEvents', COUNT(*) FROM analyticsEvents UNION ALL SELECT 'emailNotifications', COUNT(*) FROM emailNotifications;",
+  "rows": [
+    {
+      "tbl": "systemStatus",
+      "cnt": "0"
+    },
+    {
+      "tbl": "analyticsEvents",
+      "cnt": "0"
+    },
+    {
+      "tbl": "systemMetrics",
+      "cnt": "0"
+    },
+    {
+      "tbl": "emailNotifications",
+      "cnt": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "tbl\tcnt\nsystemStatus\t0\nanalyticsEvents\t0\nsystemMetrics\t0\nemailNotifications\t0\n",
+  "stderr": "",
+  "execution_time_ms": 1780
+}

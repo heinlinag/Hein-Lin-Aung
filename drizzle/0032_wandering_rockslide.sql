@@ -1,0 +1,1 @@
+ALTER TABLE `pendingRequests` MODIFY COLUMN `status` enum('under_review','pending','approved','cancelled') NOT NULL DEFAULT 'under_review';

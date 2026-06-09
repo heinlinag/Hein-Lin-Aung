@@ -1,0 +1,88 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "analyticsEvents"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "announcements"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "appNotifications"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "approvalActionLog"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "chatMessages"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "contactMessages"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "conversations"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "deletedLogs"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "emailNotifications"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "groupChats"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "groupMembers"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "groupMessageReads"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "groupMessages"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "maintenanceSchedule"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "messageReactions"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "notifications"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "orders"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "pendingRequests"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "pushSubscriptions"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "qrScanLog"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "systemMetrics"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "systemStatus"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "usageHistory"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "users"
+    },
+    {
+      "Tables_in_N47vrNGsXh2iCF9nsiVmGy": "workers"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_N47vrNGsXh2iCF9nsiVmGy\n__drizzle_migrations\nanalyticsEvents\nannouncements\nappNotifications\napprovalActionLog\nchatMessages\ncontactMessages\nconversations\ndeletedLogs\nemailNotifications\ngroupChats\ngroupMembers\ngroupMessageReads\ngroupMessages\nmaintenanceSchedule\nmessageReactions\nnotifications\norders\npendingRequests\npushSubscriptions\nqrScanLog\nsystemMetrics\nsystemStatus\nusageHistory\nusers\nworkers\n",
+  "stderr": "",
+  "execution_time_ms": 1706
+}
