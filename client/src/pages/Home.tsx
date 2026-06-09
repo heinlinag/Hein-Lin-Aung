@@ -276,12 +276,6 @@ export default function Home() {
                 {/* Background gradient on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${f.gradient} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300`} />
 
-                {/* Badge on Approval Center */}
-                {f.showBadge && pendingCount > 0 && (
-                  <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-lg notif-badge z-10">
-                    {pendingCount > 99 ? "99+" : pendingCount}
-                  </span>
-                )}
                 {/* Badge on Messages */}
                 {(f as { showMessageBadge?: boolean }).showMessageBadge && unreadMsgCount > 0 && (
                   <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-lg notif-badge z-10">
