@@ -512,7 +512,7 @@ function OrdersTab() {
     setUsedUpdateError("");
     if (usedUpdateStep === "type") {
       if (usedUpdateType === "job_no") {
-        if (!jobNo.trim()) { setUsedUpdateError("Job No is required."); return; }
+        if (!jobNo.trim()) { setUsedUpdateError("NPRM Modify Order No is required."); return; }
         if (!masterCard.trim()) { setUsedUpdateError("Master Card is required."); return; }
         if (!boardSizeW.trim() || !boardSizeL.trim()) { setUsedUpdateError("Board Size is required."); return; }
       } else {
@@ -551,7 +551,7 @@ function OrdersTab() {
           performedBy: "ADMIN",
         });
       }
-      toast.success(usedUpdateType === "job_no" ? "Job No usage logged." : "Old Stock cleared.");
+      toast.success(usedUpdateType === "job_no" ? "NPRM Modify Order No usage logged." : "Old Stock cleared.");
       utils.orders.list.invalidate();
       setUsedUpdateTarget(null);
       setUsedUpdateStep("type");
@@ -751,7 +751,7 @@ function OrdersTab() {
                           : "bg-gray-100 text-foreground hover:bg-gray-200"
                       }`}
                     >
-                      Job No
+                      NPRM Modify Order No
                     </button>
                     <button
                       onClick={() => setUsedUpdateType("old_stock")}
@@ -769,12 +769,12 @@ function OrdersTab() {
                 {usedUpdateType === "job_no" ? (
                   <>
                     <div>
-                      <label className="text-sm font-semibold text-foreground mb-1 block">Job No <span className="text-red-600">*</span></label>
+                      <label className="text-sm font-semibold text-foreground mb-1 block">NPRM Modify Order No <span className="text-red-600">*</span></label>
                       <input
                         type="text"
                         value={jobNo}
                         onChange={e => { setJobNo(e.target.value.toUpperCase()); setUsedUpdateError(""); }}
-                        placeholder="Enter Job No"
+                        placeholder="Enter NPRM Modify Order No"
                         className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -866,10 +866,10 @@ function OrdersTab() {
             ) : (
               <div className="space-y-4">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-900 font-semibold mb-2">Confirm {usedUpdateType === "job_no" ? "Job No" : "Old Stock"} Update</p>
+                  <p className="text-sm text-blue-900 font-semibold mb-2">Confirm {usedUpdateType === "job_no" ? "NPRM Modify Order No" : "Old Stock"} Update</p>
                   {usedUpdateType === "job_no" ? (
                     <div className="space-y-1 text-xs text-blue-800">
-                      <p><strong>Job No:</strong> {jobNo}</p>
+                      <p><strong>NPRM Modify Order No:</strong> {jobNo}</p>
                       <p><strong>Master Card:</strong> {masterCard}</p>
                       <p><strong>Board Size:</strong> {boardSizeW}×{boardSizeL} mm</p>
                       {scores && <p><strong>Scores:</strong> {scores}</p>}
@@ -1094,7 +1094,7 @@ function PendingRequestsTab() {
                     <div><span className="text-muted-foreground">Use Qty: </span><span className="font-semibold text-blue-700">{action.usedQty} pcs</span></div>
                   )}
                   {req.type === "used_update" && action.jobNo && (
-                    <div><span className="text-muted-foreground">Job No: </span><span className="font-semibold font-mono">{action.jobNo}</span></div>
+                    <div><span className="text-muted-foreground">NPRM Modify Order No: </span><span className="font-semibold font-mono">{action.jobNo}</span></div>
                   )}
                   {req.type === "used_update" && action.masterCard && (
                     <div><span className="text-muted-foreground">Master Card: </span><span className="font-semibold font-mono">{action.masterCard}</span></div>
