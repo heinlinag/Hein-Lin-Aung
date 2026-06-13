@@ -39,10 +39,14 @@ async function startServer() {
   const ALLOWED_DOMAINS = ["stockdash.click", "www.stockdash.click"];
   const DEV_SUFFIXES = [".manus.computer", ".manuspre.computer", ".manus-asia.computer", ".manuscomputer.ai", ".manusvm.computer", ".manus.space"];
   app.use((req, res, next) => {
+    // Always allow API paths (healthcheck, tRPC, OAuth, storage)
+    if (req.path.startsWith("/api/") || req.path.startsWith("/manus-storage/")) {
+      return next();
+    }
     const host = (req.headers["x-forwarded-host"] as string) || req.headers.host || "";
     const hostname = host.split(":")[0].toLowerCase();
     // Always allow localhost and Manus dev/preview environments
-    if (hostname === "localhost" || hostname === "127.0.0.1" || DEV_SUFFIXES.some(s => hostname.endsWith(s))) {
+    if (!hostname || hostname === "localhost" || hostname === "127.0.0.1" || DEV_SUFFIXES.some(s => hostname.endsWith(s))) {
       return next();
     }
     // Allow approved production domains
