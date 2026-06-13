@@ -34,6 +34,25 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // Domain restriction — only allow access from approved production domains
+  const ALLOWED_DOMAINS = ["stockdash.click", "www.stockdash.click"];
+  const DEV_SUFFIXES = [".manus.computer", ".manuspre.computer", ".manus-asia.computer", ".manuscomputer.ai", ".manusvm.computer", ".manus.space"];
+  app.use((req, res, next) => {
+    const host = (req.headers["x-forwarded-host"] as string) || req.headers.host || "";
+    const hostname = host.split(":")[0].toLowerCase();
+    // Always allow localhost and Manus dev/preview environments
+    if (hostname === "localhost" || hostname === "127.0.0.1" || DEV_SUFFIXES.some(s => hostname.endsWith(s))) {
+      return next();
+    }
+    // Allow approved production domains
+    if (ALLOWED_DOMAINS.includes(hostname)) {
+      return next();
+    }
+    // Redirect all other domains to the primary domain
+    return res.redirect(301, `https://stockdash.click${req.originalUrl}`);
+  });
+
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   // tRPC API
