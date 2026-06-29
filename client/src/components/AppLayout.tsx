@@ -111,17 +111,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       if (data && (data as { displaced?: boolean }).displaced) {
         // Another device logged in — force this session out
         if (worker?.workerID) {
-          // Save new device info so Login page can show it in the displaced banner
-          const d = data as { displaced: boolean; newDeviceName?: string; newDeviceIP?: string; newLoginAt?: string | null };
-          if (d.newDeviceName) {
-            try {
-              localStorage.setItem("gspp_displaced_by", JSON.stringify({
-                deviceName: d.newDeviceName,
-                deviceIP: d.newDeviceIP ?? "Unknown IP",
-                loginAt: d.newLoginAt ?? null,
-              }));
-            } catch { /* ignore */ }
-          }
           // No need to call deactivateDevice; server already switched the token
           logoutWorker();
           navigate("/login?reason=displaced");

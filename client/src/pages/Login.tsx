@@ -158,9 +158,6 @@ export default function Login() {
   const [successType, setSuccessType] = useState<SuccessType>(null);
   const [successName, setSuccessName] = useState("");
   const [displacedBanner, setDisplacedBanner] = useState(false);
-  const [displacedInfo, setDisplacedInfo] = useState<{ deviceName: string; deviceIP: string; loginAt: string | null } | null>(null);
-  // Banner shown to the NEW login when they displaced an existing session
-  const [replacedBanner, setReplacedBanner] = useState<{ oldDeviceName: string; oldDeviceIP: string; oldLoginAt: string | null } | null>(null);
 
   const { loginWorker, loginAdmin } = useAuth();
   const [, navigate] = useLocation();
@@ -179,14 +176,6 @@ export default function Login() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("reason") === "displaced") {
       setDisplacedBanner(true);
-      // Load displaced-by info from localStorage
-      try {
-        const raw = localStorage.getItem("gspp_displaced_by");
-        if (raw) {
-          setDisplacedInfo(JSON.parse(raw));
-          localStorage.removeItem("gspp_displaced_by");
-        }
-      } catch { /* ignore */ }
       // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
     }
@@ -247,14 +236,6 @@ export default function Login() {
       const deviceName = getDeviceName();
       // checkDevice now immediately activates session (no conflict dialog)
       const result = await checkDevice.mutateAsync({ workerID: workerID.trim(), deviceToken, deviceName });
-      // If an existing session was displaced, show info banner to the new login
-      if (result.wasDisplaced && result.oldDeviceName) {
-        setReplacedBanner({
-          oldDeviceName: result.oldDeviceName,
-          oldDeviceIP: result.oldDeviceIP ?? "Unknown IP",
-          oldLoginAt: result.oldLoginAt ? String(result.oldLoginAt) : null,
-        });
-      }
       completeLogin(
         result.worker as { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2" },
         deviceToken,
@@ -281,51 +262,15 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 flex flex-col relative overflow-hidden">
       {successType && <SuccessOverlay type={successType} name={successName} />}
 
-      {/* Displaced security banner — shown to the OLD device that was logged out */}
+      {/* Displaced security banner */}
       {displacedBanner && (
-        <div className="fixed top-0 inset-x-0 z-50 bg-red-600 text-white px-4 py-3 shadow-lg anim-fade-in">
-          <div className="flex items-start gap-3">
-            <ShieldAlert size={18} className="shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-bold text-sm">Security Alert: Your Session Was Terminated</p>
-              {displacedInfo ? (
-                <div className="mt-1.5 space-y-0.5">
-                  <p className="text-xs text-red-100">A new login from the following device ended your session:</p>
-                  <div className="mt-1 bg-red-700/50 rounded-lg px-3 py-2 text-xs space-y-0.5">
-                    <p><span className="text-red-300 font-medium">Device:</span> {displacedInfo.deviceName}</p>
-                    <p><span className="text-red-300 font-medium">IP Address:</span> {displacedInfo.deviceIP}</p>
-                    {displacedInfo.loginAt && <p><span className="text-red-300 font-medium">Time:</span> {new Date(displacedInfo.loginAt).toLocaleString()}</p>}
-                  </div>
-                  <p className="text-[11px] text-red-200 mt-1">If this was not you, contact your administrator immediately.</p>
-                </div>
-              ) : (
-                <p className="text-xs text-red-100 mt-0.5">Your session was ended because a new login was detected from another device. If this was not you, contact your administrator immediately.</p>
-              )}
-            </div>
-            <button onClick={() => setDisplacedBanner(false)} className="shrink-0 text-red-200 hover:text-white p-1 rounded">×</button>
+        <div className="fixed top-0 inset-x-0 z-50 bg-red-600 text-white px-4 py-3 flex items-start gap-3 shadow-lg anim-fade-in">
+          <ShieldAlert size={18} className="shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-bold text-sm">Security Alert: Session Terminated</p>
+            <p className="text-xs text-red-100 mt-0.5">Your session was ended because a new login was detected from another device. If this was not you, contact your administrator immediately.</p>
           </div>
-        </div>
-      )}
-
-      {/* Replaced banner — shown to the NEW login who displaced an existing session */}
-      {replacedBanner && (
-        <div className="fixed top-0 inset-x-0 z-50 bg-amber-500 text-white px-4 py-3 shadow-lg anim-fade-in">
-          <div className="flex items-start gap-3">
-            <ShieldAlert size={18} className="shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-bold text-sm">Notice: Previous Session Logged Out</p>
-              <div className="mt-1.5 space-y-0.5">
-                <p className="text-xs text-amber-100">An existing session was ended to allow your login:</p>
-                <div className="mt-1 bg-amber-600/50 rounded-lg px-3 py-2 text-xs space-y-0.5">
-                  <p><span className="text-amber-200 font-medium">Device:</span> {replacedBanner.oldDeviceName}</p>
-                  <p><span className="text-amber-200 font-medium">IP Address:</span> {replacedBanner.oldDeviceIP}</p>
-                  {replacedBanner.oldLoginAt && <p><span className="text-amber-200 font-medium">Last Login:</span> {new Date(replacedBanner.oldLoginAt).toLocaleString()}</p>}
-                </div>
-                <p className="text-[11px] text-amber-100 mt-1">If you did not initiate this, your account may have been accessed by someone else.</p>
-              </div>
-            </div>
-            <button onClick={() => setReplacedBanner(null)} className="shrink-0 text-amber-200 hover:text-white p-1 rounded">×</button>
-          </div>
+          <button onClick={() => setDisplacedBanner(false)} className="shrink-0 text-red-200 hover:text-white p-1 rounded">×</button>
         </div>
       )}
 
