@@ -348,6 +348,19 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                 {headerActions && (
                   <div className="shrink-0">{headerActions}</div>
                 )}
+                {/* Notification Bell — mobile header */}
+                <button
+                  onClick={() => navigate("/notifications")}
+                  className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                  aria-label="Notifications"
+                >
+                  <Bell size={18} className="text-gray-600" />
+                  {unreadNotifCount > 0 && (
+                    <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm">
+                      {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
+                    </span>
+                  )}
+                </button>
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(v => !v)}
@@ -372,10 +385,53 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
           </div>
         )}
         {/* Page content */}
-        <main className={`flex-1 min-h-0 ${fullHeight ? "overflow-hidden" : "overflow-y-auto"}`}>
+        <main className={`flex-1 min-h-0 ${fullHeight ? "overflow-hidden pb-[64px] lg:pb-0" : "overflow-y-auto pb-[64px] lg:pb-0"}`}>
           {children}
         </main>
       </div>
+
+      {/* ── Mobile Bottom Navigation Bar ──────────────────────────── */}
+      {worker && (
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-gray-200/60 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
+          <div className="flex items-stretch h-16">
+            {[
+              { href: "/",             icon: <Home size={20} />,          label: "Home" },
+              { href: "/submit-order", icon: <ClipboardList size={20} />, label: "Orders" },
+              { href: "/chat",         icon: <MessageCircle size={20} />, label: "Chat",  badge: unreadMsgCount },
+              { href: "/notifications",icon: <Bell size={20} />,          label: "Alerts", badge: unreadNotifCount },
+              { href: "/stock-history",icon: <Package size={20} />,       label: "Stock" },
+            ].map(item => {
+              const active = location === item.href;
+              return (
+                <button
+                  key={item.href}
+                  onClick={() => navigate(item.href)}
+                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-all duration-200 ${
+                    active ? "text-blue-600" : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <span className="relative">
+                    {item.icon}
+                    {item.badge && item.badge > 0 ? (
+                      <span className={`absolute -top-1 -right-1.5 min-w-[15px] h-[15px] text-white text-[8px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm ${
+                        item.href === "/notifications" ? "bg-blue-500" : "bg-red-500"
+                      }`}>
+                        {item.badge > 99 ? "99+" : item.badge}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className={`text-[10px] font-medium leading-none ${
+                    active ? "text-blue-600" : "text-gray-400"
+                  }`}>{item.label}</span>
+                  {active && (
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-500 rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      )}
 
       {/* Admin Password Dialog */}
       {showAdminDialog && (
