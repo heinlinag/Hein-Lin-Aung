@@ -1190,3 +1190,27 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Block submit when Production L < Job Board L or Production W < Job Board W (error state)
 - [x] Show warning (but allow submit) when Production L == Job Board L or Production W == Job Board W
 - [x] Display pieces count result (floor((Production - 50) / JobBoard)) for both W and L
+
+## Chat/Messages - Next Level Upgrade
+- [x] Chat UI: Add online/offline status indicator (green dot) for users
+- [ ] Chat UI: Add typing indicator ("typing...") in real-time (deferred - requires WebSocket)
+- [x] Chat UI: Improve message input with multi-line textarea support (auto-resize)
+- [x] Chat UI: Add message reply/quote feature (reply to specific message)
+- [x] Chat UI: Add message delete (own messages only)
+- [x] Chat UI: Improve group chat - online count in header
+- [x] Chat UI: Smooth scroll-to-bottom with "New messages" floating button
+- [x] Chat UI: Add message search within conversation
+- [x] Chat UI: Improve empty state animations and illustrations
+- [x] Chat UI: Add sound notification for new incoming messages
+
+## Notification Messages - Next Level Upgrade
+- [x] Notifications: Add dedicated Notifications page (full-page center)
+- [x] Notifications: Add category filter tabs (All, Orders, System, Chat)
+- [x] Notifications: Click notification to navigate to relevant page (deep-link)
+- [x] Notifications: Add notification sound effect on new push
+- [x] Notifications: Improve push notification content with action buttons
+- [x] Notifications: Add "chat_message" notification type for DM/group messages
+- [x] Notifications: Show notification toast/banner in-app when new push arrives
+- [ ] Notifications: Add notification preferences (mute types, quiet hours) (future)
+- [x] Notifications: Improve NotificationBell dropdown with better grouping by date
+- [ ] Notifications: Add swipe-to-dismiss on mobile notification items (future)

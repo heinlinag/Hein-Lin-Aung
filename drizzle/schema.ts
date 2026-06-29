@@ -21,6 +21,7 @@ export const workers = mysqlTable("workers", {
   name: varchar("name", { length: 128 }).notNull(),
   department: varchar("department", { length: 128 }).notNull(),
   userLevel: mysqlEnum("userLevel", ["1", "1.1", "2"]).default("2").notNull(),
+  lastSeenAt: timestamp("lastSeenAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type Worker = typeof workers.$inferSelect;
@@ -228,6 +229,7 @@ export const appNotifications = mysqlTable("appNotifications", {
     "new_order",
     "login",
     "system",
+    "chat_message",
   ]).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   message: text("message").notNull(),
@@ -242,6 +244,8 @@ export const appNotifications = mysqlTable("appNotifications", {
   workerName: varchar("workerName", { length: 128 }),
   // Tracking
   trackingId: varchar("trackingId", { length: 64 }),
+  // Deep link URL for click-to-navigate
+  deepLink: varchar("deepLink", { length: 500 }),
   // Read state — comma-separated workerIDs who have read this
   readBy: varchar("readBy", { length: 2000 }).default("").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -280,6 +284,8 @@ export const chatMessages = mysqlTable("chatMessages", {
   conversationID: int("conversationID").notNull(),
   senderID: varchar("senderID", { length: 64 }).notNull(),
   text: text("text").notNull(),
+  replyToID: int("replyToID"),
+  deletedAt: timestamp("deletedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   readAt: timestamp("readAt"),
 });
@@ -311,6 +317,8 @@ export const groupMessages = mysqlTable("groupMessages", {
   senderID: varchar("senderID", { length: 64 }).notNull(),
   senderName: varchar("senderName", { length: 128 }).notNull(),
   text: text("text").notNull(),
+  replyToID: int("replyToID"),
+  deletedAt: timestamp("deletedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type GroupMessage = typeof groupMessages.$inferSelect;

@@ -1,0 +1,2 @@
+ALTER TABLE `appNotifications` MODIFY COLUMN `type` enum('order_request','order_approved','order_cancelled','order_in_process','order_deleted','out_of_stock','new_order','login','system','chat_message') NOT NULL;--> statement-breakpoint
+ALTER TABLE `appNotifications` ADD `deepLink` varchar(500);

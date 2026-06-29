@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `chatMessages` ADD `replyToID` int;\nALTER TABLE `chatMessages` ADD `deletedAt` timestamp;\nALTER TABLE `groupMessages` ADD `replyToID` int;\nALTER TABLE `groupMessages` ADD `deletedAt` timestamp;\nALTER TABLE `workers` ADD `lastSeenAt` timestamp;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute ALTER TABLE `chatMessages` ADD `replyToID` int;\nALTER TABLE `chatMessages` ADD `deletedAt` timestamp;\nALTER TABLE `groupMessages` ADD `replyToID` int;\nALTER TABLE `groupMessages` ADD `deletedAt` timestamp;\nALTER TABLE `workers` ADD `lastSeenAt` timestamp;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 3341
+}

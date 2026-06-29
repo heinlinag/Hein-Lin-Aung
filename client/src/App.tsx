@@ -22,6 +22,7 @@ import QRScanner from "./pages/QRScanner";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import PublicOrderCard from "./pages/PublicOrderCard";
 import Chat from "./pages/Chat";
+import Notifications from "./pages/Notifications";
 
 
 /** Routes that require geo-restriction (MY/MM only) */
@@ -69,6 +70,7 @@ function GeoRestrictedRouter() {
         </Route>
 
         {/* Direct Messages */}
+        <Route path="/notifications" component={Notifications} />
         <Route path="/chat">
           <LoginGate>
             <Chat />

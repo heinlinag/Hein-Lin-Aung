@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `appNotifications` MODIFY COLUMN `type` enum('order_request','order_approved','order_cancelled','order_in_process','order_deleted','out_of_stock','new_order','login','system','chat_message') NOT NULL;\nALTER TABLE `appNotifications` ADD `deepLink` varchar(500);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute ALTER TABLE `appNotifications` MODIFY COLUMN `type` enum('order_request','order_approved','order_cancelled','order_in_process','order_deleted','out_of_stock','new_order','login','system','chat_message') NOT NULL;\nALTER TABLE `appNotifications` ADD `deepLink` varchar(500);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 2649
+}

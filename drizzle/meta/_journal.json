@@ -225,6 +225,20 @@
       "when": 1780983333606,
       "tag": "0031_harsh_hannibal_king",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1781342875038,
+      "tag": "0032_foamy_slipstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1782695944988,
+      "tag": "0033_huge_ares",
+      "breakpoints": true
     }
   ]
 }

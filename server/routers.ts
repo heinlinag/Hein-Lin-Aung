@@ -763,7 +763,7 @@ export const appRouter = router({
     // Create a new notification (called from frontend on events)
     create: publicProcedure
       .input(z.object({
-        type: z.enum(["order_request", "order_approved", "order_cancelled", "order_in_process", "order_deleted", "out_of_stock", "new_order", "login", "system"]),
+        type: z.enum(["order_request", "order_approved", "order_cancelled", "order_in_process", "order_deleted", "out_of_stock", "new_order", "login", "system", "chat_message"]),
         title: z.string(),
         message: z.string(),
         orderID: z.string().optional(),
@@ -774,11 +774,31 @@ export const appRouter = router({
         workerID: z.string().optional(),
         workerName: z.string().optional(),
         trackingId: z.string().optional(),
+        deepLink: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const { createAppNotification } = await import("./db");
         await createAppNotification(input);
         return { success: true };
+      }),
+
+    // Get notifications filtered by category
+    listByCategory: publicProcedure
+      .input(z.object({ category: z.enum(["all", "orders", "system", "chat"]).default("all") }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { appNotifications } = await import("../drizzle/schema");
+        const { desc, inArray } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        if (input.category === "orders") {
+          return db.select().from(appNotifications).where(inArray(appNotifications.type, ["order_request", "order_approved", "order_cancelled", "order_in_process", "order_deleted", "out_of_stock", "new_order"])).orderBy(desc(appNotifications.createdAt)).limit(100);
+        } else if (input.category === "system") {
+          return db.select().from(appNotifications).where(inArray(appNotifications.type, ["system", "login"])).orderBy(desc(appNotifications.createdAt)).limit(100);
+        } else if (input.category === "chat") {
+          return db.select().from(appNotifications).where(inArray(appNotifications.type, ["chat_message"])).orderBy(desc(appNotifications.createdAt)).limit(100);
+        }
+        return db.select().from(appNotifications).orderBy(desc(appNotifications.createdAt)).limit(100);
       }),
 
     // Mark notifications as read for a worker
@@ -1027,6 +1047,99 @@ export const appRouter = router({
         if (!db) return [];
         return db.select().from(workers).where(ne(workers.workerID, input.workerID)).orderBy(asc(workers.name));
       }),
+
+    // Update last seen (heartbeat)
+    heartbeat: publicProcedure
+      .input(z.object({ workerID: z.string() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { workers } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.update(workers).set({ lastSeenAt: new Date() }).where(eq(workers.workerID, input.workerID));
+        return { success: true };
+      }),
+
+    // Get online status for workers (online = lastSeenAt within 60s)
+    getOnlineStatus: publicProcedure
+      .input(z.object({ workerIDs: z.array(z.string()) }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { workers } = await import("../drizzle/schema");
+        const { inArray } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db || input.workerIDs.length === 0) return {};
+        const rows = await db.select({ workerID: workers.workerID, lastSeenAt: workers.lastSeenAt }).from(workers).where(inArray(workers.workerID, input.workerIDs));
+        const now = Date.now();
+        const result: Record<string, { online: boolean; lastSeenAt: Date | null }> = {};
+        rows.forEach(r => {
+          const isOnline = r.lastSeenAt ? (now - new Date(r.lastSeenAt).getTime()) < 60000 : false;
+          result[r.workerID] = { online: isOnline, lastSeenAt: r.lastSeenAt };
+        });
+        return result;
+      }),
+
+    // Delete a message (soft delete, own messages only)
+    deleteMessage: publicProcedure
+      .input(z.object({ messageID: z.number(), workerID: z.string() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { chatMessages } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        const [msg] = await db.select().from(chatMessages).where(eq(chatMessages.id, input.messageID)).limit(1);
+        if (!msg) throw new TRPCError({ code: "NOT_FOUND", message: "Message not found" });
+        if (msg.senderID !== input.workerID) throw new TRPCError({ code: "FORBIDDEN", message: "Can only delete own messages" });
+        await db.update(chatMessages).set({ deletedAt: new Date() }).where(eq(chatMessages.id, input.messageID));
+        return { success: true };
+      }),
+
+    // Send DM with reply support
+    sendMessageWithReply: publicProcedure
+      .input(z.object({ conversationID: z.number(), senderID: z.string(), senderName: z.string().optional(), text: z.string().min(1).max(2000), replyToID: z.number().optional() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { chatMessages, conversations } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        await db.insert(chatMessages).values({ conversationID: input.conversationID, senderID: input.senderID, text: input.text, replyToID: input.replyToID || null });
+        await db.update(conversations).set({ lastMessageAt: new Date() }).where(eq(conversations.id, input.conversationID));
+        // Push notification to recipient
+        try {
+          const [conv] = await db.select().from(conversations).where(eq(conversations.id, input.conversationID)).limit(1);
+          if (conv) {
+            const recipientID = conv.worker1ID === input.senderID ? conv.worker2ID : conv.worker1ID;
+            const senderName = input.senderName || input.senderID;
+            const preview = input.text.length > 60 ? input.text.slice(0, 57) + "..." : input.text;
+            await sendPushToWorkers([recipientID], {
+              title: `New message from ${senderName}`,
+              body: preview,
+              type: "general",
+              url: "/chat",
+              tag: `dm-${input.conversationID}`,
+              requireInteraction: false,
+            });
+          }
+        } catch (_) { /* non-critical */ }
+        return { success: true };
+      }),
+
+    // Search messages in a conversation
+    searchMessages: publicProcedure
+      .input(z.object({ conversationID: z.number(), query: z.string().min(1).max(200) }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { chatMessages } = await import("../drizzle/schema");
+        const { eq, and, like, isNull } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        return db.select().from(chatMessages)
+          .where(and(eq(chatMessages.conversationID, input.conversationID), like(chatMessages.text, `%${input.query}%`), isNull(chatMessages.deletedAt)))
+          .limit(50);
+      }),
   }),
 
   // ─── Group Chat ─────────────────────────────────────────────────────────────
@@ -1191,6 +1304,67 @@ export const appRouter = router({
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
         await db.delete(groupMembers).where(and(eq(groupMembers.groupID, input.groupID), eq(groupMembers.workerID, input.workerID)));
         return { success: true };
+      }),
+
+    // Delete a group message (soft delete, own messages only)
+    deleteMessage: publicProcedure
+      .input(z.object({ messageID: z.number(), workerID: z.string() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { groupMessages } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        const [msg] = await db.select().from(groupMessages).where(eq(groupMessages.id, input.messageID)).limit(1);
+        if (!msg) throw new TRPCError({ code: "NOT_FOUND", message: "Message not found" });
+        if (msg.senderID !== input.workerID) throw new TRPCError({ code: "FORBIDDEN", message: "Can only delete own messages" });
+        await db.update(groupMessages).set({ deletedAt: new Date() }).where(eq(groupMessages.id, input.messageID));
+        return { success: true };
+      }),
+
+    // Send group message with reply support
+    sendMessageWithReply: publicProcedure
+      .input(z.object({ groupID: z.number(), senderID: z.string(), senderName: z.string(), text: z.string().min(1).max(2000), replyToID: z.number().optional() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { groupMessages, groupChats, groupMembers } = await import("../drizzle/schema");
+        const { eq, ne, and } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        await db.insert(groupMessages).values({ groupID: input.groupID, senderID: input.senderID, senderName: input.senderName, text: input.text, replyToID: input.replyToID || null });
+        await db.update(groupChats).set({ lastMessageAt: new Date() }).where(eq(groupChats.id, input.groupID));
+        // Push notification to other group members
+        try {
+          const members = await db.select().from(groupMembers).where(and(eq(groupMembers.groupID, input.groupID), ne(groupMembers.workerID, input.senderID)));
+          const recipientIDs = members.map(m => m.workerID);
+          if (recipientIDs.length > 0) {
+            const [group] = await db.select().from(groupChats).where(eq(groupChats.id, input.groupID)).limit(1);
+            const preview = input.text.length > 50 ? input.text.slice(0, 47) + "..." : input.text;
+            await sendPushToWorkers(recipientIDs, {
+              title: `${input.senderName} in ${group?.name || "Group"}`,
+              body: preview,
+              type: "general",
+              url: "/chat",
+              tag: `group-${input.groupID}`,
+              requireInteraction: false,
+            });
+          }
+        } catch (_) { /* non-critical */ }
+        return { success: true };
+      }),
+
+    // Search messages in a group
+    searchMessages: publicProcedure
+      .input(z.object({ groupID: z.number(), query: z.string().min(1).max(200) }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { groupMessages } = await import("../drizzle/schema");
+        const { eq, and, like, isNull } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        return db.select().from(groupMessages)
+          .where(and(eq(groupMessages.groupID, input.groupID), like(groupMessages.text, `%${input.query}%`), isNull(groupMessages.deletedAt)))
+          .limit(50);
       }),
   }),
 
