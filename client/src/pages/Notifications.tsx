@@ -9,26 +9,25 @@ import AppLayout from "@/components/AppLayout";
 import {
   Bell, Package, CheckCircle2, XCircle, Loader2, Trash2,
   AlertTriangle, ShoppingCart, LogIn, Info, CheckCheck,
-  MessageCircle, ExternalLink, Clock, ShieldAlert,
+  MessageCircle, ExternalLink, Clock, ShieldAlert, RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 // ── Swipeable Notification Item ───────────────────────────────────────────────
 const SWIPE_THRESHOLD = 72; // px to trigger delete reveal
 
 function SwipeableNotifItem({
-  notif, isRead, cfg, onDelete, onClick, isDeleting,
+  notif, isRead, cfg, onDelete, onClick,
 }: {
   notif: Notif;
   isRead: boolean;
   cfg: { icon: React.ReactNode; color: string; bgLight: string; label: string };
-  onDelete: (id: number) => void;
+  onDelete: (id: number, title: string) => void;
   onClick: (notif: Notif) => void;
-  isDeleting: boolean;
 }) {
   const [offsetX, setOffsetX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
   const startX = useRef(0);
   const startY = useRef(0);
   const isHorizontal = useRef(false);
@@ -65,8 +64,9 @@ function SwipeableNotifItem({
   };
 
   const handleDelete = () => {
-    setDismissed(true);
-    setTimeout(() => onDelete(notif.id), 250);
+    // Animate slide out then call parent
+    setOffsetX(-400);
+    setTimeout(() => onDelete(notif.id, notif.title), 200);
   };
 
   const handleItemClick = () => {
@@ -78,18 +78,15 @@ function SwipeableNotifItem({
     onClick(notif);
   };
 
-  if (dismissed) return null;
-
   return (
     <div className="relative overflow-hidden rounded-xl">
       {/* Delete background */}
       <div className="absolute inset-0 flex items-center justify-end bg-red-500 rounded-xl">
         <button
           onClick={handleDelete}
-          disabled={isDeleting}
           className="flex flex-col items-center justify-center w-20 h-full text-white gap-1 hover:bg-red-600 transition-colors rounded-r-xl"
         >
-          {isDeleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+          <Trash2 size={18} />
           <span className="text-[10px] font-semibold">Delete</span>
         </button>
       </div>
@@ -258,8 +255,9 @@ export default function Notifications() {
     chat:   countFor(CHAT_TYPES),
   };
 
-  // Filter
+  // Filter (also exclude optimistically hidden items)
   const filteredNotifs = allNotifs.filter(n => {
+    if (hiddenIds.has(n.id)) return false;
     if (filter === "all") return true;
     if (filter === "orders") return ORDER_TYPES.includes(n.type);
     if (filter === "system") return SYSTEM_TYPES.includes(n.type);
@@ -299,18 +297,56 @@ export default function Notifications() {
     if (notif.deepLink) navigate(notif.deepLink);
   };
 
-  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
+  // Pending deletes: id → timer handle (delete is deferred by UNDO_DELAY)
+  const UNDO_DELAY = 5000;
+  const pendingDeletes = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+  const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set());
+
   const deleteMutation = trpc.notifications.delete.useMutation({
     onSuccess: () => {
       utils.notifications.list.invalidate();
       utils.notifications.unreadCount.invalidate();
     },
   });
-  const handleDelete = useCallback((id: number) => {
-    setDeletingIds(prev => new Set(prev).add(id));
-    deleteMutation.mutate({ id }, {
-      onSettled: () => setDeletingIds(prev => { const s = new Set(prev); s.delete(id); return s; }),
-    });
+
+  const handleDelete = useCallback((id: number, notifTitle: string) => {
+    // 1. Immediately hide from UI (optimistic)
+    setHiddenIds(prev => new Set(prev).add(id));
+
+    // 2. Show Undo toast
+    const toastId = toast(
+      <div className="flex items-center gap-2 w-full">
+        <Trash2 size={14} className="text-red-500 shrink-0" />
+        <span className="flex-1 text-sm font-medium text-gray-800 truncate">Deleted</span>
+        <button
+          onClick={() => {
+            // Cancel the pending server delete
+            const timer = pendingDeletes.current.get(id);
+            if (timer) clearTimeout(timer);
+            pendingDeletes.current.delete(id);
+            // Restore item in UI
+            setHiddenIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+            toast.dismiss(toastId);
+          }}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors shrink-0"
+        >
+          <RotateCcw size={11} />
+          Undo
+        </button>
+      </div>,
+      {
+        duration: UNDO_DELAY,
+        position: "bottom-center",
+        style: { padding: "10px 12px" },
+      }
+    );
+
+    // 3. Schedule actual server delete after delay
+    const timer = setTimeout(() => {
+      pendingDeletes.current.delete(id);
+      deleteMutation.mutate({ id });
+    }, UNDO_DELAY);
+    pendingDeletes.current.set(id, timer);
   }, [deleteMutation]);
 
   return (
@@ -411,7 +447,7 @@ export default function Notifications() {
                   <div className="flex-1 h-px bg-gray-100" />
                 </div>
                 <div className="space-y-2">
-                  {items.map(notif => {
+                  {items.filter(n => !hiddenIds.has(n.id)).map(notif => {
                     const cfg = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.system;
                     const isRead = notif.readBy.split(",").filter(Boolean).includes(workerID);
                     return (
@@ -422,7 +458,6 @@ export default function Notifications() {
                         cfg={cfg}
                         onDelete={handleDelete}
                         onClick={handleClick}
-                        isDeleting={deletingIds.has(notif.id)}
                       />
                     );
                   })}
