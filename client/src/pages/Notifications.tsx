@@ -155,26 +155,26 @@ export default function Notifications() {
 
   return (
     <AppLayout pageTitle="Notifications">
-      <div className="max-w-3xl mx-auto px-4 py-6">
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-3 sm:py-5">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Bell size={20} className="text-blue-600" />
-              Notification Center
+        <div className="flex items-center justify-between mb-3 sm:mb-5 gap-2">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-1.5 leading-tight">
+              <Bell size={16} className="text-blue-600 shrink-0" />
+              <span className="truncate">Notification Center</span>
               {unreadCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] bg-blue-500 text-white text-[10px] font-bold rounded-full px-1.5 shadow-sm">
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] bg-blue-500 text-white text-[9px] font-bold rounded-full px-1 shadow-sm shrink-0">
                   {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-xs text-gray-500 mt-0.5">
               {unreadCount > 0 ? (
                 <span className="text-blue-600 font-medium">{unreadCount} unread</span>
               ) : (
                 <span className="text-emerald-600 font-medium">All caught up!</span>
               )}
-              {" "}&middot;{" "}{allNotifs.length} total
+              {" "}·{" "}{allNotifs.length} total
             </p>
           </div>
           <Button
@@ -182,23 +182,23 @@ export default function Notifications() {
             disabled={unreadCount === 0 || markReadMutation.isPending}
             variant="outline"
             size="sm"
-            className={`text-xs gap-1.5 transition-all ${
+            className={`text-[11px] gap-1 shrink-0 h-8 px-2.5 transition-all ${
               unreadCount > 0
                 ? "border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
                 : "opacity-40 cursor-not-allowed"
             }`}
           >
             {markReadMutation.isPending ? (
-              <Loader2 size={12} className="animate-spin" />
+              <Loader2 size={11} className="animate-spin" />
             ) : (
-              <CheckCheck size={12} />
+              <CheckCheck size={11} />
             )}
             Mark all as read
           </Button>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
           {FILTER_TABS.map(tab => {
             const isActive = filter === tab.key;
             const cnt = tabCounts[tab.key];
@@ -206,7 +206,7 @@ export default function Notifications() {
               <button
                 key={tab.key}
                 onClick={() => setFilter(tab.key)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap border-2 ${
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap border-2 ${
                   isActive
                     ? `${tab.activeBg} ${tab.activeBorder} ${tab.activeText} shadow-sm`
                     : `${tab.color} hover:bg-gray-50 border-transparent hover:border-gray-200`
@@ -215,7 +215,7 @@ export default function Notifications() {
                 <span className={isActive ? tab.activeText : tab.color}>{tab.icon}</span>
                 {tab.label}
                 {cnt > 0 && (
-                  <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-1 ${
+                  <span className={`inline-flex items-center justify-center min-w-[16px] h-[16px] rounded-full text-[9px] font-bold px-0.5 ${
                     isActive
                       ? `${tab.activeBorder.replace("border-", "bg-").replace("-300", "-500")} text-white`
                       : "bg-gray-200 text-gray-600"

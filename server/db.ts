@@ -375,11 +375,27 @@ export async function getInProcessQtyForOrder(orderId: number): Promise<number> 
 
 // ─── In-App Notifications ─────────────────────────────────────────────────────
 
+const MAX_NOTIFICATIONS = 200;
+
 export async function createAppNotification(data: Omit<InsertAppNotification, "id" | "createdAt" | "readBy">): Promise<void> {
   const db = await getDb();
   if (!db) return;
   try {
     await db.insert(appNotifications).values({ ...data, readBy: "" });
+    // Auto-delete oldest notifications when count exceeds MAX_NOTIFICATIONS
+    const countRows = await db.execute(sqlExpr`SELECT COUNT(*) as cnt FROM appNotifications`);
+    const total = Number((countRows as unknown as [Array<{ cnt: number }>])[0]?.[0]?.cnt ?? 0);
+    if (total > MAX_NOTIFICATIONS) {
+      const excess = total - MAX_NOTIFICATIONS;
+      await db.execute(sqlExpr`
+        DELETE FROM appNotifications
+        WHERE id IN (
+          SELECT id FROM (
+            SELECT id FROM appNotifications ORDER BY createdAt ASC LIMIT ${excess}
+          ) AS oldest
+        )
+      `);
+    }
   } catch (e) {
     console.warn("[Notification] Failed to save:", e);
   }
