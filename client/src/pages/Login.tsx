@@ -290,8 +290,9 @@ export default function Login() {
     worker: { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2" },
     deviceToken: string,
     deviceName: string,
+    forceLogout = false,
   ) => {
-    await activateDevice.mutateAsync({ workerID: worker.workerID, deviceToken, deviceName });
+    await activateDevice.mutateAsync({ workerID: worker.workerID, deviceToken, deviceName, forceLogout });
     loginWorker(worker.workerID, worker.name, worker.department, worker.userLevel, deviceToken);
     notifyLogin.mutate({ title: "Employee Login", body: worker.name + " (" + worker.workerID + ") logged in on " + deviceName, tag: "worker-login" });
     setSuccessName(worker.name);
@@ -345,7 +346,8 @@ export default function Login() {
     if (!conflictData) return;
     setConflictLoading(true);
     try {
-      await completeLogin(conflictData.worker, conflictData.deviceToken, conflictData.deviceName);
+      // forceLogout=true → server will create a system alert notification for the displaced session
+      await completeLogin(conflictData.worker, conflictData.deviceToken, conflictData.deviceName, true);
       setConflictData(null);
     } catch {
       toast.error("Login failed. Please try again.");

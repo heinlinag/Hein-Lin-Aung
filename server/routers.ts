@@ -106,6 +106,8 @@ export const appRouter = router({
         deviceToken: z.string().min(1),
         deviceName: z.string().min(1),
         deviceIP: z.string().optional(),
+        /** Pass true when this activation is force-replacing an existing session */
+        forceLogout: z.boolean().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
@@ -114,8 +116,24 @@ export const appRouter = router({
           || ctx.req.socket?.remoteAddress
           || input.deviceIP
           || "Unknown";
+        // Capture old device info BEFORE overwriting
+        const oldDeviceName = worker.activeDeviceName ?? "Unknown Device";
+        const oldDeviceIP = worker.activeDeviceIP ?? "Unknown IP";
+        const wasForced = input.forceLogout && !!worker.activeDeviceToken && worker.activeDeviceToken !== input.deviceToken;
         await setWorkerActiveDevice(input.workerID, input.deviceToken, input.deviceName, ip);
-        return { success: true };
+        // Send system alert notification when a session was force-logged-out
+        if (wasForced) {
+          const { createAppNotification } = await import("./db");
+          const now = new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+          await createAppNotification({
+            workerID: input.workerID,
+            title: "Session Force-Logged Out",
+            message: `Your session on ${oldDeviceName} (IP: ${oldDeviceIP}) was ended because a new login was made from ${input.deviceName} (IP: ${ip}) at ${now}.`,
+            type: "system",
+            deepLink: "/notifications",
+          });
+        }
+        return { success: true, wasForced };
       }),
 
     /** Logout: clear active device session */
