@@ -9,12 +9,17 @@ import AppLayout from "@/components/AppLayout";
 import {
   Bell, Package, CheckCircle2, XCircle, Loader2, Trash2,
   AlertTriangle, ShoppingCart, LogIn, Info, CheckCheck,
-  MessageCircle, ExternalLink, Clock, ShieldAlert,
+  MessageCircle, ExternalLink, Clock, ShieldAlert, ShieldX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // ── Swipeable Notification Item ───────────────────────────────────────────────
 const SWIPE_THRESHOLD = 72; // px to trigger delete reveal
+
+/** Detect if a notification is a force-logout security alert */
+function isForceLogoutAlert(notif: Notif): boolean {
+  return notif.type === "system" && notif.title === "Session Force-Logged Out";
+}
 
 function SwipeableNotifItem({
   notif, isRead, cfg, onDelete, onClick, isDeleting,
@@ -118,6 +123,24 @@ function SwipeableNotifItem({
       </div>
 
       {/* Notification card */}
+      {(() => {
+        const forceLogout = isForceLogoutAlert(notif);
+        const cardClass = forceLogout
+          ? isRead
+            ? "bg-red-50/60 border-red-200 opacity-80 hover:border-red-300"
+            : "bg-red-50 border-red-300 shadow-md shadow-red-100 hover:border-red-400"
+          : isRead
+            ? "bg-white border-gray-100 opacity-70 hover:border-gray-200"
+            : "bg-white border-blue-100 shadow-sm hover:border-gray-200";
+        const iconBg = forceLogout ? "bg-red-100 ring-2 ring-red-200" : cfg.bgLight;
+        const iconColor = forceLogout ? "text-red-600" : cfg.color;
+        const iconEl = forceLogout ? <ShieldX size={16} /> : cfg.icon;
+        const labelBg = forceLogout ? "bg-red-100" : cfg.bgLight;
+        const labelColor = forceLogout ? "text-red-700" : cfg.color;
+        const labelText = forceLogout ? "Security Alert" : cfg.label;
+        const titleColor = forceLogout ? "text-red-900" : "text-gray-900";
+        const msgColor = forceLogout ? "text-red-700" : "text-gray-500";
+        return (
       <div
         style={{
           transform: `translateX(${offsetX}px)`,
@@ -127,20 +150,22 @@ function SwipeableNotifItem({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={handleItemClick}
-        className={`flex gap-3 p-3 sm:p-4 rounded-xl border transition-colors cursor-pointer hover:shadow-sm hover:border-gray-200 ${
-          isRead ? "bg-white border-gray-100 opacity-70" : "bg-white border-blue-100 shadow-sm"
-        }`}
+        className={`relative flex gap-3 p-3 sm:p-4 rounded-xl border transition-colors cursor-pointer hover:shadow-sm ${cardClass}`}
       >
+        {/* Red left accent bar for force-logout */}
+        {forceLogout && (
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 rounded-l-xl" />
+        )}
         {/* Icon */}
-        <div className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${cfg.bgLight} ${cfg.color}`}>
-          {cfg.icon}
+        <div className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${iconBg} ${iconColor}`}>
+          {iconEl}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-            <span className={`text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full ${cfg.bgLight} ${cfg.color}`}>
-              {cfg.label}
+            <span className={`text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full ${labelBg} ${labelColor}`}>
+              {labelText}
             </span>
             <span className="text-[11px] text-gray-400 flex items-center gap-0.5">
               <Clock size={10} />
@@ -149,8 +174,8 @@ function SwipeableNotifItem({
             {!isRead && <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.5)]" />}
             {notif.deepLink && <ExternalLink size={10} className="text-gray-300 ml-auto" />}
           </div>
-          <p className="text-sm font-semibold text-gray-900 leading-tight mb-0.5">{notif.title}</p>
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{notif.message}</p>
+          <p className={`text-sm font-semibold leading-tight mb-0.5 ${titleColor}`}>{notif.title}</p>
+          <p className={`text-xs leading-relaxed line-clamp-2 ${msgColor}`}>{notif.message}</p>
 
           {/* Context pills */}
           {(notif.orderID || notif.jobNo || notif.qty) && (
@@ -178,6 +203,8 @@ function SwipeableNotifItem({
           )}
         </div>
       </div>
+        );
+      })()}
     </div>
     </div>
   );
