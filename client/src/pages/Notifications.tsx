@@ -1,7 +1,7 @@
 /**
  * Notifications Center — Full-page notification history with filters
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,152 @@ import {
   MessageCircle, ExternalLink, Clock, ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+// ── Swipeable Notification Item ───────────────────────────────────────────────
+const SWIPE_THRESHOLD = 72; // px to trigger delete reveal
+
+function SwipeableNotifItem({
+  notif, isRead, cfg, onDelete, onClick, isDeleting,
+}: {
+  notif: Notif;
+  isRead: boolean;
+  cfg: { icon: React.ReactNode; color: string; bgLight: string; label: string };
+  onDelete: (id: number) => void;
+  onClick: (notif: Notif) => void;
+  isDeleting: boolean;
+}) {
+  const [offsetX, setOffsetX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const isHorizontal = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
+    isHorizontal.current = false;
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const dx = e.touches[0].clientX - startX.current;
+    const dy = e.touches[0].clientY - startY.current;
+    // Determine direction on first significant move
+    if (!isHorizontal.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      isHorizontal.current = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!isHorizontal.current) return;
+    e.preventDefault();
+    // Only allow left swipe (negative dx)
+    const clamped = Math.max(-120, Math.min(0, dx));
+    setOffsetX(clamped);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (offsetX < -SWIPE_THRESHOLD) {
+      // Snap to reveal delete button
+      setOffsetX(-80);
+    } else {
+      setOffsetX(0);
+    }
+  };
+
+  const handleDelete = () => {
+    setDismissed(true);
+    setTimeout(() => onDelete(notif.id), 250);
+  };
+
+  const handleItemClick = () => {
+    if (offsetX < -10) {
+      // Close swipe on click if swiped
+      setOffsetX(0);
+      return;
+    }
+    onClick(notif);
+  };
+
+  if (dismissed) return null;
+
+  return (
+    <div className="relative overflow-hidden rounded-xl">
+      {/* Delete background */}
+      <div className="absolute inset-0 flex items-center justify-end bg-red-500 rounded-xl">
+        <button
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className="flex flex-col items-center justify-center w-20 h-full text-white gap-1 hover:bg-red-600 transition-colors rounded-r-xl"
+        >
+          {isDeleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+          <span className="text-[10px] font-semibold">Delete</span>
+        </button>
+      </div>
+
+      {/* Notification card */}
+      <div
+        style={{
+          transform: `translateX(${offsetX}px)`,
+          transition: isDragging ? "none" : "transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)",
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClick={handleItemClick}
+        className={`flex gap-3 p-3 sm:p-4 rounded-xl border transition-colors cursor-pointer hover:shadow-sm hover:border-gray-200 ${
+          isRead ? "bg-white border-gray-100 opacity-70" : "bg-white border-blue-100 shadow-sm"
+        }`}
+      >
+        {/* Icon */}
+        <div className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${cfg.bgLight} ${cfg.color}`}>
+          {cfg.icon}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+            <span className={`text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full ${cfg.bgLight} ${cfg.color}`}>
+              {cfg.label}
+            </span>
+            <span className="text-[11px] text-gray-400 flex items-center gap-0.5">
+              <Clock size={10} />
+              {timeAgo(notif.createdAt)}
+            </span>
+            {!isRead && <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.5)]" />}
+            {notif.deepLink && <ExternalLink size={10} className="text-gray-300 ml-auto" />}
+          </div>
+          <p className="text-sm font-semibold text-gray-900 leading-tight mb-0.5">{notif.title}</p>
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{notif.message}</p>
+
+          {/* Context pills */}
+          {(notif.orderID || notif.jobNo || notif.qty) && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {notif.orderID && (
+                <span className="text-[10px] bg-gray-100 border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600 font-mono">
+                  PO: {notif.orderID}
+                </span>
+              )}
+              {notif.jobNo && (
+                <span className="text-[10px] bg-gray-100 border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600 font-mono">
+                  Job: {notif.jobNo}
+                </span>
+              )}
+              {notif.qty != null && (
+                <span className="text-[10px] bg-gray-100 border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600">
+                  {notif.qty} pcs
+                </span>
+              )}
+            </div>
+          )}
+
+          {notif.workerName && (
+            <div className="mt-1 text-[10px] text-gray-400">by {notif.workerName}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type NotifType =
@@ -153,6 +299,20 @@ export default function Notifications() {
     if (notif.deepLink) navigate(notif.deepLink);
   };
 
+  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
+  const deleteMutation = trpc.notifications.delete.useMutation({
+    onSuccess: () => {
+      utils.notifications.list.invalidate();
+      utils.notifications.unreadCount.invalidate();
+    },
+  });
+  const handleDelete = useCallback((id: number) => {
+    setDeletingIds(prev => new Set(prev).add(id));
+    deleteMutation.mutate({ id }, {
+      onSettled: () => setDeletingIds(prev => { const s = new Set(prev); s.delete(id); return s; }),
+    });
+  }, [deleteMutation]);
+
   return (
     <AppLayout pageTitle="Notifications">
       <div className="max-w-3xl mx-auto px-3 sm:px-4 py-3 sm:py-5">
@@ -255,60 +415,15 @@ export default function Notifications() {
                     const cfg = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.system;
                     const isRead = notif.readBy.split(",").filter(Boolean).includes(workerID);
                     return (
-                      <div
+                      <SwipeableNotifItem
                         key={notif.id}
-                        onClick={() => handleClick(notif)}
-                        className={`flex gap-3 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-sm hover:border-gray-200 ${
-                          isRead ? "bg-white border-gray-100 opacity-70" : "bg-white border-blue-100 shadow-sm"
-                        }`}
-                      >
-                        {/* Icon */}
-                        <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${cfg.bgLight} ${cfg.color}`}>
-                          {cfg.icon}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className={`text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full ${cfg.bgLight} ${cfg.color}`}>
-                              {cfg.label}
-                            </span>
-                            <span className="text-[11px] text-gray-400 flex items-center gap-0.5">
-                              <Clock size={10} />
-                              {timeAgo(notif.createdAt)}
-                            </span>
-                            {!isRead && <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.5)]" />}
-                            {notif.deepLink && <ExternalLink size={10} className="text-gray-300 ml-auto" />}
-                          </div>
-                          <p className="text-sm font-semibold text-gray-900 leading-tight mb-0.5">{notif.title}</p>
-                          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{notif.message}</p>
-
-                          {/* Context pills */}
-                          {(notif.orderID || notif.jobNo || notif.qty) && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {notif.orderID && (
-                                <span className="text-[10px] bg-gray-100 border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600 font-mono">
-                                  PO: {notif.orderID}
-                                </span>
-                              )}
-                              {notif.jobNo && (
-                                <span className="text-[10px] bg-gray-100 border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600 font-mono">
-                                  Job: {notif.jobNo}
-                                </span>
-                              )}
-                              {notif.qty != null && (
-                                <span className="text-[10px] bg-gray-100 border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600">
-                                  {notif.qty} pcs
-                                </span>
-                              )}
-                            </div>
-                          )}
-
-                          {notif.workerName && (
-                            <div className="mt-1 text-[10px] text-gray-400">by {notif.workerName}</div>
-                          )}
-                        </div>
-                      </div>
+                        notif={notif}
+                        isRead={isRead}
+                        cfg={cfg}
+                        onDelete={handleDelete}
+                        onClick={handleClick}
+                        isDeleting={deletingIds.has(notif.id)}
+                      />
                     );
                   })}
                 </div>

@@ -821,6 +821,19 @@ export const appRouter = router({
         const count = await getUnreadCount(input.workerID);
         return { count };
       }),
+
+    // Delete a single notification by ID
+    delete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { appNotifications } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return { success: false };
+        await db.delete(appNotifications).where(eq(appNotifications.id, input.id));
+        return { success: true };
+      }),
   }),
 
   // ─── Announcements ─────────────────────────────────────────────────────────
