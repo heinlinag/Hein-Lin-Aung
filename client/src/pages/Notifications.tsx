@@ -28,7 +28,9 @@ function SwipeableNotifItem({
 }) {
   const [offsetX, setOffsetX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  // Animation phases: idle → sliding → collapsing → gone
+  const [phase, setPhase] = useState<"idle" | "sliding" | "collapsing" | "gone">("idle");
+  const itemRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
   const startY = useRef(0);
   const isHorizontal = useRef(false);
@@ -65,8 +67,16 @@ function SwipeableNotifItem({
   };
 
   const handleDelete = () => {
-    setDismissed(true);
-    setTimeout(() => onDelete(notif.id), 250);
+    // Phase 1: slide fully off-screen (fade + translate)
+    setPhase("sliding");
+    setOffsetX(-400);
+    // Phase 2: collapse height after slide completes
+    setTimeout(() => setPhase("collapsing"), 280);
+    // Phase 3: gone — call parent
+    setTimeout(() => {
+      setPhase("gone");
+      onDelete(notif.id);
+    }, 580);
   };
 
   const handleItemClick = () => {
@@ -78,9 +88,22 @@ function SwipeableNotifItem({
     onClick(notif);
   };
 
-  if (dismissed) return null;
+  if (phase === "gone") return null;
 
   return (
+    <div
+      ref={itemRef}
+      style={{
+        // Collapse: animate max-height + opacity + margin to zero
+        maxHeight: phase === "collapsing" ? "0px" : "500px",
+        opacity: phase === "collapsing" ? 0 : 1,
+        marginBottom: phase === "collapsing" ? "0px" : undefined,
+        overflow: "hidden",
+        transition: phase === "collapsing"
+          ? "max-height 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, margin 0.3s ease"
+          : "none",
+      }}
+    >
     <div className="relative overflow-hidden rounded-xl">
       {/* Delete background */}
       <div className="absolute inset-0 flex items-center justify-end bg-red-500 rounded-xl">
@@ -155,6 +178,7 @@ function SwipeableNotifItem({
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }
