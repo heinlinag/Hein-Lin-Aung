@@ -1214,3 +1214,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [ ] Notifications: Add notification preferences (mute types, quiet hours) (future)
 - [x] Notifications: Improve NotificationBell dropdown with better grouping by date
 - [ ] Notifications: Add swipe-to-dismiss on mobile notification items (future)
+
+## Notification Center & Nav Badge (Jun 29)
+- [x] Notifications page: always-visible "Mark all as read" button (disabled when all read)
+- [x] Notifications page: loading spinner on button while marking
+- [x] Notifications page: invalidate unreadCount cache after marking all read
+- [x] Notifications page: unread badge counter in page title heading
+- [x] AppLayout: add /notifications nav item with Bell icon
+- [x] AppLayout: unread notification badge counter on Notifications nav item (blue, animated)

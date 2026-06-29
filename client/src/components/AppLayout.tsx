@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, History, CheckCircle2, Settings, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine, Home, MessageCircle,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine, Home, MessageCircle, Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -31,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/approval-center", label: "Approval Center", icon: <CheckCircle2 size={18} /> },
   { href: "/qr-scanner",      label: "QR Scanner",      icon: <ScanLine size={18} /> },
   { href: "/chat",            label: "Messages",        icon: <MessageCircle size={18} /> },
+  { href: "/notifications",   label: "Notifications",   icon: <Bell size={18} /> },
   { href: "/admin",           label: "Admin Panel",     icon: <Settings size={18} />, adminOnly: true },
 ];
 
@@ -112,6 +113,12 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     { refetchInterval: 5000, enabled: !!worker?.workerID }
   );
   const unreadMsgCount = unreadMsgQuery.data?.count ?? 0;
+
+  const unreadNotifQuery = trpc.notifications.unreadCount.useQuery(
+    { workerID: worker?.workerID ?? "" },
+    { refetchInterval: 10000, enabled: !!worker?.workerID }
+  );
+  const unreadNotifCount = unreadNotifQuery.data?.count ?? 0;
 
   const handleLogout = () => {
     logoutWorker();
@@ -299,6 +306,11 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               {item.href === "/chat" && unreadMsgCount > 0 && (
                 <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
                   {unreadMsgCount > 99 ? "99+" : unreadMsgCount}
+                </span>
+              )}
+              {item.href === "/notifications" && unreadNotifCount > 0 && (
+                <span className="min-w-[20px] h-[20px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
+                  {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
                 </span>
               )}
             </button>

@@ -85,13 +85,16 @@ export default function Notifications() {
   const [filter, setFilter] = useState<FilterCategory>("all");
   const [, navigate] = useLocation();
 
+  const utils = trpc.useUtils();
   const { data: notifications = [], isLoading } = trpc.notifications.list.useQuery(undefined, {
     refetchInterval: 5000,
   });
   const markReadMutation = trpc.notifications.markRead.useMutation({
-    onSuccess: () => utils.notifications.list.invalidate(),
+    onSuccess: () => {
+      utils.notifications.list.invalidate();
+      utils.notifications.unreadCount.invalidate();
+    },
   });
-  const utils = trpc.useUtils();
 
   const allNotifs = notifications as Notif[];
 
@@ -145,16 +148,39 @@ export default function Notifications() {
             <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <Bell size={20} className="text-blue-600" />
               Notification Center
+              {unreadCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] bg-blue-500 text-white text-[10px] font-bold rounded-full px-1.5 shadow-sm">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              {unreadCount > 0 ? `${unreadCount} unread` : "All caught up!"} · {allNotifs.length} total
+              {unreadCount > 0 ? (
+                <span className="text-blue-600 font-medium">{unreadCount} unread</span>
+              ) : (
+                <span className="text-emerald-600 font-medium">All caught up!</span>
+              )}
+              {" "}&middot;{" "}{allNotifs.length} total
             </p>
           </div>
-          {unreadCount > 0 && (
-            <Button onClick={handleMarkAllRead} variant="outline" size="sm" className="text-xs gap-1">
-              <CheckCheck size={12} /> Mark all read
-            </Button>
-          )}
+          <Button
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0 || markReadMutation.isPending}
+            variant="outline"
+            size="sm"
+            className={`text-xs gap-1.5 transition-all ${
+              unreadCount > 0
+                ? "border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+                : "opacity-40 cursor-not-allowed"
+            }`}
+          >
+            {markReadMutation.isPending ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <CheckCheck size={12} />
+            )}
+            Mark all as read
+          </Button>
         </div>
 
         {/* Filter Tabs */}
