@@ -56,7 +56,7 @@ export const appRouter = router({
      * Returns { worker, conflict } where conflict is null if no active session
      * or if the same device is already logged in, or the old device info if different.
      */
-    checkDevice: publicProcedure
+      checkDevice: publicProcedure
       .input(z.object({
         workerID: z.string().min(1),
         deviceToken: z.string().min(1),
@@ -66,35 +66,31 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
-        // Determine real IP from request
         const ip = (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
           || ctx.req.socket?.remoteAddress
           || input.deviceIP
           || "Unknown";
-        // No active session → allow login directly
-        if (!worker.activeDeviceToken) {
-          return {
-            worker: { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel },
-            conflict: null,
-            ip,
-          };
+        // Capture old device info BEFORE overwriting
+        const oldDeviceName = worker.activeDeviceName ?? "Unknown Device";
+        const oldDeviceIP = worker.activeDeviceIP ?? "Unknown IP";
+        const wasDisplaced = !!worker.activeDeviceToken && worker.activeDeviceToken !== input.deviceToken;
+        // Immediately overwrite session — no conflict dialog needed
+        await setWorkerActiveDevice(input.workerID, input.deviceToken, input.deviceName, ip);
+        // Send security alert notification when an existing session was displaced
+        if (wasDisplaced) {
+          const { createAppNotification } = await import("./db");
+          const now = new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+          await createAppNotification({
+            workerID: input.workerID,
+            title: "Session Force-Logged Out",
+            message: `Your session on ${oldDeviceName} (IP: ${oldDeviceIP}) was ended because a new login was made from ${input.deviceName} (IP: ${ip}) at ${now}.`,
+            type: "system",
+            deepLink: "/notifications",
+          });
         }
-        // Same device → allow login directly (refresh session)
-        if (worker.activeDeviceToken === input.deviceToken) {
-          return {
-            worker: { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel },
-            conflict: null,
-            ip,
-          };
-        }
-        // Different device → return conflict info
         return {
           worker: { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel },
-          conflict: {
-            deviceName: worker.activeDeviceName ?? "Unknown Device",
-            deviceIP: worker.activeDeviceIP ?? "Unknown IP",
-            loginAt: worker.activeLoginAt?.toISOString() ?? null,
-          },
+          wasDisplaced,
           ip,
         };
       }),
@@ -1156,17 +1152,26 @@ export const appRouter = router({
         return db.select().from(workers).where(ne(workers.workerID, input.workerID)).orderBy(asc(workers.name));
       }),
 
-    // Update last seen (heartbeat)
+    // Update last seen (heartbeat) + validate single-device session
     heartbeat: publicProcedure
-      .input(z.object({ workerID: z.string() }))
+      .input(z.object({ workerID: z.string(), deviceToken: z.string().optional() }))
       .mutation(async ({ input }) => {
         const { getDb } = await import("./db");
         const { workers } = await import("../drizzle/schema");
         const { eq } = await import("drizzle-orm");
         const db = await getDb();
-        if (!db) return { success: false };
+        if (!db) return { success: false, displaced: false };
+        // Validate device token if provided
+        if (input.deviceToken) {
+          const [worker] = await db.select({ activeDeviceToken: workers.activeDeviceToken })
+            .from(workers).where(eq(workers.workerID, input.workerID)).limit(1);
+          if (worker && worker.activeDeviceToken && worker.activeDeviceToken !== input.deviceToken) {
+            // This device has been displaced by a newer login — signal auto-logout
+            return { success: false, displaced: true };
+          }
+        }
         await db.update(workers).set({ lastSeenAt: new Date() }).where(eq(workers.workerID, input.workerID));
-        return { success: true };
+        return { success: true, displaced: false };
       }),
 
     // Get online status for workers (online = lastSeenAt within 60s)

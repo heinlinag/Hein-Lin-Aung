@@ -103,6 +103,36 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     return () => document.removeEventListener("keydown", handler);
   }, [profileOpen]);
 
+  // ── Global single-device heartbeat ─────────────────────────────────────
+  // Every 30 s, ping the server with our deviceToken.
+  // If another device has taken over, server returns displaced:true → auto-logout.
+  const heartbeatMutation = trpc.chat.heartbeat.useMutation({
+    onSuccess: (data) => {
+      if (data && (data as { displaced?: boolean }).displaced) {
+        // Another device logged in — force this session out
+        if (worker?.workerID) {
+          // No need to call deactivateDevice; server already switched the token
+          logoutWorker();
+          navigate("/login?reason=displaced");
+        }
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (!worker?.workerID) return;
+    const deviceToken = localStorage.getItem("gspp_device_token") ?? undefined;
+    // Initial check on mount
+    heartbeatMutation.mutate({ workerID: worker.workerID, deviceToken });
+    // Periodic check every 30 s
+    const interval = setInterval(() => {
+      heartbeatMutation.mutate({ workerID: worker.workerID, deviceToken });
+    }, 30000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [worker?.workerID]);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const pendingQuery = trpc.pendingRequests.list.useQuery(
     { status: "pending" },
     { refetchInterval: 30000 }

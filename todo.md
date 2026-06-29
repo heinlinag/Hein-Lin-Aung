@@ -1238,3 +1238,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Login.tsx: "Force Logout & Continue" - activateDevice then complete login
 - [x] AppLayout.tsx: call deactivateDevice on logout to clear server session
 - [x] PageHeader.tsx: call deactivateDevice on logout to clear server session
+
+## True Single-Device Enforcement Upgrade (Jun 29)
+- [x] Server: heartbeat validates deviceToken, returns displaced:true when mismatch
+- [x] Server: login flow immediately overwrites activeDeviceToken (no conflict dialog needed)
+- [x] Server: auto-send force-logout system alert notification on every displacement
+- [x] Frontend: AppLayout global heartbeat every 30s detects displacement
+- [x] Frontend: auto-logout + redirect to /login?reason=displaced when displaced
+- [x] Frontend: Login page shows red security banner when redirected due to displacement
+- [x] Frontend: removed conflict dialog (no longer needed)
