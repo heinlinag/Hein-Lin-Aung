@@ -1222,3 +1222,19 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Notifications page: unread badge counter in page title heading
 - [x] AppLayout: add /notifications nav item with Bell icon
 - [x] AppLayout: unread notification badge counter on Notifications nav item (blue, animated)
+
+## One Device Login Access System (Jun 29)
+- [x] Schema: add activeDeviceToken, activeDeviceName, activeDeviceIP, activeLoginAt to workers table
+- [x] DB helpers: setWorkerActiveDevice, clearWorkerActiveDevice
+- [x] Server: workers.checkDevice - detect if new login device differs from active session
+- [x] Server: workers.activateDevice - register new device session
+- [x] Server: workers.deactivateDevice - clear session on logout
+- [x] AuthContext: remove 1hr expiry - sessions persist until explicit logout (one-device)
+- [x] AuthContext: store deviceToken in session
+- [x] Login.tsx: generate persistent device fingerprint token (localStorage)
+- [x] Login.tsx: detect device name from user-agent (iPhone/Android/Mac/Windows/Linux + browser)
+- [x] Login.tsx: call checkDevice on login - detect conflict before completing login
+- [x] Login.tsx: ConflictDialog - show old device name + IP address + login time
+- [x] Login.tsx: "Force Logout & Continue" - activateDevice then complete login
+- [x] AppLayout.tsx: call deactivateDevice on logout to clear server session
+- [x] PageHeader.tsx: call deactivateDevice on logout to clear server session

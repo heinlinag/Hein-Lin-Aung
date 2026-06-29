@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 import { LogOut, User, ArrowLeft } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
 
@@ -12,8 +13,12 @@ interface PageHeaderProps {
 export default function PageHeader({ showBack = true, backHref = "/" }: PageHeaderProps) {
   const { worker, logoutWorker } = useAuth();
   const [, navigate] = useLocation();
+  const deactivateDevice = trpc.workers.deactivateDevice.useMutation();
 
   const handleLogout = () => {
+    if (worker?.workerID) {
+      deactivateDevice.mutate({ workerID: worker.workerID });
+    }
     logoutWorker();
     navigate("/login");
   };

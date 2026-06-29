@@ -52,6 +52,7 @@ function levelLabel(level: string) {
 export default function AppLayout({ children, pageTitle, headerActions, fullHeight }: AppLayoutProps) {
   const [location, navigate] = useLocation();
   const { worker, logoutWorker, loginAdmin } = useAuth();
+  const deactivateDevice = trpc.workers.deactivateDevice.useMutation();
   const userLevel = worker?.userLevel ?? "2";
   const lv = levelLabel(userLevel);
 
@@ -121,6 +122,10 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const unreadNotifCount = unreadNotifQuery.data?.count ?? 0;
 
   const handleLogout = () => {
+    // Clear server-side device session before local logout
+    if (worker?.workerID) {
+      deactivateDevice.mutate({ workerID: worker.workerID });
+    }
     logoutWorker();
     navigate("/login");
   };

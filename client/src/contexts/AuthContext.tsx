@@ -2,7 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 const WORKER_SESSION_KEY = "gspp_worker_session";
 const ADMIN_SESSION_KEY = "gspp_admin_session"; // sessionStorage = one-time per tab/visit
-const SESSION_DURATION_MS = 60 * 60 * 1000; // 1 hour
+// No expiry — session persists until explicit logout (one-device enforcement)
+const SESSION_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // effectively permanent (1 year)
 
 interface WorkerSession {
   workerID: string;
@@ -10,12 +11,13 @@ interface WorkerSession {
   department: string;
   userLevel: "1" | "1.1" | "2";
   expiresAt: number;
+  deviceToken?: string;
 }
 
 interface AuthState {
   worker: WorkerSession | null;
   isAdminAuthenticated: boolean;
-  loginWorker: (workerID: string, name: string, department: string, userLevel: "1" | "1.1" | "2") => void;
+  loginWorker: (workerID: string, name: string, department: string, userLevel: "1" | "1.1" | "2", deviceToken?: string) => void;
   loginAdmin: () => void;
   logoutWorker: () => void;
   logoutAdmin: () => void;
@@ -55,13 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const loginWorker = (workerID: string, name: string, department: string, userLevel: "1" | "1.1" | "2" = "2") => {
+  const loginWorker = (workerID: string, name: string, department: string, userLevel: "1" | "1.1" | "2" = "2", deviceToken?: string) => {
     const session: WorkerSession = {
       workerID,
       name,
       department,
       userLevel,
       expiresAt: Date.now() + SESSION_DURATION_MS,
+      deviceToken,
     };
     localStorage.setItem(WORKER_SESSION_KEY, JSON.stringify(session));
     setWorker(session);
@@ -85,10 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isWorkerLoggedIn = () => {
     if (!worker) return false;
-    if (worker.expiresAt <= Date.now()) {
-      logoutWorker();
-      return false;
-    }
+    // One-device sessions don't expire by time — only by explicit logout
     return true;
   };
 

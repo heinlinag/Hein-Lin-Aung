@@ -22,6 +22,11 @@ export const workers = mysqlTable("workers", {
   department: varchar("department", { length: 128 }).notNull(),
   userLevel: mysqlEnum("userLevel", ["1", "1.1", "2"]).default("2").notNull(),
   lastSeenAt: timestamp("lastSeenAt"),
+  // One-device session tracking
+  activeDeviceToken: varchar("activeDeviceToken", { length: 128 }),  // fingerprint of active device
+  activeDeviceName: varchar("activeDeviceName", { length: 256 }),   // human-readable device name
+  activeDeviceIP: varchar("activeDeviceIP", { length: 64 }),        // IP address of active session
+  activeLoginAt: timestamp("activeLoginAt"),                         // when the active session started
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type Worker = typeof workers.$inferSelect;

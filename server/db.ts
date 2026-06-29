@@ -115,6 +115,35 @@ export async function updateWorkerById(id: number, data: Partial<InsertWorker>) 
   await db.update(workers).set(data).where(eq(workers.id, id));
 }
 
+/** Set the active device session for a worker (one-device enforcement) */
+export async function setWorkerActiveDevice(
+  workerID: string,
+  deviceToken: string,
+  deviceName: string,
+  deviceIP: string,
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(workers).set({
+    activeDeviceToken: deviceToken,
+    activeDeviceName: deviceName,
+    activeDeviceIP: deviceIP,
+    activeLoginAt: new Date(),
+  }).where(eq(workers.workerID, workerID));
+}
+
+/** Clear the active device session (logout) */
+export async function clearWorkerActiveDevice(workerID: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(workers).set({
+    activeDeviceToken: null,
+    activeDeviceName: null,
+    activeDeviceIP: null,
+    activeLoginAt: null,
+  }).where(eq(workers.workerID, workerID));
+}
+
 // ─── Orders ──────────────────────────────────────────────────────────────────
 
 export async function getAllOrders(status?: "current" | "out_of_stock") {

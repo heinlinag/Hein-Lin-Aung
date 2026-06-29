@@ -239,6 +239,13 @@
       "when": 1782695944988,
       "tag": "0033_huge_ares",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1782708033344,
+      "tag": "0034_chief_celestials",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,8 @@ import {
   createWorker,
   deleteWorker,
   updateWorkerById,
+  setWorkerActiveDevice,
+  clearWorkerActiveDevice,
   getAllOrders,
   createOrder,
   getOrderByOrderID,
@@ -49,6 +51,81 @@ export const appRouter = router({
 
   // ─── Workers ───────────────────────────────────────────────────────────────
   workers: router({
+    /**
+     * Check if a worker exists and whether a device conflict exists.
+     * Returns { worker, conflict } where conflict is null if no active session
+     * or if the same device is already logged in, or the old device info if different.
+     */
+    checkDevice: publicProcedure
+      .input(z.object({
+        workerID: z.string().min(1),
+        deviceToken: z.string().min(1),
+        deviceName: z.string().min(1),
+        deviceIP: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
+        // Determine real IP from request
+        const ip = (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
+          || ctx.req.socket?.remoteAddress
+          || input.deviceIP
+          || "Unknown";
+        // No active session → allow login directly
+        if (!worker.activeDeviceToken) {
+          return {
+            worker: { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel },
+            conflict: null,
+            ip,
+          };
+        }
+        // Same device → allow login directly (refresh session)
+        if (worker.activeDeviceToken === input.deviceToken) {
+          return {
+            worker: { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel },
+            conflict: null,
+            ip,
+          };
+        }
+        // Different device → return conflict info
+        return {
+          worker: { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel },
+          conflict: {
+            deviceName: worker.activeDeviceName ?? "Unknown Device",
+            deviceIP: worker.activeDeviceIP ?? "Unknown IP",
+            loginAt: worker.activeLoginAt?.toISOString() ?? null,
+          },
+          ip,
+        };
+      }),
+
+    /** Activate a device session (after conflict resolved or no conflict) */
+    activateDevice: publicProcedure
+      .input(z.object({
+        workerID: z.string().min(1),
+        deviceToken: z.string().min(1),
+        deviceName: z.string().min(1),
+        deviceIP: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
+        const ip = (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
+          || ctx.req.socket?.remoteAddress
+          || input.deviceIP
+          || "Unknown";
+        await setWorkerActiveDevice(input.workerID, input.deviceToken, input.deviceName, ip);
+        return { success: true };
+      }),
+
+    /** Logout: clear active device session */
+    deactivateDevice: publicProcedure
+      .input(z.object({ workerID: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        await clearWorkerActiveDevice(input.workerID);
+        return { success: true };
+      }),
+
     verify: publicProcedure
       .input(z.object({ workerID: z.string().min(1) }))
       .mutation(async ({ input }) => {

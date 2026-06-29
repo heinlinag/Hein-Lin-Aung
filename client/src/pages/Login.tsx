@@ -2,8 +2,116 @@ import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
-import { Loader2, User, ShieldCheck, Eye, EyeOff, MessageCircle, CheckCircle2, Lock, Fingerprint, Sparkles } from "lucide-react";
+import { Loader2, User, ShieldCheck, Eye, EyeOff, MessageCircle, Lock, Fingerprint, Sparkles, MonitorSmartphone, AlertTriangle, Wifi, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+
+// ─── Device Fingerprint ──────────────────────────────────────────────────────
+function getDeviceToken(): string {
+  const key = "gspp_device_token";
+  let token = localStorage.getItem(key);
+  if (!token) {
+    token = Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2);
+    localStorage.setItem(key, token);
+  }
+  return token;
+}
+
+function getDeviceName(): string {
+  const ua = navigator.userAgent;
+  let device = "Unknown Device";
+  if (/iPhone/i.test(ua)) device = "iPhone";
+  else if (/iPad/i.test(ua)) device = "iPad";
+  else if (/Android/i.test(ua) && /Mobile/i.test(ua)) device = "Android Phone";
+  else if (/Android/i.test(ua)) device = "Android Tablet";
+  else if (/Macintosh/i.test(ua)) device = "Mac";
+  else if (/Windows/i.test(ua)) device = "Windows PC";
+  else if (/Linux/i.test(ua)) device = "Linux PC";
+  let browser = "";
+  if (/Edg/i.test(ua)) browser = " (Edge)";
+  else if (/Chrome/i.test(ua)) browser = " (Chrome)";
+  else if (/Firefox/i.test(ua)) browser = " (Firefox)";
+  else if (/Safari/i.test(ua)) browser = " (Safari)";
+  return device + browser;
+}
+
+// ─── Conflict Dialog ─────────────────────────────────────────────────────────
+interface ConflictDialogProps {
+  workerName: string;
+  oldDeviceName: string;
+  oldDeviceIP: string;
+  oldLoginAt: string | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}
+
+function ConflictDialog({ workerName, oldDeviceName, oldDeviceIP, oldLoginAt, onConfirm, onCancel, loading }: ConflictDialogProps) {
+  const loginTime = oldLoginAt ? new Date(oldLoginAt).toLocaleString() : null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden anim-fade-in">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+            <AlertTriangle size={20} className="text-white" />
+          </div>
+          <div>
+            <p className="text-white font-bold text-sm">Device Conflict Detected</p>
+            <p className="text-white/75 text-xs">One Device Login Policy</p>
+          </div>
+        </div>
+        {/* Body */}
+        <div className="px-5 py-5 space-y-4">
+          <p className="text-sm text-gray-700 leading-relaxed">
+            <span className="font-semibold text-gray-900">{workerName}</span> is currently logged in on another device.
+            Continuing will force-logout that device.
+          </p>
+          {/* Old device info */}
+          <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3.5 space-y-2">
+            <div className="flex items-center gap-2.5">
+              <MonitorSmartphone size={15} className="text-amber-600 shrink-0" />
+              <div>
+                <p className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">Active Device</p>
+                <p className="text-sm font-semibold text-gray-800">{oldDeviceName}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Wifi size={15} className="text-amber-600 shrink-0" />
+              <div>
+                <p className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">IP Address</p>
+                <p className="text-sm font-mono text-gray-800">{oldDeviceIP}</p>
+              </div>
+            </div>
+            {loginTime && (
+              <p className="text-[11px] text-gray-500 pl-6">Logged in: {loginTime}</p>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            If this was not you, contact your administrator immediately.
+          </p>
+        </div>
+        {/* Actions */}
+        <div className="px-5 pb-5 flex gap-3">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 active:scale-[0.98] transition-all disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold hover:from-amber-600 hover:to-orange-600 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25"
+          >
+            {loading ? <Loader2 size={14} className="animate-spin" /> : null}
+            Force Logout & Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const ADMIN_PASSWORD = "Qwer@7090heinann";
 const GSPP_LOGO = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -126,6 +234,18 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [successType, setSuccessType] = useState<SuccessType>(null);
   const [successName, setSuccessName] = useState("");
+  // Device conflict dialog state
+  const [conflictData, setConflictData] = useState<{
+    worker: { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2" };
+    oldDeviceName: string;
+    oldDeviceIP: string;
+    oldLoginAt: string | null;
+    deviceToken: string;
+    deviceName: string;
+    ip: string;
+  } | null>(null);
+  const [conflictLoading, setConflictLoading] = useState(false);
+
   const { loginWorker, loginAdmin } = useAuth();
   const [, navigate] = useLocation();
   const styleInjected = useRef(false);
@@ -141,6 +261,8 @@ export default function Login() {
   const workersQuery = trpc.workers.list.useQuery();
   const pendingQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
   const notifyLogin = trpc.push.sendToAll.useMutation();
+  const checkDevice = trpc.workers.checkDevice.useMutation();
+  const activateDevice = trpc.workers.activateDevice.useMutation();
 
   const getGreeting = () => {
     const h = new Date().getHours();
@@ -163,27 +285,72 @@ export default function Login() {
     ? "anim-slide-r"
     : "anim-fade-in";
 
+  /** Final step: activate device session and complete login */
+  const completeLogin = async (
+    worker: { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2" },
+    deviceToken: string,
+    deviceName: string,
+  ) => {
+    await activateDevice.mutateAsync({ workerID: worker.workerID, deviceToken, deviceName });
+    loginWorker(worker.workerID, worker.name, worker.department, worker.userLevel, deviceToken);
+    notifyLogin.mutate({ title: "Employee Login", body: worker.name + " (" + worker.workerID + ") logged in on " + deviceName, tag: "worker-login" });
+    setSuccessName(worker.name);
+    setSuccessType("worker");
+    setTimeout(() => {
+      const pendingCount = pendingQuery.data?.length ?? 0;
+      const greeting = getGreeting();
+      const pendingMsg = pendingCount > 0 ? `You have ${pendingCount} pending ${pendingCount === 1 ? "job" : "jobs"} in the Approval Center.` : "No pending jobs in the Approval Center.";
+      toast.success(`${greeting}, ${worker.name}! ${pendingMsg}`, { duration: 5000, icon: "\ud83d\udc4b" });
+      navigate("/");
+    }, 1600);
+  };
+
   const handleWorkerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!workerID.trim()) { setError("Please enter your Employee ID."); return; }
     setLoading(true);
     try {
-      const workers = workersQuery.data ?? [];
-      const found = workers.find((w) => w.workerID.toLowerCase() === workerID.trim().toLowerCase());
-      if (!found) { setError("Employee ID not found. Please check your ID or contact Admin."); setLoading(false); return; }
-      loginWorker(found.workerID, found.name, found.department, (found.userLevel as "1" | "1.1" | "2") ?? "2");
-      notifyLogin.mutate({ title: "Employee Login", body: found.name + " (" + found.workerID + ") logged in", tag: "worker-login" });
-      setSuccessName(found.name);
-      setSuccessType("worker");
-      setTimeout(() => {
-        const pendingCount = pendingQuery.data?.length ?? 0;
-        const greeting = getGreeting();
-        const pendingMsg = pendingCount > 0 ? `You have ${pendingCount} pending ${pendingCount === 1 ? "job" : "jobs"} in the Approval Center.` : "No pending jobs in the Approval Center.";
-        toast.success(`${greeting}, ${found.name}! ${pendingMsg}`, { duration: 5000, icon: "\ud83d\udc4b" });
-        navigate("/");
-      }, 1600);
-    } catch { setError("Login failed. Please try again."); setLoading(false); }
+      const deviceToken = getDeviceToken();
+      const deviceName = getDeviceName();
+      const result = await checkDevice.mutateAsync({ workerID: workerID.trim(), deviceToken, deviceName });
+      if (result.conflict) {
+        // Show conflict dialog
+        setConflictData({
+          worker: result.worker as { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2" },
+          oldDeviceName: result.conflict.deviceName,
+          oldDeviceIP: result.conflict.deviceIP,
+          oldLoginAt: result.conflict.loginAt,
+          deviceToken,
+          deviceName,
+          ip: result.ip,
+        });
+        setLoading(false);
+        return;
+      }
+      // No conflict — proceed directly
+      await completeLogin(
+        result.worker as { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2" },
+        deviceToken,
+        deviceName,
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Login failed. Please try again.";
+      setError(msg);
+      setLoading(false);
+    }
+  };
+
+  const handleConflictConfirm = async () => {
+    if (!conflictData) return;
+    setConflictLoading(true);
+    try {
+      await completeLogin(conflictData.worker, conflictData.deviceToken, conflictData.deviceName);
+      setConflictData(null);
+    } catch {
+      toast.error("Login failed. Please try again.");
+      setConflictLoading(false);
+    }
   };
 
   const handleAdminLogin = (e: React.FormEvent) => {
@@ -199,6 +366,17 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 flex flex-col relative overflow-hidden">
       {successType && <SuccessOverlay type={successType} name={successName} />}
+      {conflictData && (
+        <ConflictDialog
+          workerName={conflictData.worker.name}
+          oldDeviceName={conflictData.oldDeviceName}
+          oldDeviceIP={conflictData.oldDeviceIP}
+          oldLoginAt={conflictData.oldLoginAt}
+          onConfirm={handleConflictConfirm}
+          onCancel={() => { setConflictData(null); setLoading(false); }}
+          loading={conflictLoading}
+        />
+      )}
 
       {/* Background decorative elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
