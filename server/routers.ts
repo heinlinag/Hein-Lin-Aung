@@ -92,6 +92,10 @@ export const appRouter = router({
           worker: { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel },
           wasDisplaced,
           ip,
+          // Info about the old session that was displaced (for showing alert to new login)
+          oldDeviceName: wasDisplaced ? oldDeviceName : null,
+          oldDeviceIP: wasDisplaced ? oldDeviceIP : null,
+          oldLoginAt: wasDisplaced ? (worker.activeLoginAt ?? null) : null,
         };
       }),
 
@@ -1163,11 +1167,21 @@ export const appRouter = router({
         if (!db) return { success: false, displaced: false };
         // Validate device token if provided
         if (input.deviceToken) {
-          const [worker] = await db.select({ activeDeviceToken: workers.activeDeviceToken })
-            .from(workers).where(eq(workers.workerID, input.workerID)).limit(1);
+          const [worker] = await db.select({
+            activeDeviceToken: workers.activeDeviceToken,
+            activeDeviceName: workers.activeDeviceName,
+            activeDeviceIP: workers.activeDeviceIP,
+            activeLoginAt: workers.activeLoginAt,
+          }).from(workers).where(eq(workers.workerID, input.workerID)).limit(1);
           if (worker && worker.activeDeviceToken && worker.activeDeviceToken !== input.deviceToken) {
             // This device has been displaced by a newer login — signal auto-logout
-            return { success: false, displaced: true };
+            return {
+              success: false,
+              displaced: true,
+              newDeviceName: worker.activeDeviceName ?? "Unknown Device",
+              newDeviceIP: worker.activeDeviceIP ?? "Unknown IP",
+              newLoginAt: worker.activeLoginAt ? worker.activeLoginAt.toISOString() : null,
+            };
           }
         }
         await db.update(workers).set({ lastSeenAt: new Date() }).where(eq(workers.workerID, input.workerID));
