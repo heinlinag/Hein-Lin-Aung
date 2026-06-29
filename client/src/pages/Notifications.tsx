@@ -9,7 +9,7 @@ import AppLayout from "@/components/AppLayout";
 import {
   Bell, Package, CheckCircle2, XCircle, Loader2, Trash2,
   AlertTriangle, ShoppingCart, LogIn, Info, CheckCheck,
-  MessageCircle, ExternalLink, Clock, Filter,
+  MessageCircle, ExternalLink, Clock, ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -39,6 +39,10 @@ interface Notif {
 
 type FilterCategory = "all" | "orders" | "system" | "chat";
 
+const ORDER_TYPES: NotifType[] = ["order_request", "order_approved", "order_cancelled", "order_in_process", "order_deleted", "out_of_stock", "new_order"];
+const SYSTEM_TYPES: NotifType[] = ["system", "login"];
+const CHAT_TYPES: NotifType[] = ["chat_message"];
+
 // ── Config ────────────────────────────────────────────────────────────────────
 const TYPE_CONFIG: Record<NotifType, {
   icon: React.ReactNode;
@@ -58,11 +62,11 @@ const TYPE_CONFIG: Record<NotifType, {
   chat_message: { icon: <MessageCircle size={16} />, color: "text-teal-600", bgLight: "bg-teal-50", label: "Chat" },
 };
 
-const FILTER_TABS: { key: FilterCategory; label: string; icon: React.ReactNode }[] = [
-  { key: "all", label: "All", icon: <Bell size={14} /> },
-  { key: "orders", label: "Orders", icon: <Package size={14} /> },
-  { key: "system", label: "System", icon: <Info size={14} /> },
-  { key: "chat", label: "Chat", icon: <MessageCircle size={14} /> },
+const FILTER_TABS: { key: FilterCategory; label: string; icon: React.ReactNode; color: string; activeBg: string; activeBorder: string; activeText: string }[] = [
+  { key: "all",    label: "All",           icon: <Bell size={14} />,         color: "text-gray-500",   activeBg: "bg-blue-50",   activeBorder: "border-blue-300",   activeText: "text-blue-700" },
+  { key: "orders", label: "Orders",        icon: <Package size={14} />,      color: "text-indigo-500", activeBg: "bg-indigo-50", activeBorder: "border-indigo-300", activeText: "text-indigo-700" },
+  { key: "system", label: "System Alerts", icon: <ShieldAlert size={14} />,  color: "text-purple-500", activeBg: "bg-purple-50", activeBorder: "border-purple-300", activeText: "text-purple-700" },
+  { key: "chat",   label: "Chat",          icon: <MessageCircle size={14} />,color: "text-teal-500",   activeBg: "bg-teal-50",   activeBorder: "border-teal-300",   activeText: "text-teal-700" },
 ];
 
 function timeAgo(date: Date): string {
@@ -98,12 +102,22 @@ export default function Notifications() {
 
   const allNotifs = notifications as Notif[];
 
+  // Per-category counts
+  const isUnread = (n: Notif) => !n.readBy.split(",").filter(Boolean).includes(workerID);
+  const countFor = (types: NotifType[]) => allNotifs.filter(n => types.includes(n.type) && isUnread(n)).length;
+  const tabCounts: Record<FilterCategory, number> = {
+    all:    allNotifs.filter(isUnread).length,
+    orders: countFor(ORDER_TYPES),
+    system: countFor(SYSTEM_TYPES),
+    chat:   countFor(CHAT_TYPES),
+  };
+
   // Filter
   const filteredNotifs = allNotifs.filter(n => {
     if (filter === "all") return true;
-    if (filter === "orders") return ["order_request", "order_approved", "order_cancelled", "order_in_process", "order_deleted", "out_of_stock", "new_order"].includes(n.type);
-    if (filter === "system") return ["system", "login"].includes(n.type);
-    if (filter === "chat") return n.type === "chat_message";
+    if (filter === "orders") return ORDER_TYPES.includes(n.type);
+    if (filter === "system") return SYSTEM_TYPES.includes(n.type);
+    if (filter === "chat") return CHAT_TYPES.includes(n.type);
     return true;
   });
 
@@ -124,7 +138,7 @@ export default function Notifications() {
     else last.items.push(n);
   });
 
-  const unreadCount = allNotifs.filter(n => !n.readBy.split(",").filter(Boolean).includes(workerID)).length;
+  const unreadCount = tabCounts.all;
 
   const handleMarkAllRead = useCallback(() => {
     const unreadIds = allNotifs
@@ -184,21 +198,34 @@ export default function Notifications() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-          {FILTER_TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap border ${
-                filter === tab.key
-                  ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 border-transparent"
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1 scrollbar-none">
+          {FILTER_TABS.map(tab => {
+            const isActive = filter === tab.key;
+            const cnt = tabCounts[tab.key];
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap border-2 ${
+                  isActive
+                    ? `${tab.activeBg} ${tab.activeBorder} ${tab.activeText} shadow-sm`
+                    : `${tab.color} hover:bg-gray-50 border-transparent hover:border-gray-200`
+                }`}
+              >
+                <span className={isActive ? tab.activeText : tab.color}>{tab.icon}</span>
+                {tab.label}
+                {cnt > 0 && (
+                  <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-1 ${
+                    isActive
+                      ? `${tab.activeBorder.replace("border-", "bg-").replace("-300", "-500")} text-white`
+                      : "bg-gray-200 text-gray-600"
+                  }`}>
+                    {cnt > 99 ? "99+" : cnt}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Notification List */}
