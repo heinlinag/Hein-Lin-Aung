@@ -8,7 +8,7 @@ import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { useState, useEffect } from "react";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
-const APP_VERSION = "v3.0.0";
+const APP_VERSION = "Web App Version 3.0.0";
 
 const baseFeatures = [
   {

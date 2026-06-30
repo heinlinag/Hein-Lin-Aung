@@ -5,7 +5,7 @@ import { Loader2, ShieldCheck, Eye, EyeOff, Lock, ShieldAlert } from "lucide-rea
 import { trpc } from "@/lib/trpc";
 
 const GSPP_LOGO = "/manus-storage/gspp_logo_new_2db75f16.png";
-const APP_VERSION = "v3.0.0";
+const APP_VERSION = "Web App Version 3.0.0";
 
 const ANIM_STYLES = `
 @keyframes adminFadeIn {
@@ -235,8 +235,6 @@ export default function AdminLogin() {
       <div className="relative z-10 pb-6 pt-2 text-center">
         <div className="inline-flex items-center gap-2.5 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-full px-4 py-2 shadow-sm">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-          <span className="text-xs font-semibold text-gray-600">Stock Management</span>
-          <span className="text-[10px] text-gray-300">|</span>
           <span className="text-xs font-mono font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{APP_VERSION}</span>
         </div>
       </div>
