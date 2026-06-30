@@ -6,8 +6,8 @@
 import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
-  ClipboardList, Package, History, CheckCircle2, Settings, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, Lock, Eye, EyeOff, HelpCircle, ScanLine, Home, MessageCircle, Bell,
+  ClipboardList, Package, History, CheckCircle2, LogOut,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -30,7 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/qr-scanner",      label: "QR Scanner",      icon: <ScanLine size={18} /> },
   { href: "/chat",            label: "Messages",        icon: <MessageCircle size={18} /> },
   { href: "/notifications",   label: "Notifications",   icon: <Bell size={18} /> },
-  { href: "/admin",           label: "Admin Panel",     icon: <Settings size={18} />, adminOnly: true },
+  { href: "/admin",           label: "Admin Panel",     icon: <ChevronRight size={18} />, adminOnly: true },
 ];
 
 interface AppLayoutProps {
@@ -49,44 +49,13 @@ function levelLabel(level: string) {
 
 export default function AppLayout({ children, pageTitle, headerActions, fullHeight }: AppLayoutProps) {
   const [location, navigate] = useLocation();
-  const { worker, logoutWorker, loginAdmin } = useAuth();
+  const { worker, logoutWorker } = useAuth();
   const deactivateDevice = trpc.workers.deactivateDevice.useMutation();
   const userLevel = worker?.userLevel ?? "2";
   const lv = levelLabel(userLevel);
 
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-
-  // Admin password dialog
-  const [showAdminDialog, setShowAdminDialog] = useState(false);
-  const [adminPwInput, setAdminPwInput] = useState("");
-  const [adminPwError, setAdminPwError] = useState("");
-  const [showAdminPw, setShowAdminPw] = useState(false);
-
-  const handleAdminPanelClick = () => {
-    setProfileOpen(false);
-    setAdminPwInput("");
-    setAdminPwError("");
-    setShowAdminPw(false);
-    setShowAdminDialog(true);
-  };
-
-  const verifyAdminPw = trpc.system.verifyAdminPassword.useMutation();
-
-  const handleAdminPwSubmit = async () => {
-    try {
-      const result = await verifyAdminPw.mutateAsync({ password: adminPwInput });
-      if (result.valid) {
-        loginAdmin(adminPwInput);
-        setShowAdminDialog(false);
-        navigate("/admin");
-      } else {
-        setAdminPwError("Incorrect password. Please try again.");
-      }
-    } catch {
-      setAdminPwError("Verification failed. Please try again.");
-    }
-  };
 
   // Close on outside click
   useEffect(() => {
@@ -210,20 +179,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       {/* Quick links */}
       <div className="px-3 py-2 border-b border-border">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide px-2 mb-1">Quick Access</p>
-
-        {userLevel === "2" && (
-          <button
-            onClick={handleAdminPanelClick}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-foreground hover:bg-gray-100 transition-colors"
-          >
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-              <Settings size={15} className="text-gray-600" />
-            </div>
-            <span className="flex-1 text-left">Admin Panel</span>
-            <Lock size={12} className="text-gray-400 mr-0.5" />
-            <ChevronRight size={13} className="text-muted-foreground" />
-          </button>
-        )}
 
         <button
           onClick={() => goTo("/docs")}
@@ -473,59 +428,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
         </nav>
       )}
 
-      {/* Admin Password Dialog */}
-      {showAdminDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
-            <div className="p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                  <Lock size={18} className="text-gray-700" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 text-base">Admin Panel Access</h3>
-                  <p className="text-xs text-muted-foreground">Enter administrator password to continue</p>
-                </div>
-              </div>
-              <div className="relative mb-3">
-                <input
-                  type={showAdminPw ? "text" : "password"}
-                  value={adminPwInput}
-                  onChange={e => { setAdminPwInput(e.target.value); setAdminPwError(""); }}
-                  onKeyDown={e => { if (e.key === "Enter") handleAdminPwSubmit(); }}
-                  placeholder="Administrator password"
-                  autoFocus
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowAdminPw(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showAdminPw ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-              {adminPwError && (
-                <p className="text-xs text-red-600 mb-3 bg-red-50 rounded-lg px-3 py-2">{adminPwError}</p>
-              )}
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowAdminDialog(false)}
-                  className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAdminPwSubmit}
-                  className="flex-1 bg-gray-900 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-700"
-                >
-                  Enter
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
