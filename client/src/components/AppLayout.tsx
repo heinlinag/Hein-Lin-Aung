@@ -12,8 +12,6 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
 
-const ADMIN_PASSWORD = "Qwer@7090heinann";
-
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
 
 interface NavItem {
@@ -73,13 +71,20 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     setShowAdminDialog(true);
   };
 
-  const handleAdminPwSubmit = () => {
-    if (adminPwInput === ADMIN_PASSWORD) {
-      loginAdmin(); // set isAdminAuthenticated = true before navigating
-      setShowAdminDialog(false);
-      navigate("/admin");
-    } else {
-      setAdminPwError("Incorrect password. Please try again.");
+  const verifyAdminPw = trpc.system.verifyAdminPassword.useMutation();
+
+  const handleAdminPwSubmit = async () => {
+    try {
+      const result = await verifyAdminPw.mutateAsync({ password: adminPwInput });
+      if (result.valid) {
+        loginAdmin(adminPwInput);
+        setShowAdminDialog(false);
+        navigate("/admin");
+      } else {
+        setAdminPwError("Incorrect password. Please try again.");
+      }
+    } catch {
+      setAdminPwError("Verification failed. Please try again.");
     }
   };
 

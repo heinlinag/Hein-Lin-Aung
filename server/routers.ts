@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { saveSubscription, sendPushNotification, getAllSubscriptions, getSubscriptionsForWorkers, sendPushToWorkers } from "./push";
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ADMIN_PASSWORD } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -33,9 +33,17 @@ import {
   createApprovalActionLog,
   getApprovalActionLog,
   toggleUrgent,
+  getDb,
 } from "./db";
 
-const ADMIN_PASSWORD = "Qwer@7090heinann";
+import { systemSettings } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
+/** Get effective admin password — DB-stored takes precedence over hardcoded default */
+async function getEffectiveAdminPassword(db: Awaited<ReturnType<typeof getDb>>): Promise<string> {
+  if (!db) return ADMIN_PASSWORD;
+  const [row] = await db.select().from(systemSettings).where(eq(systemSettings.key, "adminPassword")).limit(1);
+  return row?.value ?? ADMIN_PASSWORD;
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -159,7 +167,9 @@ export const appRouter = router({
         adminPassword: z.string(),
       }))
       .mutation(async ({ input }) => {
-        if (input.adminPassword !== ADMIN_PASSWORD) {
+        const db = await getDb();
+        const effectivePw = await getEffectiveAdminPassword(db);
+        if (input.adminPassword !== effectivePw) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
         }
         const existing = await getWorkerByWorkerID(input.workerID);
@@ -173,7 +183,9 @@ export const appRouter = router({
         adminPassword: z.string(),
       }))
       .mutation(async ({ input }) => {
-        if (input.adminPassword !== ADMIN_PASSWORD) {
+        const db = await getDb();
+        const effectivePw = await getEffectiveAdminPassword(db);
+        if (input.adminPassword !== effectivePw) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
         }
         await deleteWorker(input.id);
@@ -190,7 +202,9 @@ export const appRouter = router({
         adminPassword: z.string(),
       }))
       .mutation(async ({ input }) => {
-        if (input.adminPassword !== ADMIN_PASSWORD) {
+        const db = await getDb();
+        const effectivePw = await getEffectiveAdminPassword(db);
+        if (input.adminPassword !== effectivePw) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
         }
         if (input.confirmWorkerID !== input.workerID) {

@@ -3,17 +3,29 @@ import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
 // Mock the db module
-vi.mock("./db", () => ({
-  getAllWorkers: vi.fn().mockResolvedValue([]),
-  getWorkerByWorkerID: vi.fn(),
-  createWorker: vi.fn().mockResolvedValue(undefined),
-  deleteWorker: vi.fn().mockResolvedValue(undefined),
-  getAllOrders: vi.fn().mockResolvedValue([]),
-  createOrder: vi.fn().mockResolvedValue(undefined),
-  updateOrderStatus: vi.fn().mockResolvedValue(undefined),
-  deleteOrder: vi.fn().mockResolvedValue(undefined),
-  generateTrackingId: vi.fn((orderID?: string) => `TRK-${orderID || 'TEST'}`),
-}));
+vi.mock("./db", () => {
+  const mockDbInst = {
+    select: vi.fn().mockReturnThis(),
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([]), // No DB-stored password → falls back to hardcoded default
+    insert: vi.fn().mockReturnThis(),
+    values: vi.fn().mockReturnThis(),
+    onDuplicateKeyUpdate: vi.fn().mockResolvedValue(undefined),
+  };
+  return {
+    getDb: vi.fn().mockResolvedValue(mockDbInst),
+    getAllWorkers: vi.fn().mockResolvedValue([]),
+    getWorkerByWorkerID: vi.fn(),
+    createWorker: vi.fn().mockResolvedValue(undefined),
+    deleteWorker: vi.fn().mockResolvedValue(undefined),
+    getAllOrders: vi.fn().mockResolvedValue([]),
+    createOrder: vi.fn().mockResolvedValue(undefined),
+    updateOrderStatus: vi.fn().mockResolvedValue(undefined),
+    deleteOrder: vi.fn().mockResolvedValue(undefined),
+    generateTrackingId: vi.fn((orderID?: string) => `TRK-${orderID || 'TEST'}`),
+  };
+});
 
 import * as db from "./db";
 

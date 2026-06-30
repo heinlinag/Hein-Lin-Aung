@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 const WORKER_SESSION_KEY = "gspp_worker_session";
 const ADMIN_SESSION_KEY = "gspp_admin_session"; // sessionStorage = one-time per tab/visit
+const ADMIN_PW_KEY = "gspp_admin_pw"; // sessionStorage — cleared on tab close
 // No expiry — session persists until explicit logout (one-device enforcement)
 const SESSION_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // effectively permanent (1 year)
 
@@ -18,10 +19,11 @@ interface AuthState {
   worker: WorkerSession | null;
   isAdminAuthenticated: boolean;
   loginWorker: (workerID: string, name: string, department: string, userLevel: "1" | "1.1" | "2", deviceToken?: string) => void;
-  loginAdmin: () => void;
+  loginAdmin: (password?: string) => void;
   logoutWorker: () => void;
   logoutAdmin: () => void;
   isWorkerLoggedIn: () => boolean;
+  getAdminPassword: () => string;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -73,10 +75,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAdminAuthenticated(false);
   };
 
-  const loginAdmin = () => {
+  const loginAdmin = (password?: string) => {
     // One-time per session (sessionStorage cleared on tab close/refresh)
     sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
+    if (password) sessionStorage.setItem(ADMIN_PW_KEY, password);
     setIsAdminAuthenticated(true);
+  };
+
+  const getAdminPassword = (): string => {
+    return sessionStorage.getItem(ADMIN_PW_KEY) ?? "";
   };
 
   const logoutWorker = () => {
@@ -86,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logoutAdmin = () => {
     sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    sessionStorage.removeItem(ADMIN_PW_KEY);
     setIsAdminAuthenticated(false);
   };
 
@@ -105,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logoutWorker,
         logoutAdmin,
         isWorkerLoggedIn,
+        getAdminPassword,
       }}
     >
       {children}

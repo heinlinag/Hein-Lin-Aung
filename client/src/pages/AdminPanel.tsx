@@ -4,11 +4,156 @@ import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
-const ADMIN_PASSWORD = "Qwer@7090heinann";
+
+// ─── Settings Tab ─────────────────────────────────────────────────────────────
+function SettingsTab() {
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const changePassword = trpc.system.changeAdminPassword.useMutation({
+    onSuccess: (_, variables) => {
+      setSuccess("Password changed successfully! Please use the new password next time you log in.");
+      // Update stored password in sessionStorage before clearing state
+      try { sessionStorage.setItem("gspp_admin_pw", variables.newPassword); } catch { /* ignore */ }
+      setCurrentPw(""); setNewPw(""); setConfirmPw("");
+      setError("");
+    },
+    onError: (err) => {
+      setError(err.message || "Failed to change password.");
+      setSuccess("");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(""); setSuccess("");
+    if (!currentPw.trim()) { setError("Current password is required."); return; }
+    if (newPw.length < 8) { setError("New password must be at least 8 characters."); return; }
+    if (newPw !== confirmPw) { setError("New passwords do not match."); return; }
+    if (newPw === currentPw) { setError("New password must be different from current password."); return; }
+    changePassword.mutate({ currentPassword: currentPw, newPassword: newPw });
+  };
+
+  return (
+    <div className="max-w-lg mx-auto py-8 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-slate-600 to-gray-700 flex items-center justify-center shadow-md">
+          <KeyRound size={26} className="text-white" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Admin Settings</h2>
+          <p className="text-sm text-gray-500">Manage administrator credentials</p>
+        </div>
+      </div>
+
+      {/* Password Change Card */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <h3 className="text-base font-bold text-gray-800 mb-1 flex items-center gap-2">
+          <Settings2 size={16} className="text-slate-600" /> Change Administrator Password
+        </h3>
+        <p className="text-xs text-gray-500 mb-5">Enter your current password and choose a new one. The new password will take effect immediately.</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Current Password */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">Current Password</label>
+            <div className="relative">
+              <input
+                type={showCurrent ? "text" : "password"}
+                value={currentPw}
+                onChange={e => { setCurrentPw(e.target.value); setError(""); setSuccess(""); }}
+                placeholder="Enter current password"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+              />
+              <button type="button" onClick={() => setShowCurrent(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          {/* New Password */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">New Password</label>
+            <div className="relative">
+              <input
+                type={showNew ? "text" : "password"}
+                value={newPw}
+                onChange={e => { setNewPw(e.target.value); setError(""); setSuccess(""); }}
+                placeholder="At least 8 characters"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+              />
+              <button type="button" onClick={() => setShowNew(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirm New Password */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">Confirm New Password</label>
+            <div className="relative">
+              <input
+                type={showConfirm ? "text" : "password"}
+                value={confirmPw}
+                onChange={e => { setConfirmPw(e.target.value); setError(""); setSuccess(""); }}
+                placeholder="Re-enter new password"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+              />
+              <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Error / Success */}
+          {error && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
+              <AlertTriangle size={15} className="text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-red-700">{error}</p>
+            </div>
+          )}
+          {success && (
+            <div className="flex items-start gap-2 bg-green-50 border border-green-200 rounded-xl p-3">
+              <CheckCircle2 size={15} className="text-green-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-green-700">{success}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={changePassword.isPending}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-slate-600 to-gray-700 text-white shadow-md hover:from-slate-700 hover:to-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {changePassword.isPending ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
+            Change Password
+          </button>
+        </form>
+      </div>
+
+      {/* Security Note */}
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+        <div className="flex items-start gap-2">
+          <AlertTriangle size={15} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-amber-800 mb-1">Security Note</p>
+            <p className="text-xs text-amber-700">After changing the password, you will need to use the new password the next time you log in to the Admin Panel. Make sure to remember it — there is no password recovery option.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; createdAt: Date };
 type Order = {
@@ -31,6 +176,7 @@ function RefreshButton({ onRefresh, size = 15 }: { onRefresh: () => void | Promi
 
 // ─── Workers Tab ───────────────────────────────────────────────────────────────
 function WorkersTab() {
+  const { getAdminPassword } = useAuth();
   const utils = trpc.useUtils();
   const workersQuery = trpc.workers.list.useQuery();
   const workers = (workersQuery.data ?? []) as Worker[];
@@ -93,7 +239,7 @@ function WorkersTab() {
         department: editDept.trim(),
         userLevel: editUserLevel,
         confirmWorkerID: editConfirmID.trim(),
-        adminPassword: ADMIN_PASSWORD,
+        adminPassword: getAdminPassword(),
       });
       toast.success("Worker updated successfully.");
       utils.workers.list.invalidate();
@@ -111,7 +257,7 @@ function WorkersTab() {
       return;
     }
     try {
-      await addWorker.mutateAsync({ workerID: newWorkerID.trim(), name: newName.trim(), department: newDept.trim(), userLevel: newUserLevel, adminPassword: ADMIN_PASSWORD });
+      await addWorker.mutateAsync({ workerID: newWorkerID.trim(), name: newName.trim(), department: newDept.trim(), userLevel: newUserLevel, adminPassword: getAdminPassword() });
       toast.success("Worker added.");
       utils.workers.list.invalidate();
       setShowAdd(false);
@@ -124,12 +270,12 @@ function WorkersTab() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    if (deleteVerifyPassword !== ADMIN_PASSWORD) {
+    if (deleteVerifyPassword !== getAdminPassword()) {
       toast.error("Incorrect admin password. Please try again.");
       return;
     }
     try {
-      await deleteWorker.mutateAsync({ id: deleteTarget.id, adminPassword: ADMIN_PASSWORD });
+      await deleteWorker.mutateAsync({ id: deleteTarget.id, adminPassword: getAdminPassword() });
       toast.success("Worker deleted successfully.");
       utils.workers.list.invalidate();
       setDeleteTarget(null);
@@ -457,6 +603,7 @@ function exportToExcel(orders: Order[]) {
 }
 // ─── Orders Tab ────────────────────────────────────────────────────────────────
 function OrdersTab() {
+  const { getAdminPassword } = useAuth();
   const utils = trpc.useUtils();
   const ordersQuery = trpc.orders.list.useQuery({});
   const orders = (ordersQuery.data ?? []) as Order[];
@@ -485,7 +632,7 @@ function OrdersTab() {
     setDeleteError("");
     if (!confirmWorkerID.trim()) { setDeleteError("Employee ID required."); return; }
     try {
-      await deleteOrder.mutateAsync({ id: deleteTarget.id, orderID: deleteTarget.orderID, fluteType: deleteTarget.fluteType, sizeW: deleteTarget.sizeW, sizeL: deleteTarget.sizeL, qty: deleteTarget.qty, bqComment: deleteTarget.bqComment, workerID: confirmWorkerID.trim(), adminPassword: ADMIN_PASSWORD });
+      await deleteOrder.mutateAsync({ id: deleteTarget.id, orderID: deleteTarget.orderID, fluteType: deleteTarget.fluteType, sizeW: deleteTarget.sizeW, sizeL: deleteTarget.sizeL, qty: deleteTarget.qty, bqComment: deleteTarget.bqComment, workerID: confirmWorkerID.trim(), adminPassword: getAdminPassword() });
       toast.success("Order deleted.");
       utils.orders.list.invalidate();
       setDeleteTarget(null);
@@ -498,7 +645,7 @@ function OrdersTab() {
 
   const handleStatusChange = async (order: Order, newStatus: "current" | "out_of_stock") => {
     try {
-      await updateStatus.mutateAsync({ id: order.id, status: newStatus, adminPassword: ADMIN_PASSWORD });
+      await updateStatus.mutateAsync({ id: order.id, status: newStatus, adminPassword: getAdminPassword() });
       toast.success("Status updated.");
       utils.orders.list.invalidate();
     } catch (err: unknown) {
@@ -1252,8 +1399,8 @@ function PendingRequestsTab() {
 }
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
-  const { logoutAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance">("workers");
+  const { logoutAdmin, getAdminPassword } = useAuth();
+  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings">("workers");
   const maintenanceQuery = trpc.system.getMaintenanceStatus.useQuery(undefined, { refetchInterval: 10000 });
   const setMaintenanceMutation = trpc.system.setMaintenanceMode.useMutation({
     onSuccess: (data) => {
@@ -1277,6 +1424,7 @@ export default function AdminPanel() {
     { id: "contact_messages" as const, label: "Messages", icon: <Inbox size={16} />, color: "purple" },
     { id: "announcements" as const, label: "Announcements", icon: <Megaphone size={16} />, color: "indigo" },
     { id: "maintenance" as const, label: "Maintenance", icon: <Wrench size={16} />, color: "red" },
+    { id: "settings" as const, label: "Settings", icon: <Settings2 size={16} />, color: "slate" },
   ];
 
   return (
@@ -1401,6 +1549,8 @@ export default function AdminPanel() {
               red: isActive ? "bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
               orange: isActive ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
               purple: isActive ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg shadow-purple-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+              indigo: isActive ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+              slate: isActive ? "bg-gradient-to-r from-slate-600 to-gray-700 text-white shadow-lg shadow-slate-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
             };
             return (
               <button
@@ -1425,6 +1575,7 @@ export default function AdminPanel() {
           {activeTab === "pending_requests" && <PendingRequestsTab />}
           {activeTab === "contact_messages" && <ContactMessagesTab />}
           {activeTab === "announcements" && <AnnouncementsTab />}
+          {activeTab === "settings" && <SettingsTab />}
           {activeTab === "maintenance" && (
             <div className="max-w-xl mx-auto py-8 space-y-6">
               {/* Status card */}
@@ -1470,7 +1621,7 @@ export default function AdminPanel() {
               {/* Toggle buttons */}
               <div className="flex gap-3">
                 <button
-                  onClick={() => setMaintenanceMutation.mutate({ enabled: true, message: maintenanceMsg, adminPassword: ADMIN_PASSWORD })}
+                  onClick={() => setMaintenanceMutation.mutate({ enabled: true, message: maintenanceMsg, adminPassword: getAdminPassword() })}
                   disabled={setMaintenanceMutation.isPending || maintenanceQuery.data?.maintenanceMode === true}
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
@@ -1478,7 +1629,7 @@ export default function AdminPanel() {
                   Turn ON Maintenance
                 </button>
                 <button
-                  onClick={() => setMaintenanceMutation.mutate({ enabled: false, message: "", adminPassword: ADMIN_PASSWORD })}
+                  onClick={() => setMaintenanceMutation.mutate({ enabled: false, message: "", adminPassword: getAdminPassword() })}
                   disabled={setMaintenanceMutation.isPending || maintenanceQuery.data?.maintenanceMode === false}
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-green-500 hover:bg-green-600 text-white shadow-md shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >

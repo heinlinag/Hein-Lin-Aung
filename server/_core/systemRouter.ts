@@ -147,11 +147,13 @@ export const systemRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      if (input.adminPassword !== ADMIN_PASSWORD) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
-      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      const [pwRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, "adminPassword")).limit(1);
+      const effectivePw = pwRow?.value ?? ADMIN_PASSWORD;
+      if (input.adminPassword !== effectivePw) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
+      }
       // Upsert maintenanceMode
       await db
         .insert(systemSettings)
@@ -164,6 +166,66 @@ export const systemRouter = router({
         .values({ key: "maintenanceMessage", value: msg })
         .onDuplicateKeyUpdate({ set: { value: msg, updatedAt: new Date() } });
       return { success: true, maintenanceMode: input.enabled };
+    }),
+
+  /** Get the effective admin password (DB-stored or fallback to hardcoded default) */
+  getAdminPasswordHash: publicProcedure.query(async () => {
+    // Only returns whether a custom password is set — never exposes the password itself
+    const db = await getDb();
+    if (!db) return { hasCustomPassword: false };
+    const [row] = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "adminPassword"))
+      .limit(1);
+    return { hasCustomPassword: !!row?.value };
+  }),
+
+  /** Change admin password — requires current password verification */
+  changeAdminPassword: publicProcedure
+    .input(
+      z.object({
+        currentPassword: z.string().min(1),
+        newPassword: z.string().min(8, "New password must be at least 8 characters"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      // Get current effective password (DB-stored or hardcoded default)
+      const [row] = await db
+        .select()
+        .from(systemSettings)
+        .where(eq(systemSettings.key, "adminPassword"))
+        .limit(1);
+      const effectivePassword = row?.value ?? ADMIN_PASSWORD;
+      if (input.currentPassword !== effectivePassword) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Current password is incorrect" });
+      }
+      // Save new password to DB
+      await db
+        .insert(systemSettings)
+        .values({ key: "adminPassword", value: input.newPassword })
+        .onDuplicateKeyUpdate({ set: { value: input.newPassword, updatedAt: new Date() } });
+      return { success: true };
+    }),
+
+  /** Verify admin password (used by login and mutations) */
+  verifyAdminPassword: publicProcedure
+    .input(z.object({ password: z.string() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) {
+        // Fallback to hardcoded if DB unavailable
+        return { valid: input.password === ADMIN_PASSWORD };
+      }
+      const [row] = await db
+        .select()
+        .from(systemSettings)
+        .where(eq(systemSettings.key, "adminPassword"))
+        .limit(1);
+      const effectivePassword = row?.value ?? ADMIN_PASSWORD;
+      return { valid: input.password === effectivePassword };
     }),
 
   notifyOwner: adminProcedure

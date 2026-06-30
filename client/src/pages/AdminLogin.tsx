@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 import { Loader2, ShieldCheck, Eye, EyeOff, Lock, ShieldAlert } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
-const ADMIN_PASSWORD = "Qwer@7090heinann";
 const GSPP_LOGO = "/manus-storage/gspp_logo_new_2db75f16.png";
 const APP_VERSION = "v3.0.0";
 
@@ -93,6 +93,7 @@ export default function AdminLogin() {
   const { loginAdmin } = useAuth();
   const [, navigate] = useLocation();
   const styleInjected = useRef(false);
+  const verifyMutation = trpc.system.verifyAdminPassword.useMutation();
 
   useEffect(() => {
     if (styleInjected.current) return;
@@ -102,22 +103,25 @@ export default function AdminLogin() {
     document.head.appendChild(el);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!password.trim()) { setError("Please enter the Administrator Password."); return; }
     setLoading(true);
-    // Small delay to feel responsive
-    setTimeout(() => {
-      if (password !== ADMIN_PASSWORD) {
+    try {
+      const result = await verifyMutation.mutateAsync({ password });
+      if (!result.valid) {
         setError("Incorrect password. Please try again.");
         setLoading(false);
         return;
       }
-      loginAdmin();
+      loginAdmin(password);
       setSuccess(true);
       setTimeout(() => { navigate("/admin"); }, 1600);
-    }, 400);
+    } catch {
+      setError("Verification failed. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
