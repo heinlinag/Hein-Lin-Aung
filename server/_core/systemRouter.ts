@@ -7,7 +7,10 @@ import { getDb } from "../db";
 import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure } from "./trpc";
-import { ADMIN_PASSWORD } from "@shared/const";
+import { ADMIN_PASSWORD, COOKIE_NAME } from "@shared/const";
+import { createHeartbeatJob, deleteHeartbeatJob, listHeartbeatJobs } from "./heartbeat";
+import { invokeLLM } from "./llm";
+import { parse as parseCookie } from "cookie";
 // Track server startup time for uptime calculation
 const SERVER_START_TIME = Date.now();
 let lastHealthCheckTime = Date.now();
@@ -226,6 +229,160 @@ export const systemRouter = router({
         .limit(1);
       const effectivePassword = row?.value ?? ADMIN_PASSWORD;
       return { valid: input.password === effectivePassword };
+    }),
+
+  /** Helper: get effective admin password from DB or fallback */
+  // (internal helper, not a procedure)
+
+  /** Get scheduled maintenance info */
+  getScheduledMaintenance: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return { startTime: null, endTime: null, message: "", startTaskUid: null, endTaskUid: null };
+    const keys = ["scheduledMaintenanceStart", "scheduledMaintenanceEnd", "scheduledMaintenanceMessage", "scheduledMaintenanceStartTaskUid", "scheduledMaintenanceEndTaskUid"];
+    const rows = await db.select().from(systemSettings).where(eq(systemSettings.key, keys[0])).limit(1);
+    const [startRow] = rows;
+    const [endRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, keys[1])).limit(1);
+    const [msgRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, keys[2])).limit(1);
+    const [startUidRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, keys[3])).limit(1);
+    const [endUidRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, keys[4])).limit(1);
+    return {
+      startTime: startRow?.value ? Number(startRow.value) : null,
+      endTime: endRow?.value ? Number(endRow.value) : null,
+      message: msgRow?.value ?? "",
+      startTaskUid: startUidRow?.value ?? null,
+      endTaskUid: endUidRow?.value ?? null,
+    };
+  }),
+
+  /** Schedule maintenance window — creates Heartbeat cron jobs for auto ON/OFF */
+  scheduleMaintenanceWindow: publicProcedure
+    .input(z.object({
+      startTime: z.number(), // UTC ms timestamp
+      endTime: z.number(),   // UTC ms timestamp
+      message: z.string().max(500).optional(),
+      adminPassword: z.string(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      // Verify admin password
+      const [pwRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, "adminPassword")).limit(1);
+      const effectivePw = pwRow?.value ?? ADMIN_PASSWORD;
+      if (input.adminPassword !== effectivePw) throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
+      if (input.startTime >= input.endTime) throw new TRPCError({ code: "BAD_REQUEST", message: "Start time must be before end time" });
+      if (input.startTime <= Date.now()) throw new TRPCError({ code: "BAD_REQUEST", message: "Start time must be in the future" });
+
+      // Delete existing scheduled jobs if any
+      const [startUidRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, "scheduledMaintenanceStartTaskUid")).limit(1);
+      const [endUidRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, "scheduledMaintenanceEndTaskUid")).limit(1);
+      const sessionToken = parseCookie(ctx.req.headers.cookie ?? "")[COOKIE_NAME] ?? "";
+      if (startUidRow?.value) {
+        try { await deleteHeartbeatJob(startUidRow.value, sessionToken); } catch { /* ignore if already deleted */ }
+      }
+      if (endUidRow?.value) {
+        try { await deleteHeartbeatJob(endUidRow.value, sessionToken); } catch { /* ignore if already deleted */ }
+      }
+
+      // Convert UTC ms to 6-field cron (sec min hour dom mon dow)
+      const toCron = (ms: number): string => {
+        const d = new Date(ms);
+        return `0 ${d.getUTCMinutes()} ${d.getUTCHours()} ${d.getUTCDate()} ${d.getUTCMonth() + 1} *`;
+      };
+
+      // Create start cron (turns maintenance ON)
+      const startJob = await createHeartbeatJob({
+        name: `maintenance-start-${input.startTime}`,
+        cron: toCron(input.startTime),
+        path: "/api/scheduled/maintenance-start",
+        payload: { message: input.message ?? "" },
+        description: `Auto-enable maintenance at ${new Date(input.startTime).toISOString()}`,
+      }, sessionToken);
+
+      // Create end cron (turns maintenance OFF)
+      const endJob = await createHeartbeatJob({
+        name: `maintenance-end-${input.endTime}`,
+        cron: toCron(input.endTime),
+        path: "/api/scheduled/maintenance-end",
+        payload: {},
+        description: `Auto-disable maintenance at ${new Date(input.endTime).toISOString()}`,
+      }, sessionToken);
+
+      // Save schedule info to DB
+      const upsert = async (key: string, value: string) => {
+        await db.insert(systemSettings).values({ key, value })
+          .onDuplicateKeyUpdate({ set: { value, updatedAt: new Date() } });
+      };
+      await upsert("scheduledMaintenanceStart", String(input.startTime));
+      await upsert("scheduledMaintenanceEnd", String(input.endTime));
+      await upsert("scheduledMaintenanceMessage", input.message ?? "");
+      await upsert("scheduledMaintenanceStartTaskUid", startJob.taskUid);
+      await upsert("scheduledMaintenanceEndTaskUid", endJob.taskUid);
+
+      return {
+        success: true,
+        startTaskUid: startJob.taskUid,
+        endTaskUid: endJob.taskUid,
+        startNextExecution: startJob.nextExecutionAt,
+        endNextExecution: endJob.nextExecutionAt,
+      };
+    }),
+
+  /** Cancel a scheduled maintenance window */
+  cancelScheduledMaintenance: publicProcedure
+    .input(z.object({ adminPassword: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      const [pwRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, "adminPassword")).limit(1);
+      const effectivePw = pwRow?.value ?? ADMIN_PASSWORD;
+      if (input.adminPassword !== effectivePw) throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
+
+      const sessionToken = parseCookie(ctx.req.headers.cookie ?? "")[COOKIE_NAME] ?? "";
+      const [startUidRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, "scheduledMaintenanceStartTaskUid")).limit(1);
+      const [endUidRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, "scheduledMaintenanceEndTaskUid")).limit(1);
+      if (startUidRow?.value) {
+        try { await deleteHeartbeatJob(startUidRow.value, sessionToken); } catch { /* ignore */ }
+      }
+      if (endUidRow?.value) {
+        try { await deleteHeartbeatJob(endUidRow.value, sessionToken); } catch { /* ignore */ }
+      }
+      // Clear schedule keys
+      const clearKeys = ["scheduledMaintenanceStart", "scheduledMaintenanceEnd", "scheduledMaintenanceMessage", "scheduledMaintenanceStartTaskUid", "scheduledMaintenanceEndTaskUid"];
+      for (const key of clearKeys) {
+        await db.insert(systemSettings).values({ key, value: "" })
+          .onDuplicateKeyUpdate({ set: { value: "", updatedAt: new Date() } });
+      }
+      return { success: true };
+    }),
+
+  /** Generate maintenance message using AI */
+  generateMaintenanceMessage: publicProcedure
+    .input(z.object({
+      startTime: z.number(),
+      endTime: z.number(),
+      adminPassword: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      const [pwRow] = await db.select().from(systemSettings).where(eq(systemSettings.key, "adminPassword")).limit(1);
+      const effectivePw = pwRow?.value ?? ADMIN_PASSWORD;
+      if (input.adminPassword !== effectivePw) throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
+
+      const startDate = new Date(input.startTime);
+      const endDate = new Date(input.endTime);
+      const durationMs = input.endTime - input.startTime;
+      const durationMin = Math.round(durationMs / 60000);
+
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a system administrator writing a brief, professional maintenance notice for users. Write in English only. Be concise (2-3 sentences max). Do not include greetings or sign-offs." },
+          { role: "user", content: `Write a maintenance notice for: Start: ${startDate.toUTCString()}, End: ${endDate.toUTCString()}, Duration: approximately ${durationMin} minutes. Include the estimated duration and apologize for any inconvenience.` },
+        ],
+      });
+
+      const message = (response as any)?.choices?.[0]?.message?.content ?? "";
+      return { message: typeof message === "string" ? message.trim() : "" };
     }),
 
   notifyOwner: adminProcedure

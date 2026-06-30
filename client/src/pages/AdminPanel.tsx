@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ContactMessagesTab } from "@/components/ContactMessagesTab";
 import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -1402,6 +1402,7 @@ export default function AdminPanel() {
   const { logoutAdmin, getAdminPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings">("workers");
   const maintenanceQuery = trpc.system.getMaintenanceStatus.useQuery(undefined, { refetchInterval: 10000 });
+  const scheduleQuery = trpc.system.getScheduledMaintenance.useQuery(undefined, { refetchInterval: 15000 });
   const setMaintenanceMutation = trpc.system.setMaintenanceMode.useMutation({
     onSuccess: (data) => {
       maintenanceQuery.refetch();
@@ -1409,7 +1410,46 @@ export default function AdminPanel() {
     },
     onError: (err) => toast.error("Failed: " + err.message),
   });
+  const scheduleMaintenanceMutation = trpc.system.scheduleMaintenanceWindow.useMutation({
+    onSuccess: () => {
+      scheduleQuery.refetch();
+      toast.success("Maintenance window scheduled! System will auto-enable/disable maintenance at the set times.");
+    },
+    onError: (err) => toast.error("Schedule failed: " + err.message),
+  });
+  const cancelScheduleMutation = trpc.system.cancelScheduledMaintenance.useMutation({
+    onSuccess: () => {
+      scheduleQuery.refetch();
+      toast.success("Scheduled maintenance cancelled.");
+    },
+    onError: (err) => toast.error("Cancel failed: " + err.message),
+  });
+  const generateMsgMutation = trpc.system.generateMaintenanceMessage.useMutation({
+    onSuccess: (data) => {
+      if (data.message) {
+        setMaintenanceMsg(data.message);
+        toast.success("Message generated!");
+      }
+    },
+    onError: (err) => toast.error("Generate failed: " + err.message),
+  });
   const [maintenanceMsg, setMaintenanceMsg] = useState("");
+  // Schedule datetime state (local datetime-local input format: "YYYY-MM-DDTHH:mm")
+  const toLocalInput = (ms: number | null) => {
+    if (!ms) return "";
+    const d = new Date(ms);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const [scheduleStart, setScheduleStart] = useState("");
+  const [scheduleEnd, setScheduleEnd] = useState("");
+  // Populate from existing schedule
+  useEffect(() => {
+    if (scheduleQuery.data?.startTime && !scheduleStart) setScheduleStart(toLocalInput(scheduleQuery.data.startTime));
+    if (scheduleQuery.data?.endTime && !scheduleEnd) setScheduleEnd(toLocalInput(scheduleQuery.data.endTime));
+    if (scheduleQuery.data?.message && !maintenanceMsg) setMaintenanceMsg(scheduleQuery.data.message);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheduleQuery.data]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [, navigate] = useLocation();
 
@@ -1605,9 +1645,29 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* Custom message */}
+              {/* Custom message with AI generate */}
               <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-3">
-                <label className="text-sm font-semibold text-gray-700 block">Custom Maintenance Message (optional)</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-gray-700">Custom Maintenance Message (optional)</label>
+                  <button
+                    onClick={() => {
+                      if (!scheduleStart || !scheduleEnd) {
+                        toast.error("Set start and end times first to auto-generate a message.");
+                        return;
+                      }
+                      generateMsgMutation.mutate({
+                        startTime: new Date(scheduleStart).getTime(),
+                        endTime: new Date(scheduleEnd).getTime(),
+                        adminPassword: getAdminPassword(),
+                      });
+                    }}
+                    disabled={generateMsgMutation.isPending}
+                    className="flex items-center gap-1.5 text-xs font-semibold bg-gradient-to-r from-violet-500 to-purple-600 text-white px-3 py-1.5 rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 transition-all shadow-sm"
+                  >
+                    {generateMsgMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    AI Generate
+                  </button>
+                </div>
                 <textarea
                   className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
                   rows={3}
@@ -1615,10 +1675,10 @@ export default function AdminPanel() {
                   value={maintenanceMsg}
                   onChange={e => setMaintenanceMsg(e.target.value)}
                 />
-                <p className="text-xs text-gray-400">Leave empty to show the default English message.</p>
+                <p className="text-xs text-gray-400">Leave empty to show the default English message. Use AI Generate after setting schedule times.</p>
               </div>
 
-              {/* Toggle buttons */}
+              {/* Manual toggle buttons */}
               <div className="flex gap-3">
                 <button
                   onClick={() => setMaintenanceMutation.mutate({ enabled: true, message: maintenanceMsg, adminPassword: getAdminPassword() })}
@@ -1626,7 +1686,7 @@ export default function AdminPanel() {
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {setMaintenanceMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <ShieldAlert size={16} />}
-                  Turn ON Maintenance
+                  Turn ON Now
                 </button>
                 <button
                   onClick={() => setMaintenanceMutation.mutate({ enabled: false, message: "", adminPassword: getAdminPassword() })}
@@ -1634,8 +1694,98 @@ export default function AdminPanel() {
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-green-500 hover:bg-green-600 text-white shadow-md shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {setMaintenanceMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Power size={16} />}
-                  Turn OFF Maintenance
+                  Turn OFF Now
                 </button>
+              </div>
+
+              {/* Scheduled Maintenance Window */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                    <CalendarClock size={16} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">Schedule Maintenance Window</h3>
+                    <p className="text-xs text-gray-500">System will auto-enable and auto-disable maintenance at the set times</p>
+                  </div>
+                </div>
+
+                {/* Show existing schedule if any */}
+                {scheduleQuery.data?.startTaskUid && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={14} className="text-blue-600 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-semibold text-blue-800">Scheduled Window Active</p>
+                        <p className="text-xs text-blue-600">
+                          ON: {scheduleQuery.data.startTime ? new Date(scheduleQuery.data.startTime).toLocaleString() : "—"}
+                          {" → "}
+                          OFF: {scheduleQuery.data.endTime ? new Date(scheduleQuery.data.endTime).toLocaleString() : "—"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => cancelScheduleMutation.mutate({ adminPassword: getAdminPassword() })}
+                      disabled={cancelScheduleMutation.isPending}
+                      className="flex-shrink-0 flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-1.5 rounded-lg transition-colors"
+                    >
+                      {cancelScheduleMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Ban size={12} />}
+                      Cancel
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-600">Start Time (Maintenance ON)</label>
+                    <input
+                      type="datetime-local"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      value={scheduleStart}
+                      onChange={e => setScheduleStart(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-600">End Time (Maintenance OFF)</label>
+                    <input
+                      type="datetime-local"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      value={scheduleEnd}
+                      onChange={e => setScheduleEnd(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (!scheduleStart || !scheduleEnd) {
+                      toast.error("Please set both start and end times.");
+                      return;
+                    }
+                    const startMs = new Date(scheduleStart).getTime();
+                    const endMs = new Date(scheduleEnd).getTime();
+                    if (startMs >= endMs) {
+                      toast.error("Start time must be before end time.");
+                      return;
+                    }
+                    if (startMs <= Date.now()) {
+                      toast.error("Start time must be in the future.");
+                      return;
+                    }
+                    scheduleMaintenanceMutation.mutate({
+                      startTime: startMs,
+                      endTime: endMs,
+                      message: maintenanceMsg || undefined,
+                      adminPassword: getAdminPassword(),
+                    });
+                  }}
+                  disabled={scheduleMaintenanceMutation.isPending}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-blue-500/20"
+                >
+                  {scheduleMaintenanceMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <CalendarClock size={16} />}
+                  Schedule Maintenance Window
+                </button>
+                <p className="text-xs text-gray-400 text-center">Times are in your local timezone. System will auto-trigger at the scheduled times after deployment.</p>
               </div>
 
               <p className="text-xs text-gray-400 text-center">

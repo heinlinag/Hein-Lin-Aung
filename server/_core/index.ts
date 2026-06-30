@@ -8,6 +8,9 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { getDb } from "../db";
+import { systemSettings } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -45,6 +48,49 @@ async function startServer() {
       createContext,
     })
   );
+  // ─── Scheduled Maintenance Callbacks ───────────────────────────────────────
+  // These endpoints are called by Heartbeat cron jobs to auto-enable/disable maintenance.
+  app.post("/api/scheduled/maintenance-start", async (req, res) => {
+    try {
+      const db = await getDb();
+      if (!db) return res.status(500).json({ error: "DB unavailable" });
+      const msg = (req.body as any)?.message ?? "";
+      await db.insert(systemSettings).values({ key: "maintenanceMode", value: "true" })
+        .onDuplicateKeyUpdate({ set: { value: "true", updatedAt: new Date() } });
+      if (msg) {
+        await db.insert(systemSettings).values({ key: "maintenanceMessage", value: msg })
+          .onDuplicateKeyUpdate({ set: { value: msg, updatedAt: new Date() } });
+      }
+      // Clear schedule keys so UI shows no pending schedule
+      await db.insert(systemSettings).values({ key: "scheduledMaintenanceStartTaskUid", value: "" })
+        .onDuplicateKeyUpdate({ set: { value: "", updatedAt: new Date() } });
+      console.log("[Scheduled] Maintenance mode AUTO-ENABLED");
+      return res.json({ ok: true, action: "maintenance-start" });
+    } catch (err) {
+      console.error("[Scheduled] maintenance-start error:", err);
+      return res.status(500).json({ error: String(err), timestamp: new Date().toISOString() });
+    }
+  });
+
+  app.post("/api/scheduled/maintenance-end", async (req, res) => {
+    try {
+      const db = await getDb();
+      if (!db) return res.status(500).json({ error: "DB unavailable" });
+      await db.insert(systemSettings).values({ key: "maintenanceMode", value: "false" })
+        .onDuplicateKeyUpdate({ set: { value: "false", updatedAt: new Date() } });
+      // Clear schedule keys
+      for (const key of ["scheduledMaintenanceStart", "scheduledMaintenanceEnd", "scheduledMaintenanceMessage", "scheduledMaintenanceStartTaskUid", "scheduledMaintenanceEndTaskUid"]) {
+        await db.insert(systemSettings).values({ key, value: "" })
+          .onDuplicateKeyUpdate({ set: { value: "", updatedAt: new Date() } });
+      }
+      console.log("[Scheduled] Maintenance mode AUTO-DISABLED");
+      return res.json({ ok: true, action: "maintenance-end" });
+    } catch (err) {
+      console.error("[Scheduled] maintenance-end error:", err);
+      return res.status(500).json({ error: String(err), timestamp: new Date().toISOString() });
+    }
+  });
+
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
