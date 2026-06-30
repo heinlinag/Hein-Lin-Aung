@@ -433,7 +433,8 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
     else last.msgs.push(msg);
   });
 
-  const otherName = conv.otherWorker?.name || "Unknown";
+  const isSystemMaintenance = conv.worker1ID === SYSTEM_MAINTENANCE_SENDER_ID || conv.worker2ID === SYSTEM_MAINTENANCE_SENDER_ID;
+  const otherName = isSystemMaintenance ? "Scheduled Maintenance" : (conv.otherWorker?.name || "Unknown");
 
   return (
     <div className="flex flex-col h-full bg-[#f0f2f5]">
@@ -442,11 +443,16 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
         {onBack && (
           <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-white/20 -ml-2 mr-1"><ArrowLeft size={20} /></Button>
         )}
-        <Avatar name={otherName} online={otherOnline?.online} />
+        {isSystemMaintenance
+          ? <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0"><BadgeCheck size={20} className="text-white" /></div>
+          : <Avatar name={otherName} online={otherOnline?.online} />}
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm truncate">{otherName}</div>
+          <div className="font-semibold text-sm truncate flex items-center gap-1">
+            {otherName}
+            {isSystemMaintenance && <BadgeCheck size={14} className="text-blue-300 flex-shrink-0" />}
+          </div>
           <div className="text-xs text-green-200 truncate">
-            {otherOnline?.online ? "online" : formatLastSeen(otherOnline?.lastSeenAt)}
+            {isSystemMaintenance ? "System" : (otherOnline?.online ? "online" : formatLastSeen(otherOnline?.lastSeenAt))}
           </div>
         </div>
         <button onClick={() => setShowSearch(!showSearch)} className="p-2 hover:bg-white/20 rounded-full transition-colors">
@@ -492,7 +498,7 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
                 <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} ${isLast ? "mb-1" : "mb-0.5"}`}>
                   {!isMine && <div className="w-8 mr-1 flex-shrink-0" />}
                   <div className="relative group max-w-[75%] md:max-w-[65%]">
-                    <div className={`px-3 py-[6px] shadow-sm text-sm ${radius} ${isMine ? "bg-[#e7ffdb]" : "bg-white"}`}>
+                    <div className={`px-3 py-[6px] shadow-sm text-sm ${radius} ${isMine ? "bg-[#e7ffdb]" : msg.senderID === SYSTEM_MAINTENANCE_SENDER_ID ? "bg-blue-50 border border-blue-100" : "bg-white"}`}>
                       {/* Reply quote */}
                       {replyMsg && (
                         <div className="mb-1 pl-2 border-l-2 border-[#075e54] bg-black/5 rounded-r-lg px-2 py-1">

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { notifyOwner } from "./notification";
 import { adminProcedure, publicProcedure, router } from "./trpc";
 
-import { contactMessages, systemSettings, groupChats, groupMembers, groupMessages, workers } from "../../drizzle/schema";
+import { contactMessages, systemSettings, workers } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { desc, eq, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
@@ -19,68 +19,66 @@ async function broadcastMaintenanceNotice(startTime: number, endTime: number, me
   const db = await getDb();
   if (!db) return;
 
-  // Format times for display (UTC)
-  const fmtDate = (ms: number) => {
-    const d = new Date(ms);
+  // Format times in Malaysia Time (UTC+8)
+  const MYT_OFFSET_MS = 8 * 60 * 60 * 1000;
+  const fmtMYT = (ms: number) => {
+    const d = new Date(ms + MYT_OFFSET_MS);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const pad = (n: number) => String(n).padStart(2, "0");
-    return `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+    const day = d.getUTCDate();
+    const month = months[d.getUTCMonth()];
+    const year = d.getUTCFullYear();
+    const hours = d.getUTCHours();
+    const minutes = pad(d.getUTCMinutes());
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const h12 = hours % 12 === 0 ? 12 : hours % 12;
+    return { date: `${month} ${day}, ${year}`, time: `${pad(h12)}:${minutes} ${ampm} MYT` };
   };
-  const fmtTime = (ms: number) => {
-    const d = new Date(ms);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
-  };
 
-  const startDate = fmtDate(startTime);
-  const startTimeStr = fmtTime(startTime);
-  const endTimeStr = fmtTime(endTime);
-  const endDate = fmtDate(endTime);
-  const sameDay = startDate === endDate;
+  const start = fmtMYT(startTime);
+  const end = fmtMYT(endTime);
+  const sameDay = start.date === end.date;
 
-  const noticeText = `We perform regular maintenance to ensure optimal system performance and security. During maintenance windows, the system may be temporarily unavailable.\n\nTime : ${startDate}\n${startTimeStr} - ${sameDay ? endTimeStr : `${endTimeStr} (${endDate})`}${message ? `\n\n${message}` : ""}`;
+  const noticeText = `We perform regular maintenance to ensure optimal system performance and security. During maintenance windows, the system may be temporarily unavailable.\n\nTime : ${start.date}\n${start.time} - ${sameDay ? end.time : `${end.time} (${end.date})`}${message ? `\n\n${message}` : ""}`;
 
-  // Find or create the "System Announcements" group that includes all workers
+  // Send a DM to each worker individually from SYSTEM_MAINTENANCE
   const allWorkers = await db.select({ workerID: workers.workerID }).from(workers);
   if (allWorkers.length === 0) return;
 
-  // Look for existing system maintenance group
-  const [existingGroup] = await db.select().from(groupChats)
-    .where(eq(groupChats.createdBy, SYSTEM_MAINTENANCE_SENDER_ID))
-    .limit(1);
+  const { conversations: convTable, chatMessages: chatMsgsTable } = await import("../../drizzle/schema");
+  const { or } = await import("drizzle-orm");
 
-  let groupID: number;
-  if (existingGroup) {
-    groupID = existingGroup.id;
-    // Ensure all current workers are members
-    const existingMembers = await db.select({ workerID: groupMembers.workerID })
-      .from(groupMembers).where(eq(groupMembers.groupID, groupID));
-    const existingMemberIDs = new Set(existingMembers.map(m => m.workerID));
-    const newWorkers = allWorkers.filter(w => !existingMemberIDs.has(w.workerID));
-    if (newWorkers.length > 0) {
-      await db.insert(groupMembers).values(newWorkers.map(w => ({ groupID, workerID: w.workerID })));
+  for (const worker of allWorkers) {
+    // Find or create a conversation between SYSTEM_MAINTENANCE and this worker
+    const [existing] = await db.select().from(convTable)
+      .where(
+        or(
+          and(eq(convTable.worker1ID, SYSTEM_MAINTENANCE_SENDER_ID), eq(convTable.worker2ID, worker.workerID)),
+          and(eq(convTable.worker1ID, worker.workerID), eq(convTable.worker2ID, SYSTEM_MAINTENANCE_SENDER_ID))
+        )
+      ).limit(1);
+
+    let convID: number;
+    if (existing) {
+      convID = existing.id;
+    } else {
+      const [res] = await db.insert(convTable).values({
+        worker1ID: SYSTEM_MAINTENANCE_SENDER_ID,
+        worker2ID: worker.workerID,
+      }).$returningId();
+      convID = res.id;
     }
-  } else {
-    // Create the system group
-    const [res] = await db.insert(groupChats).values({
-      name: "System Announcements",
-      createdBy: SYSTEM_MAINTENANCE_SENDER_ID,
-    }).$returningId();
-    groupID = res.id;
-    // Add all workers as members
-    await db.insert(groupMembers).values(allWorkers.map(w => ({ groupID, workerID: w.workerID })));
+
+    // Insert the message
+    await db.insert(chatMsgsTable).values({
+      conversationID: convID,
+      senderID: SYSTEM_MAINTENANCE_SENDER_ID,
+      text: noticeText,
+    });
+
+    // Update conversation lastMessageAt
+    await db.update(convTable).set({ lastMessageAt: new Date() }).where(eq(convTable.id, convID));
   }
-
-  // Send the system message
-  await db.insert(groupMessages).values({
-    groupID,
-    senderID: SYSTEM_MAINTENANCE_SENDER_ID,
-    senderName: SYSTEM_MAINTENANCE_SENDER_NAME,
-    text: noticeText,
-  });
-
-  // Update group lastMessageAt
-  await db.update(groupChats).set({ lastMessageAt: new Date() }).where(eq(groupChats.id, groupID));
 }
 
 // Track server startup time for uptime calculation
