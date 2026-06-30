@@ -1037,9 +1037,21 @@ export const appRouter = router({
           .where(or(eq(conversations.worker1ID, input.workerID), eq(conversations.worker2ID, input.workerID)))
           .orderBy(desc(conversations.lastMessageAt));
         // Enrich with other worker info and last message
+        const SYSTEM_MAINTENANCE_ID = "SYSTEM_MAINTENANCE";
         const enriched = await Promise.all(convs.map(async (conv) => {
           const otherID = conv.worker1ID === input.workerID ? conv.worker2ID : conv.worker1ID;
-          const [other] = await db.select().from(workers).where(eq(workers.workerID, otherID)).limit(1);
+          // Virtual worker for system maintenance sender
+          const systemVirtualWorker = otherID === SYSTEM_MAINTENANCE_ID ? {
+            id: 0,
+            workerID: SYSTEM_MAINTENANCE_ID,
+            name: "Scheduled Maintenance",
+            department: "System",
+            userLevel: "system",
+            lastSeenAt: null,
+          } : null;
+          const [other] = systemVirtualWorker
+            ? [systemVirtualWorker]
+            : await db.select().from(workers).where(eq(workers.workerID, otherID)).limit(1);
           const [lastMsg] = await db.select().from(chatMessages)
             .where(eq(chatMessages.conversationID, conv.id))
             .orderBy(desc(chatMessages.createdAt)).limit(1);

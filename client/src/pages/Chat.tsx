@@ -879,10 +879,12 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
     { workerIDs: convWorkerIDs }, { enabled: convWorkerIDs.length > 0, refetchInterval: 15000 }
   );
 
-  const filteredConvs = (convs as Conversation[]).filter((c: Conversation) =>
-    c.otherWorker?.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.otherWorker?.workerID.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredConvs = (convs as Conversation[]).filter((c: Conversation) => {
+    const isSystemConv = c.worker1ID === SYSTEM_MAINTENANCE_SENDER_ID || c.worker2ID === SYSTEM_MAINTENANCE_SENDER_ID;
+    if (isSystemConv) return "scheduled maintenance".includes(search.toLowerCase()) || search === "";
+    return c.otherWorker?.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.otherWorker?.workerID.toLowerCase().includes(search.toLowerCase());
+  });
   const filteredGroups = (groups as Group[]).filter((g: Group) =>
     g.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -948,14 +950,17 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
               <p className="text-xs mt-1">Tap + to start a new message</p>
             </div>
           ) : filteredConvs.map((conv: Conversation) => {
-            const name = conv.otherWorker?.name || "Unknown";
+            const isSystemConv = conv.worker1ID === SYSTEM_MAINTENANCE_SENDER_ID || conv.worker2ID === SYSTEM_MAINTENANCE_SENDER_ID;
+            const name = isSystemConv ? "Scheduled Maintenance" : (conv.otherWorker?.name || "Unknown");
             const isSelected = selected?.type === "dm" && selected.conv.id === conv.id;
             const hasUnread = conv.unreadCount > 0;
             const partnerOnline = (onlineStatus as Record<string, { online: boolean }>)[conv.otherWorker?.workerID || ""]?.online;
             return (
               <button key={conv.id} onClick={() => onSelectDM(conv)}
                 className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors text-left ${isSelected ? "bg-[#f0f2f5]" : ""}`}>
-                <Avatar name={name} online={partnerOnline} />
+                {isSystemConv
+                  ? <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0"><BadgeCheck size={20} className="text-white" /></div>
+                  : <Avatar name={name} online={partnerOnline} />}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className={`text-sm truncate ${hasUnread ? "font-semibold text-gray-900" : "font-medium text-gray-800"}`}>{name}</span>
