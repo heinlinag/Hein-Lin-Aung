@@ -53,13 +53,6 @@ function GeoRestrictedRouter() {
   return (
     <GeoGuard>
       <Switch>
-        {/* Admin Panel: always accessible, even during maintenance mode */}
-        <Route path="/admin">
-          <LoginGate requireAdmin>
-            <AdminPanel />
-          </LoginGate>
-        </Route>
-
         {/* All other routes: wrapped in MaintenanceGuard */}
         <Route>
           <MaintenanceGuard>
@@ -150,6 +143,12 @@ function App() {
             <Switch>
               {/* Public worldwide: Order Card by Tracking ID — no login, no geo restriction */}
               <Route path="/check.qr/:trackingId" component={PublicOrderCard} />
+              {/* Admin Panel: worldwide access, bypasses GeoGuard and MaintenanceGuard */}
+              <Route path="/admin">
+                <LoginGate requireAdmin>
+                  <AdminPanel />
+                </LoginGate>
+              </Route>
               {/* Everything else: geo-restricted to MY/MM */}
               <Route>
                 <GeoRestrictedRouter />
