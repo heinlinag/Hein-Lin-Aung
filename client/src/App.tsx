@@ -52,80 +52,85 @@ function MaintenanceGuard({ children }: { children: React.ReactNode }) {
 function GeoRestrictedRouter() {
   return (
     <GeoGuard>
-      <MaintenanceGuard>
       <Switch>
-        {/* Public: Login page */}
-        <Route path="/login" component={Login} />
-
-        {/* Worker-protected pages (1hr session) */}
-        <Route path="/">
-          <LoginGate>
-            <Home />
-          </LoginGate>
-        </Route>
-        <Route path="/submit-order">
-          <LoginGate>
-            <SubmitOrder />
-          </LoginGate>
-        </Route>
-        <Route path="/stock-history">
-          <LoginGate>
-            <StockHistory />
-          </LoginGate>
-        </Route>
-        <Route path="/usage-history">
-          <LoginGate>
-            <UsageHistory />
-          </LoginGate>
-        </Route>
-
-        {/* Approval Center: Level 2 workers only */}
-        <Route path="/approval-center">
-          <LoginGate>
-            <ApprovalCenter />
-          </LoginGate>
-        </Route>
-
-        {/* QR Scanner */}
-        <Route path="/qr-scanner">
-          <LoginGate>
-            <QRScanner />
-          </LoginGate>
-        </Route>
-
-        {/* Direct Messages */}
-        <Route path="/notifications" component={Notifications} />
-        <Route path="/chat">
-          <LoginGate>
-            <Chat />
-          </LoginGate>
-        </Route>
-
-        {/* Public: Documentation */}
-        <Route path="/docs" component={Documentation} />
-
-        {/* Public: FAQ */}
-        <Route path="/faq" component={FAQ} />
-
-        {/* Public: Help Center */}
-        <Route path="/help" component={HelpCenter} />
-
-        {/* Public: System Status */}
-        <Route path="/status" component={SystemStatus} />
-
-        {/* Admin-protected page (one-time per visit) */}
+        {/* Admin Panel: always accessible, even during maintenance mode */}
         <Route path="/admin">
           <LoginGate requireAdmin>
             <AdminPanel />
           </LoginGate>
         </Route>
 
-        <Route path="/404" component={NotFound} />
-        {/* Catch-all: redirect unknown paths to 404 */}
-        <Route component={NotFound} />
+        {/* All other routes: wrapped in MaintenanceGuard */}
+        <Route>
+          <MaintenanceGuard>
+            <Switch>
+              {/* Public: Login page */}
+              <Route path="/login" component={Login} />
+
+              {/* Worker-protected pages */}
+              <Route path="/">
+                <LoginGate>
+                  <Home />
+                </LoginGate>
+              </Route>
+              <Route path="/submit-order">
+                <LoginGate>
+                  <SubmitOrder />
+                </LoginGate>
+              </Route>
+              <Route path="/stock-history">
+                <LoginGate>
+                  <StockHistory />
+                </LoginGate>
+              </Route>
+              <Route path="/usage-history">
+                <LoginGate>
+                  <UsageHistory />
+                </LoginGate>
+              </Route>
+
+              {/* Approval Center: Level 2 workers only */}
+              <Route path="/approval-center">
+                <LoginGate>
+                  <ApprovalCenter />
+                </LoginGate>
+              </Route>
+
+              {/* QR Scanner */}
+              <Route path="/qr-scanner">
+                <LoginGate>
+                  <QRScanner />
+                </LoginGate>
+              </Route>
+
+              {/* Direct Messages */}
+              <Route path="/notifications" component={Notifications} />
+              <Route path="/chat">
+                <LoginGate>
+                  <Chat />
+                </LoginGate>
+              </Route>
+
+              {/* Public: Documentation */}
+              <Route path="/docs" component={Documentation} />
+
+              {/* Public: FAQ */}
+              <Route path="/faq" component={FAQ} />
+
+              {/* Public: Help Center */}
+              <Route path="/help" component={HelpCenter} />
+
+              {/* Public: System Status */}
+              <Route path="/status" component={SystemStatus} />
+
+              <Route path="/404" component={NotFound} />
+              {/* Catch-all: redirect unknown paths to 404 */}
+              <Route component={NotFound} />
+            </Switch>
+            <PWAInstallPrompt />
+          </MaintenanceGuard>
+        </Route>
       </Switch>
-      <PWAInstallPrompt />
-      </MaintenanceGuard>
     </GeoGuard>
   );
 }
