@@ -1309,6 +1309,29 @@ export default function AdminPanel() {
         </div>
       </header>
 
+      {/* Maintenance Mode Warning Banner */}
+      {maintenanceQuery.data?.maintenanceMode && (
+        <div className="bg-red-600 text-white">
+          <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-2.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                <ShieldAlert size={14} className="text-white" />
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">MAINTENANCE ON</span>
+                <span className="text-xs font-medium text-red-100">All workers are currently seeing the maintenance page. Turn OFF when done.</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveTab("maintenance")}
+              className="flex-shrink-0 text-xs font-bold bg-white text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Manage
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
