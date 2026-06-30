@@ -12,10 +12,13 @@ import AppLayout from "@/components/AppLayout";
 import {
   MessageCircle, Search, Plus, ArrowLeft, Send,
   X, UserCircle2, MessageSquareDot, Check, CheckCheck,
-  Users, LogOut, Crown, ChevronDown, Reply, Trash2, ArrowDown,
+  Users, LogOut, Crown, ChevronDown, Reply, Trash2, ArrowDown, BadgeCheck,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+
+const SYSTEM_MAINTENANCE_SENDER_ID = "SYSTEM_MAINTENANCE";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Reaction { id: number; messageType: "dm" | "group"; messageID: number; workerID: string; emoji: string; createdAt: Date; }
@@ -732,12 +735,25 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
                 <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"} ${isLast ? "mb-1" : "mb-0.5"}`}>
                   {!isMine ? (
                     <div className="w-8 mr-1 flex-shrink-0 self-end">
-                      {isLast && <Avatar name={msg.senderName || "?"} size="sm" />}
+                      {isLast && (
+                        msg.senderID === SYSTEM_MAINTENANCE_SENDER_ID
+                          ? <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center"><BadgeCheck size={16} className="text-white" /></div>
+                          : <Avatar name={msg.senderName || "?"} size="sm" />
+                      )}
                     </div>
                   ) : null}
                   <div className="relative group max-w-[75%] md:max-w-[65%]">
-                    <div className={`px-3 py-[6px] shadow-sm text-sm ${radius} ${isMine ? "bg-[#e7ffdb]" : "bg-white"}`}>
-                      {showSenderName && <div className="text-xs font-semibold text-[#075e54] mb-0.5">{msg.senderName}</div>}
+                    <div className={`px-3 py-[6px] shadow-sm text-sm ${radius} ${isMine ? "bg-[#e7ffdb]" : msg.senderID === SYSTEM_MAINTENANCE_SENDER_ID ? "bg-blue-50 border border-blue-100" : "bg-white"}`}>
+                      {showSenderName && (
+                        msg.senderID === SYSTEM_MAINTENANCE_SENDER_ID
+                          ? (
+                            <div className="flex items-center gap-1 mb-0.5">
+                              <span className="text-xs font-bold text-blue-600">{msg.senderName}</span>
+                              <BadgeCheck size={12} className="text-blue-500" />
+                            </div>
+                          )
+                          : <div className="text-xs font-semibold text-[#075e54] mb-0.5">{msg.senderName}</div>
+                      )}
                       {/* Reply quote */}
                       {replyMsg && (
                         <div className="mb-1 pl-2 border-l-2 border-[#075e54] bg-black/5 rounded-r-lg px-2 py-1">
