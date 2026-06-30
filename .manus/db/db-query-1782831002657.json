@@ -1,0 +1,16 @@
+{
+  "query": "SELECT openId, name, email, role FROM users LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2PmW8LUchTCZfMj.root --database N47vrNGsXh2iCF9nsiVmGy --execute SELECT openId, name, email, role FROM users LIMIT 10;",
+  "rows": [
+    {
+      "openId": "CZF7WqFujmuzqbUZYbVRPr",
+      "name": "HEINANN",
+      "email": "heinann199@gmail.com",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "openId\tname\temail\trole\nCZF7WqFujmuzqbUZYbVRPr\tHEINANN\theinann199@gmail.com\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 1728
+}

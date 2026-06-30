@@ -1263,3 +1263,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Frontend: Maintenance page UI matching screenshot (Myanmar text, illustration, Restart button)
 - [x] Frontend: Admin bypass - admin users see app normally even when maintenance is ON
 - [x] Admin Panel: new "Maintenance" tab with status card, custom message textarea, ON/OFF buttons
+
+## Maintenance Mode Bug Fixes (Jun 30)
+- [x] Bug fix: setMaintenanceMode changed from adminProcedure to publicProcedure + adminPassword check (fixes error 10002)
+- [x] Bug fix: Maintenance page text changed to English only (removed all Myanmar text)
+- [x] Admin Panel: textarea placeholder and hint text updated to English

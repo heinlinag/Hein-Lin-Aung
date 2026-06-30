@@ -49,7 +49,7 @@ export default function MaintenancePage({ message }: MaintenancePageProps) {
 
       {/* Main message */}
       <p className="text-center text-gray-700 text-base leading-relaxed mb-4 max-w-xs font-medium">
-        ယခုအချိန်၌ server တွင် နည်းပညာပိုင်းဆိုင်ရာ အဆင့်မြှင့်တင်မှုများပြုလုပ်နေပြီး application အား ယာယီ အသုံးပြု၍မရနိုင်ပါ။
+        The application is currently undergoing scheduled maintenance. We will be back online shortly.
       </p>
 
       {/* Custom message if provided */}
@@ -62,7 +62,7 @@ export default function MaintenancePage({ message }: MaintenancePageProps) {
       {/* Default hint */}
       {!message && (
         <p className="text-center text-orange-500 text-sm leading-relaxed mb-8 max-w-xs">
-          (ပျမ်းမျှကြာချိန် ၁၅ မိနစ်သာဘဖြပြီး လကုန်ရက်၏ ညဘက်ဆိုပါက နာရီဝက်ဆိုပါ ကြာမြင့်တတ်ပါတယ်။)
+          (Estimated downtime: approximately 15 minutes. End-of-month maintenance may take up to 1 hour.)
         </p>
       )}
 

@@ -1437,17 +1437,17 @@ export default function AdminPanel() {
                 <textarea
                   className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
                   rows={3}
-                  placeholder="e.g. ပျမ်းမျှကြာချိန် ၁၅ မိနစ်သာဘဖြပြီး..."
+                  placeholder="e.g. Estimated downtime: 15 minutes. Thank you for your patience."
                   value={maintenanceMsg}
                   onChange={e => setMaintenanceMsg(e.target.value)}
                 />
-                <p className="text-xs text-gray-400">Leave empty to show the default Myanmar message.</p>
+                <p className="text-xs text-gray-400">Leave empty to show the default English message.</p>
               </div>
 
               {/* Toggle buttons */}
               <div className="flex gap-3">
                 <button
-                  onClick={() => setMaintenanceMutation.mutate({ enabled: true, message: maintenanceMsg })}
+                  onClick={() => setMaintenanceMutation.mutate({ enabled: true, message: maintenanceMsg, adminPassword: ADMIN_PASSWORD })}
                   disabled={setMaintenanceMutation.isPending || maintenanceQuery.data?.maintenanceMode === true}
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
@@ -1455,7 +1455,7 @@ export default function AdminPanel() {
                   Turn ON Maintenance
                 </button>
                 <button
-                  onClick={() => setMaintenanceMutation.mutate({ enabled: false, message: "" })}
+                  onClick={() => setMaintenanceMutation.mutate({ enabled: false, message: "", adminPassword: ADMIN_PASSWORD })}
                   disabled={setMaintenanceMutation.isPending || maintenanceQuery.data?.maintenanceMode === false}
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-green-500 hover:bg-green-600 text-white shadow-md shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >

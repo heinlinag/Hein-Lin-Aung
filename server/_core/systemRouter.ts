@@ -7,6 +7,7 @@ import { getDb } from "../db";
 import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure } from "./trpc";
+import { ADMIN_PASSWORD } from "@shared/const";
 // Track server startup time for uptime calculation
 const SERVER_START_TIME = Date.now();
 let lastHealthCheckTime = Date.now();
@@ -136,15 +137,19 @@ export const systemRouter = router({
     };
   }),
 
-  /** Toggle maintenance mode on/off (admin only) */
-  setMaintenanceMode: adminProcedure
+  /** Toggle maintenance mode on/off (admin only — verified by admin password) */
+  setMaintenanceMode: publicProcedure
     .input(
       z.object({
         enabled: z.boolean(),
         message: z.string().max(500).optional(),
+        adminPassword: z.string(),
       })
     )
     .mutation(async ({ input }) => {
+      if (input.adminPassword !== ADMIN_PASSWORD) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
+      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
       // Upsert maintenanceMode
