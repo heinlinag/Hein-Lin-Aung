@@ -347,3 +347,13 @@ export const groupMessageReads = mysqlTable("groupMessageReads", {
   readAt: timestamp("readAt").defaultNow().notNull(),
 });
 export type GroupMessageRead = typeof groupMessageReads.$inferSelect;
+
+
+// System Settings table — key-value store for app-wide configuration
+export const systemSettings = mysqlTable("systemSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 128 }).notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type SystemSetting = typeof systemSettings.$inferSelect;

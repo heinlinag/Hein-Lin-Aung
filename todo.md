@@ -1247,3 +1247,19 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Frontend: auto-logout + redirect to /login?reason=displaced when displaced
 - [x] Frontend: Login page shows red security banner when redirected due to displacement
 - [x] Frontend: removed conflict dialog (no longer needed)
+
+## Maintenance Mode Feature (Jun 30)
+- [ ] Schema: add systemSettings table with maintenanceMode boolean and maintenanceMessage text
+- [ ] Server: add system.getMaintenanceStatus (public) and system.setMaintenanceMode (admin-only) procedures
+- [ ] Admin Settings: add Maintenance On/Off toggle card
+- [ ] Frontend: Maintenance page UI matching screenshot (illustration, Myanmar text, Restart button)
+- [ ] Frontend: AppLayout global maintenance check - show maintenance page for non-admin users when ON
+
+## Maintenance Mode Feature (Jun 30)
+- [x] Schema: add systemSettings table (key-value store for app config)
+- [x] Server: system.getMaintenanceStatus (public procedure - works before login)
+- [x] Server: system.setMaintenanceMode (admin-only - toggle ON/OFF + custom message)
+- [x] Frontend: MaintenanceGuard in App.tsx - wraps all routes, polls every 30s
+- [x] Frontend: Maintenance page UI matching screenshot (Myanmar text, illustration, Restart button)
+- [x] Frontend: Admin bypass - admin users see app normally even when maintenance is ON
+- [x] Admin Panel: new "Maintenance" tab with status card, custom message textarea, ON/OFF buttons

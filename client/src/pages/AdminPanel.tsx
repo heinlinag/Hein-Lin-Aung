@@ -4,7 +4,7 @@ import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -1253,7 +1253,16 @@ function PendingRequestsTab() {
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { logoutAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements">("workers");
+  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance">("workers");
+  const maintenanceQuery = trpc.system.getMaintenanceStatus.useQuery(undefined, { refetchInterval: 10000 });
+  const setMaintenanceMutation = trpc.system.setMaintenanceMode.useMutation({
+    onSuccess: (data) => {
+      maintenanceQuery.refetch();
+      toast.success(data.maintenanceMode ? "Maintenance Mode ON — Users will see maintenance page" : "Maintenance Mode OFF — App is live");
+    },
+    onError: (err) => toast.error("Failed: " + err.message),
+  });
+  const [maintenanceMsg, setMaintenanceMsg] = useState("");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [, navigate] = useLocation();
 
@@ -1267,6 +1276,7 @@ export default function AdminPanel() {
     { id: "pending_requests" as const, label: "Requests", icon: <ClipboardList size={16} />, color: "orange" },
     { id: "contact_messages" as const, label: "Messages", icon: <Inbox size={16} />, color: "purple" },
     { id: "announcements" as const, label: "Announcements", icon: <Megaphone size={16} />, color: "indigo" },
+    { id: "maintenance" as const, label: "Maintenance", icon: <Wrench size={16} />, color: "red" },
   ];
 
   return (
@@ -1392,6 +1402,73 @@ export default function AdminPanel() {
           {activeTab === "pending_requests" && <PendingRequestsTab />}
           {activeTab === "contact_messages" && <ContactMessagesTab />}
           {activeTab === "announcements" && <AnnouncementsTab />}
+          {activeTab === "maintenance" && (
+            <div className="max-w-xl mx-auto py-8 space-y-6">
+              {/* Status card */}
+              <div className={`rounded-2xl border-2 p-6 shadow-sm transition-all ${
+                maintenanceQuery.data?.maintenanceMode
+                  ? "border-red-300 bg-red-50"
+                  : "border-green-300 bg-green-50"
+              }`}>
+                <div className="flex items-center gap-4">
+                  <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shadow-md ${
+                    maintenanceQuery.data?.maintenanceMode
+                      ? "bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/20"
+                      : "bg-gradient-to-br from-green-500 to-emerald-600 shadow-green-500/20"
+                  }`}>
+                    {maintenanceQuery.data?.maintenanceMode
+                      ? <ShieldAlert size={26} className="text-white" />
+                      : <Power size={26} className="text-white" />}
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-bold text-gray-900">Maintenance Mode</h2>
+                    <p className={`text-sm font-semibold mt-0.5 ${
+                      maintenanceQuery.data?.maintenanceMode ? "text-red-600" : "text-green-600"
+                    }`}>
+                      {maintenanceQuery.data?.maintenanceMode ? "🔴 Currently ON — App is under maintenance" : "🟢 Currently OFF — App is live"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom message */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-3">
+                <label className="text-sm font-semibold text-gray-700 block">Custom Maintenance Message (optional)</label>
+                <textarea
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  rows={3}
+                  placeholder="e.g. ပျမ်းမျှကြာချိန် ၁၅ မိနစ်သာဘဖြပြီး..."
+                  value={maintenanceMsg}
+                  onChange={e => setMaintenanceMsg(e.target.value)}
+                />
+                <p className="text-xs text-gray-400">Leave empty to show the default Myanmar message.</p>
+              </div>
+
+              {/* Toggle buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setMaintenanceMutation.mutate({ enabled: true, message: maintenanceMsg })}
+                  disabled={setMaintenanceMutation.isPending || maintenanceQuery.data?.maintenanceMode === true}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {setMaintenanceMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <ShieldAlert size={16} />}
+                  Turn ON Maintenance
+                </button>
+                <button
+                  onClick={() => setMaintenanceMutation.mutate({ enabled: false, message: "" })}
+                  disabled={setMaintenanceMutation.isPending || maintenanceQuery.data?.maintenanceMode === false}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-green-500 hover:bg-green-600 text-white shadow-md shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {setMaintenanceMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Power size={16} />}
+                  Turn OFF Maintenance
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-400 text-center">
+                Admin users can still access the app while maintenance mode is ON.
+              </p>
+            </div>
+          )}
         </div>
       </main>
 

@@ -23,12 +23,31 @@ import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import PublicOrderCard from "./pages/PublicOrderCard";
 import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
+import MaintenancePage from "./pages/Maintenance";
+import { trpc } from "./lib/trpc";
+import { useAuth } from "./contexts/AuthContext";
 
+
+/** Maintenance guard — shows maintenance page when mode is ON, except for admins */
+function MaintenanceGuard({ children }: { children: React.ReactNode }) {
+  const { isAdminAuthenticated } = useAuth();
+  const { data } = trpc.system.getMaintenanceStatus.useQuery(undefined, {
+    refetchInterval: 30_000,
+    staleTime: 20_000,
+  });
+
+  if (data?.maintenanceMode && !isAdminAuthenticated) {
+    return <MaintenancePage message={data.maintenanceMessage || undefined} />;
+  }
+
+  return <>{children}</>;
+}
 
 /** Routes that require geo-restriction (MY/MM only) */
 function GeoRestrictedRouter() {
   return (
     <GeoGuard>
+      <MaintenanceGuard>
       <Switch>
         {/* Public: Login page */}
         <Route path="/login" component={Login} />
@@ -101,6 +120,7 @@ function GeoRestrictedRouter() {
         <Route component={NotFound} />
       </Switch>
       <PWAInstallPrompt />
+      </MaintenanceGuard>
     </GeoGuard>
   );
 }

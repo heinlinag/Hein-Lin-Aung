@@ -2,7 +2,7 @@ import { z } from "zod";
 import { notifyOwner } from "./notification";
 import { adminProcedure, publicProcedure, router } from "./trpc";
 
-import { contactMessages } from "../../drizzle/schema";
+import { contactMessages, systemSettings } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
@@ -115,6 +115,51 @@ export const systemRouter = router({
       ],
     };
   }),
+
+  /** Get current maintenance mode status (public — needed before login) */
+  getMaintenanceStatus: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return { maintenanceMode: false, maintenanceMessage: "" };
+    const [row] = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "maintenanceMode"))
+      .limit(1);
+    const [msgRow] = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "maintenanceMessage"))
+      .limit(1);
+    return {
+      maintenanceMode: row?.value === "true",
+      maintenanceMessage: msgRow?.value ?? "",
+    };
+  }),
+
+  /** Toggle maintenance mode on/off (admin only) */
+  setMaintenanceMode: adminProcedure
+    .input(
+      z.object({
+        enabled: z.boolean(),
+        message: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      // Upsert maintenanceMode
+      await db
+        .insert(systemSettings)
+        .values({ key: "maintenanceMode", value: input.enabled ? "true" : "false" })
+        .onDuplicateKeyUpdate({ set: { value: input.enabled ? "true" : "false", updatedAt: new Date() } });
+      // Upsert maintenanceMessage
+      const msg = input.message ?? "";
+      await db
+        .insert(systemSettings)
+        .values({ key: "maintenanceMessage", value: msg })
+        .onDuplicateKeyUpdate({ set: { value: msg, updatedAt: new Date() } });
+      return { success: true, maintenanceMode: input.enabled };
+    }),
 
   notifyOwner: adminProcedure
     .input(
