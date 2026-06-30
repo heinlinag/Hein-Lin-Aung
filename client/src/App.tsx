@@ -30,13 +30,18 @@ import { useAuth } from "./contexts/AuthContext";
 
 /** Maintenance guard — shows maintenance page when mode is ON, except for admins */
 function MaintenanceGuard({ children }: { children: React.ReactNode }) {
-  const { isAdminAuthenticated } = useAuth();
+  const { isAdminAuthenticated, worker } = useAuth();
   const { data } = trpc.system.getMaintenanceStatus.useQuery(undefined, {
     refetchInterval: 30_000,
     staleTime: 20_000,
   });
 
-  if (data?.maintenanceMode && !isAdminAuthenticated) {
+  // Only bypass maintenance if:
+  // - User is in admin session AND has no worker session (pure admin access)
+  // Workers (Employee ID login) must always see the maintenance page when it is ON
+  const isAdminOnly = isAdminAuthenticated && !worker;
+
+  if (data?.maintenanceMode && !isAdminOnly) {
     return <MaintenancePage message={data.maintenanceMessage || undefined} />;
   }
 

@@ -68,6 +68,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     localStorage.setItem(WORKER_SESSION_KEY, JSON.stringify(session));
     setWorker(session);
+    // Clear any stale admin session so workers cannot bypass maintenance mode
+    try { sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignore */ }
+    setIsAdminAuthenticated(false);
   };
 
   const loginAdmin = () => {
