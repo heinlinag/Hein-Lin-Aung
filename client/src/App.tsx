@@ -24,9 +24,17 @@ import PublicOrderCard from "./pages/PublicOrderCard";
 import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
 import MaintenancePage from "./pages/Maintenance";
+import AdminLogin from "./pages/AdminLogin";
 import { trpc } from "./lib/trpc";
 import { useAuth } from "./contexts/AuthContext";
 
+
+/** Admin route: shows AdminLogin password screen when not authenticated, AdminPanel when authenticated */
+function AdminRoute() {
+  const { isAdminAuthenticated } = useAuth();
+  if (!isAdminAuthenticated) return <AdminLogin />;
+  return <AdminPanel />;
+}
 
 /** Maintenance guard — shows maintenance page when mode is ON, except for admins */
 function MaintenanceGuard({ children }: { children: React.ReactNode }) {
@@ -144,10 +152,9 @@ function App() {
               {/* Public worldwide: Order Card by Tracking ID — no login, no geo restriction */}
               <Route path="/check.qr/:trackingId" component={PublicOrderCard} />
               {/* Admin Panel: worldwide access, bypasses GeoGuard and MaintenanceGuard */}
+              {/* Shows AdminLogin password screen when not authenticated, AdminPanel when authenticated */}
               <Route path="/admin">
-                <LoginGate requireAdmin>
-                  <AdminPanel />
-                </LoginGate>
+                <AdminRoute />
               </Route>
               {/* Everything else: geo-restricted to MY/MM */}
               <Route>

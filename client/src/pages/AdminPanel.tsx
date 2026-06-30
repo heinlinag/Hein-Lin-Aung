@@ -1519,7 +1519,7 @@ export default function AdminPanel() {
               <button
                 onClick={() => {
                   logoutAdmin();
-                  navigate("/login?tab=admin");
+                  navigate("/admin");
                   setShowLogoutConfirm(false);
                   toast.success("Logged out successfully");
                 }}
