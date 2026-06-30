@@ -1645,37 +1645,17 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* Custom message with AI generate */}
+              {/* Custom message */}
               <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-gray-700">Custom Maintenance Message (optional)</label>
-                  <button
-                    onClick={() => {
-                      if (!scheduleStart || !scheduleEnd) {
-                        toast.error("Set start and end times first to auto-generate a message.");
-                        return;
-                      }
-                      generateMsgMutation.mutate({
-                        startTime: new Date(scheduleStart).getTime(),
-                        endTime: new Date(scheduleEnd).getTime(),
-                        adminPassword: getAdminPassword(),
-                      });
-                    }}
-                    disabled={generateMsgMutation.isPending}
-                    className="flex items-center gap-1.5 text-xs font-semibold bg-gradient-to-r from-violet-500 to-purple-600 text-white px-3 py-1.5 rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 transition-all shadow-sm"
-                  >
-                    {generateMsgMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                    AI Generate
-                  </button>
-                </div>
+                <label className="text-sm font-semibold text-gray-700 block">Custom Maintenance Message (optional)</label>
                 <textarea
                   className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
                   rows={3}
-                  placeholder="e.g. Estimated downtime: 15 minutes. Thank you for your patience."
+                  placeholder="e.g. Estimated downtime: 01/07/2026 08:15 AM — system will be back to normal."
                   value={maintenanceMsg}
                   onChange={e => setMaintenanceMsg(e.target.value)}
                 />
-                <p className="text-xs text-gray-400">Leave empty to show the default English message. Use AI Generate after setting schedule times.</p>
+                <p className="text-xs text-gray-400">Leave empty to show the default message. End Time is auto-filled when you set the schedule.</p>
               </div>
 
               {/* Manual toggle buttons */}
@@ -1751,7 +1731,21 @@ export default function AdminPanel() {
                       type="datetime-local"
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                       value={scheduleEnd}
-                      onChange={e => setScheduleEnd(e.target.value)}
+                      onChange={e => {
+                        setScheduleEnd(e.target.value);
+                        if (e.target.value) {
+                          const d = new Date(e.target.value);
+                          const pad = (n: number) => String(n).padStart(2, "0");
+                          const day = pad(d.getDate());
+                          const month = pad(d.getMonth() + 1);
+                          const year = d.getFullYear();
+                          const hours = d.getHours();
+                          const minutes = pad(d.getMinutes());
+                          const ampm = hours >= 12 ? "PM" : "AM";
+                          const h12 = hours % 12 === 0 ? 12 : hours % 12;
+                          setMaintenanceMsg(`Estimated downtime: ${day}/${month}/${year} ${pad(h12)}:${minutes} ${ampm} — system will be back to normal.`);
+                        }
+                      }}
                     />
                   </div>
                 </div>
