@@ -430,10 +430,21 @@ export async function createAppNotification(data: Omit<InsertAppNotification, "i
   }
 }
 
-export async function getRecentNotifications(limit = 50): Promise<AppNotification[]> {
+export async function getRecentNotifications(limit = 50, workerID?: string): Promise<AppNotification[]> {
   const db = await getDb();
   if (!db) return [];
   try {
+    if (workerID) {
+      // Return: all non-custom_alert types + custom_broadcast + custom_alert targeted to this worker
+      const rows = await db.execute(sqlExpr`
+        SELECT * FROM appNotifications
+        WHERE type != 'custom_alert'
+           OR (type = 'custom_alert' AND targetWorkerID = ${workerID})
+        ORDER BY createdAt DESC
+        LIMIT ${limit}
+      `);
+      return (rows as unknown as [AppNotification[]])[0] ?? [];
+    }
     return await db.select().from(appNotifications).orderBy(desc(appNotifications.createdAt)).limit(limit);
   } catch { return []; }
 }
@@ -466,8 +477,7 @@ export async function getUnreadCount(workerID: string): Promise<number> {
     const rows = await db.execute(sqlExpr`
       SELECT COUNT(*) as cnt FROM appNotifications
       WHERE FIND_IN_SET(${workerID}, readBy) = 0
-      ORDER BY createdAt DESC
-      LIMIT 200
+        AND (type != 'custom_alert' OR targetWorkerID = ${workerID})
     `);
     const result = rows as unknown as [Array<{ cnt: number }>];
     return Number(result[0]?.[0]?.cnt ?? 0);

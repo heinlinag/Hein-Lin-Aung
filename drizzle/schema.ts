@@ -235,6 +235,8 @@ export const appNotifications = mysqlTable("appNotifications", {
     "login",
     "system",
     "chat_message",
+    "custom_broadcast",
+    "custom_alert",
   ]).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   message: text("message").notNull(),
@@ -251,6 +253,8 @@ export const appNotifications = mysqlTable("appNotifications", {
   trackingId: varchar("trackingId", { length: 64 }),
   // Deep link URL for click-to-navigate
   deepLink: varchar("deepLink", { length: 500 }),
+  // Target worker for custom_alert (null = all workers for custom_broadcast)
+  targetWorkerID: varchar("targetWorkerID", { length: 64 }),
   // Read state — comma-separated workerIDs who have read this
   readBy: varchar("readBy", { length: 2000 }).default("").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

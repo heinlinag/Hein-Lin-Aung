@@ -12,7 +12,7 @@ import AppLayout from "@/components/AppLayout";
 import {
   MessageCircle, Search, Plus, ArrowLeft, Send,
   X, UserCircle2, MessageSquareDot, Check, CheckCheck,
-  Users, LogOut, Crown, ChevronDown, Reply, Trash2, ArrowDown, BadgeCheck,
+  Users, LogOut, Crown, ChevronDown, Reply, Trash2, ArrowDown, BadgeCheck, Bell,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -322,7 +322,94 @@ function ReplyPreview({ text, senderName, onCancel }: { text: string; senderName
   );
 }
 
-// ─── DM Thread ────────────────────────────────────────────────────────────────
+// ─── Send Alert Button (Worker → Worker) ────────────────────────────────────────────────────────────────────────────
+function SendAlertButton({ senderID, senderName, recipientID, recipientName }: {
+  senderID: string;
+  senderName: string;
+  recipientID: string;
+  recipientName: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [message, setMessage] = useState("");
+
+  const sendAlert = trpc.notifications.sendAlert.useMutation({
+    onSuccess: () => {
+      toast.success(`Alert sent to ${recipientName}!`);
+      setTitle(""); setMessage(""); setOpen(false);
+    },
+    onError: (err) => toast.error(err.message || "Failed to send alert."),
+  });
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) { toast.error("Title is required."); return; }
+    if (!message.trim()) { toast.error("Message is required."); return; }
+    sendAlert.mutate({ senderID, senderName, recipientID, title: title.trim(), message: message.trim() });
+  };
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)} className="p-2 hover:bg-white/20 rounded-full transition-colors" title="Send Alert">
+        <Bell size={16} />
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                  <Bell size={16} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">Send Alert</h3>
+                  <p className="text-xs text-gray-500">To: {recipientName}</p>
+                </div>
+              </div>
+              <button onClick={() => setOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X size={16} /></button>
+            </div>
+            <form onSubmit={handleSend} className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Alert Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Urgent, Please check stock"
+                  maxLength={100}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Message</label>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type your alert message..."
+                  maxLength={500}
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+                />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button type="button" onClick={() => setOpen(false)}
+                  className="flex-1 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">
+                  Cancel
+                </button>
+                <button type="submit" disabled={sendAlert.isPending || !title.trim() || !message.trim()}
+                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-semibold disabled:opacity-50">
+                  {sendAlert.isPending ? "Sending..." : "Send Alert"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── DM Thread ────────────────────────────────────────────────────────────────────────────
 function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; workerID: string; workerName: string; onBack?: () => void }) {
   const [text, setText] = useState("");
   const [emojiPickerMsgID, setEmojiPickerMsgID] = useState<number | null>(null);
@@ -455,6 +542,14 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
             {isSystemMaintenance ? "System" : (otherOnline?.online ? "online" : formatLastSeen(otherOnline?.lastSeenAt))}
           </div>
         </div>
+        {!isSystemMaintenance && (
+          <SendAlertButton
+            senderID={workerID}
+            senderName={conv.otherWorker?.name ? (conv.worker1ID === workerID ? conv.otherWorker.name : conv.otherWorker.name) : "Unknown"}
+            recipientID={conv.worker1ID === workerID ? conv.worker2ID : conv.worker1ID}
+            recipientName={otherName}
+          />
+        )}
         <button onClick={() => setShowSearch(!showSearch)} className="p-2 hover:bg-white/20 rounded-full transition-colors">
           <Search size={16} />
         </button>

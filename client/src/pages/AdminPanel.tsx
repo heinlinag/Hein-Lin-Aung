@@ -4,7 +4,7 @@ import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar, Bell, Send, BellRing } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -1397,10 +1397,101 @@ function PendingRequestsTab() {
     </div>
   );
 }
+// ─── Admin Notifications Tab ─────────────────────────────────────────────────
+function AdminNotificationsTab() {
+  const { getAdminPassword } = useAuth();
+  const [title, setTitle] = useState("");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const sendBroadcast = trpc.notifications.sendBroadcast.useMutation({
+    onSuccess: () => {
+      toast.success("Notification broadcast to all workers!");
+      setTitle("");
+      setMessage("");
+      setSending(false);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to send notification.");
+      setSending(false);
+    },
+  });
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) { toast.error("Title is required."); return; }
+    if (!message.trim()) { toast.error("Message is required."); return; }
+    const pw = getAdminPassword();
+    if (!pw) { toast.error("Admin session expired. Please log in again."); return; }
+    setSending(true);
+    sendBroadcast.mutate({ adminPassword: pw, title: title.trim(), message: message.trim() });
+  };
+
+  return (
+    <div className="max-w-xl mx-auto py-8 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+          <BellRing size={22} className="text-white" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Broadcast Notification</h2>
+          <p className="text-sm text-gray-500">Send a custom notification to all workers</p>
+        </div>
+      </div>
+
+      {/* Compose Form */}
+      <form onSubmit={handleSend} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-gray-700">Notification Title</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. System Update, Important Notice"
+            maxLength={100}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+          />
+          <p className="text-xs text-gray-400 text-right">{title.length}/100</p>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-gray-700">Message</label>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type your notification message here..."
+            maxLength={500}
+            rows={4}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
+          />
+          <p className="text-xs text-gray-400 text-right">{message.length}/500</p>
+        </div>
+        <button
+          type="submit"
+          disabled={sending || !title.trim() || !message.trim()}
+          className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold text-sm shadow-md shadow-amber-500/20 hover:shadow-lg hover:shadow-amber-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+          {sending ? "Sending..." : "Send to All Workers"}
+        </button>
+      </form>
+
+      {/* Info */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+        <Bell size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-amber-800">
+          <p className="font-semibold mb-1">Broadcast Notification</p>
+          <p>This notification will appear in the <strong>Alerts</strong> tab of all workers immediately. Workers can also send custom alerts to each other from the Chat page.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { logoutAdmin, getAdminPassword } = useAuth();
-  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings">("workers");
+  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings" | "notifications">("workers");
   const maintenanceQuery = trpc.system.getMaintenanceStatus.useQuery(undefined, { refetchInterval: 10000 });
   const scheduleQuery = trpc.system.getScheduledMaintenance.useQuery(undefined, { refetchInterval: 15000 });
   const setMaintenanceMutation = trpc.system.setMaintenanceMode.useMutation({
@@ -1463,6 +1554,7 @@ export default function AdminPanel() {
     { id: "pending_requests" as const, label: "Requests", icon: <ClipboardList size={16} />, color: "orange" },
     { id: "contact_messages" as const, label: "Messages", icon: <Inbox size={16} />, color: "purple" },
     { id: "announcements" as const, label: "Announcements", icon: <Megaphone size={16} />, color: "indigo" },
+    { id: "notifications" as const, label: "Notifications", icon: <Bell size={16} />, color: "amber" },
     { id: "maintenance" as const, label: "Maintenance", icon: <Wrench size={16} />, color: "red" },
     { id: "settings" as const, label: "Settings", icon: <Settings2 size={16} />, color: "slate" },
   ];
@@ -1616,6 +1708,7 @@ export default function AdminPanel() {
           {activeTab === "contact_messages" && <ContactMessagesTab />}
           {activeTab === "announcements" && <AnnouncementsTab />}
           {activeTab === "settings" && <SettingsTab />}
+          {activeTab === "notifications" && <AdminNotificationsTab />}
           {activeTab === "maintenance" && (
             <div className="max-w-xl mx-auto py-8 space-y-6">
               {/* Status card */}

@@ -859,11 +859,13 @@ export const appRouter = router({
 
   // ─── In-App Notifications ──────────────────────────────────────────────────────────────────────────────────
   notifications: router({
-    // Get recent notifications (last 50)
-    list: publicProcedure.query(async () => {
-      const { getRecentNotifications } = await import("./db");
-      return await getRecentNotifications(50);
-    }),
+    // Get recent notifications (last 50) — filtered by workerID for custom_alert
+    list: publicProcedure
+      .input(z.object({ workerID: z.string().optional() }).optional())
+      .query(async ({ input }) => {
+        const { getRecentNotifications } = await import("./db");
+        return await getRecentNotifications(100, input?.workerID);
+      }),
 
     // Create a new notification (called from frontend on events)
     create: publicProcedure
@@ -937,6 +939,53 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) return { success: false };
         await db.delete(appNotifications).where(eq(appNotifications.id, input.id));
+        return { success: true };
+      }),
+
+    // Option A: Admin broadcasts custom notification to ALL workers
+    sendBroadcast: publicProcedure
+      .input(z.object({
+        adminPassword: z.string(),
+        title: z.string().min(1).max(100),
+        message: z.string().min(1).max(500),
+      }))
+      .mutation(async ({ input }) => {
+        const db2 = await getDb();
+        const effectivePw = await getEffectiveAdminPassword(db2);
+        if (input.adminPassword !== effectivePw) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid admin password" });
+        }
+        const { createAppNotification } = await import("./db");
+        await createAppNotification({
+          type: "custom_broadcast",
+          title: input.title,
+          message: input.message,
+          workerID: "ADMIN",
+          workerName: "Administrator",
+          targetWorkerID: null,
+        });
+        return { success: true };
+      }),
+
+    // Option D: Worker sends custom alert to a specific worker
+    sendAlert: publicProcedure
+      .input(z.object({
+        senderID: z.string(),
+        senderName: z.string(),
+        recipientID: z.string(),
+        title: z.string().min(1).max(100),
+        message: z.string().min(1).max(500),
+      }))
+      .mutation(async ({ input }) => {
+        const { createAppNotification } = await import("./db");
+        await createAppNotification({
+          type: "custom_alert",
+          title: input.title,
+          message: input.message,
+          workerID: input.senderID,
+          workerName: input.senderName,
+          targetWorkerID: input.recipientID,
+        });
         return { success: true };
       }),
   }),

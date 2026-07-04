@@ -253,6 +253,13 @@
       "when": 1782829167070,
       "tag": "0035_tough_madripoor",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1783137436830,
+      "tag": "0036_small_toro",
+      "breakpoints": true
     }
   ]
 }
