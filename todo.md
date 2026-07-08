@@ -1268,3 +1268,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Bug fix: setMaintenanceMode changed from adminProcedure to publicProcedure + adminPassword check (fixes error 10002)
 - [x] Bug fix: Maintenance page text changed to English only (removed all Myanmar text)
 - [x] Admin Panel: textarea placeholder and hint text updated to English
+
+## Rename "Approval Center" to "NPRM Modify Order" (Jul 8)
+- [x] Update AppLayout.tsx: change NAV_ITEMS label from "Approval Center" to "NPRM Modify Order"
+- [x] Update Home.tsx: change feature card title from "Approval Center" to "NPRM Modify Order"
+- [x] Update ApprovalCenter.tsx: change page title from "Approval Center" to "NPRM Modify Order"
+- [x] Update FAQ.tsx: replace all "Approval Center" references with "NPRM Modify Order"
+- [x] Update Documentation.tsx: replace "Approval Center" with "NPRM Modify Order" in guides
+- [x] Update SystemStatus.tsx: replace historical "Approval Center" mentions with "NPRM Modify Order"
+- [x] Verify all tests pass after rename (604 tests passing)
+- [x] Test navigation and UI display on mobile and desktop

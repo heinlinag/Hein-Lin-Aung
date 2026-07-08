@@ -101,7 +101,7 @@ export default function SystemStatus() {
     {
       date: 'May 7, 2026',
       title: 'Action History — Level 1.1 Process Info Always Visible',
-      description: 'Approval Center request cards now always show Level 1.1 process-approved info (name, qty, timestamp) regardless of final status (pending / approved / cancelled).',
+      description: 'NPRM Modify Order request cards now always show Level 1.1 process-approved info (name, qty, timestamp) regardless of final status (pending / approved / cancelled).',
       type: 'update',
     },
     {
@@ -119,25 +119,25 @@ export default function SystemStatus() {
     {
       date: 'May 5, 2026',
       title: 'Level 1.1 User Role Released',
-      description: 'New intermediate user role Level 1.1 added. Requests submitted by Level 1.1 users are automatically process-approved (In Process) upon submission. Level 1.1 users can also manually process-approve Level 1 requests from the Approval Center.',
+      description: 'New intermediate user role Level 1.1 added. Requests submitted by Level 1.1 users are automatically process-approved (In Process) upon submission. Level 1.1 users can also manually process-approve Level 1 requests from the NPRM Modify Order.',
       type: 'update',
     },
     {
       date: 'May 5, 2026',
-      title: 'Approval Center — Extra Fields Display',
-      description: 'Used Update request cards in the Approval Center now display Master Card, Board Size (W×L mm), and Scores fields for full job traceability.',
+      title: 'NPRM Modify Order — Extra Fields Display',
+      description: 'Used Update request cards in the NPRM Modify Order now display Master Card, Board Size (W×L mm), and Scores fields for full job traceability.',
       type: 'update',
     },
     {
       date: 'May 3, 2026',
       title: 'Master Card, Board Size & Scores Fields',
-      description: 'Used Update dialog now includes Master Card, Board Size (W×L mm), and Scores input fields. These are recorded in Usage History and shown in Approval Center request cards.',
+      description: 'Used Update dialog now includes Master Card, Board Size (W×L mm), and Scores input fields. These are recorded in Usage History and shown in NPRM Modify Order request cards.',
       type: 'update',
     },
     {
       date: 'May 1, 2026',
       title: 'Process Approve System (Level 1.1)',
-      description: 'Level 1.1 users can process-approve Level 1 requests from the Approval Center. Process Approve dialog supports optional quantity override. Approved quantity is shown on request cards.',
+      description: 'Level 1.1 users can process-approve Level 1 requests from the NPRM Modify Order. Process Approve dialog supports optional quantity override. Approved quantity is shown on request cards.',
       type: 'update',
     },
     {
@@ -155,7 +155,7 @@ export default function SystemStatus() {
     {
       date: 'April 20, 2026',
       title: 'Two-Level Approval Workflow Released',
-      description: 'Level 1 & Level 2 approval system fully operational. Level 1 users submit requests; Level 2 users approve or cancel from the Approval Center.',
+      description: 'Level 1 & Level 2 approval system fully operational. Level 1 users submit requests; Level 2 users approve or cancel from the NPRM Modify Order.',
       type: 'update',
     },
   ];

@@ -763,7 +763,7 @@ export default function ApprovalCenter() {
   const pendingCount = statusFilter === "pending" ? requests.length : undefined;
 
   return (
-    <AppLayout pageTitle="Approval Center">
+    <AppLayout pageTitle="NPRM Modify Order">
       <main className="container lg:max-w-none lg:px-8 py-5">
         <div></div>
 

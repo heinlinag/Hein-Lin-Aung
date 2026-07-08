@@ -17,7 +17,7 @@ const faqData = [
       },
       {
         question: 'What is the difference between Employee login and Admin login?',
-        answer: 'Employee login uses your Employee ID and grants access to Stock History, Submit Order, Usage History, Approval Center, and QR Scanner based on your user level (1, 1.1, or 2). Admin login uses a separate password and grants access to the Admin Panel for managing employees, orders, deleted logs, and pending requests.',
+        answer: 'Employee login uses your Employee ID and grants access to Stock History, Submit Order, Usage History, NPRM Modify Order, and QR Scanner based on your user level (1, 1.1, or 2). Admin login uses a separate password and grants access to the Admin Panel for managing employees, orders, deleted logs, and pending requests.',
       },
       {
         question: 'I forgot my Employee ID. What should I do?',
@@ -35,7 +35,7 @@ const faqData = [
     questions: [
       {
         question: 'What are the different User Levels in the system?',
-        answer: 'The system has three user levels:\n\n• Level 1 — Can submit orders, request Used Updates, and request deletions. All actions go to the Approval Center as pending requests requiring Level 2 approval. Can request any quantity regardless of available stock.\n\n• Level 1.1 — Same as Level 1, but requests are automatically "Process Approved" (marked as In Process) the moment they are submitted. Level 2 still gives the final Approve or Cancel. Can also process-approve Level 1 requests in Approval Center.\n\n• Level 2 — Can approve or cancel Level 1 / Level 1.1 requests. Also has direct action access: can update usage and delete orders without going through approval.',
+        answer: 'The system has three user levels:\n\n• Level 1 — Can submit orders, request Used Updates, and request deletions. All actions go to the NPRM Modify Order as pending requests requiring Level 2 approval. Can request any quantity regardless of available stock.\n\n• Level 1.1 — Same as Level 1, but requests are automatically "Process Approved" (marked as In Process) the moment they are submitted. Level 2 still gives the final Approve or Cancel. Can also process-approve Level 1 requests in NPRM Modify Order.\n\n• Level 2 — Can approve or cancel Level 1 / Level 1.1 requests. Also has direct action access: can update usage and delete orders without going through approval.',
       },
       {
         question: 'What does "Level 1.1" mean and how is it different from Level 1?',
@@ -43,27 +43,27 @@ const faqData = [
       },
       {
         question: 'How does the approval workflow work step by step?',
-        answer: 'For Level 1 users:\n1. Level 1 submits a Used Update or Delete request from Stock History.\n2. Request appears in Approval Center with "Pending" status.\n3. Level 2 reviews and clicks Approve or Cancel.\n4. If approved, the action is executed (qty updated or order deleted).\n\nFor Level 1.1 users:\n1. Level 1.1 submits a request — it is instantly marked "In Process" (process-approved by themselves).\n2. Request appears in Approval Center with "In Process" badge.\n3. Level 2 reviews and gives final Approve or Cancel.\n\nLevel 1.1 can also manually process-approve Level 1 requests from the Approval Center.',
+        answer: 'For Level 1 users:\n1. Level 1 submits a Used Update or Delete request from Stock History.\n2. Request appears in NPRM Modify Order with "Pending" status.\n3. Level 2 reviews and clicks Approve or Cancel.\n4. If approved, the action is executed (qty updated or order deleted).\n\nFor Level 1.1 users:\n1. Level 1.1 submits a request — it is instantly marked "In Process" (process-approved by themselves).\n2. Request appears in NPRM Modify Order with "In Process" badge.\n3. Level 2 reviews and gives final Approve or Cancel.\n\nLevel 1.1 can also manually process-approve Level 1 requests from the NPRM Modify Order.'
       },
       {
         question: 'How do I submit a Used Update request as a Level 1 or Level 1.1 user?',
-        answer: 'In Stock History, click the "Used Update" button on any current stock order. Choose either:\n• Job No — Enter an 8-digit job number, BQ, Board Size (W×L), Flute Type, and quantity used.\n• Old Stock — Confirm to mark the entire order as used and move it to Out of Stock.\nYour request will be sent to the Approval Center.',
+        answer: 'In Stock History, click the "Used Update" button on any current stock order. Choose either:\n• Job No — Enter an 8-digit job number, BQ, Board Size (W×L), Flute Type, and quantity used.\n• Old Stock — Confirm to mark the entire order as used and move it to Out of Stock.\nYour request will be sent to the NPRM Modify Order.'
       },
       {
         question: 'How do I approve or cancel a pending request as a Level 2 user?',
-        answer: 'Go to the Approval Center page. You will see all pending and in-process requests. Click "Approve" to accept (you can optionally override the approved quantity) or "Cancel" to reject the request. Approved requests are immediately executed.',
+        answer: 'Go to the NPRM Modify Order page. You will see all pending and in-process requests. Click "Approve" to accept (you can optionally override the approved quantity) or "Cancel" to reject the request. Approved requests are immediately executed.',
       },
       {
-        question: 'What is "Process Approve" in the Approval Center?',
-        answer: 'Process Approve is an action available to Level 1.1 users in the Approval Center. It marks a Level 1 request as "In Process" — meaning it is actively being worked on. When you click Process Approve, a dialog appears showing the requested quantity and an optional field to adjust the approved quantity. This does not finalize the request; Level 2 must still give the final Approve or Cancel.',
+        question: 'What is "Process Approve" in the NPRM Modify Order?',
+        answer: 'Process Approve is an action available to Level 1.1 users in the NPRM Modify Order. It marks a Level 1 request as "In Process" — meaning it is actively being worked on. When you click Process Approve, a dialog appears showing the requested quantity and an optional field to adjust the approved quantity. This does not finalize the request; Level 2 must still give the final Approve or Cancel.'
       },
       {
         question: 'Can I cancel my own pending request?',
-        answer: 'Yes. Level 1 users can cancel their own pending requests from the Approval Center. Level 1.1 users can cancel their own requests, but cannot cancel other users\' requests that have been process-approved. Level 2 users can cancel any request. Once a request is approved, it cannot be cancelled.',
+        answer: 'Yes. Level 1 users can cancel their own pending requests from the NPRM Modify Order. Level 1.1 users can cancel their own requests, but cannot cancel other users\' requests that have been process-approved. Level 2 users can cancel any request. Once a request is approved, it cannot be cancelled.'
       },
       {
-        question: 'I cannot see the Approval Center or certain buttons. Why?',
-        answer: 'Access to features depends on your user level. Level 1 users see the Approval Center to view and cancel their own requests. Level 1.1 users can also process-approve Level 1 requests. Level 2 users can approve or cancel all requests. If you believe your access level is incorrect, contact your administrator.',
+        question: 'I cannot see the NPRM Modify Order or certain buttons. Why?',
+        answer: 'Access to features depends on your user level. Level 1 users see the NPRM Modify Order to view and cancel their own requests. Level 1.1 users can also process-approve Level 1 requests. Level 2 users can approve or cancel all requests. If you believe your access level is incorrect, contact your administrator.'
       },
     ],
   },
@@ -115,11 +115,11 @@ const faqData = [
       },
       {
         question: 'What is the BQ field in Used Update?',
-        answer: 'BQ is a reference identifier for the job (e.g., a production card number). It is recorded in the Usage History for traceability and is also visible in Approval Center request details.',
+        answer: 'BQ is a reference identifier for the job (e.g., a production card number). It is recorded in the Usage History for traceability and is also visible in NPRM Modify Order request details.'
       },
       {
         question: 'What are Board Size and Flute Type fields?',
-        answer: 'Board Size (W × L in mm) refers to the physical dimensions of the board used in the job. Flute Type refers to the corrugated board type (BA, BC, BE, etc.). Both are recorded in Usage History and visible in Approval Center request details.',
+        answer: 'Board Size (W × L in mm) refers to the physical dimensions of the board used in the job. Flute Type refers to the corrugated board type (BA, BC, BE, etc.). Both are recorded in Usage History and visible in NPRM Modify Order request details.'
       },
       {
         question: 'Where can I see past usage records?',
@@ -170,12 +170,12 @@ const faqData = [
     ],
   },
   {
-    category: 'Approval Center',
+    category: 'NPRM Modify Order',
     icon: '✅',
     questions: [
       {
-        question: 'Who can see the Approval Center?',
-        answer: 'All users (Level 1, Level 1.1, and Level 2) can access the Approval Center. Level 1 users can view and cancel their own requests. Level 1.1 users can also process-approve Level 1 requests. Level 2 users can approve or cancel all requests.',
+        question: 'Who can see the NPRM Modify Order?',
+        answer: 'All users (Level 1, Level 1.1, and Level 2) can access the NPRM Modify Order. Level 1 users can view and cancel their own requests. Level 1.1 users can also process-approve Level 1 requests. Level 2 users can approve or cancel all requests.'
       },
       {
         question: 'What does the "In Process" badge mean on a request card?',
@@ -214,7 +214,7 @@ const faqData = [
       },
       {
         question: 'What are the User Levels I can assign to a worker?',
-        answer: '• Level 1 — Actions require Level 2 approval.\n• Level 1.1 — Requests are auto process-approved; Level 2 gives final approval. Can also process-approve other Level 1 requests in Approval Center.\n• Level 2 — Can approve/cancel Level 1 and Level 1.1 requests. Has direct action access.',
+        answer: '• Level 1 — Actions require Level 2 approval.\n• Level 1.1 — Requests are auto process-approved; Level 2 gives final approval. Can also process-approve other Level 1 requests in NPRM Modify Order.\n• Level 2 — Can approve/cancel Level 1 and Level 1.1 requests. Has direct action access.'
       },
       {
         question: 'How do I delete an order from the Admin Panel?',
@@ -262,11 +262,11 @@ const faqData = [
       },
       {
         question: 'My request shows "Pending" but I am a Level 1.1 user. Should it not be "In Process"?',
-        answer: 'If you submitted the request after the Level 1.1 feature was enabled, it should automatically show "In Process". If it shows "Pending", it may have been submitted before the feature was active. You can manually process-approve it from the Approval Center.',
+        answer: 'If you submitted the request after the Level 1.1 feature was enabled, it should automatically show "In Process". If it shows "Pending", it may have been submitted before the feature was active. You can manually process-approve it from the NPRM Modify Order.'
       },
       {
-        question: 'I cannot see the "Process" button in the Approval Center. Why?',
-        answer: 'The "Process" button is only available to Level 1.1 users. If you are Level 1 or Level 2, you will not see this button. Contact your administrator if you believe your level should be 1.1.',
+        question: 'I cannot see the "Process" button in the NPRM Modify Order. Why?',
+        answer: 'The "Process" button is only available to Level 1.1 users. If you are Level 1 or Level 2, you will not see this button. Contact your administrator if you believe your level should be 1.1.'
       },
       {
         question: 'The available quantity in Used Update seems lower than expected. Why?',
