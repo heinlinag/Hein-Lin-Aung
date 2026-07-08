@@ -1278,3 +1278,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Update SystemStatus.tsx: replace historical "Approval Center" mentions with "NPRM Modify Order"
 - [x] Verify all tests pass after rename (604 tests passing)
 - [x] Test navigation and UI display on mobile and desktop
+
+## Add Hover Tooltip to NPRM Modify Order Card (Jul 8)
+- [x] Add Info icon button to NPRM Modify Order card
+- [x] Implement hover tooltip with feature description
+- [x] Tooltip shows user-friendly explanation of card functionality
+- [x] Verify tests pass (604 tests passing)
+- [x] Test tooltip display on desktop and mobile

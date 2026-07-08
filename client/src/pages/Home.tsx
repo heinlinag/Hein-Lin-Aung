@@ -1,10 +1,11 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp, MessageCircle } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp, MessageCircle, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
 import AppLayout from "@/components/AppLayout";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -267,12 +268,18 @@ export default function Home() {
 
           {/* Cards grid - responsive */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {baseFeatures.map((f) => (
-              <div
-                key={f.href}
-                onClick={() => navigate(f.href)}
-                className={`group relative rounded-2xl p-5 bg-white border border-gray-100 shadow-sm hover:shadow-xl ${f.shadowColor} transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden`}
-              >
+            {baseFeatures.map((f) => {
+              const isNPRMCard = f.title === "NPRM Modify Order";
+              const tooltipText = isNPRMCard 
+                ? "Review pending requests from Level 1/1.1 users. Approve, cancel, or process-approve based on your user level."
+                : undefined;
+              
+              const cardContent = (
+                <div
+                  key={f.href}
+                  onClick={() => navigate(f.href)}
+                  className={`group relative rounded-2xl p-5 bg-white border border-gray-100 shadow-sm hover:shadow-xl ${f.shadowColor} transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden`}
+                >
                 {/* Background gradient on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${f.gradient} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300`} />
 
@@ -295,12 +302,28 @@ export default function Home() {
                 </div>
 
                 {/* Content */}
-                <h3 className="font-bold text-gray-900 text-base mb-1.5 group-hover:text-gray-800">
-                  {f.title}
-                </h3>
-                <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">
-                  {f.description}
-                </p>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 text-base mb-1.5 group-hover:text-gray-800">
+                      {f.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">
+                      {f.description}
+                    </p>
+                  </div>
+                  {isNPRMCard && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center hover:bg-orange-200 transition-colors mt-0.5">
+                          <Info size={12} />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" align="end" className="max-w-xs text-xs">
+                        {tooltipText}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
 
                 {/* Action */}
                 <div className="flex items-center gap-1 text-xs font-semibold text-gray-400 group-hover:text-blue-600 transition-colors">
@@ -308,7 +331,19 @@ export default function Home() {
                   <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-            ))}
+              );
+              
+              return isNPRMCard ? (
+                <Tooltip key={f.href}>
+                  <TooltipTrigger asChild>
+                    {cardContent}
+                  </TooltipTrigger>
+                </Tooltip>
+              ) : (
+                cardContent
+              );
+            })
+            }
           </div>
         </div>
       </div>
