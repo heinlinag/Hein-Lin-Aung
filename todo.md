@@ -1285,3 +1285,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Tooltip shows user-friendly explanation of card functionality
 - [x] Verify tests pass (604 tests passing)
 - [x] Test tooltip display on desktop and mobile
+
+## Add Smooth Fade-in Animation to Tooltip (Jul 8)
+- [x] Update tooltip.tsx with duration-300 ease-out for smooth appear animation
+- [x] Add duration-200 for smooth disappear animation
+- [x] Verify tests pass (604 tests passing)
+- [x] Test animation smoothness on desktop and mobile
