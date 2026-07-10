@@ -1138,7 +1138,7 @@ export default function ApprovalCenter() {
         {true && (
           <>
             {/* Sticky filter bar — sticks to top on mobile scroll */}
-            <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pb-0 sm:pt-0">
+            <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm pb-3 pt-1 -mx-4 px-4 shadow-[0_2px_8px_rgba(0,0,0,0.08)] sm:shadow-none sm:mx-0 sm:px-0 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pb-0 sm:pt-0">
             {/* Status & Time Filters */}
             <div className="flex gap-3 mb-3 items-center flex-wrap justify-center sm:justify-start">
               {/* Status Select */}
