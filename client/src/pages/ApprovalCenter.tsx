@@ -365,7 +365,7 @@ function RequestCard({
                   <TooltipProvider delayDuration={100}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg opacity-40 cursor-not-allowed select-none">
+                        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-100 cursor-not-allowed select-none border border-gray-200">
                           <Edit3 size={16} className="text-gray-400 flex-shrink-0" />
                           <span className="text-sm font-medium text-gray-400">Edit Target Black</span>
                         </div>
