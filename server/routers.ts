@@ -755,6 +755,7 @@ export const appRouter = router({
         id: z.number().int().positive(),
         newQty: z.number().int().nonnegative(),
         workerID: z.string().min(1),
+        remark: z.string().min(1, "Remark is required"),
       }))
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
@@ -776,6 +777,7 @@ export const appRouter = router({
           editedByID: input.workerID,
           oldQty: currentQty,
           newQty: input.newQty,
+          remark: input.remark,
         });
         if (req.actionData) {
           const action = JSON.parse(req.actionData);

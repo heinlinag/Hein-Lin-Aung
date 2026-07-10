@@ -80,7 +80,7 @@ function RequestCard({
   onCancel: (id: number, reason: string) => void;
   onProcessApprove: (id: number, processApprovedQty?: number) => void;
   onToggleUrgent: (id: number) => void;
-  onEditTargetBlack: (id: number, newQty: number) => void;
+  onEditTargetBlack: (id: number, newQty: number, remark: string) => void;
   isProcessing: boolean;
   canApprove: boolean;
   canCancel: boolean;
@@ -102,6 +102,7 @@ function RequestCard({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editQtyLocal, setEditQtyLocal] = useState("");
   const [showEditConfirm, setShowEditConfirm] = useState(false);
+  const [editRemarkLocal, setEditRemarkLocal] = useState("");
 
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
@@ -653,21 +654,40 @@ function RequestCard({
                   <span className="text-sm font-bold text-green-600">{editQtyLocal} pcs</span>
                 </div>
               </div>
+              {/* Remark input */}
+              <div className="mb-4">
+                <label className="text-xs font-medium text-gray-700 mb-1 block">
+                  Reason for Edit <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={editRemarkLocal}
+                  onChange={e => setEditRemarkLocal(e.target.value)}
+                  placeholder="Enter reason for editing Target Black Qty..."
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 resize-none"
+                  autoFocus
+                />
+                {editRemarkLocal.trim() === "" && (
+                  <p className="text-[10px] text-red-500 mt-1">Remark is required to proceed.</p>
+                )}
+              </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setShowEditConfirm(false)}
+                  onClick={() => { setShowEditConfirm(false); setEditRemarkLocal(""); }}
                   className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-50"
                 >
                   Go Back
                 </button>
                 <button
+                  disabled={editRemarkLocal.trim() === ""}
                   onClick={() => {
                     const qty = parseInt(editQtyLocal);
-                    onEditTargetBlack(req.id, qty);
+                    onEditTargetBlack(req.id, qty, editRemarkLocal.trim());
                     setShowEditConfirm(false);
                     setShowEditDialog(false);
+                    setEditRemarkLocal("");
                   }}
-                  className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700"
+                  className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Confirm
                 </button>
@@ -691,18 +711,23 @@ function EditHistorySection({ requestId }: { requestId: number }) {
     <div className="mb-4 border-t border-gray-100 pt-3">
       <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Edit History</p>
       <div className="space-y-1.5 max-h-32 overflow-y-auto">
-        {history.map((edit: { id: number; editedBy: string; editedAt: string | Date; oldQty: number; newQty: number }) => (
-          <div key={edit.id} className="flex items-center justify-between bg-blue-50/50 rounded-lg px-2.5 py-1.5">
-            <div className="text-[11px]">
-              <span className="font-medium text-gray-800">Edit by {edit.editedBy}</span>
-              <span className="text-gray-400 mx-1">&bull;</span>
-              <span className="text-gray-500">{new Date(edit.editedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })} {new Date(edit.editedAt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}</span>
+        {history.map((edit: { id: number; editedBy: string; editedAt: string | Date; oldQty: number; newQty: number; remark?: string | null }) => (
+          <div key={edit.id} className="bg-blue-50/50 rounded-lg px-2.5 py-1.5">
+            <div className="flex items-center justify-between">
+              <div className="text-[11px]">
+                <span className="font-medium text-gray-800">Edit by {edit.editedBy}</span>
+                <span className="text-gray-400 mx-1">&bull;</span>
+                <span className="text-gray-500">{new Date(edit.editedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })} {new Date(edit.editedAt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}</span>
+              </div>
+              <div className="text-[11px] font-semibold">
+                <span className="text-red-500 line-through">{edit.oldQty}</span>
+                <span className="text-gray-400 mx-1">&rarr;</span>
+                <span className="text-green-600">{edit.newQty} pcs</span>
+              </div>
             </div>
-            <div className="text-[11px] font-semibold">
-              <span className="text-red-500 line-through">{edit.oldQty}</span>
-              <span className="text-gray-400 mx-1">&rarr;</span>
-              <span className="text-green-600">{edit.newQty} pcs</span>
-            </div>
+            {edit.remark && (
+              <p className="text-[10px] text-gray-500 mt-0.5 italic">&ldquo;{edit.remark}&rdquo;</p>
+            )}
           </div>
         ))}
       </div>
@@ -994,10 +1019,10 @@ export default function ApprovalCenter() {
 
   const editTargetBlackMutation = trpc.pendingRequests.editTargetBlackQty.useMutation();
 
-  const handleEditTargetBlack = async (id: number, newQty: number) => {
+  const handleEditTargetBlack = async (id: number, newQty: number, remark: string) => {
     if (!worker) return;
     try {
-      await editTargetBlackMutation.mutateAsync({ id, newQty, workerID: worker.workerID });
+      await editTargetBlackMutation.mutateAsync({ id, newQty, workerID: worker.workerID, remark });
       toast.success("Target Black Qty updated successfully.");
       utils.pendingRequests.list.invalidate();
     } catch (err: unknown) {

@@ -80,6 +80,7 @@ export const requestEditHistory = mysqlTable("requestEditHistory", {
   editedByID: varchar("editedByID", { length: 64 }).notNull(), // workerID
   oldQty: int("oldQty").notNull(),              // previous Target Black Qty
   newQty: int("newQty").notNull(),              // new Target Black Qty
+  remark: varchar("remark", { length: 512 }),   // reason for edit
   editedAt: timestamp("editedAt").defaultNow().notNull(),
 });
 export type RequestEditHistory = typeof requestEditHistory.$inferSelect;

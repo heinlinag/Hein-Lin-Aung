@@ -1,0 +1,1 @@
+ALTER TABLE `requestEditHistory` ADD `remark` varchar(512);
