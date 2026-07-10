@@ -341,7 +341,7 @@ function RequestCard({
                   <span className="text-sm font-medium text-foreground">{req.isUrgent ? "Remove Urgent" : "Mark Urgent"}</span>
                 </DropdownMenuItem>
               )}
-              {req.type === "used_update" && (
+              {req.type === "used_update" && req.status === "pending" && (
                 <DropdownMenuItem
                   onClick={() => {
                     setShowEditDialog(true);
