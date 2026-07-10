@@ -1101,58 +1101,9 @@ export default function ApprovalCenter() {
       <main className="container lg:max-w-none lg:px-8 py-5">
         <div></div>
 
-        {/* Level info banner */}
-        {isLevel1 && (
-          <div className="flex items-start gap-2.5 bg-gradient-to-r from-orange-50 to-amber-50/50 border border-orange-200/80 rounded-xl p-3.5 mb-5 shadow-sm">
-            <div className="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Info size={14} className="text-orange-600" />
-            </div>
-            <p className="text-xs text-orange-700 leading-relaxed">
-              <strong className="text-orange-800">Level 1</strong> — View pending requests and cancel your own. Level 2 users approve requests.
-            </p>
-          </div>
-        )}
-        {canProcessApprove && userLevel === "1.1" && (
-          <div className="flex items-start gap-2.5 bg-gradient-to-r from-purple-50 to-violet-50/50 border border-purple-200/80 rounded-xl p-3.5 mb-5 shadow-sm">
-            <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Info size={14} className="text-purple-600" />
-            </div>
-            <p className="text-xs text-purple-700 leading-relaxed">
-              <strong className="text-purple-800">Level 1.1</strong> — Mark requests as <strong>In Process</strong>. Level 2 gives final approval.
-            </p>
-          </div>
-        )}
-        {canProcessApprove && userLevel === "2" && (
-          <div className="flex items-start gap-2.5 bg-gradient-to-r from-emerald-50 to-green-50/50 border border-emerald-200/80 rounded-xl p-3.5 mb-5 shadow-sm">
-            <div className="w-7 h-7 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Info size={14} className="text-emerald-600" />
-            </div>
-            <p className="text-xs text-emerald-700 leading-relaxed">
-              <strong className="text-emerald-800">Level 2</strong> — Mark as <strong>In Process</strong> first, then give final <strong>Approve or Cancel</strong>.
-            </p>
-          </div>
-        )}
+        {/* Level info banners and Purchase Orders / Action History tabs are hidden */}
 
-        {/* Main tab: Requests / History */}
-        <div className="flex gap-1 mb-5 bg-gray-100/80 p-1 rounded-xl w-fit">
-          <button
-            onClick={() => setActiveTab("requests")}
-            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-1.5 ${activeTab === "requests" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            Purchase Orders
-            {pendingCount !== undefined && pendingCount > 0 && (
-              <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold min-w-[18px] text-center">{pendingCount}</span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-1.5 ${activeTab === "history" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            Action History
-          </button>
-        </div>
-
-        {activeTab === "requests" && (
+        {true && (
           <>
             {/* Status & Time Filters */}
             <div className="flex gap-3 mb-4 items-center flex-wrap">
@@ -1338,7 +1289,7 @@ export default function ApprovalCenter() {
           </>
         )}
 
-        {activeTab === "history" && (
+        {false && activeTab === "history" && (
           <>
             <div className="flex items-center justify-between mb-5">
               <div>
