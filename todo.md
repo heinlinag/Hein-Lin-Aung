@@ -1312,3 +1312,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] When selecting a month, show only that month's requests
 - [x] Complete Edit Target Black modal dialog UI
 - [x] Complete Edit history display (edited by, date, time, qty pcs)
+
+## Add Confirmation Dialog for Edit Target Black Save (Jul 10)
+- [x] Add confirmation pop-up before saving edited Target Black Qty
+- [x] Show old qty → new qty in confirmation dialog
+- [x] Only proceed with save after user confirms

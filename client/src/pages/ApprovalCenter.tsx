@@ -101,6 +101,7 @@ function RequestCard({
   // Edit Target Black dialog state
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editQtyLocal, setEditQtyLocal] = useState("");
+  const [showEditConfirm, setShowEditConfirm] = useState(false);
 
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
@@ -618,12 +619,57 @@ function RequestCard({
                       toast.error("Please enter a valid quantity.");
                       return;
                     }
-                    onEditTargetBlack(req.id, qty);
-                    setShowEditDialog(false);
+                    setShowEditConfirm(true);
                   }}
                   className="flex-1 bg-blue-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-blue-700"
                 >
                   Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Confirmation Dialog */}
+      {showEditConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-xs animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-5">
+              <div className="flex items-center justify-center mb-3">
+                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                  <AlertTriangle size={22} className="text-amber-600" />
+                </div>
+              </div>
+              <h3 className="font-bold text-gray-900 text-center text-base mb-2">Confirm Edit</h3>
+              <p className="text-xs text-center text-muted-foreground mb-4">
+                Are you sure you want to change Target Black Qty?
+              </p>
+              <div className="bg-gray-50 rounded-lg p-3 mb-4 text-center">
+                <div className="text-xs text-gray-500 mb-1">Target Black Qty</div>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-sm font-semibold text-red-500 line-through">{action?.targetBlackQty ?? action?.usedQty ?? 0} pcs</span>
+                  <span className="text-gray-400">&rarr;</span>
+                  <span className="text-sm font-bold text-green-600">{editQtyLocal} pcs</span>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowEditConfirm(false)}
+                  className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-50"
+                >
+                  Go Back
+                </button>
+                <button
+                  onClick={() => {
+                    const qty = parseInt(editQtyLocal);
+                    onEditTargetBlack(req.id, qty);
+                    setShowEditConfirm(false);
+                    setShowEditDialog(false);
+                  }}
+                  className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700"
+                >
+                  Confirm
                 </button>
               </div>
             </div>
