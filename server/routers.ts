@@ -763,6 +763,9 @@ export const appRouter = router({
         const req = await getPendingRequestById(input.id);
         if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
         if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
+        if ((req as { processApprovedBy?: string | null }).processApprovedBy) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot edit: request is already In Process" });
+        }
         let currentQty = 0;
         if (req.actionData) {
           const action = JSON.parse(req.actionData);

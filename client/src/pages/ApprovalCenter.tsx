@@ -350,7 +350,7 @@ function RequestCard({
                 </DropdownMenuItem>
               )}
               {req.type === "used_update" && (
-                req.status === "pending" ? (
+                (req.status === "pending" && !isProcessApproved) ? (
                   <DropdownMenuItem
                     onClick={() => {
                       setShowEditDialog(true);
