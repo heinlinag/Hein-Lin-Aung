@@ -841,13 +841,13 @@ export default function ApprovalCenter() {
       });
     }
     
-    // Apply Job No search (digits only, works across all status filters)
-    if (jobNoSearch.trim()) {
+    // Apply Job No search — only when exactly 8 digits entered
+    if (jobNoSearch.length === 8) {
       filtered = filtered.filter(req => {
         try {
           const action = JSON.parse(req.actionData || "{}") as ActionData;
           if (!action.jobNo) return false;
-          return action.jobNo.includes(jobNoSearch.trim());
+          return action.jobNo === jobNoSearch;
         } catch {
           return false;
         }
@@ -1162,32 +1162,54 @@ export default function ApprovalCenter() {
             </div>
             
             {/* Job No Search Bar — always visible */}
-            <div className="relative w-full mb-5 max-w-sm group">
-              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="Search by Job No (e.g. 02134567)..."
-                value={jobNoSearch}
-                onChange={e => {
-                  // Allow digits only
-                  const val = e.target.value.replace(/[^0-9]/g, "");
-                  setJobNoSearch(val);
-                }}
-                className="w-full pl-10 pr-9 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all"
-              />
-              {jobNoSearch && (
-                <button
-                  onClick={() => setJobNoSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Clear search"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            <div className="w-full mb-5 max-w-sm">
+              <div className="relative group">
+                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
+                  placeholder="Search by Job No (e.g. 02134567)..."
+                  value={jobNoSearch}
+                  onChange={e => {
+                    const val = e.target.value.replace(/[^0-9]/g, "").slice(0, 8);
+                    setJobNoSearch(val);
+                  }}
+                  className={`w-full pl-10 pr-9 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 bg-white shadow-sm transition-all ${
+                    jobNoSearch.length > 0 && jobNoSearch.length < 8
+                      ? "border-red-400 focus:ring-red-200 focus:border-red-500"
+                      : "border-gray-200 focus:ring-primary/20 focus:border-primary"
+                  }`}
+                />
+                {jobNoSearch && (
+                  <button
+                    onClick={() => setJobNoSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Clear search"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              {jobNoSearch.length > 0 && jobNoSearch.length < 8 && (
+                <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                  <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                </button>
+                  Job No must be exactly 8 digits ({jobNoSearch.length}/8)
+                </p>
+              )}
+              {jobNoSearch.length === 8 && (
+                <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1">
+                  <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Searching for Job No: {jobNoSearch}
+                </p>
               )}
             </div>
 
