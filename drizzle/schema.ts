@@ -72,6 +72,19 @@ export const pendingRequests = mysqlTable("pendingRequests", {
 export type PendingRequest = typeof pendingRequests.$inferSelect;
 export type InsertPendingRequest = typeof pendingRequests.$inferInsert;
 
+// Request Edit History table — tracks edits to pending requests (Target Black Qty)
+export const requestEditHistory = mysqlTable("requestEditHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  requestId: int("requestId").notNull(),       // references pendingRequests.id
+  editedBy: varchar("editedBy", { length: 128 }).notNull(), // worker name who made the edit
+  editedByID: varchar("editedByID", { length: 64 }).notNull(), // workerID
+  oldQty: int("oldQty").notNull(),              // previous Target Black Qty
+  newQty: int("newQty").notNull(),              // new Target Black Qty
+  editedAt: timestamp("editedAt").defaultNow().notNull(),
+});
+export type RequestEditHistory = typeof requestEditHistory.$inferSelect;
+export type InsertRequestEditHistory = typeof requestEditHistory.$inferInsert;
+
 // Approval Action Log — records every Level 2 action in Approval Center
 export const approvalActionLog = mysqlTable("approvalActionLog", {
   id: int("id").autoincrement().primaryKey(),

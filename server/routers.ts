@@ -33,6 +33,8 @@ import {
   createApprovalActionLog,
   getApprovalActionLog,
   toggleUrgent,
+  logRequestEdit,
+  getRequestEditHistory,
   getDb,
 } from "./db";
 
@@ -747,6 +749,50 @@ export const appRouter = router({
         if (req.requestedBy !== input.workerID) throw new TRPCError({ code: "FORBIDDEN", message: "You can only mark your own requests as urgent" });
         const newUrgentStatus = await toggleUrgent(input.id);
         return { success: true, isUrgent: newUrgentStatus };
+      }),
+    editTargetBlackQty: publicProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        newQty: z.number().int().nonnegative(),
+        workerID: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid Employee ID" });
+        const req = await getPendingRequestById(input.id);
+        if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+        if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
+        let currentQty = 0;
+        if (req.actionData) {
+          const action = JSON.parse(req.actionData);
+          currentQty = action.targetBlackQty ?? 0;
+        }
+        if (currentQty === input.newQty) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "New quantity is same as current quantity" });
+        }
+        await logRequestEdit({
+          requestId: input.id,
+          editedBy: worker.name,
+          editedByID: input.workerID,
+          oldQty: currentQty,
+          newQty: input.newQty,
+        });
+        if (req.actionData) {
+          const action = JSON.parse(req.actionData);
+          action.targetBlackQty = input.newQty;
+          const db = await getDb();
+          if (db) {
+            const { pendingRequests: prTable } = await import("../drizzle/schema");
+            const { eq } = await import("drizzle-orm");
+            await db.update(prTable).set({ actionData: JSON.stringify(action) }).where(eq(prTable.id, input.id));
+          }
+        }
+        return { success: true, oldQty: currentQty, newQty: input.newQty };
+      }),
+    getEditHistory: publicProcedure
+      .input(z.object({ requestId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        return getRequestEditHistory(input.requestId);
       }),
   }),
   // ─── Admin ──────────────────────────────────────────────────────────────────────────────

@@ -260,6 +260,13 @@
       "when": 1783137436830,
       "tag": "0036_small_toro",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "5",
+      "when": 1783598407649,
+      "tag": "0037_pale_spectrum",
+      "breakpoints": true
     }
   ]
 }

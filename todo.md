@@ -1291,3 +1291,24 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add duration-200 for smooth disappear animation
 - [x] Verify tests pass (604 tests passing)
 - [x] Test animation smoothness on desktop and mobile
+
+## Add Target Black Qty Edit Functionality to NPRM Modify Order (Jul 8)
+- [x] Database: Create requestEditHistory table to track edits (id, requestId, editedBy, editedAt, oldQty, newQty)
+- [x] Database: Add migration SQL for new table
+- [x] Backend: Create editTargetBlackQty procedure (allow all users to edit)
+- [x] Backend: Create getRequestEditHistory procedure to fetch edit history
+- [ ] Frontend: Add Edit button to NPRM Modify Order request card
+- [ ] Frontend: Create Edit Modal with Target Black Qty input field
+- [ ] Frontend: Display edit history below request details (edited by, date, time, old qty, new qty)
+- [ ] Frontend: Validate edit permissions and show appropriate UI
+- [ ] Testing: Verify edit functionality works for all user levels
+- [ ] Testing: Verify edit history displays correctly
+- [ ] Testing: Verify all tests pass
+
+## NPRM Modify Order Filter Update (Jul 10)
+- [x] Convert status tabs (Pending/Approved/Cancelled/All) to Select dropdown
+- [x] Add time-based filter (Today, Yesterday, Last Week, Last Month, specific months like Jul 2026)
+- [x] Display request count statistics for each time period
+- [x] When selecting a month, show only that month's requests
+- [x] Complete Edit Target Black modal dialog UI
+- [x] Complete Edit history display (edited by, date, time, qty pcs)

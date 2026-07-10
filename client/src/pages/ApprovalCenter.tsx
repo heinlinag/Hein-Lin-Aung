@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, Flag } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, Flag, Edit3, Calendar } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { ActionHistoryCard, type ActionHistoryEvent } from "@/components/ActionHistoryCard";
@@ -13,6 +13,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type PendingRequest = {
   id: number;
@@ -52,6 +59,7 @@ type ActionData = {
   boardSizeW?: number | null;
   boardSizeL?: number | null;
   scores?: string | null;
+  targetBlackQty?: number;
 };
 
 function RequestCard({
@@ -60,6 +68,7 @@ function RequestCard({
   onCancel,
   onProcessApprove,
   onToggleUrgent,
+  onEditTargetBlack,
   isProcessing,
   canApprove,
   canCancel,
@@ -71,6 +80,7 @@ function RequestCard({
   onCancel: (id: number, reason: string) => void;
   onProcessApprove: (id: number, processApprovedQty?: number) => void;
   onToggleUrgent: (id: number) => void;
+  onEditTargetBlack: (id: number, newQty: number) => void;
   isProcessing: boolean;
   canApprove: boolean;
   canCancel: boolean;
@@ -88,6 +98,9 @@ function RequestCard({
   const [processApprovedQtyLocal, setProcessApprovedQtyLocal] = useState("");
   // Process-blocked cancel dialog (Level 1 trying to cancel a process-approved request)
   const [showProcessBlockedDialog, setShowProcessBlockedDialog] = useState(false);
+  // Edit Target Black dialog state
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editQtyLocal, setEditQtyLocal] = useState("");
 
   let snapshot: OrderSnapshot | null = null;
   let action: ActionData | null = null;
@@ -326,6 +339,18 @@ function RequestCard({
                   <span className="text-sm font-medium text-foreground">{req.isUrgent ? "Remove Urgent" : "Mark Urgent"}</span>
                 </DropdownMenuItem>
               )}
+              {req.type === "used_update" && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setShowEditDialog(true);
+                    setEditQtyLocal(action?.usedQty ? String(action.usedQty) : "");
+                  }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                >
+                  <Edit3 size={16} className="text-blue-600 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">Edit Target Black</span>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -550,6 +575,91 @@ function RequestCard({
           </div>
         </div>
       )}
+
+      {/* Edit Target Black Dialog */}
+      {showEditDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <Edit3 size={18} className="text-blue-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">Edit Target Black Qty</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Current Target Black: <strong>{action?.targetBlackQty ?? action?.usedQty ?? 0} pcs</strong>
+              </p>
+              <div className="mb-4">
+                <label className="text-xs font-medium text-gray-700 mb-1 block">New Target Black Qty (pcs)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={editQtyLocal}
+                  onChange={e => setEditQtyLocal(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                  placeholder="Enter new qty"
+                  autoFocus
+                />
+              </div>
+              {/* Edit History */}
+              <EditHistorySection requestId={req.id} />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowEditDialog(false)}
+                  className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const qty = parseInt(editQtyLocal);
+                    if (isNaN(qty) || qty < 0) {
+                      toast.error("Please enter a valid quantity.");
+                      return;
+                    }
+                    onEditTargetBlack(req.id, qty);
+                    setShowEditDialog(false);
+                  }}
+                  className="flex-1 bg-blue-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-blue-700"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Edit History Section Component
+function EditHistorySection({ requestId }: { requestId: number }) {
+  const historyQuery = trpc.pendingRequests.getEditHistory.useQuery({ requestId });
+  const history = historyQuery.data ?? [];
+  
+  if (history.length === 0) return null;
+  
+  return (
+    <div className="mb-4 border-t border-gray-100 pt-3">
+      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Edit History</p>
+      <div className="space-y-1.5 max-h-32 overflow-y-auto">
+        {history.map((edit: { id: number; editedBy: string; editedAt: string | Date; oldQty: number; newQty: number }) => (
+          <div key={edit.id} className="flex items-center justify-between bg-blue-50/50 rounded-lg px-2.5 py-1.5">
+            <div className="text-[11px]">
+              <span className="font-medium text-gray-800">Edit by {edit.editedBy}</span>
+              <span className="text-gray-400 mx-1">&bull;</span>
+              <span className="text-gray-500">{new Date(edit.editedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })} {new Date(edit.editedAt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+            <div className="text-[11px] font-semibold">
+              <span className="text-red-500 line-through">{edit.oldQty}</span>
+              <span className="text-gray-400 mx-1">&rarr;</span>
+              <span className="text-green-600">{edit.newQty} pcs</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -561,6 +671,7 @@ export default function ApprovalCenter() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [jobNoSearch, setJobNoSearch] = useState("");
+  const [timeFilter, setTimeFilter] = useState<string>("all");
 
   const userLevel = worker?.userLevel ?? "2";
   const canApprove = userLevel === "2";
@@ -585,21 +696,96 @@ export default function ApprovalCenter() {
 
   const allRequests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
   
-  // Filter by Job No when "All" tab is selected
-  const requests = useMemo(() => {
-    if (statusFilter !== undefined || !jobNoSearch.trim()) return allRequests;
-    
-    return allRequests.filter(req => {
-      if (req.type !== "used_update") return true; // Show all delete requests
-      try {
-        const action = JSON.parse(req.actionData || "{}") as ActionData;
-        if (!action.jobNo) return true; // Show if no job no
-        return action.jobNo.toLowerCase().includes(jobNoSearch.toLowerCase());
-      } catch {
-        return true;
+  // Time filter helper
+  const getTimeFilterRange = (filter: string): { start: Date; end: Date } | null => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    switch (filter) {
+      case "today":
+        return { start: today, end: new Date(today.getTime() + 86400000) };
+      case "yesterday": {
+        const yesterday = new Date(today.getTime() - 86400000);
+        return { start: yesterday, end: today };
       }
+      case "last_week": {
+        const weekAgo = new Date(today.getTime() - 7 * 86400000);
+        return { start: weekAgo, end: new Date(today.getTime() + 86400000) };
+      }
+      case "last_month": {
+        const monthAgo = new Date(today.getTime() - 30 * 86400000);
+        return { start: monthAgo, end: new Date(today.getTime() + 86400000) };
+      }
+      default: {
+        // Check if it's a month filter like "2026-07"
+        const monthMatch = filter.match(/^(\d{4})-(\d{2})$/);
+        if (monthMatch) {
+          const year = parseInt(monthMatch[1]);
+          const month = parseInt(monthMatch[2]) - 1;
+          return { start: new Date(year, month, 1), end: new Date(year, month + 1, 1) };
+        }
+        return null; // "all" - no filter
+      }
+    }
+  };
+
+  // Generate available months from requests
+  const availableMonths = useMemo(() => {
+    const months = new Map<string, number>();
+    allRequests.forEach(req => {
+      const d = new Date(req.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      months.set(key, (months.get(key) || 0) + 1);
     });
-  }, [allRequests, statusFilter, jobNoSearch]);
+    return Array.from(months.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [allRequests]);
+
+  // Time filter counts
+  const timeFilterCounts = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today.getTime() - 86400000);
+    const weekAgo = new Date(today.getTime() - 7 * 86400000);
+    const monthAgo = new Date(today.getTime() - 30 * 86400000);
+    let todayCount = 0, yesterdayCount = 0, weekCount = 0, monthCount = 0;
+    allRequests.forEach(req => {
+      const d = new Date(req.createdAt);
+      if (d >= today) todayCount++;
+      if (d >= yesterday && d < today) yesterdayCount++;
+      if (d >= weekAgo) weekCount++;
+      if (d >= monthAgo) monthCount++;
+    });
+    return { today: todayCount, yesterday: yesterdayCount, week: weekCount, month: monthCount };
+  }, [allRequests]);
+
+  // Filter by Job No and time filter
+  const requests = useMemo(() => {
+    let filtered = allRequests;
+    
+    // Apply time filter
+    const range = getTimeFilterRange(timeFilter);
+    if (range) {
+      filtered = filtered.filter(req => {
+        const d = new Date(req.createdAt);
+        return d >= range.start && d < range.end;
+      });
+    }
+    
+    // Apply Job No search
+    if (statusFilter === undefined && jobNoSearch.trim()) {
+      filtered = filtered.filter(req => {
+        if (req.type !== "used_update") return true;
+        try {
+          const action = JSON.parse(req.actionData || "{}") as ActionData;
+          if (!action.jobNo) return true;
+          return action.jobNo.toLowerCase().includes(jobNoSearch.toLowerCase());
+        } catch {
+          return true;
+        }
+      });
+    }
+    
+    return filtered;
+  }, [allRequests, statusFilter, jobNoSearch, timeFilter]);
 
   // Notification sound when new pending requests arrive
   const { playChime } = useNotificationSound();
@@ -760,6 +946,20 @@ export default function ApprovalCenter() {
     }
   };
 
+  const editTargetBlackMutation = trpc.pendingRequests.editTargetBlackQty.useMutation();
+
+  const handleEditTargetBlack = async (id: number, newQty: number) => {
+    if (!worker) return;
+    try {
+      await editTargetBlackMutation.mutateAsync({ id, newQty, workerID: worker.workerID });
+      toast.success("Target Black Qty updated successfully.");
+      utils.pendingRequests.list.invalidate();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to update Target Black Qty.");
+    }
+  };
+
   const pendingCount = statusFilter === "pending" ? requests.length : undefined;
 
   return (
@@ -820,26 +1020,52 @@ export default function ApprovalCenter() {
 
         {activeTab === "requests" && (
           <>
-            {/* Status filter sub-tabs */}
-            <div className="flex gap-2 mb-5 items-center flex-wrap">
-              {([
-                { key: "pending" as const, label: "Pending", emoji: "⏳" },
-                { key: "approved" as const, label: "Approved", emoji: "✅" },
-                { key: "cancelled" as const, label: "Cancelled", emoji: "❌" },
-                { key: undefined, label: "All", emoji: "📋" },
-              ]).map(({ key, label, emoji }) => (
-                <button
-                  key={label}
-                  onClick={() => { setStatusFilter(key); setJobNoSearch(""); }}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 shadow-sm ${
-                    statusFilter === key
-                      ? key === "pending" ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-200" : key === "approved" ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-green-200" : key === "cancelled" ? "bg-gradient-to-r from-gray-500 to-gray-600 text-white" : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-blue-200"
-                      : "bg-white text-muted-foreground hover:bg-gray-50 border border-gray-200"
-                  }`}
-                >
-                  {emoji} {label}
-                </button>
-              ))}
+            {/* Status & Time Filters */}
+            <div className="flex gap-3 mb-4 items-center flex-wrap">
+              {/* Status Select */}
+              <Select
+                value={statusFilter ?? "all"}
+                onValueChange={(val) => {
+                  setStatusFilter(val === "all" ? undefined : val as "pending" | "approved" | "cancelled");
+                  setJobNoSearch("");
+                }}
+              >
+                <SelectTrigger className="w-[150px] h-9 text-xs font-semibold">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">⏳ Pending</SelectItem>
+                  <SelectItem value="approved">✅ Approved</SelectItem>
+                  <SelectItem value="cancelled">❌ Cancelled</SelectItem>
+                  <SelectItem value="all">📋 All</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Time Filter Select */}
+              <Select value={timeFilter} onValueChange={setTimeFilter}>
+                <SelectTrigger className="w-[180px] h-9 text-xs font-semibold">
+                  <Calendar size={14} className="mr-1 text-muted-foreground" />
+                  <SelectValue placeholder="Time Period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time ({allRequests.length})</SelectItem>
+                  <SelectItem value="today">Today ({timeFilterCounts.today})</SelectItem>
+                  <SelectItem value="yesterday">Yesterday ({timeFilterCounts.yesterday})</SelectItem>
+                  <SelectItem value="last_week">Last 7 Days ({timeFilterCounts.week})</SelectItem>
+                  <SelectItem value="last_month">Last 30 Days ({timeFilterCounts.month})</SelectItem>
+                  {availableMonths.map(([monthKey, count]) => {
+                    const [y, m] = monthKey.split("-");
+                    const monthName = new Date(parseInt(y), parseInt(m) - 1).toLocaleString("en", { month: "short", year: "numeric" });
+                    return (
+                      <SelectItem key={monthKey} value={monthKey}>
+                        {monthName} ({count})
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+
+              {/* Refresh button */}
               <button
                 onClick={async () => {
                   setIsRefreshing(true);
@@ -853,6 +1079,16 @@ export default function ApprovalCenter() {
               >
                 <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
               </button>
+            </div>
+
+            {/* Request count summary */}
+            <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">{requests.length}</span> request{requests.length !== 1 ? "s" : ""} found
+              {timeFilter !== "all" && (
+                <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                  {timeFilter === "today" ? "Today" : timeFilter === "yesterday" ? "Yesterday" : timeFilter === "last_week" ? "Last 7 Days" : timeFilter === "last_month" ? "Last 30 Days" : (() => { const [y, m] = timeFilter.split("-"); return new Date(parseInt(y), parseInt(m) - 1).toLocaleString("en", { month: "short", year: "numeric" }); })()}
+                </span>
+              )}
             </div>
             
             {/* Job No search when All tab is selected */}
@@ -897,6 +1133,7 @@ export default function ApprovalCenter() {
                     onCancel={handleCancel}
                     onProcessApprove={handleProcessApprove}
                     onToggleUrgent={handleToggleUrgent}
+                    onEditTargetBlack={handleEditTargetBlack}
                     isProcessing={processingId === req.id}
                     canApprove={canApprove}
                     canCancel={canApprove || canProcessApprove || req.requestedBy === worker?.workerID}

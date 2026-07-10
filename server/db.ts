@@ -1,6 +1,6 @@
 import { eq, desc, and, sql as sqlExpr } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification } from "../drizzle/schema";
+import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -482,4 +482,19 @@ export async function getUnreadCount(workerID: string): Promise<number> {
     const result = rows as unknown as [Array<{ cnt: number }>];
     return Number(result[0]?.[0]?.cnt ?? 0);
   } catch { return 0; }
+}
+
+// ─── Request Edit History ─────────────────────────────────────────────────────
+export async function logRequestEdit(data: InsertRequestEditHistory): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(requestEditHistory).values(data);
+}
+
+export async function getRequestEditHistory(requestId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(requestEditHistory)
+    .where(eq(requestEditHistory.requestId, requestId))
+    .orderBy(desc(requestEditHistory.editedAt));
 }
