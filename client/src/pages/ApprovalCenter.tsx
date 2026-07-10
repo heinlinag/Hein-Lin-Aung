@@ -231,6 +231,8 @@ function RequestCard({
             <span className="text-xs text-muted-foreground">Target Black</span>
             <span className="text-sm font-semibold text-orange-600">{action.usedQty} pcs</span>
           </div>
+          {/* Inline Edit History in order details */}
+          <InlineEditHistory requestId={req.id} />
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">In Process Qty</span>
             <span className="text-sm font-semibold text-purple-700">{req.processApprovedQty ? `${req.processApprovedQty} pcs` : "N/A"}</span>
@@ -723,6 +725,36 @@ function RequestCard({
 }
 
 // Edit History Section Component
+// Compact inline edit history shown inside the order details card
+function InlineEditHistory({ requestId }: { requestId: number }) {
+  const historyQuery = trpc.pendingRequests.getEditHistory.useQuery({ requestId });
+  const history = (historyQuery.data ?? []) as Array<{ id: number; editedBy: string; editedAt: string | Date; oldQty: number; newQty: number; remark?: string | null }>;
+  if (history.length === 0) return null;
+  return (
+    <>
+      {history.map((edit) => (
+        <div key={edit.id} className="mt-1 rounded-md bg-orange-50 border border-orange-100 px-2 py-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-orange-700 font-semibold">Edited by {edit.editedBy}</span>
+            <span className="text-[10px] text-orange-500">
+              <span className="line-through text-red-400">{edit.oldQty}</span>
+              {" → "}
+              <span className="font-bold text-green-600">{edit.newQty} pcs</span>
+            </span>
+          </div>
+          <div className="text-[10px] text-orange-400 mt-0.5">
+            {new Date(edit.editedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}{" "}
+            {new Date(edit.editedAt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
+          </div>
+          {edit.remark && (
+            <p className="text-[10px] text-gray-600 mt-0.5 italic">&ldquo;{edit.remark}&rdquo;</p>
+          )}
+        </div>
+      ))}
+    </>
+  );
+}
+
 function EditHistorySection({ requestId }: { requestId: number }) {
   const historyQuery = trpc.pendingRequests.getEditHistory.useQuery({ requestId });
   const history = historyQuery.data ?? [];
