@@ -1138,7 +1138,7 @@ export default function ApprovalCenter() {
         {true && (
           <>
             {/* Status & Time Filters */}
-            <div className="flex gap-3 mb-4 items-center flex-wrap">
+            <div className="flex gap-3 mb-4 items-center flex-wrap justify-center sm:justify-start">
               {/* Status Select */}
               <Select
                 value={statusFilter ?? "all"}
@@ -1199,7 +1199,7 @@ export default function ApprovalCenter() {
             </div>
 
             {/* Request count summary */}
-            <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground justify-center sm:justify-start">
               <span className="font-medium text-foreground">{requests.length}</span> request{requests.length !== 1 ? "s" : ""} found
               {timeFilter !== "all" && (
                 <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">
@@ -1209,7 +1209,7 @@ export default function ApprovalCenter() {
             </div>
             
             {/* Job No Search Bar — always visible */}
-            <div className="w-full mb-5 max-w-sm">
+            <div className="w-full mb-5 max-w-sm mx-auto sm:mx-0">
               <div className="relative group">
                 <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
