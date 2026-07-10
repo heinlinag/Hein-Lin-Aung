@@ -1137,8 +1137,10 @@ export default function ApprovalCenter() {
 
         {true && (
           <>
+            {/* Sticky filter bar — sticks to top on mobile scroll */}
+            <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pb-0 sm:pt-0">
             {/* Status & Time Filters */}
-            <div className="flex gap-3 mb-4 items-center flex-wrap justify-center sm:justify-start">
+            <div className="flex gap-3 mb-3 items-center flex-wrap justify-center sm:justify-start">
               {/* Status Select */}
               <Select
                 value={statusFilter ?? "all"}
@@ -1208,8 +1210,8 @@ export default function ApprovalCenter() {
               )}
             </div>
             
-            {/* Job No Search Bar — always visible */}
-            <div className="w-full mb-5 max-w-sm mx-auto sm:mx-0">
+            {/* Job No Search Bar — always visible, inside sticky bar */}
+            <div className="w-full mb-2 max-w-sm mx-auto sm:mx-0">
               <div className="relative group">
                 <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1259,6 +1261,7 @@ export default function ApprovalCenter() {
                 </p>
               )}
             </div>
+            </div>{/* end sticky filter bar */}
 
             {requestsQuery.isLoading ? (
               <div className="space-y-3">
