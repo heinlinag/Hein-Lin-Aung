@@ -828,9 +828,17 @@ export default function ApprovalCenter() {
     return { today: todayCount, yesterday: yesterdayCount, week: weekCount, month: monthCount };
   }, [allRequests]);
 
+  // Fetch ALL requests (no status filter) for Job No cross-status search
+  const allRequestsUnfiltered = (trpc.pendingRequests.list.useQuery(
+    { status: undefined },
+    { enabled: jobNoSearch.length === 8, refetchInterval: false }
+  ).data ?? []) as unknown as PendingRequest[];
+
   // Filter by Job No and time filter
   const requests = useMemo(() => {
-    let filtered = allRequests;
+    // When Job No search is active (8 digits), search across ALL statuses
+    let pool = jobNoSearch.length === 8 ? allRequestsUnfiltered : allRequests;
+    let filtered = pool;
     
     // Apply time filter
     const range = getTimeFilterRange(timeFilter);
@@ -855,7 +863,7 @@ export default function ApprovalCenter() {
     }
     
     return filtered;
-  }, [allRequests, statusFilter, jobNoSearch, timeFilter]);
+  }, [allRequests, allRequestsUnfiltered, statusFilter, jobNoSearch, timeFilter]);
 
   // Notification sound when new pending requests arrive
   const { playChime } = useNotificationSound();
