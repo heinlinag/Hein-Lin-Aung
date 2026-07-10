@@ -1317,3 +1317,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add confirmation pop-up before saving edited Target Black Qty
 - [x] Show old qty → new qty in confirmation dialog
 - [x] Only proceed with save after user confirms
+
+## Add Job No Search Bar to NPRM Modify Order (Jul 10)
+- [x] Add search state variable for Job No input
+- [x] Add Search bar UI (Job No only, placeholder: "Search by Job No e.g. 02134567")
+- [x] Filter displayed requests by Job No match (partial/full)
+- [x] Show "No results" state when no match found
+- [x] Clear search button (X icon)

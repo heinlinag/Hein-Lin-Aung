@@ -841,16 +841,15 @@ export default function ApprovalCenter() {
       });
     }
     
-    // Apply Job No search
-    if (statusFilter === undefined && jobNoSearch.trim()) {
+    // Apply Job No search (digits only, works across all status filters)
+    if (jobNoSearch.trim()) {
       filtered = filtered.filter(req => {
-        if (req.type !== "used_update") return true;
         try {
           const action = JSON.parse(req.actionData || "{}") as ActionData;
-          if (!action.jobNo) return true;
-          return action.jobNo.toLowerCase().includes(jobNoSearch.toLowerCase());
+          if (!action.jobNo) return false;
+          return action.jobNo.includes(jobNoSearch.trim());
         } catch {
-          return true;
+          return false;
         }
       });
     }
@@ -1162,21 +1161,35 @@ export default function ApprovalCenter() {
               )}
             </div>
             
-            {/* Job No search when All tab is selected */}
-            {statusFilter === undefined && (
-              <div className="relative w-full mb-5 max-w-sm group">
-                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search by Job No..."
-                  value={jobNoSearch}
-                  onChange={e => setJobNoSearch(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all"
-                />
-              </div>
-            )}
+            {/* Job No Search Bar — always visible */}
+            <div className="relative w-full mb-5 max-w-sm group">
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Search by Job No (e.g. 02134567)..."
+                value={jobNoSearch}
+                onChange={e => {
+                  // Allow digits only
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  setJobNoSearch(val);
+                }}
+                className="w-full pl-10 pr-9 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all"
+              />
+              {jobNoSearch && (
+                <button
+                  onClick={() => setJobNoSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Clear search"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
 
             {requestsQuery.isLoading ? (
               <div className="space-y-3">
