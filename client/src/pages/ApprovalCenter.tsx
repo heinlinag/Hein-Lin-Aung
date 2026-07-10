@@ -20,6 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type PendingRequest = {
   id: number;
@@ -341,17 +347,33 @@ function RequestCard({
                   <span className="text-sm font-medium text-foreground">{req.isUrgent ? "Remove Urgent" : "Mark Urgent"}</span>
                 </DropdownMenuItem>
               )}
-              {req.type === "used_update" && req.status === "pending" && (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setShowEditDialog(true);
-                    setEditQtyLocal(action?.usedQty ? String(action.usedQty) : "");
-                  }}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
-                >
-                  <Edit3 size={16} className="text-blue-600 flex-shrink-0" />
-                  <span className="text-sm font-medium text-foreground">Edit Target Black</span>
-                </DropdownMenuItem>
+              {req.type === "used_update" && (
+                req.status === "pending" ? (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setShowEditDialog(true);
+                      setEditQtyLocal(action?.usedQty ? String(action.usedQty) : "");
+                    }}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                  >
+                    <Edit3 size={16} className="text-blue-600 flex-shrink-0" />
+                    <span className="text-sm font-medium text-foreground">Edit Target Black</span>
+                  </DropdownMenuItem>
+                ) : (
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg opacity-40 cursor-not-allowed select-none">
+                          <Edit3 size={16} className="text-gray-400 flex-shrink-0" />
+                          <span className="text-sm font-medium text-gray-400">Edit Target Black</span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="text-xs max-w-[180px] text-center">
+                        Pending status တွင်သာ ပြင်ဆင်နိုင်သည်
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )
               )}
             </DropdownMenuContent>
           </DropdownMenu>
