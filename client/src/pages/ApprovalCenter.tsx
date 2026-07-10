@@ -1221,13 +1221,35 @@ export default function ApprovalCenter() {
               </div>
             ) : requests.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                  <Clock size={30} className="text-muted-foreground/30" />
-                </div>
-                <p className="text-sm text-muted-foreground font-medium">
-                  {jobNoSearch ? `No requests found for Job No "${jobNoSearch}"` : `No ${statusFilter ?? ""} requests found`}
-                </p>
-                <p className="text-xs text-muted-foreground/60 mt-1">New requests will appear here automatically</p>
+                {jobNoSearch.length === 8 ? (
+                  <>
+                    <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                      <svg className="w-8 h-8 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-700">No results found</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      No request with Job No <span className="font-mono font-bold text-gray-800">{jobNoSearch}</span> found.
+                    </p>
+                    <button
+                      onClick={() => setJobNoSearch("")}
+                      className="mt-3 text-xs text-primary hover:underline"
+                    >
+                      Clear search
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                      <Clock size={30} className="text-muted-foreground/30" />
+                    </div>
+                    <p className="text-sm text-muted-foreground font-medium">
+                      No {statusFilter ?? ""} requests found
+                    </p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">New requests will appear here automatically</p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
