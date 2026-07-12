@@ -696,35 +696,30 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                               <span className="text-xs text-muted-foreground">NPRM Modify Order</span>
                             </div>
                           )}
-                          <div className={`rounded-lg px-2.5 py-1.5 border ${
+                          <div className={`rounded-lg px-2.5 py-1.5 border space-y-1 ${
                             isInsufficient ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"
                           }`}>
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Stock</span>
-                              <span className="text-xs font-bold text-foreground">{order.qty} pcs</span>
+                            <div className={`text-[10px] leading-relaxed ${
+                              isInsufficient ? "text-red-700" : "text-foreground"
+                            }`}>
+                              <span className="font-semibold">Total Stock {order.qty} pcs</span>
+                              {prodPcsNeeded !== null && (
+                                <>
+                                  <span> − needed slit </span>
+                                  <span className="font-bold">{slitNeeded} pcs</span>
+                                  <span> NPRM Modify Order</span>
+                                </>
+                              )}
+                              <span> = Available Qty: </span>
+                              <span className={`font-bold ${
+                                isInsufficient ? "text-red-700" : "text-blue-700"
+                              }`}>{availableQty} pcs</span>
                             </div>
-                            {otherOrdersReserved > 0 && (
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] text-orange-600 uppercase tracking-wide">Reserved (other orders)</span>
-                                <span className="text-xs font-bold text-orange-700">-{otherOrdersReserved} pcs</span>
+                            {isInsufficient && (
+                              <div className="text-[10px] text-red-700 font-semibold mt-1">
+                                ⚠ Expected Remaining: {expectedRemaining} pcs (insufficient!)
                               </div>
                             )}
-                            <div className="flex items-center justify-between border-t border-dashed border-gray-200 mt-1 pt-1">
-                              <span className="text-[10px] uppercase tracking-wide font-semibold text-blue-700">Available Qty</span>
-                              <span className="text-xs font-bold text-blue-800">{availableQty} pcs</span>
-                            </div>
-                            {prodPcsNeeded !== null && (
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] text-purple-600 uppercase tracking-wide">Needed Slit (this order)</span>
-                                <span className="text-xs font-bold text-purple-700">-{slitNeeded} pcs</span>
-                              </div>
-                            )}
-                            <div className="flex items-center justify-between mt-0.5">
-                              <span className={`text-[10px] uppercase tracking-wide font-semibold ${isInsufficient ? "text-red-700" : "text-emerald-700"}`}>Expected Remaining</span>
-                              <span className={`text-xs font-bold ${isInsufficient ? "text-red-800" : "text-emerald-700"}`}>
-                                {isInsufficient ? `⚠ Not enough! (${expectedRemaining} pcs)` : `${expectedRemaining} pcs`}
-                              </span>
-                            </div>
                           </div>
                           {isInsufficient && (
                             <div className="flex items-start gap-1.5 bg-red-100 border border-red-300 rounded-lg px-2.5 py-1.5">
