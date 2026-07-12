@@ -147,9 +147,15 @@ function RequestCard({
                   <Flag size={10} className="fill-red-700" /> Urgent
                 </span>
               )}
-              {/* Production Order shown in collapsed state */}
+              {/* Production Order, Job No, Master Card shown in collapsed state */}
               {!isExpanded && snapshot && (
-                <span className="text-xs text-muted-foreground font-mono truncate">{snapshot.orderID}</span>
+                <span className="text-xs text-primary font-mono font-semibold">{snapshot.orderID}</span>
+              )}
+              {!isExpanded && action?.jobNo && (
+                <span className="text-xs text-muted-foreground font-mono">#{action.jobNo}</span>
+              )}
+              {!isExpanded && action?.masterCard && (
+                <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-mono">{action.masterCard}</span>
               )}
             </div>
           </div>
@@ -182,7 +188,15 @@ function RequestCard({
       </button>
 
       {/* Collapsible body */}
-      <div className={`transition-all duration-200 overflow-hidden ${isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
+      <div
+        className="overflow-hidden"
+        style={{
+          display: "grid",
+          gridTemplateRows: isExpanded ? "1fr" : "0fr",
+          transition: "grid-template-rows 280ms cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
+        <div className="overflow-hidden" style={{ opacity: isExpanded ? 1 : 0, transition: "opacity 220ms ease" }}>
         <div className="px-4 pb-4 space-y-3">
 
 
@@ -404,6 +418,7 @@ function RequestCard({
           </DropdownMenu>
         </div>
       )}
+        </div>
         </div>
       </div>
 
