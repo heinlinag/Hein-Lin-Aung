@@ -1378,3 +1378,10 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Frontend: show red warning if neededSlit > availableQty (insufficient stock) with detailed message
 - [x] Frontend: header subtitle shows Total Stock / Reserved breakdown / Available Qty
 - [x] Test: 604/604 tests passing
+
+
+## Stock History Table — Available Qty Column (Jul 12)
+- [ ] Add Available Qty column to Stock History table (show available qty for each order)
+- [ ] Calculate available qty = order.qty - reservedQty (from pending/in-process NPRM requests)
+- [ ] Display in both desktop table and mobile card view
+- [ ] Test: verify column displays correctly on all screen sizes
