@@ -699,24 +699,15 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                           <div className={`rounded-lg px-2.5 py-1.5 border ${
                             isInsufficient ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"
                           }`}>
-                            <div className={`text-[10px] leading-relaxed ${isInsufficient ? "text-red-700" : "text-foreground"}`}>
-                              <span className="font-semibold">Total Stock {order.qty} pcs</span>
-                              {prodPcsNeeded !== null && (
-                                <>
-                                  <span> − needed slit </span>
-                                  <span className="font-bold">{slitNeeded} pcs</span>
-                                  <span> NPRM Modify Order</span>
-                                </>
-                              )}
-                              <span> = Available Qty: </span>
-                              <span className={`font-bold ${isInsufficient ? "text-red-700" : "text-blue-700"}`}>{availableQty} pcs</span>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Stock</span>
+                              <span className="text-xs font-bold text-foreground">{order.qty} pcs</span>
                             </div>
-                            {isInsufficient && (
-                              <div className="text-[10px] text-red-700 font-semibold mt-1">
-                                ⚠ Expected Remaining: {expectedRemaining} pcs (insufficient!)
+                            {otherOrdersReserved > 0 && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-orange-600 uppercase tracking-wide">Reserved (other orders)</span>
+                                <span className="text-xs font-bold text-orange-700">-{otherOrdersReserved} pcs</span>
                               </div>
-                            )}
-                          </div>
                             )}
                             <div className="flex items-center justify-between border-t border-dashed border-gray-200 mt-1 pt-1">
                               <span className="text-[10px] uppercase tracking-wide font-semibold text-blue-700">Available Qty</span>
