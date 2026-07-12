@@ -134,8 +134,8 @@ function RequestCard({
         className="w-full text-left p-4 flex items-center justify-between gap-2 hover:bg-black/[0.02] active:bg-black/[0.04] transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isDelete ? "bg-red-100" : "bg-blue-100"}`}>
-            {isDelete ? <Trash2 size={14} className="text-red-600" /> : <Zap size={14} className="text-blue-600" />}
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md ${isDelete ? "bg-gradient-to-br from-red-400 to-red-600" : "bg-gradient-to-br from-blue-400 to-blue-600"}`}>
+            {isDelete ? <Trash2 size={16} className="text-white drop-shadow-sm" /> : <Zap size={16} className="text-white drop-shadow-sm fill-white" />}
           </div>
           <div className="min-w-0">
             <p className="text-sm font-bold text-foreground">
@@ -1777,8 +1777,8 @@ export default function ApprovalCenter() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                <XCircle size={20} className="text-red-600" />
+              <div className="w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-md shadow-red-500/30">
+                <XCircle size={20} className="text-white" />
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">Cancel Request</h3>
@@ -1818,8 +1818,8 @@ export default function ApprovalCenter() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <PlayCircle size={20} className="text-purple-600" />
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-purple-500/30">
+                  <PlayCircle size={20} className="text-white" />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900">Mark as In Process</h3>
@@ -1864,8 +1864,8 @@ export default function ApprovalCenter() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                  <CheckCircle2 size={20} className="text-green-600" />
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-md shadow-green-500/30">
+                  <CheckCircle2 size={20} className="text-white" />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900">Approve Request</h3>
@@ -1910,8 +1910,8 @@ export default function ApprovalCenter() {
               {!tableActionEditConfirm ? (
                 <>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <Edit3 size={20} className="text-blue-600" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/30">
+                      <Edit3 size={20} className="text-white" />
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-900">Edit Target Black</h3>
