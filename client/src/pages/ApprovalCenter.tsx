@@ -1481,11 +1481,62 @@ export default function ApprovalCenter() {
                               </div>
                             </td>
 
-                            {/* ── Col 5: Requested By ── */}
-                            <td className="py-3 px-4 align-top w-[120px]">
-                              <div className="flex flex-col gap-0.5">
-                                <span className="text-xs font-semibold text-foreground">{req.workerName}</span>
-                                <span className="text-[11px] text-muted-foreground">{new Date(req.createdAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                            {/* ── Col 5: Requested By (+ In Process by / Approved by / Cancelled by / Cancel Reason) ── */}
+                            <td className="py-3 px-4 align-top w-[190px]">
+                              <div className="flex flex-col gap-1.5">
+                                {/* Request By */}
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Request by</span>
+                                  <span className="text-xs font-semibold text-foreground">{req.workerName}</span>
+                                  <span className="text-[11px] text-muted-foreground">{new Date(req.createdAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                                </div>
+                                {/* In Process by */}
+                                {req.processApprovedBy && (
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">In Process by</span>
+                                    <span className="text-xs font-semibold text-purple-700">{req.processApprovedBy}</span>
+                                    {req.processApprovedAt && (
+                                      <span className="text-[11px] text-muted-foreground">{new Date(req.processApprovedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                                    )}
+                                  </div>
+                                )}
+                                {/* Approved by */}
+                                {req.status === "approved" && req.reviewedBy && (
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Approved by</span>
+                                    <span className="text-xs font-semibold text-green-700">{req.reviewedBy}</span>
+                                    {req.reviewedAt && (
+                                      <span className="text-[11px] text-muted-foreground">{new Date(req.reviewedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                                    )}
+                                  </div>
+                                )}
+                                {/* Cancelled by + Cancel Reason */}
+                                {req.status === "cancelled" && (
+                                  <>
+                                    {req.reviewedBy && (
+                                      <div className="flex flex-col gap-0.5">
+                                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Cancelled by</span>
+                                        <span className="text-xs font-semibold text-red-600">{req.reviewedBy}</span>
+                                        {req.reviewedAt && (
+                                          <span className="text-[11px] text-muted-foreground">{new Date(req.reviewedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                                        )}
+                                      </div>
+                                    )}
+                                    {req.cancelReason && (
+                                      <div className="flex flex-col gap-0.5">
+                                        <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">Cancel Reason</span>
+                                        <TooltipProvider delayDuration={200}>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <span className="text-[11px] text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded truncate max-w-[160px] block cursor-default">{req.cancelReason}</span>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="left" className="max-w-[260px] text-xs break-words p-2">{req.cancelReason}</TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
                               </div>
                             </td>
 
