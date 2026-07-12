@@ -1335,3 +1335,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Preserve Urgent badge in table row
 - [x] Mobile: card layout preserved, desktop: table layout
 - [x] Table action dialogs: Cancel, Process, Approve, Edit Target Black
+
+## Collapsible Mobile Card Layout for NPRM Modify Order (Jul 12)
+- [x] Add collapsed/expanded state to each mobile card
+- [x] Default: collapsed (show only header info: Status badge, Production Order, Urgent badge, Request By)
+- [x] Tap to expand: show full order details (ORDER DESCRIPTION section, edit history, action buttons)
+- [x] Smooth expand/collapse animation (transition height or max-height)
+- [x] Visual indicator (chevron icon) to show collapsed/expanded state
+- [x] Preserve all existing features (Edit, Approve, Cancel, Process) in expanded state

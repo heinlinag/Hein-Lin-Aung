@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, Flag, Edit3, Calendar } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, Flag, Edit3, Calendar, ChevronDown } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { ActionHistoryCard, type ActionHistoryEvent } from "@/components/ActionHistoryCard";
@@ -93,6 +93,9 @@ function RequestCard({
   canProcessApprove: boolean;
   currentWorkerID?: string;
 }) {
+  // Collapsible state — default collapsed on mobile
+  const [isExpanded, setIsExpanded] = useState(false);
+
   // Cancel reason dialog state (local to card)
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReasonLocal, setCancelReasonLocal] = useState("");
@@ -120,49 +123,67 @@ function RequestCard({
   const isProcessApproved = !!req.processApprovedBy;
 
   return (
-    <div className={`border rounded-xl p-4 space-y-3 ${
+    <div className={`border rounded-xl overflow-hidden ${
       req.status === "approved" ? "bg-green-50 border-green-200" :
       req.status === "cancelled" ? "bg-gray-50 border-gray-200 opacity-70" :
       "bg-white border-border shadow-sm"
     }`}>
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
+      {/* Header — always visible, clickable to expand/collapse */}
+      <button
+        onClick={() => setIsExpanded(prev => !prev)}
+        className="w-full text-left p-4 flex items-center justify-between gap-2 hover:bg-black/[0.02] active:bg-black/[0.04] transition-colors"
+      >
+        <div className="flex items-center gap-2 min-w-0">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isDelete ? "bg-red-100" : "bg-blue-100"}`}>
             {isDelete ? <Trash2 size={14} className="text-red-600" /> : <Zap size={14} className="text-blue-600" />}
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-bold text-foreground">
               {isDelete ? "Delete Request" : "NPRM Modify Order"}
             </p>
-            {req.isUrgent && isPending && (
-              <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1 mt-1">
-                <Flag size={12} className="fill-red-700" /> Order is Urgent
-              </span>
-            )}
+            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+              {req.isUrgent && isPending && (
+                <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1">
+                  <Flag size={10} className="fill-red-700" /> Urgent
+                </span>
+              )}
+              {/* Production Order shown in collapsed state */}
+              {!isExpanded && snapshot && (
+                <span className="text-xs text-muted-foreground font-mono truncate">{snapshot.orderID}</span>
+              )}
+            </div>
           </div>
         </div>
-        {/* Single Status Badge - Show ONLY current stage */}
-        <div className="flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Status Badge */}
           {req.status === "cancelled" ? (
-            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-gray-200 text-gray-600 flex items-center gap-1.5">
-              <XCircle size={14} /> Cancelled
+            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-gray-200 text-gray-600 flex items-center gap-1">
+              <XCircle size={12} /> Cancelled
             </span>
           ) : req.status === "approved" ? (
-            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1.5">
-              <CheckCircle2 size={14} /> Approved
+            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">
+              <CheckCircle2 size={12} /> Approved
             </span>
           ) : isProcessApproved ? (
-            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-purple-100 text-purple-700 flex items-center gap-1.5">
-              <Clock size={14} /> In Process
+            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-purple-100 text-purple-700 flex items-center gap-1">
+              <Clock size={12} /> In Process
             </span>
           ) : (
-            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-orange-100 text-orange-700 flex items-center gap-1.5">
-              <AlertCircle size={14} /> Pending
+            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-orange-100 text-orange-700 flex items-center gap-1">
+              <AlertCircle size={12} /> Pending
             </span>
           )}
+          {/* Chevron indicator */}
+          <ChevronDown
+            size={16}
+            className={`text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+          />
         </div>
-      </div>
+      </button>
+
+      {/* Collapsible body */}
+      <div className={`transition-all duration-200 overflow-hidden ${isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
+        <div className="px-4 pb-4 space-y-3">
 
 
 
@@ -383,6 +404,8 @@ function RequestCard({
           </DropdownMenu>
         </div>
       )}
+        </div>
+      </div>
 
       {/* Process Approve Dialog */}
       {showProcessApproveDialog && (
