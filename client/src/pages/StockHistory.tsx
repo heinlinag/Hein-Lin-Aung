@@ -417,8 +417,11 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const inProcessQty = reservedData?.inProcessQty ?? 0;
   const pendingReservedQty = reservedData?.pendingQty ?? 0;
   const totalReserved = reservedData?.totalReserved ?? 0;
-  const availableQty = Math.max(0, order.qty - totalReserved);
-  // Compute isInsufficientStock at component level so submit button can use it
+  // availableQty = Total Stock minus OTHER orders' reserved qty (pending + in-process)
+  // This does NOT include the current form's Target Black qty — that is "this order"
+  const otherOrdersReserved = totalReserved; // backend only counts existing DB requests, not the current form
+  const availableQty = Math.max(0, order.qty - otherOrdersReserved);
+  // Compute isInsufficientStock: check if this order's needed slit > availableQty
   const isInsufficientStock = (() => {
     const targetQty = parseInt(useQty);
     if (!useQty || isNaN(targetQty) || targetQty <= 0) return false;
@@ -432,6 +435,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
         return slitNeeded > availableQty;
       }
     }
+    // No board size yet — compare targetQty directly
     return targetQty > availableQty;
   })();
   const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
@@ -587,7 +591,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <p className="text-white/60 text-[9px] uppercase">BQ</p>
               <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
             </div>
-            <p className="text-[9px] text-white/50 mt-1.5">(Total Stock: {order.qty} − Reserved: {totalReserved} [{pendingReservedQty} pending + {inProcessQty} in-process] = Available: {availableQty} pcs)</p>
+            <p className="text-[9px] text-white/50 mt-1.5">(Total Stock: {order.qty}{otherOrdersReserved > 0 ? ` − Reserved (other orders): ${otherOrdersReserved} [${pendingReservedQty} pending + ${inProcessQty} in-process]` : ""} = Available: {availableQty} pcs)</p>
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
@@ -699,10 +703,10 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                               <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Stock</span>
                               <span className="text-xs font-bold text-foreground">{order.qty} pcs</span>
                             </div>
-                            {totalReserved > 0 && (
+                            {otherOrdersReserved > 0 && (
                               <div className="flex items-center justify-between">
                                 <span className="text-[10px] text-orange-600 uppercase tracking-wide">Reserved (other orders)</span>
-                                <span className="text-xs font-bold text-orange-700">-{totalReserved} pcs</span>
+                                <span className="text-xs font-bold text-orange-700">-{otherOrdersReserved} pcs</span>
                               </div>
                             )}
                             <div className="flex items-center justify-between border-t border-dashed border-gray-200 mt-1 pt-1">
