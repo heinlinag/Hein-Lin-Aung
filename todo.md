@@ -1369,3 +1369,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Make table horizontally scrollable with minWidth:900px, rounded border container
 - [x] Improve Actions column — kept dropdown but with cleaner "Action" button label
 - [x] Ensure readable on Computer (1920px), Desktop (1440px), Laptop (1280px), Tablet (1024px) — 604/604 tests passing
+
+## Purchase Order Form — Available Qty & Needed Slit Real-time Check (Jul 12)
+- [x] Backend: add getReservedQtyForOrder procedure — sums pending + in-process NPRM used_update requests for same orderId (db.ts + routers.ts getReservedQty)
+- [x] Frontend: in Purchase Order form, show "needed slit: X pcs" = ceil(targetBlack / pcsPerSlit) in real-time as user types
+- [x] Frontend: show "Available Qty: Y pcs" = order.qty - totalReserved (pending + in-process orders)
+- [x] Frontend: show "Expected remaining: Z pcs" = availableQty - neededSlit
+- [x] Frontend: show red warning if neededSlit > availableQty (insufficient stock) with detailed message
+- [x] Frontend: header subtitle shows Total Stock / Reserved breakdown / Available Qty
+- [x] Test: 604/604 tests passing

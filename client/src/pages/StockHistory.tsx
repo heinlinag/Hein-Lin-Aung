@@ -412,13 +412,15 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const createNotif = trpc.notifications.create.useMutation();
-  const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery({ orderId: order.id });
-  const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
-  const availableQty = Math.max(0, order.qty - inProcessQty);
+  const reservedQtyQuery = trpc.pendingRequests.getReservedQty.useQuery({ orderId: order.id });
+  const reservedData = reservedQtyQuery.data;
+  const inProcessQty = reservedData?.inProcessQty ?? 0;
+  const pendingReservedQty = reservedData?.pendingQty ?? 0;
+  const totalReserved = reservedData?.totalReserved ?? 0;
+  const availableQty = Math.max(0, order.qty - totalReserved);
   const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
   const pendingRequestsForOrder = (pendingRequestsQuery.data ?? []).filter((req: any) => req.orderID === order.orderID);
   const pendingRequestCount = pendingRequestsForOrder.length;
-
   const handleJobRequest = async () => {
     setJobError("");
     if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
@@ -569,7 +571,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <p className="text-white/60 text-[9px] uppercase">BQ</p>
               <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
             </div>
-            <p className="text-[9px] text-white/50 mt-1.5">(Stock: {order.qty} − In Process: {inProcessQty} = Available: {availableQty}) | Pending: {pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</p>
+            <p className="text-[9px] text-white/50 mt-1.5">(Total Stock: {order.qty} − Reserved: {totalReserved} [{pendingReservedQty} pending + {inProcessQty} in-process] = Available: {availableQty} pcs)</p>
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
@@ -639,20 +641,71 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     ) : userLevel === "1" ? (
                       <p className="text-xs text-muted-foreground mt-1">This is your target request qty. Stock will be updated only after Level 1.1 processes it.</p>
                     ) : null}
-                    {/* Production Order pcs needed calculation */}
+                    {/* Production Order pcs needed + available qty check */}
                     {(() => {
                       const targetQty = parseInt(useQty);
                       const jW3 = parseInt(boardSizeW);
                       const jL3 = parseInt(boardSizeL);
                       if (!useQty || isNaN(targetQty) || targetQty <= 0) return null;
-                      if (!boardSizeW || !boardSizeL || isNaN(jW3) || isNaN(jL3) || jW3 <= 0 || jL3 <= 0) return null;
-                      const fit = calcBoardFit(order.sizeW, order.sizeL, jW3, jL3);
-                      const pcsPerSlit = fit.piecesW * fit.piecesL;
-                      if (pcsPerSlit <= 0) return null;
-                      const prodPcsNeeded = Math.ceil(targetQty / pcsPerSlit);
+                      // Show needed slit only if board size is provided
+                      const hasBoardSize = boardSizeW && boardSizeL && !isNaN(jW3) && !isNaN(jL3) && jW3 > 0 && jL3 > 0;
+                      let prodPcsNeeded: number | null = null;
+                      if (hasBoardSize) {
+                        const fit = calcBoardFit(order.sizeW, order.sizeL, jW3, jL3);
+                        const pcsPerSlit = fit.piecesW * fit.piecesL;
+                        if (pcsPerSlit > 0) prodPcsNeeded = Math.ceil(targetQty / pcsPerSlit);
+                      }
+                      // Use prodPcsNeeded as the slit qty to check against available, fallback to targetQty
+                      const slitNeeded = prodPcsNeeded ?? targetQty;
+                      const expectedRemaining = availableQty - slitNeeded;
+                      const isInsufficient = slitNeeded > availableQty;
                       return (
-                        <div className="mt-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5">
-                          <p className="text-xs text-blue-800 font-semibold">needed slit (<span className="font-bold">{prodPcsNeeded} pcs</span>) NPRM Modify Order</p>
+                        <div className="mt-1.5 space-y-1.5">
+                          {prodPcsNeeded !== null && (
+                            <div className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 border ${
+                              isInsufficient ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"
+                            }`}>
+                              <span className={`text-xs font-semibold ${isInsufficient ? "text-red-700" : "text-blue-700"}`}>
+                                needed slit
+                              </span>
+                              <span className={`text-xs font-bold ${isInsufficient ? "text-red-800" : "text-blue-800"}`}>
+                                {prodPcsNeeded} pcs
+                              </span>
+                              <span className="text-xs text-muted-foreground">NPRM Modify Order</span>
+                            </div>
+                          )}
+                          <div className={`rounded-lg px-2.5 py-1.5 border ${
+                            isInsufficient ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Stock</span>
+                              <span className="text-xs font-bold text-foreground">{order.qty} pcs</span>
+                            </div>
+                            {totalReserved > 0 && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-orange-600 uppercase tracking-wide">Reserved (other orders)</span>
+                                <span className="text-xs font-bold text-orange-700">-{totalReserved} pcs</span>
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between border-t border-dashed border-gray-200 mt-1 pt-1">
+                              <span className="text-[10px] uppercase tracking-wide font-semibold text-blue-700">Available Qty</span>
+                              <span className="text-xs font-bold text-blue-800">{availableQty} pcs</span>
+                            </div>
+                            <div className="flex items-center justify-between mt-0.5">
+                              <span className={`text-[10px] uppercase tracking-wide font-semibold ${isInsufficient ? "text-red-700" : "text-emerald-700"}`}>Expected Remaining</span>
+                              <span className={`text-xs font-bold ${isInsufficient ? "text-red-800" : "text-emerald-700"}`}>
+                                {isInsufficient ? `⚠ Not enough! (${expectedRemaining} pcs)` : `${expectedRemaining} pcs`}
+                              </span>
+                            </div>
+                          </div>
+                          {isInsufficient && (
+                            <div className="flex items-start gap-1.5 bg-red-100 border border-red-300 rounded-lg px-2.5 py-1.5">
+                              <span className="text-red-600 text-xs mt-0.5">⚠️</span>
+                              <p className="text-xs text-red-700 font-semibold">
+                                Insufficient stock! Need {slitNeeded} pcs but only {availableQty} pcs available. Reduce the target qty or wait for other orders to complete.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       );
                     })()}
