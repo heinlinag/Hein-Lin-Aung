@@ -242,8 +242,8 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                 <p className="font-mono font-bold text-[10px]">{order.trackingId || "N/A"}</p>
               </div>
               <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
-                <p className="text-white/60 text-[9px] uppercase">Available Qty</p>
-                <p className="font-bold text-sm">{availableQty} <span className="text-[9px] font-normal">pcs</span></p>
+                <p className="text-white/60 text-[9px] uppercase">Total Stock</p>
+                <p className="font-bold text-sm">{order.qty} <span className="text-[9px] font-normal">pcs</span></p>
               </div>
             </div>
             <div className="mt-2 bg-white/10 rounded-lg px-2.5 py-1.5">
@@ -583,8 +583,8 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                 <p className="font-mono font-bold text-[10px]">{order.trackingId || "N/A"}</p>
               </div>
               <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
-                <p className="text-white/60 text-[9px] uppercase">Available Qty</p>
-                <p className="font-bold text-sm">{availableQty} <span className="text-[9px] font-normal">pcs</span></p>
+                <p className="text-white/60 text-[9px] uppercase">Total Stock</p>
+                <p className="font-bold text-sm">{order.qty} <span className="text-[9px] font-normal">pcs</span></p>
               </div>
             </div>
             <div className="mt-2 bg-white/10 rounded-lg px-2.5 py-1.5">
