@@ -418,6 +418,22 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const pendingReservedQty = reservedData?.pendingQty ?? 0;
   const totalReserved = reservedData?.totalReserved ?? 0;
   const availableQty = Math.max(0, order.qty - totalReserved);
+  // Compute isInsufficientStock at component level so submit button can use it
+  const isInsufficientStock = (() => {
+    const targetQty = parseInt(useQty);
+    if (!useQty || isNaN(targetQty) || targetQty <= 0) return false;
+    const jW = parseInt(boardSizeW);
+    const jL = parseInt(boardSizeL);
+    if (boardSizeW && boardSizeL && !isNaN(jW) && !isNaN(jL) && jW > 0 && jL > 0) {
+      const fit = calcBoardFit(order.sizeW, order.sizeL, jW, jL);
+      const pcsPerSlit = fit.piecesW * fit.piecesL;
+      if (pcsPerSlit > 0) {
+        const slitNeeded = Math.ceil(targetQty / pcsPerSlit);
+        return slitNeeded > availableQty;
+      }
+    }
+    return targetQty > availableQty;
+  })();
   const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
   const pendingRequestsForOrder = (pendingRequestsQuery.data ?? []).filter((req: any) => req.orderID === order.orderID);
   const pendingRequestCount = pendingRequestsForOrder.length;
@@ -659,6 +675,8 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                       const slitNeeded = prodPcsNeeded ?? targetQty;
                       const expectedRemaining = availableQty - slitNeeded;
                       const isInsufficient = slitNeeded > availableQty;
+                      // Sync to outer scope via ref-like approach — store in data attr for button to read
+                      // (React IIFE pattern: we set a variable that the button JSX below can read)
                       return (
                         <div className="mt-1.5 space-y-1.5">
                           {prodPcsNeeded !== null && (
@@ -731,7 +749,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     const qty = parseInt(useQty);
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
                     setShowJobConfirm(true);
-                  }} className={`w-full text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-purple-500/25" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-orange-500/25"}`}>
+                  }} disabled={isInsufficientStock} className={`w-full text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:active:scale-100 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-purple-500/25" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-orange-500/25"}`}>
                     <Clock size={14} /> Submit for Approval
                   </button>
                 ) : (
@@ -746,7 +764,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => setShowJobConfirm(false)} className="flex-1 border-2 border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">Cancel</button>
-                      <button onClick={handleJobRequest} disabled={submitRequest.isPending} className={`flex-1 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
+                      <button onClick={handleJobRequest} disabled={submitRequest.isPending || isInsufficientStock} className={`flex-1 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
                         {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
                         Confirm
                       </button>
