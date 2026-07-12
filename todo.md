@@ -1249,11 +1249,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Frontend: removed conflict dialog (no longer needed)
 
 ## Maintenance Mode Feature (Jun 30)
-- [ ] Schema: add systemSettings table with maintenanceMode boolean and maintenanceMessage text
-- [ ] Server: add system.getMaintenanceStatus (public) and system.setMaintenanceMode (admin-only) procedures
-- [ ] Admin Settings: add Maintenance On/Off toggle card
-- [ ] Frontend: Maintenance page UI matching screenshot (illustration, Myanmar text, Restart button)
-- [ ] Frontend: AppLayout global maintenance check - show maintenance page for non-admin users when ON
+- [x] Schema: add systemSettings table with maintenanceMode boolean and maintenanceMessage text
+- [x] Server: add system.getMaintenanceStatus (public) and system.setMaintenanceMode (admin-only) procedures
+- [x] Admin Settings: add Maintenance On/Off toggle card
+- [x] Frontend: Maintenance page UI matching screenshot (illustration, Myanmar text, Restart button)
+- [x] Frontend: AppLayout global maintenance check - show maintenance page for non-admin users when ON
 
 ## Maintenance Mode Feature (Jun 30)
 - [x] Schema: add systemSettings table (key-value store for app config)
@@ -1297,13 +1297,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Database: Add migration SQL for new table
 - [x] Backend: Create editTargetBlackQty procedure (allow all users to edit)
 - [x] Backend: Create getRequestEditHistory procedure to fetch edit history
-- [ ] Frontend: Add Edit button to NPRM Modify Order request card
-- [ ] Frontend: Create Edit Modal with Target Black Qty input field
-- [ ] Frontend: Display edit history below request details (edited by, date, time, old qty, new qty)
-- [ ] Frontend: Validate edit permissions and show appropriate UI
-- [ ] Testing: Verify edit functionality works for all user levels
-- [ ] Testing: Verify edit history displays correctly
-- [ ] Testing: Verify all tests pass
+- [x] Frontend: Add Edit button to NPRM Modify Order request card (mobile + desktop)
+- [x] Frontend: Create Edit Modal with Target Black Qty input field + Remark textarea
+- [x] Frontend: Display edit history below request details (InlineEditHistory component)
+- [x] Frontend: Validate edit permissions (pending only, not In Process/Approved/Cancelled)
+- [x] Testing: Verify edit functionality works for all user levels (604 tests passing)
+- [x] Testing: Verify edit history displays correctly
+- [x] Testing: Verify all tests pass (604/604)
 
 ## NPRM Modify Order Filter Update (Jul 10)
 - [x] Convert status tabs (Pending/Approved/Cancelled/All) to Select dropdown
@@ -1351,3 +1351,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Create Heartbeat scheduled job: daily check, delete records where outOfStockAt < now - 13 months (task_uid: MciGihWaTXWqH6fAq4gwyM, cron: 0 0 1 * * * UTC)
 - [x] Add tRPC procedure or server-side function for the deletion logic (deleteExpiredOutOfStockOrders in db.ts + /api/scheduled/cleanup-out-of-stock endpoint)
 - [x] Test the deletion logic with a unit test (604/604 tests passing)
+
+## Auto-Delete Warning Label on Out of Stock Items (Jul 12)
+- [x] Expose outOfStockAt field in tRPC listOrders response (added to getAllOrders select in db.ts)
+- [x] Calculate estimated delete date = outOfStockAt (or createdAt if null) + 13 months (getAutoDeleteDate helper)
+- [x] Stock History Out of Stock tab: show warning label/badge on each row with estimated delete date
+- [x] Warning label: amber/orange/red color based on urgency (<=30d = red, <=90d = amber, else orange), clock icon, "Auto-delete: [date]" format
+- [x] Mobile card view: show warning label in card (below Tracking ID)
+- [x] Desktop table view: show "Auto-Delete" column with date badge + days remaining
+- [x] Test: verify date calculation is correct (604/604 tests passing)

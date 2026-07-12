@@ -164,6 +164,7 @@ export async function getAllOrders(status?: "current" | "out_of_stock") {
       submittedBy: workers.name,
       workerID: orders.submittedBy,
       createdAt: orders.createdAt,
+      outOfStockAt: orders.outOfStockAt,
     })
     .from(orders)
     .leftJoin(workers, eq(orders.submittedBy, workers.workerID));

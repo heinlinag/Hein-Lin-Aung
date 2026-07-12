@@ -41,8 +41,25 @@ function calcBoardFit(prodW: number, prodL: number, jobW: number, jobL: number):
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock";
-  submittedBy: string | null; createdAt: Date;
+  submittedBy: string | null; createdAt: Date; outOfStockAt?: Date | null;
 };
+
+/** Returns the estimated auto-delete date: outOfStockAt (or createdAt) + 13 months */
+function getAutoDeleteDate(order: Order): Date {
+  const base = order.outOfStockAt ? new Date(order.outOfStockAt) : new Date(order.createdAt);
+  const d = new Date(base);
+  d.setMonth(d.getMonth() + 13);
+  return d;
+}
+
+/** Returns urgency level based on days remaining until auto-delete */
+function getDeleteUrgency(deleteDate: Date): "critical" | "warning" | "normal" {
+  const now = new Date();
+  const daysLeft = Math.ceil((deleteDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysLeft <= 30) return "critical";
+  if (daysLeft <= 90) return "warning";
+  return "normal";
+}
 
 // ─── BoardSizeCalcPanel ─────────────────────────────────────────────────────────────────────────────
 function BoardSizeCalcPanel({ prodW, prodL, jobW, jobL, trackingId }: { prodW: number; prodL: number; jobW: string; jobL: string; trackingId?: string }) {
@@ -1053,7 +1070,7 @@ export default function StockHistory() {
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-background z-10">
                   <tr className="border-b-2 border-border">
-                    {["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","BQ","Date","Actions"].map(h => (
+                    {(["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","BQ","Date", activeTab === "out_of_stock" ? "Auto-Delete" : null,"Actions"].filter(Boolean) as string[]).map(h => (
                       <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-4 bg-background">{h}</th>
                     ))}
                   </tr>
@@ -1090,6 +1107,27 @@ export default function StockHistory() {
                         <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono break-all leading-relaxed">{order.bqComment}</span>
                       </td>
                       <td className="py-3 pr-4 text-xs text-muted-foreground whitespace-nowrap">{new Date(order.createdAt).toLocaleString()}</td>
+                      {activeTab === "out_of_stock" && (() => {
+                        const deleteDate = getAutoDeleteDate(order);
+                        const urgency = getDeleteUrgency(deleteDate);
+                        const daysLeft = Math.ceil((deleteDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                        return (
+                          <td className="py-3 pr-4">
+                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ${
+                              urgency === "critical" ? "bg-red-100 text-red-700 border border-red-200" :
+                              urgency === "warning" ? "bg-amber-100 text-amber-700 border border-amber-200" :
+                              "bg-orange-50 text-orange-600 border border-orange-100"
+                            }`}>
+                              <Clock size={11} className="flex-shrink-0" />
+                              <span>{deleteDate.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}</span>
+                            </div>
+                            <p className={`text-xs mt-0.5 ${
+                              urgency === "critical" ? "text-red-500" :
+                              urgency === "warning" ? "text-amber-500" : "text-orange-400"
+                            }`}>{daysLeft > 0 ? `${daysLeft}d left` : "Overdue"}</p>
+                          </td>
+                        );
+                      })()}
                       <td className="py-3">
                         <div className="flex items-center gap-2">
                           {activeTab === "current" && (
@@ -1161,6 +1199,22 @@ export default function StockHistory() {
                   </div>
                   <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Tracking ID: <span className="font-mono font-semibold text-foreground">{order.trackingId || "N/A"}</span></p>
+                  {activeTab === "out_of_stock" && (() => {
+                    const deleteDate = getAutoDeleteDate(order);
+                    const urgency = getDeleteUrgency(deleteDate);
+                    const daysLeft = Math.ceil((deleteDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                    return (
+                      <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold ${
+                        urgency === "critical" ? "bg-red-100 text-red-700 border border-red-200" :
+                        urgency === "warning" ? "bg-amber-100 text-amber-700 border border-amber-200" :
+                        "bg-orange-50 text-orange-600 border border-orange-100"
+                      }`}>
+                        <Clock size={12} className="flex-shrink-0" />
+                        <span>Auto-delete: {deleteDate.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}</span>
+                        <span className="opacity-70">({daysLeft > 0 ? `${daysLeft}d left` : "Overdue"})</span>
+                      </div>
+                    );
+                  })()}
                   {activeTab === "current" && (
                     <button
                       onClick={() => setUsedUpdateOrder(order)}
