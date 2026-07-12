@@ -713,6 +713,12 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                               <span className="text-[10px] uppercase tracking-wide font-semibold text-blue-700">Available Qty</span>
                               <span className="text-xs font-bold text-blue-800">{availableQty} pcs</span>
                             </div>
+                            {prodPcsNeeded !== null && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-purple-600 uppercase tracking-wide">Needed Slit (this order)</span>
+                                <span className="text-xs font-bold text-purple-700">-{slitNeeded} pcs</span>
+                              </div>
+                            )}
                             <div className="flex items-center justify-between mt-0.5">
                               <span className={`text-[10px] uppercase tracking-wide font-semibold ${isInsufficient ? "text-red-700" : "text-emerald-700"}`}>Expected Remaining</span>
                               <span className={`text-xs font-bold ${isInsufficient ? "text-red-800" : "text-emerald-700"}`}>
