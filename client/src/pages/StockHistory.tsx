@@ -591,7 +591,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <p className="text-white/60 text-[9px] uppercase">BQ</p>
               <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
             </div>
-            <p className="text-[9px] text-white/50 mt-1.5">(Total Stock: {order.qty}{otherOrdersReserved > 0 ? ` − Reserved (other orders): ${otherOrdersReserved} [${pendingReservedQty} pending + ${inProcessQty} in-process]` : ""} = Available: {availableQty} pcs)</p>
+            <p className="text-[9px] text-white/50 mt-1.5">{otherOrdersReserved > 0 ? `(Total Stock: ${order.qty} − Reserved: ${otherOrdersReserved} = Available: ${availableQty} pcs)` : `(Available: ${availableQty} pcs)`}</p>
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
