@@ -280,48 +280,37 @@ function RequestCard({
       )}
 
       {/* Request Lifecycle */}
-      <div className="flex flex-col gap-1.5 py-2 border-t border-border">
-        {/* Request by */}
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Request by</span>
-          <span className="text-xs font-semibold text-foreground">{req.workerName}</span>
-          <span className="text-[11px] text-muted-foreground">{new Date(req.createdAt).toLocaleString()}</span>
+      <div className="space-y-2 py-2 border-t border-border">
+        <div className="text-xs">
+          <p className="text-muted-foreground">
+            <span className="font-semibold">Request by</span> {req.workerName} · {new Date(req.createdAt).toLocaleString()}
+          </p>
         </div>
-        {/* Edited by (edit history) — between Request by and In Process by */}
-        {req.type === "used_update" && <InlineEditHistoryDesktop requestId={req.id} />}
-        {/* In Process by */}
         {isProcessApproved && req.processApprovedBy && (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">In Process by</span>
-            <span className="text-xs font-semibold text-purple-700">{req.processApprovedBy}</span>
-            <span className="text-[11px] text-muted-foreground">{new Date(req.processApprovedAt || req.createdAt).toLocaleString()}</span>
+          <div className="text-xs">
+            <p className="text-muted-foreground">
+              <span className="font-semibold">In Process by</span> {req.processApprovedBy} · {new Date(req.processApprovedAt || req.createdAt).toLocaleString()}
+            </p>
           </div>
         )}
-        {/* Approved by */}
         {req.status === "approved" && req.reviewedBy && (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Approved by</span>
-            <span className="text-xs font-semibold text-green-700">{req.reviewedBy}</span>
-            <span className="text-[11px] text-muted-foreground">{new Date(req.reviewedAt || req.createdAt).toLocaleString()}</span>
+          <div className="text-xs">
+            <p className="text-muted-foreground">
+              <span className="font-semibold">Approved by</span> {req.reviewedBy} · {new Date(req.reviewedAt || req.createdAt).toLocaleString()}
+            </p>
           </div>
         )}
-        {/* Cancelled by + Cancel Reason */}
-        {req.status === "cancelled" && (
-          <>
-            {req.reviewedBy && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Cancelled by</span>
-                <span className="text-xs font-semibold text-red-600">{req.reviewedBy}</span>
-                <span className="text-[11px] text-muted-foreground">{new Date(req.reviewedAt || req.createdAt).toLocaleString()}</span>
-              </div>
-            )}
+        {req.status === "cancelled" && req.reviewedBy && (
+          <div className="text-xs space-y-1.5">
+            <p className="text-muted-foreground">
+              <span className="font-semibold">Cancel by</span> {req.reviewedBy} · {new Date(req.reviewedAt || req.createdAt).toLocaleString()}
+            </p>
             {req.cancelReason && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">Cancel Reason</span>
-                <span className="text-[11px] text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded break-words">{req.cancelReason}</span>
-              </div>
+              <p className="text-muted-foreground">
+                <span className="font-semibold">Cancel Reason:</span> {req.cancelReason}
+              </p>
             )}
-          </>
+          </div>
         )}
       </div>
 
