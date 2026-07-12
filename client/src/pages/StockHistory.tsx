@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock } from "lucide-react";
@@ -1061,28 +1061,10 @@ export default function StockHistory() {
   const [usedUpdateOrder, setUsedUpdateOrder] = useState<Order | null>(null);
   const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
   const [showDeletePermissionDenied, setShowDeletePermissionDenied] = useState(false);
-  const [availableQtyMap, setAvailableQtyMap] = useState<Record<number, number>>({});
 
   const ordersQuery = trpc.orders.list.useQuery({ status: activeTab });
   const utils = trpc.useUtils();
   const orders = (ordersQuery.data ?? []) as Order[];
-
-  // Fetch reserved qty for each order
-  useEffect(() => {
-    const fetchReservedQty = async () => {
-      const map: Record<number, number> = {};
-      for (const order of orders) {
-        try {
-          const reserved = await utils.pendingRequests.getReservedQty.fetch({ orderId: order.id });
-          map[order.id] = Math.max(0, order.qty - (reserved?.totalReserved ?? 0));
-        } catch (err) {
-          map[order.id] = order.qty; // Fallback to full qty if fetch fails
-        }
-      }
-      setAvailableQtyMap(map);
-    };
-    fetchReservedQty();
-  }, [orders, utils]);
 
   const filtered = useMemo(() => orders.filter(o => {
     const matchID = !searchOrderID || o.orderID.toLowerCase().includes(searchOrderID.toLowerCase());
@@ -1164,7 +1146,7 @@ export default function StockHistory() {
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-background z-10">
                   <tr className="border-b-2 border-border">
-                    {(["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","Available Qty","BQ","Date", activeTab === "out_of_stock" ? "Auto-Delete" : null,"Actions"].filter(Boolean) as string[]).map(h => (
+                    {(["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","BQ","Date", activeTab === "out_of_stock" ? "Auto-Delete" : null,"Actions"].filter(Boolean) as string[]).map(h => (
                       <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-4 bg-background">{h}</th>
                     ))}
                   </tr>
@@ -1196,9 +1178,6 @@ export default function StockHistory() {
                       <td className="py-3 pr-4">
                         <span className={`font-semibold ${isLowStock ? "text-orange-600" : ""}`}>{order.qty} pcs</span>
                         {isLowStock && <p className="text-xs text-orange-500 font-medium">Low stock</p>}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <span className="text-xs font-semibold text-green-700">{availableQtyMap[order.id] ?? order.qty} pcs</span>
                       </td>
                       <td className="py-3 pr-4 max-w-[200px]">
                         <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono break-all leading-relaxed">{order.bqComment}</span>
