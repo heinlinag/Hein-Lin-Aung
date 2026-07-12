@@ -1324,3 +1324,14 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Filter displayed requests by Job No match (partial/full)
 - [x] Show "No results" state when no match found
 - [x] Clear search button (X icon)
+
+## NPRM Modify Order - Table Layout Redesign like Stock History (Jul 10)
+- [x] Replace card layout with horizontal data table (like Stock History page)
+- [x] Table columns: Status, Production Order, Flute Type, Size, BQ, Current Qty, Job No, Master Card, Board Size, Scores, Target Black, In Process Qty, Balance, Request By, Actions
+- [x] Preserve sticky filter bar (Status Select, Time filter, Search bar)
+- [x] Preserve Edit Target Black feature in Actions column dropdown
+- [x] Preserve Update Info dropdown (Approve/Cancel/Process-Approve) in Actions column
+- [x] Preserve status badges (Pending/In Process/Approved/Cancelled) in Status column
+- [x] Preserve Urgent badge in table row
+- [x] Mobile: card layout preserved, desktop: table layout
+- [x] Table action dialogs: Cancel, Process, Approve, Edit Target Black
