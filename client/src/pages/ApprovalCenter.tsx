@@ -766,6 +766,38 @@ function RequestCard({
 
 // Edit History Section Component
 // Compact inline edit history shown inside the order details card
+function InlineEditHistoryDesktop({ requestId }: { requestId: number }) {
+  const historyQuery = trpc.pendingRequests.getEditHistory.useQuery({ requestId });
+  const history = (historyQuery.data ?? []) as Array<{ id: number; editedBy: string; editedAt: string | Date; oldQty: number; newQty: number; remark?: string | null }>;
+  if (history.length === 0) return null;
+  return (
+    <>
+      {history.map((edit) => (
+        <div key={edit.id} className="flex flex-col gap-0.5 rounded-md bg-orange-50 border border-orange-200 px-2 py-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">Edited by</span>
+            <span className="text-[10px] font-semibold text-orange-700">{edit.editedBy}</span>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] text-muted-foreground">
+              {new Date(edit.editedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}{" "}
+              {new Date(edit.editedAt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+            <span className="text-[10px] font-semibold">
+              <span className="line-through text-red-400">{edit.oldQty}</span>
+              {" → "}
+              <span className="font-bold text-green-600">{edit.newQty} pcs</span>
+            </span>
+          </div>
+          {edit.remark && (
+            <p className="text-[10px] text-gray-600 italic">&ldquo;{edit.remark}&rdquo;</p>
+          )}
+        </div>
+      ))}
+    </>
+  );
+}
+
 function InlineEditHistory({ requestId }: { requestId: number }) {
   const historyQuery = trpc.pendingRequests.getEditHistory.useQuery({ requestId });
   const history = (historyQuery.data ?? []) as Array<{ id: number; editedBy: string; editedAt: string | Date; oldQty: number; newQty: number; remark?: string | null }>;
@@ -1490,6 +1522,9 @@ export default function ApprovalCenter() {
                                   <span className="text-xs font-semibold text-foreground">{req.workerName}</span>
                                   <span className="text-[11px] text-muted-foreground">{new Date(req.createdAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
                                 </div>
+                                {/* Edited by (edit history) — shown between Request by and In Process by */}
+                                {req.type === "used_update" && <InlineEditHistoryDesktop requestId={req.id} />}
+
                                 {/* In Process by */}
                                 {req.processApprovedBy && (
                                   <div className="flex flex-col gap-0.5">
