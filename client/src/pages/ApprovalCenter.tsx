@@ -1349,13 +1349,13 @@ export default function ApprovalCenter() {
               </div>
             ) : (
               <>
-                {/* Desktop / Tablet — Table layout (like Stock History) */}
-                <div className="hidden md:block overflow-x-auto max-h-[calc(100vh-320px)]">
-                  <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-background z-10">
-                      <tr className="border-b-2 border-border">
-                        {["Status","Prod. Order","Flute","Size","BQ","Cur. Qty","Job No","Master Card","Board Size","Scores","Target Black","In Process","Balance","Request By","Actions"].map(h => (
-                          <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-3 bg-background whitespace-nowrap">{h}</th>
+                {/* Desktop / Tablet — Redesigned 6-column grouped table */}
+                <div className="hidden md:block overflow-x-auto rounded-xl border border-border">
+                  <table className="w-full text-sm border-collapse" style={{ minWidth: "900px" }}>
+                    <thead className="sticky top-0 z-10">
+                      <tr className="bg-muted/70 border-b-2 border-border">
+                        {["Status", "Order Info", "Job Details", "Qty Summary", "Requested By", "Actions"].map(h => (
+                          <th key={h} className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-left py-3 px-4 bg-muted/70 whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -1368,84 +1368,141 @@ export default function ApprovalCenter() {
                         const isProcessApproved = !!req.processApprovedBy;
                         const isPending = req.status === "pending";
                         const canCancelRow = canApprove || canProcessApprove || req.requestedBy === worker?.workerID;
+                        const rowBg = req.status === "approved" ? "bg-green-50/40" : req.status === "cancelled" ? "bg-gray-50/60" : idx % 2 === 1 ? "bg-muted/20" : "bg-background";
                         return (
-                          <tr key={req.id} className={`border-b border-border hover:bg-gray-50 transition-colors ${idx % 2 === 1 ? "bg-gray-50/40" : ""}`}>
-                            {/* Status */}
-                            <td className="py-2.5 pr-3 whitespace-nowrap">
-                              <div className="flex flex-col gap-1">
+                          <tr key={req.id} className={`border-b border-border/50 hover:bg-primary/5 transition-colors duration-150 ${rowBg}`}>
+
+                            {/* ── Col 1: Status ── */}
+                            <td className="py-3 px-4 align-top w-[120px]">
+                              <div className="flex flex-col gap-1.5">
                                 {req.status === "cancelled" ? (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-gray-200 text-gray-600 inline-flex items-center gap-1"><XCircle size={10} /> Cancelled</span>
+                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-gray-100 text-gray-500 inline-flex items-center gap-1 w-fit border border-gray-200"><XCircle size={10} /> Cancelled</span>
                                 ) : req.status === "approved" ? (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-green-100 text-green-700 inline-flex items-center gap-1"><CheckCircle2 size={10} /> Approved</span>
+                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700 inline-flex items-center gap-1 w-fit border border-green-200"><CheckCircle2 size={10} /> Approved</span>
                                 ) : isProcessApproved ? (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-purple-100 text-purple-700 inline-flex items-center gap-1"><Clock size={10} /> In Process</span>
+                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-purple-100 text-purple-700 inline-flex items-center gap-1 w-fit border border-purple-200"><Clock size={10} /> In Process</span>
                                 ) : (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-orange-100 text-orange-700 inline-flex items-center gap-1"><AlertCircle size={10} /> Pending</span>
+                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-orange-100 text-orange-700 inline-flex items-center gap-1 w-fit border border-orange-200"><AlertCircle size={10} /> Pending</span>
                                 )}
                                 {req.isUrgent && isPending && (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1"><Flag size={9} className="fill-red-700" /> Urgent</span>
+                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1 w-fit border border-red-200"><Flag size={9} className="fill-red-700" /> Urgent</span>
                                 )}
                               </div>
                             </td>
-                            {/* Prod Order */}
-                            <td className="py-2.5 pr-3 font-bold text-primary whitespace-nowrap">{snapshot?.orderID ?? "—"}</td>
-                            {/* Flute */}
-                            <td className="py-2.5 pr-3">
-                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">{snapshot?.fluteType ?? "—"}</span>
+
+                            {/* ── Col 2: Order Info (Prod Order + Flute + Size + BQ) ── */}
+                            <td className="py-3 px-4 align-top w-[220px]">
+                              <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-primary text-sm leading-tight">{snapshot?.orderID ?? "—"}</span>
+                                  {snapshot?.fluteType && (
+                                    <span className="text-[11px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-200">{snapshot.fluteType}</span>
+                                  )}
+                                </div>
+                                {snapshot && (
+                                  <span className="text-xs font-mono text-muted-foreground">{snapshot.sizeW}×{snapshot.sizeL} mm</span>
+                                )}
+                                {snapshot?.bqComment && (
+                                  <TooltipProvider delayDuration={200}>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="text-[11px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded font-mono border border-amber-200 truncate max-w-[200px] block cursor-default select-none">{snapshot.bqComment}</span>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="right" className="max-w-[320px] font-mono text-xs break-all p-2">{snapshot.bqComment}</TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+                              </div>
                             </td>
-                            {/* Size */}
-                            <td className="py-2.5 pr-3 font-mono text-xs whitespace-nowrap">{snapshot ? `${snapshot.sizeW}×${snapshot.sizeL} mm` : "—"}</td>
-                            {/* BQ */}
-                            <td className="py-2.5 pr-3 max-w-[160px]">
-                              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono break-all leading-relaxed">{snapshot?.bqComment ?? "—"}</span>
+
+                            {/* ── Col 3: Job Details (Job No + MC + Board + Scores + Target Black) ── */}
+                            <td className="py-3 px-4 align-top w-[210px]">
+                              {action ? (
+                                <div className="flex flex-col gap-1.5">
+                                  {action.jobNo && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">Job</span>
+                                      <span className="font-mono text-xs font-bold text-foreground bg-gray-100 px-1.5 py-0.5 rounded">{action.jobNo}</span>
+                                    </div>
+                                  )}
+                                  {action.masterCard && (
+                                    <TooltipProvider delayDuration={200}>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">MC</span>
+                                            <span className="text-xs text-foreground truncate max-w-[140px] cursor-default">{action.masterCard}</span>
+                                          </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right" className="max-w-[300px] text-xs break-all p-2">{action.masterCard}</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                  {action.boardSizeW && action.boardSizeL && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">Board</span>
+                                      <span className="font-mono text-xs text-foreground">{action.boardSizeW}×{action.boardSizeL} mm</span>
+                                    </div>
+                                  )}
+                                  {action.scores && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">Score</span>
+                                      <span className="font-mono text-xs text-foreground">{action.scores}</span>
+                                    </div>
+                                  )}
+                                  {action.usedQty != null && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">Target</span>
+                                      <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">{action.usedQty} pcs</span>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground/40">—</span>
+                              )}
                             </td>
-                            {/* Current Qty */}
-                            <td className="py-2.5 pr-3 whitespace-nowrap">
-                              <span className="font-semibold text-sm">{req.processApprovedQty && snapshot ? `${snapshot.qty - req.processApprovedQty} pcs` : snapshot ? `${snapshot.qty} pcs` : "—"}</span>
+
+                            {/* ── Col 4: Qty Summary ── */}
+                            <td className="py-3 px-4 align-top w-[140px]">
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between gap-3">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Stock</span>
+                                  <span className="text-xs font-semibold text-foreground tabular-nums">{snapshot ? `${snapshot.qty}` : "—"}</span>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">In Proc.</span>
+                                  <span className="text-xs font-semibold text-purple-700 tabular-nums">{req.processApprovedQty ? `${req.processApprovedQty}` : <span className="text-muted-foreground/30">—</span>}</span>
+                                </div>
+                                <div className="h-px bg-border/60" />
+                                <div className="flex items-center justify-between gap-3">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Balance</span>
+                                  <span className="text-xs font-bold text-green-700 tabular-nums">{req.processApprovedQty && snapshot ? `${snapshot.qty - req.processApprovedQty}` : snapshot ? `${snapshot.qty}` : "—"} <span className="text-[10px] font-normal text-muted-foreground">pcs</span></span>
+                                </div>
+                              </div>
                             </td>
-                            {/* Job No */}
-                            <td className="py-2.5 pr-3 font-mono text-xs whitespace-nowrap">{action?.jobNo ?? "—"}</td>
-                            {/* Master Card */}
-                            <td className="py-2.5 pr-3 text-xs whitespace-nowrap">{action?.masterCard ?? "—"}</td>
-                            {/* Board Size */}
-                            <td className="py-2.5 pr-3 font-mono text-xs whitespace-nowrap">{action?.boardSizeW && action?.boardSizeL ? `${action.boardSizeW}×${action.boardSizeL} mm` : "—"}</td>
-                            {/* Scores */}
-                            <td className="py-2.5 pr-3 font-mono text-xs whitespace-nowrap">{action?.scores ?? "—"}</td>
-                            {/* Target Black */}
-                            <td className="py-2.5 pr-3 whitespace-nowrap">
-                              <span className="font-semibold text-orange-600">{action?.usedQty != null ? `${action.usedQty} pcs` : "—"}</span>
+
+                            {/* ── Col 5: Requested By ── */}
+                            <td className="py-3 px-4 align-top w-[120px]">
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-xs font-semibold text-foreground">{req.workerName}</span>
+                                <span className="text-[11px] text-muted-foreground">{new Date(req.createdAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                              </div>
                             </td>
-                            {/* In Process Qty */}
-                            <td className="py-2.5 pr-3 whitespace-nowrap">
-                              <span className="font-semibold text-purple-700">{req.processApprovedQty ? `${req.processApprovedQty} pcs` : "N/A"}</span>
-                            </td>
-                            {/* Balance */}
-                            <td className="py-2.5 pr-3 whitespace-nowrap">
-                              <span className="font-semibold text-green-700">{req.processApprovedQty && snapshot ? `${snapshot.qty - req.processApprovedQty} pcs` : snapshot ? `${snapshot.qty} pcs` : "—"}</span>
-                            </td>
-                            {/* Request By */}
-                            <td className="py-2.5 pr-3 text-xs text-muted-foreground whitespace-nowrap">
-                              <div>{req.workerName}</div>
-                              <div className="text-[10px]">{new Date(req.createdAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</div>
-                            </td>
-                            {/* Actions */}
-                            <td className="py-2.5">
+
+                            {/* ── Col 6: Actions ── */}
+                            <td className="py-3 px-4 align-top w-[80px]">
                               {isPending && (canCancelRow || canApprove || canProcessApprove) ? (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" disabled={processingId === req.id} className="gap-1.5 text-xs h-7 px-2">
+                                    <Button variant="outline" size="sm" disabled={processingId === req.id} className="gap-1.5 text-xs h-8 px-3 font-semibold">
                                       {processingId === req.id ? <Loader2 size={12} className="animate-spin" /> : <MoreVertical size={12} />}
-                                      Update
+                                      Action
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-44 p-1">
+                                  <DropdownMenuContent align="end" className="w-48 p-1">
                                     {canCancelRow && (
                                       <DropdownMenuItem
-                                        onClick={() => {
-                                          // Trigger cancel via RequestCard — use a temporary card for dialogs
-                                          setTableActionReq(req);
-                                          setTableAction("cancel");
-                                        }}
+                                        onClick={() => { setTableActionReq(req); setTableAction("cancel"); }}
                                         className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 cursor-pointer"
                                       >
                                         <XCircle size={16} className="text-red-600 flex-shrink-0" />
@@ -1499,8 +1556,8 @@ export default function ApprovalCenter() {
                                             </TooltipTrigger>
                                             <TooltipContent side="left" className="text-xs max-w-[200px] text-center">
                                               {isProcessApproved && req.processApprovedBy
-                                                ? <><span className="font-semibold">{req.processApprovedBy}</span> မှ In Process လုပ်ဆောင်နေသောကြောင့် ပြင်ဆင်၍မရပါ</>
-                                                : "Pending status တွင်သာ ပြင်ဆင်နိုင်သည်"}
+                                                ? <><span className="font-semibold">{req.processApprovedBy}</span> မှ In Process လုပ္ဆောင်နောက်လည့် ပြင်ဆင်ပြုမရပါ</>
+                                                : "Pending status တွင်သာပှ ပြင်ဆင်နိုင်"}
                                             </TooltipContent>
                                           </Tooltip>
                                         </TooltipProvider>

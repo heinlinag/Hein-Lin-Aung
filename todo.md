@@ -1360,3 +1360,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Mobile card view: show warning label in card (below Tracking ID)
 - [x] Desktop table view: show "Auto-Delete" column with date badge + days remaining
 - [x] Test: verify date calculation is correct (604/604 tests passing)
+
+## NPRM Modify Order Desktop Table Redesign (Jul 12)
+- [x] Reduce 15 columns to a cleaner 6-column grouped layout — Status, Order Info, Job Details, Qty Summary, Requested By, Actions
+- [x] Fix BQ / Master Card / Scores text overflow — truncate with tooltip on hover
+- [x] Use compact badge-style cells for Flute, Size, Qty, Status (bordered rounded badges)
+- [x] Group "Job Info" columns (Job No, Master Card, Board Size, Scores, Target Black) into single "Job Details" cell with label+value rows
+- [x] Make table horizontally scrollable with minWidth:900px, rounded border container
+- [x] Improve Actions column — kept dropdown but with cleaner "Action" button label
+- [x] Ensure readable on Computer (1920px), Desktop (1440px), Laptop (1280px), Tablet (1024px) — 604/604 tests passing
