@@ -91,6 +91,20 @@ async function startServer() {
     }
   });
 
+  // ─── Auto-Delete Expired Out of Stock Orders ─────────────────────────────
+  // Called daily by Heartbeat cron job to delete orders out_of_stock for 13+ months
+  app.post("/api/scheduled/cleanup-out-of-stock", async (req, res) => {
+    try {
+      const { deleteExpiredOutOfStockOrders } = await import("../db");
+      const result = await deleteExpiredOutOfStockOrders();
+      console.log(`[Scheduled] cleanup-out-of-stock: deleted ${result.deletedCount} expired records`);
+      return res.json({ ok: true, deletedCount: result.deletedCount, timestamp: new Date().toISOString() });
+    } catch (err) {
+      console.error("[Scheduled] cleanup-out-of-stock error:", err);
+      return res.status(500).json({ error: String(err), stack: String((err as Error).stack), timestamp: new Date().toISOString() });
+    }
+  });
+
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

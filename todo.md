@@ -1343,3 +1343,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Smooth expand/collapse animation (transition height or max-height)
 - [x] Visual indicator (chevron icon) to show collapsed/expanded state
 - [x] Preserve all existing features (Edit, Approve, Cancel, Process) in expanded state
+
+## Auto-Delete Out of Stock Records After 13 Months (Jul 12)
+- [x] Read Heartbeat skill to understand periodic job setup
+- [x] Check schema for outOfStockAt or equivalent timestamp field in stockHistory/stockItems table
+- [x] Add outOfStockAt timestamp column if not present, with migration SQL
+- [x] Create Heartbeat scheduled job: daily check, delete records where outOfStockAt < now - 13 months (task_uid: MciGihWaTXWqH6fAq4gwyM, cron: 0 0 1 * * * UTC)
+- [x] Add tRPC procedure or server-side function for the deletion logic (deleteExpiredOutOfStockOrders in db.ts + /api/scheduled/cleanup-out-of-stock endpoint)
+- [x] Test the deletion logic with a unit test (604/604 tests passing)
