@@ -4,7 +4,7 @@ import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar, Bell, Send, BellRing, Sun, Moon } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar, Bell, Send, BellRing, Sun, Moon, Monitor } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -1542,14 +1542,50 @@ export default function AdminPanel() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scheduleQuery.data]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  // "system" = follow OS, "dark" = forced dark, "light" = forced light
+  const [themeMode, setThemeMode] = useState<"system" | "dark" | "light">(() => {
+    try {
+      const saved = localStorage.getItem("adminPanelTheme");
+      if (saved === "dark" || saved === "light" || saved === "system") return saved;
+    } catch { /* ignore */ }
+    return "system";
+  });
   const [isDark, setIsDark] = useState<boolean>(() => {
-    try { return localStorage.getItem("adminPanelTheme") !== "light"; } catch { return true; }
+    try {
+      const saved = localStorage.getItem("adminPanelTheme");
+      if (saved === "dark") return true;
+      if (saved === "light") return false;
+    } catch { /* ignore */ }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
-  const toggleTheme = () => setIsDark(prev => {
-    const next = !prev;
-    try { localStorage.setItem("adminPanelTheme", next ? "dark" : "light"); } catch { /* ignore */ }
-    return next;
-  });
+  // Listen for OS theme changes when in system mode
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => {
+      if (themeMode === "system") setIsDark(e.matches);
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [themeMode]);
+  // Sync isDark when themeMode changes
+  useEffect(() => {
+    if (themeMode === "system") {
+      setIsDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    } else {
+      setIsDark(themeMode === "dark");
+    }
+  }, [themeMode]);
+  const toggleTheme = () => {
+    const next = themeMode === "system"
+      ? (isDark ? "light" : "dark")  // from system: flip to explicit
+      : themeMode === "dark" ? "light" : "dark";  // explicit: flip
+    setThemeMode(next);
+    try { localStorage.setItem("adminPanelTheme", next); } catch { /* ignore */ }
+  };
+  const resetToSystem = () => {
+    setThemeMode("system");
+    try { localStorage.setItem("adminPanelTheme", "system"); } catch { /* ignore */ }
+  };
   const [, navigate] = useLocation();
 
   const statsQuery = trpc.orders.adminStats.useQuery(undefined, { refetchInterval: 30000 });
@@ -1613,14 +1649,47 @@ export default function AdminPanel() {
             <p className={`text-[10px] lg:text-xs font-medium ${subtitleColor}`}>System Management & Configuration</p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              className={`p-2 rounded-xl transition-all flex-shrink-0 ${themeBtnClass}`}
-            >
-              {isDark ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
+            {/* Theme Toggle Group */}
+            <div className={`flex items-center rounded-xl border overflow-hidden ${isDark ? "border-white/12" : "border-gray-200"}`}>
+              {/* Sun - Light */}
+              <button
+                onClick={() => { setThemeMode("light"); try { localStorage.setItem("adminPanelTheme", "light"); } catch { /* */ } }}
+                title="Light Mode"
+                className={`p-2 transition-all ${
+                  themeMode === "light"
+                    ? "bg-amber-400/20 text-amber-400"
+                    : isDark ? "text-slate-500 hover:text-slate-300 hover:bg-white/8" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <Sun size={15} />
+              </button>
+              {/* Monitor - System */}
+              <button
+                onClick={resetToSystem}
+                title="System Default"
+                className={`p-2 transition-all border-x ${
+                  isDark ? "border-white/12" : "border-gray-200"
+                } ${
+                  themeMode === "system"
+                    ? isDark ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-50 text-indigo-600"
+                    : isDark ? "text-slate-500 hover:text-slate-300 hover:bg-white/8" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <Monitor size={15} />
+              </button>
+              {/* Moon - Dark */}
+              <button
+                onClick={() => { setThemeMode("dark"); try { localStorage.setItem("adminPanelTheme", "dark"); } catch { /* */ } }}
+                title="Dark Mode"
+                className={`p-2 transition-all ${
+                  themeMode === "dark"
+                    ? "bg-violet-500/20 text-violet-400"
+                    : isDark ? "text-slate-500 hover:text-slate-300 hover:bg-white/8" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <Moon size={15} />
+              </button>
+            </div>
             <div className={`hidden md:flex items-center gap-2 border rounded-xl px-3 py-1.5 ${activeBadgeBg}`}>
               <span className={`w-2 h-2 rounded-full animate-pulse ${activeBadgeDot}`}></span>
               <span className={`text-xs font-semibold ${activeBadgeText}`}>Admin Active</span>
