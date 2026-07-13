@@ -1351,7 +1351,7 @@ export default function ApprovalCenter() {
               <div className="space-y-3">
                 {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gradient-to-r from-gray-100 to-gray-50 rounded-2xl animate-pulse" style={{animationDelay: `${i * 100}ms`}} />)}
               </div>
-            ) : !actionLogQuery.data || actionLogQuery.data.length === 0 ? (
+            ) : !actionLogQuery.data || (actionLogQuery.data as unknown[]).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <Clock size={30} className="text-muted-foreground/30" />

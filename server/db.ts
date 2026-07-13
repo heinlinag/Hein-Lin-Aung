@@ -1,4 +1,4 @@
-import { eq, desc, and, sql as sqlExpr } from "drizzle-orm";
+import { eq, desc, and, or, isNull, isNotNull, lte, inArray, sql as sqlExpr } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -161,6 +161,7 @@ export async function getAllOrders(status?: "current" | "out_of_stock") {
       qty: orders.qty,
       bqComment: orders.bqComment,
       status: orders.status,
+      outOfStockAt: orders.outOfStockAt,
       submittedBy: workers.name,
       workerID: orders.submittedBy,
       createdAt: orders.createdAt,
@@ -200,7 +201,41 @@ export async function createOrder(data: InsertOrder) {
 export async function updateOrderStatus(id: number, status: "current" | "out_of_stock") {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(orders).set({ status }).where(eq(orders.id, id));
+  const updateData: Partial<typeof orders.$inferInsert> = { status };
+  if (status === "out_of_stock") {
+    updateData.outOfStockAt = new Date();
+  }
+  await db.update(orders).set(updateData).where(eq(orders.id, id));
+}
+
+// ─── Auto-Delete Expired Out of Stock Orders ─────────────────────────────────
+// Deletes orders that have been out_of_stock for more than 13 months
+export async function deleteExpiredOutOfStockOrders(): Promise<{ deletedCount: number }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Calculate the cutoff date: 13 months ago from now
+  const cutoffDate = new Date();
+  cutoffDate.setMonth(cutoffDate.getMonth() - 13);
+
+  const expiredOrders = await db
+    .select({ id: orders.id })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.status, "out_of_stock"),
+        or(
+          and(isNotNull(orders.outOfStockAt), lte(orders.outOfStockAt, cutoffDate)),
+          and(isNull(orders.outOfStockAt), lte(orders.createdAt, cutoffDate))
+        )
+      )
+    );
+
+  if (expiredOrders.length === 0) return { deletedCount: 0 };
+
+  const expiredIds = expiredOrders.map(o => o.id);
+  await db.delete(orders).where(inArray(orders.id, expiredIds));
+  return { deletedCount: expiredIds.length };
 }
 
 export async function deleteOrder(id: number) {
