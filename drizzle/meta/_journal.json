@@ -274,20 +274,6 @@
       "when": 1783649847015,
       "tag": "0038_equal_thanos",
       "breakpoints": true
-    },
-    {
-      "idx": 39,
-      "version": "5",
-      "when": 1783860900337,
-      "tag": "0039_brainy_dakota_north",
-      "breakpoints": true
-    },
-    {
-      "idx": 40,
-      "version": "5",
-      "when": 1783919960405,
-      "tag": "0040_motionless_viper",
-      "breakpoints": true
     }
   ]
 }
