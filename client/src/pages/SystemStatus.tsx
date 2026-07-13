@@ -45,6 +45,12 @@ export default function SystemStatus() {
 
   const recentUpdates: StatusUpdate[] = [
     {
+      date: 'Jul 13, 2026',
+      title: 'Version Updated to v3.2.0',
+      description: 'System stabilized at checkpoint b7f2f3fb. All core features intact: Stock History, Approval Center, NPRM Modify Order workflow, Auto-Delete for Out-of-Stock orders, QR Scan History, Chat, Announcements, and Geo-IP access restriction.',
+      type: 'update',
+    },
+    {
       date: 'May 28, 2026',
       title: 'Version Updated to v3.1.0 — UI/UX Next Level Upgrade',
       description: 'Submit Order page, Purchase Order modals in Stock History, and A4 Label component upgraded to next-level premium design. Submit Order is now fully compact and responsive across Mobile, Tablet, Laptop, and Desktop. Documentation, FAQ, and System Status pages updated to reflect all current features.',

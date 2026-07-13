@@ -35,7 +35,7 @@ function getDeviceName(): string {
 }
 
 const GSPP_LOGO = "/manus-storage/gspp_logo_new_2db75f16.png";
-const APP_VERSION = "Web App Version 3.0.0";
+const APP_VERSION = "Web App Version 3.2.0";
 
 const ANIM_STYLES = `
 @keyframes loginFadeIn {

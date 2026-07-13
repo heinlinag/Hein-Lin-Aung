@@ -9,7 +9,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { useState, useEffect } from "react";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
-const APP_VERSION = "Web App Version 3.0.0";
+const APP_VERSION = "Web App Version 3.2.0";
 
 const baseFeatures = [
   {
