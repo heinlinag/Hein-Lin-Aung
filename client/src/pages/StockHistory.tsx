@@ -983,17 +983,36 @@ export default function StockHistory() {
   const [usedUpdateOrder, setUsedUpdateOrder] = useState<Order | null>(null);
   const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
   const [showDeletePermissionDenied, setShowDeletePermissionDenied] = useState(false);
+  const [autoDeleteSort, setAutoDeleteSort] = useState<"asc" | "desc" | null>(null);
+  const [autoDeleteFilter, setAutoDeleteFilter] = useState<"all" | "critical" | "warning" | "normal">("all");
 
   const ordersQuery = trpc.orders.list.useQuery({ status: activeTab });
   const utils = trpc.useUtils();
   const orders = (ordersQuery.data ?? []) as Order[];
 
-  const filtered = useMemo(() => orders.filter(o => {
-    const matchID = !searchOrderID || o.orderID.toLowerCase().includes(searchOrderID.toLowerCase());
-    const matchFlute = !searchFlute || o.fluteType === searchFlute; // Exact match for Flute Type
-    const matchBQ = !searchBQ || o.bqComment.toLowerCase().includes(searchBQ.toLowerCase());
-    return matchID && matchFlute && matchBQ;
-  }), [orders, searchOrderID, searchFlute, searchBQ]);
+  const filtered = useMemo(() => {
+    let result = orders.filter(o => {
+      const matchID = !searchOrderID || o.orderID.toLowerCase().includes(searchOrderID.toLowerCase());
+      const matchFlute = !searchFlute || o.fluteType === searchFlute;
+      const matchBQ = !searchBQ || o.bqComment.toLowerCase().includes(searchBQ.toLowerCase());
+      if (!matchID || !matchFlute || !matchBQ) return false;
+      // Auto-Delete urgency filter (only applies to out_of_stock tab)
+      if (activeTab === "out_of_stock" && autoDeleteFilter !== "all") {
+        const urgency = getDeleteUrgency(getAutoDeleteDate(o));
+        if (urgency !== autoDeleteFilter) return false;
+      }
+      return true;
+    });
+    // Auto-Delete date sort (only applies to out_of_stock tab)
+    if (activeTab === "out_of_stock" && autoDeleteSort !== null) {
+      result = [...result].sort((a, b) => {
+        const da = getAutoDeleteDate(a).getTime();
+        const db = getAutoDeleteDate(b).getTime();
+        return autoDeleteSort === "asc" ? da - db : db - da;
+      });
+    }
+    return result;
+  }, [orders, searchOrderID, searchFlute, searchBQ, activeTab, autoDeleteSort, autoDeleteFilter]);
 
   return (
     <AppLayout pageTitle="Stock History">
@@ -1044,6 +1063,58 @@ export default function StockHistory() {
           </div>
         </div>
 
+        {/* Auto-Delete Sort & Filter — only for Out of Stock tab */}
+        {activeTab === "out_of_stock" && (
+          <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-orange-50/60 border border-orange-100 rounded-xl">
+            <span className="text-xs font-semibold text-orange-700 flex items-center gap-1"><Clock size={12} /> Auto-Delete:</span>
+            {/* Sort buttons */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setAutoDeleteSort(s => s === "asc" ? null : "asc")}
+                className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-semibold border transition-all ${autoDeleteSort === "asc" ? "bg-orange-500 text-white border-orange-500 shadow-sm" : "bg-white text-orange-600 border-orange-200 hover:border-orange-400"}`}
+              >
+                ↑ Soonest First
+              </button>
+              <button
+                onClick={() => setAutoDeleteSort(s => s === "desc" ? null : "desc")}
+                className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-semibold border transition-all ${autoDeleteSort === "desc" ? "bg-orange-500 text-white border-orange-500 shadow-sm" : "bg-white text-orange-600 border-orange-200 hover:border-orange-400"}`}
+              >
+                ↓ Latest First
+              </button>
+            </div>
+            <div className="w-px h-5 bg-orange-200 mx-1" />
+            {/* Urgency filter buttons */}
+            <div className="flex items-center gap-1">
+              {(["all", "critical", "warning", "normal"] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setAutoDeleteFilter(f)}
+                  className={`text-xs px-2.5 py-1.5 rounded-lg font-semibold border transition-all ${
+                    autoDeleteFilter === f
+                      ? f === "critical" ? "bg-red-500 text-white border-red-500 shadow-sm"
+                        : f === "warning" ? "bg-amber-500 text-white border-amber-500 shadow-sm"
+                        : f === "normal" ? "bg-orange-400 text-white border-orange-400 shadow-sm"
+                        : "bg-orange-500 text-white border-orange-500 shadow-sm"
+                      : f === "critical" ? "bg-white text-red-600 border-red-200 hover:border-red-400"
+                        : f === "warning" ? "bg-white text-amber-600 border-amber-200 hover:border-amber-400"
+                        : f === "normal" ? "bg-white text-orange-500 border-orange-100 hover:border-orange-300"
+                        : "bg-white text-orange-600 border-orange-200 hover:border-orange-400"
+                  }`}
+                >
+                  {f === "all" ? "All" : f === "critical" ? "🔴 ≤30d" : f === "warning" ? "🟡 ≤90d" : "🟠 >90d"}
+                </button>
+              ))}
+            </div>
+            {(autoDeleteSort !== null || autoDeleteFilter !== "all") && (
+              <button
+                onClick={() => { setAutoDeleteSort(null); setAutoDeleteFilter("all"); }}
+                className="text-xs px-2 py-1.5 rounded-lg text-muted-foreground hover:text-destructive border border-gray-200 bg-white hover:border-red-200 transition-all"
+              >
+                ✕ Reset
+              </button>
+            )}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs text-muted-foreground font-medium">{filtered.length} order{filtered.length !== 1 ? "s" : ""} found</p>
           {activeTab === "current" && filtered.some(o => o.qty < LOW_STOCK_THRESHOLD) && (
