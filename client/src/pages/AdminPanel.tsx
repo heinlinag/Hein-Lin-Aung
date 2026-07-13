@@ -1638,9 +1638,6 @@ export default function AdminPanel() {
       {/* Header */}
       <header className={`sticky top-0 z-20 border-b ${headerBorder}`} style={{ background: headerBg, backdropFilter: "blur(20px)" }}>
         <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-3 flex items-center gap-3">
-          <button onClick={() => navigate("/")} className={`p-2 rounded-xl transition-all flex-shrink-0 ${backBtnClass}`}>
-            <ArrowLeft size={20} />
-          </button>
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 flex-shrink-0">
             <img src={LOGO_URL} alt="GSPP" className="h-7 w-7 object-contain" />
           </div>
