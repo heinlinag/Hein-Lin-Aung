@@ -6,7 +6,89 @@ import { trpc } from "@/lib/trpc";
 import AppLayout from "@/components/AppLayout";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+const SPLASH_KEY = "home_splash_shown";
+
+function WelcomeSplash({ name, onDone }: { name: string; onDone: () => void }) {
+  const [phase, setPhase] = useState<"in" | "hold" | "out">("in");
+  useEffect(() => {
+    const t1 = setTimeout(() => setPhase("hold"), 400);
+    const t2 = setTimeout(() => setPhase("out"), 1400);
+    const t3 = setTimeout(() => onDone(), 1900);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [onDone]);
+  return (
+    <div
+      className="fixed inset-0 z-[300] flex flex-col items-center justify-center pointer-events-none"
+      style={{
+        background: "linear-gradient(135deg, #1e40af 0%, #4f46e5 50%, #7c3aed 100%)",
+        opacity: phase === "out" ? 0 : 1,
+        transition: phase === "out" ? "opacity 0.5s cubic-bezier(0.4,0,0.2,1)" : "opacity 0.35s ease",
+      }}
+    >
+      {/* Floating particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(14)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white/10"
+            style={{
+              width: `${8 + (i % 4) * 6}px`,
+              height: `${8 + (i % 4) * 6}px`,
+              left: `${(i * 7.3) % 100}%`,
+              top: `${(i * 11.7) % 100}%`,
+              animation: `floatUp ${3 + (i % 3)}s ease-in-out ${(i % 5) * 0.4}s infinite alternate`,
+            }}
+          />
+        ))}
+      </div>
+      {/* Logo ring */}
+      <div
+        className="relative mb-6"
+        style={{
+          transform: phase === "in" ? "scale(0.7) translateY(20px)" : "scale(1) translateY(0)",
+          opacity: phase === "in" ? 0 : 1,
+          transition: "transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease",
+        }}
+      >
+        <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: "1.5s" }} />
+        <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-2xl">
+          <CheckCircle2 size={36} className="text-white drop-shadow-lg" />
+        </div>
+      </div>
+      {/* Text */}
+      <div
+        className="text-center px-8"
+        style={{
+          transform: phase === "in" ? "translateY(16px)" : "translateY(0)",
+          opacity: phase === "in" ? 0 : 1,
+          transition: "transform 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.1s, opacity 0.35s ease 0.1s",
+        }}
+      >
+        <p className="text-white/60 text-xs font-semibold uppercase tracking-[0.25em] mb-2">Welcome Back</p>
+        <h2 className="text-white text-3xl font-bold mb-1" style={{ fontFamily: "Lora, serif" }}>{name}</h2>
+        <p className="text-white/50 text-sm">Loading Dashboard...</p>
+        {/* Progress bar */}
+        <div className="mt-6 w-48 mx-auto h-1 bg-white/20 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-white/80 rounded-full"
+            style={{
+              width: phase === "in" ? "0%" : "100%",
+              transition: "width 1s ease 0.3s",
+            }}
+          />
+        </div>
+      </div>
+      <style>{`
+        @keyframes floatUp {
+          from { transform: translateY(0px) rotate(0deg); }
+          to   { transform: translateY(-18px) rotate(8deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
 const APP_VERSION = "Web App Version 3.2.0";
@@ -132,6 +214,20 @@ export default function Home() {
   usePushNotifications(worker?.workerID ?? null);
   const userLevel = worker?.userLevel ?? "2";
 
+  // Show splash once per browser session (cleared on tab close)
+  const [showSplash] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const shown = sessionStorage.getItem(SPLASH_KEY);
+    if (!shown) { sessionStorage.setItem(SPLASH_KEY, "1"); return true; }
+    return false;
+  });
+  const [contentVisible, setContentVisible] = useState(!showSplash);
+  const splashDone = useRef(false);
+  const handleSplashDone = () => {
+    setContentVisible(true);
+    splashDone.current = true;
+  };
+
   const pendingQuery = trpc.pendingRequests.list.useQuery(
     { status: "pending" },
     { refetchInterval: 30000 }
@@ -175,6 +271,18 @@ export default function Home() {
 
   return (
     <AppLayout>
+      {/* Login → Home welcome splash */}
+      {showSplash && worker && (
+        <WelcomeSplash name={worker.name} onDone={handleSplashDone} />
+      )}
+      {/* Main content with fade-in */}
+      <div
+        style={{
+          opacity: contentVisible ? 1 : 0,
+          transform: contentVisible ? "translateY(0)" : "translateY(12px)",
+          transition: "opacity 0.5s ease, transform 0.5s ease",
+        }}
+      >
       {/* Hero banner - Premium design */}
       <div className="gspp-gradient relative overflow-hidden">
         {/* Decorative elements */}
@@ -359,6 +467,7 @@ export default function Home() {
           <span className="text-xs font-mono font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{APP_VERSION}</span>
         </div>
       </footer>
+      </div>
     </AppLayout>
   );
 }
