@@ -225,15 +225,14 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                 <p className="font-mono font-bold text-[10px]">{order.trackingId || "N/A"}</p>
               </div>
               <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
-                <p className="text-white/60 text-[9px] uppercase">Available Qty</p>
-                <p className="font-bold text-sm">{availableQty} <span className="text-[9px] font-normal">pcs</span></p>
+                <p className="text-white/60 text-[9px] uppercase">Total Stock</p>
+                <p className="font-bold text-sm">{order.qty} <span className="text-[9px] font-normal">pcs</span></p>
               </div>
             </div>
             <div className="mt-2 bg-white/10 rounded-lg px-2.5 py-1.5">
               <p className="text-white/60 text-[9px] uppercase">BQ</p>
               <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
             </div>
-            <p className="text-[9px] text-white/50 mt-1.5">(Stock: {order.qty} − In Process: {inProcessQty} = Available: {availableQty}) | Pending: {pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</p>
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
@@ -395,9 +394,31 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const createNotif = trpc.notifications.create.useMutation();
-  const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery({ orderId: order.id });
-  const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
-  const availableQty = Math.max(0, order.qty - inProcessQty);
+  const reservedQtyQuery = trpc.pendingRequests.getReservedQty.useQuery({ orderId: order.id });
+  const reservedData = reservedQtyQuery.data;
+  const inProcessQty = reservedData?.inProcessQty ?? 0;
+  const totalReserved = reservedData?.totalReserved ?? 0;
+  // availableQty = Total Stock minus OTHER orders' reserved qty (pending + in-process)
+  // This does NOT include the current form's Target Black qty — that is "this order"
+  const otherOrdersReserved = totalReserved;
+  const availableQty = Math.max(0, order.qty - otherOrdersReserved);
+  // Compute isInsufficientStock: check if this order's needed slit > availableQty
+  const isInsufficientStock = (() => {
+    const targetQty = parseInt(useQty);
+    if (!useQty || isNaN(targetQty) || targetQty <= 0) return false;
+    const jW = parseInt(boardSizeW);
+    const jL = parseInt(boardSizeL);
+    if (boardSizeW && boardSizeL && !isNaN(jW) && !isNaN(jL) && jW > 0 && jL > 0) {
+      const fit = calcBoardFit(order.sizeW, order.sizeL, jW, jL);
+      const pcsPerSlit = fit.piecesW * fit.piecesL;
+      if (pcsPerSlit > 0) {
+        const slitNeeded = Math.ceil(targetQty / pcsPerSlit);
+        return slitNeeded > availableQty;
+      }
+    }
+    // No board size yet — compare targetQty directly
+    return targetQty > availableQty;
+  })();
   const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
   const pendingRequestsForOrder = (pendingRequestsQuery.data ?? []).filter((req: any) => req.orderID === order.orderID);
   const pendingRequestCount = pendingRequestsForOrder.length;
@@ -544,15 +565,14 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                 <p className="font-mono font-bold text-[10px]">{order.trackingId || "N/A"}</p>
               </div>
               <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
-                <p className="text-white/60 text-[9px] uppercase">Available Qty</p>
-                <p className="font-bold text-sm">{availableQty} <span className="text-[9px] font-normal">pcs</span></p>
+                <p className="text-white/60 text-[9px] uppercase">Total Stock</p>
+                <p className="font-bold text-sm">{order.qty} <span className="text-[9px] font-normal">pcs</span></p>
               </div>
             </div>
             <div className="mt-2 bg-white/10 rounded-lg px-2.5 py-1.5">
               <p className="text-white/60 text-[9px] uppercase">BQ</p>
               <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
             </div>
-            <p className="text-[9px] text-white/50 mt-1.5">(Stock: {order.qty} − In Process: {inProcessQty} = Available: {availableQty}) | Pending: {pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</p>
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
@@ -622,20 +642,62 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     ) : userLevel === "1" ? (
                       <p className="text-xs text-muted-foreground mt-1">This is your target request qty. Stock will be updated only after Level 1.1 processes it.</p>
                     ) : null}
-                    {/* Production Order pcs needed calculation */}
+                    {/* Production Order pcs needed + available qty check */}
                     {(() => {
                       const targetQty = parseInt(useQty);
                       const jW3 = parseInt(boardSizeW);
                       const jL3 = parseInt(boardSizeL);
                       if (!useQty || isNaN(targetQty) || targetQty <= 0) return null;
-                      if (!boardSizeW || !boardSizeL || isNaN(jW3) || isNaN(jL3) || jW3 <= 0 || jL3 <= 0) return null;
-                      const fit = calcBoardFit(order.sizeW, order.sizeL, jW3, jL3);
-                      const pcsPerSlit = fit.piecesW * fit.piecesL;
-                      if (pcsPerSlit <= 0) return null;
-                      const prodPcsNeeded = Math.ceil(targetQty / pcsPerSlit);
+                      // Show needed slit only if board size is provided
+                      const hasBoardSize = boardSizeW && boardSizeL && !isNaN(jW3) && !isNaN(jL3) && jW3 > 0 && jL3 > 0;
+                      let prodPcsNeeded: number | null = null;
+                      if (hasBoardSize) {
+                        const fit = calcBoardFit(order.sizeW, order.sizeL, jW3, jL3);
+                        const pcsPerSlit = fit.piecesW * fit.piecesL;
+                        if (pcsPerSlit > 0) prodPcsNeeded = Math.ceil(targetQty / pcsPerSlit);
+                      }
+                      // Use prodPcsNeeded as the slit qty to check against available, fallback to targetQty
+                      const slitNeeded = prodPcsNeeded ?? targetQty;
+                      const expectedRemaining = availableQty - slitNeeded;
+                      const isInsufficient = slitNeeded > availableQty;
                       return (
-                        <div className="mt-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5">
-                          <p className="text-xs text-blue-800 font-semibold">needed slit (<span className="font-bold">{prodPcsNeeded} pcs</span>) NPRM Modify Order</p>
+                        <div className="mt-1.5 space-y-1.5">
+                          {prodPcsNeeded !== null && (
+                            <div className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 border ${
+                              isInsufficient ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"
+                            }`}>
+                              <span className={`text-xs font-semibold ${isInsufficient ? "text-red-700" : "text-blue-700"}`}>
+                                needed slit
+                              </span>
+                              <span className={`text-xs font-bold ${isInsufficient ? "text-red-800" : "text-blue-800"}`}>
+                                {prodPcsNeeded} pcs
+                              </span>
+                              <span className="text-xs text-muted-foreground">NPRM Modify Order</span>
+                            </div>
+                          )}
+                          <div className={`rounded-lg px-2.5 py-1.5 border space-y-1 ${
+                            isInsufficient ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"
+                          }`}>
+                            <div className="flex items-center gap-1 text-xs">
+                              <span className="text-muted-foreground">Total Stock</span>
+                              <span className="font-bold">{order.qty} pcs</span>
+                              <span className="text-muted-foreground mx-0.5">−</span>
+                              <span className="text-muted-foreground">needed slit</span>
+                              <span className="font-bold">{slitNeeded} pcs</span>
+                              <span className="text-muted-foreground">NPRM Modify Order</span>
+                              <span className="text-muted-foreground mx-0.5">=</span>
+                              <span className="text-muted-foreground">Available Qty:</span>
+                              <span className={`font-bold ${isInsufficient ? "text-red-700" : "text-emerald-700"}`}>{availableQty} pcs</span>
+                            </div>
+                          </div>
+                          {isInsufficient && (
+                            <div className="flex items-start gap-2 bg-red-50 border border-red-300 rounded-lg px-2.5 py-2">
+                              <AlertTriangle size={13} className="text-red-600 flex-shrink-0 mt-0.5" />
+                              <p className="text-xs text-red-700 font-semibold">
+                                Insufficient stock! Need {slitNeeded} pcs but only {availableQty} pcs available. Reduce the target qty or wait for other orders to complete.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       );
                     })()}
@@ -661,7 +723,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     const qty = parseInt(useQty);
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
                     setShowJobConfirm(true);
-                  }} className={`w-full text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-purple-500/25" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-orange-500/25"}`}>
+                  }} disabled={isInsufficientStock} className={`w-full text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:active:scale-100 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-purple-500/25" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-orange-500/25"}`}>
                     <Clock size={14} /> Submit for Approval
                   </button>
                 ) : (
@@ -676,7 +738,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => setShowJobConfirm(false)} className="flex-1 border-2 border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">Cancel</button>
-                      <button onClick={handleJobRequest} disabled={submitRequest.isPending} className={`flex-1 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
+                      <button onClick={handleJobRequest} disabled={submitRequest.isPending || isInsufficientStock} className={`flex-1 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
                         {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
                         Confirm
                       </button>

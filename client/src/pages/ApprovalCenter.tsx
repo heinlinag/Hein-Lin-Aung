@@ -128,8 +128,8 @@ function RequestCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isDelete ? "bg-red-100" : "bg-blue-100"}`}>
-            {isDelete ? <Trash2 size={14} className="text-red-600" /> : <Zap size={14} className="text-blue-600" />}
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md ${isDelete ? "bg-gradient-to-br from-red-400 to-red-600" : "bg-gradient-to-br from-blue-400 to-blue-600"}`}>
+            {isDelete ? <Trash2 size={16} className="text-white drop-shadow-sm" /> : <Zap size={16} className="text-white drop-shadow-sm fill-white" />}
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">
@@ -390,8 +390,8 @@ function RequestCard({
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
             <div className="p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                  <PlayCircle size={20} className="text-purple-600" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-purple-500/30">
+                  <PlayCircle size={20} className="text-white" />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 text-base">Process Approved</h3>
@@ -482,8 +482,8 @@ function RequestCard({
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
             <div className="p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle2 size={20} className="text-green-600" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-green-500/30">
+                  <CheckCircle2 size={20} className="text-white" />
                 </div>
                 <h3 className="font-bold text-gray-900 text-base">Approve Request</h3>
               </div>
@@ -538,8 +538,8 @@ function RequestCard({
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
             <div className="p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <XCircle size={20} className="text-red-600" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-red-500/30">
+                  <XCircle size={20} className="text-white" />
                 </div>
                 <h3 className="font-bold text-gray-900 text-base">Cancel Request</h3>
               </div>
@@ -610,8 +610,8 @@ function RequestCard({
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
             <div className="p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Edit3 size={18} className="text-blue-600" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-500/30">
+                  <Edit3 size={18} className="text-white" />
                 </div>
                 <h3 className="font-bold text-gray-900 text-base">Edit Target Black Qty</h3>
               </div>
@@ -1351,7 +1351,7 @@ export default function ApprovalCenter() {
               <div className="space-y-3">
                 {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gradient-to-r from-gray-100 to-gray-50 rounded-2xl animate-pulse" style={{animationDelay: `${i * 100}ms`}} />)}
               </div>
-            ) : !actionLogQuery.data || actionLogQuery.data.length === 0 ? (
+            ) : !actionLogQuery.data || (actionLogQuery.data as unknown as unknown[]).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <Clock size={30} className="text-muted-foreground/30" />
@@ -1361,7 +1361,7 @@ export default function ApprovalCenter() {
               </div>
             ) : (
               <div className="space-y-3">
-                {(actionLogQuery.data as unknown as Array<{id:number;actionType:string;requestId:number;requestType:"delete"|"used_update";orderID:string;requestedBy:string;reviewedBy:string;approvedQty:number|null;requestedQty:number|null;cancelReason:string|null;details:string|null;createdAt:Date}>).map(log => {
+                {((actionLogQuery.data ?? []) as unknown as Array<{id:number;actionType:string;requestId:number;requestType:"delete"|"used_update";orderID:string;requestedBy:string;reviewedBy:string;approvedQty:number|null;requestedQty:number|null;cancelReason:string|null;details:string|null;createdAt:Date}>).map(log => {
                   const isApprove = log.actionType === "approve";
                   const isCancel = log.actionType === "cancel";
                   

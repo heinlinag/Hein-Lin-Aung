@@ -402,6 +402,48 @@ export async function getInProcessQtyForOrder(orderId: number): Promise<number> 
   return total;
 }
 
+/// Returns total reserved qty for a given orderId: pending + in-process (processApproved) used_update requests
+export async function getReservedQtyForOrder(orderId: number): Promise<{ pendingQty: number; inProcessQty: number; totalReserved: number }> {
+  const db = await getDb();
+  if (!db) return { pendingQty: 0, inProcessQty: 0, totalReserved: 0 };
+  const rows = await db
+    .select()
+    .from(pendingRequests)
+    .where(and(
+      eq(pendingRequests.orderId, orderId),
+      eq(pendingRequests.type, "used_update"),
+      eq(pendingRequests.status, "pending")
+    ));
+  // Also get in-process (processApproved but not yet fully approved)
+  const inProcessRows = await db
+    .select()
+    .from(pendingRequests)
+    .where(and(
+      eq(pendingRequests.orderId, orderId),
+      eq(pendingRequests.type, "used_update"),
+      eq(pendingRequests.status, "approved")
+    ));
+  let pendingQty = 0;
+  for (const row of rows) {
+    try {
+      const action = JSON.parse(row.actionData ?? "{}");
+      if (typeof action.usedQty === "number") pendingQty += action.usedQty;
+    } catch { /* ignore */ }
+  }
+  let inProcessQty = 0;
+  for (const row of inProcessRows) {
+    if (typeof row.processApprovedQty === "number") inProcessQty += row.processApprovedQty;
+    else if (typeof row.approvedQty === "number") inProcessQty += row.approvedQty;
+    else {
+      try {
+        const action = JSON.parse(row.actionData ?? "{}");
+        if (typeof action.usedQty === "number") inProcessQty += action.usedQty;
+      } catch { /* ignore */ }
+    }
+  }
+  return { pendingQty, inProcessQty, totalReserved: pendingQty + inProcessQty };
+}
+
 // ─── In-App Notifications ─────────────────────────────────────────────────────
 
 const MAX_NOTIFICATIONS = 200;
