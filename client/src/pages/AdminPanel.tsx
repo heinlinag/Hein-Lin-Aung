@@ -1560,28 +1560,30 @@ export default function AdminPanel() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
-      {/* Premium Header */}
-      <header className="bg-white/90 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-10 shadow-sm">
+    <div className="min-h-screen" style={{ background: "radial-gradient(ellipse at 50% 0%, #1e1040 0%, #0d1117 50%, #080c14 100%)" }}>
+      {/* Background grid */}
+      <div className="fixed inset-0 opacity-[0.035] pointer-events-none" style={{ backgroundImage: "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+      {/* Header */}
+      <header className="sticky top-0 z-20 border-b border-white/8" style={{ background: "rgba(13,17,23,0.85)", backdropFilter: "blur(20px)" }}>
         <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-3 flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-xl transition-all flex-shrink-0">
+          <button onClick={() => navigate("/")} className="text-slate-400 hover:text-white hover:bg-white/8 p-2 rounded-xl transition-all flex-shrink-0">
             <ArrowLeft size={20} />
           </button>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 flex-shrink-0">
             <img src={LOGO_URL} alt="GSPP" className="h-7 w-7 object-contain" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-base lg:text-lg font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-[10px] lg:text-xs text-gray-500 font-medium">System Management & Configuration</p>
+            <h1 className="text-base lg:text-lg font-bold text-white tracking-tight">Admin Panel</h1>
+            <p className="text-[10px] lg:text-xs text-slate-500 font-medium">System Management & Configuration</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 bg-green-50 border border-green-200/50 rounded-xl px-3 py-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="text-xs font-semibold text-green-700">Admin Active</span>
+            <div className="hidden md:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-3 py-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-xs font-semibold text-emerald-300">Admin Active</span>
             </div>
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="flex items-center gap-1.5 text-xs lg:text-sm border border-red-200 px-3 py-2 rounded-xl font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition-all shadow-sm"
+              className="flex items-center gap-1.5 text-xs lg:text-sm bg-red-500/10 border border-red-500/25 px-3 py-2 rounded-xl font-bold text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
             >
               <LogOut size={14} /> <span className="hidden sm:inline">Logout</span>
             </button>
@@ -1591,20 +1593,20 @@ export default function AdminPanel() {
 
       {/* Maintenance Mode Warning Banner */}
       {maintenanceQuery.data?.maintenanceMode && (
-        <div className="bg-red-600 text-white">
+        <div className="bg-red-500/15 border-b border-red-500/30">
           <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-2.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                <ShieldAlert size={14} className="text-white" />
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
+                <ShieldAlert size={14} className="text-red-400" />
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">MAINTENANCE ON</span>
-                <span className="text-xs font-medium text-red-100">All workers are currently seeing the maintenance page. Turn OFF when done.</span>
+                <span className="text-xs font-bold uppercase tracking-wider bg-red-500/20 text-red-300 px-2 py-0.5 rounded-full">MAINTENANCE ON</span>
+                <span className="text-xs font-medium text-red-300/80">All workers are currently seeing the maintenance page. Turn OFF when done.</span>
               </div>
             </div>
             <button
               onClick={() => setActiveTab("maintenance")}
-              className="flex-shrink-0 text-xs font-bold bg-white text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+              className="flex-shrink-0 text-xs font-bold bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 px-3 py-1.5 rounded-lg transition-colors"
             >
               Manage
             </button>
@@ -1615,53 +1617,57 @@ export default function AdminPanel() {
       {/* Stats Grid */}
       <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 lg:p-5 shadow-sm hover:shadow-md transition-all group">
+          {/* Current Stock */}
+          <div className="rounded-2xl border border-white/8 p-4 lg:p-5 transition-all group" style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(12px)" }}>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+              <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform">
                 <Package size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-[10px] lg:text-xs text-gray-500 font-semibold uppercase tracking-wide">Current</p>
-                <p className="text-xl lg:text-2xl font-bold text-gray-900 leading-none mt-0.5">
+                <p className="text-[10px] lg:text-xs text-slate-400 font-semibold uppercase tracking-wide">Current</p>
+                <p className="text-xl lg:text-2xl font-bold text-white leading-none mt-0.5">
                   {statsQuery.isLoading ? "..." : (stats?.totalCurrent ?? 0)}
                 </p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 lg:p-5 shadow-sm hover:shadow-md transition-all group">
+          {/* Out of Stock */}
+          <div className="rounded-2xl border border-white/8 p-4 lg:p-5 transition-all group" style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(12px)" }}>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center shadow-md shadow-gray-500/20 group-hover:scale-105 transition-transform">
+              <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center shadow-md shadow-slate-500/20 group-hover:scale-105 transition-transform">
                 <Inbox size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-[10px] lg:text-xs text-gray-500 font-semibold uppercase tracking-wide">Out of Stock</p>
-                <p className="text-xl lg:text-2xl font-bold text-gray-900 leading-none mt-0.5">
+                <p className="text-[10px] lg:text-xs text-slate-400 font-semibold uppercase tracking-wide">Out of Stock</p>
+                <p className="text-xl lg:text-2xl font-bold text-white leading-none mt-0.5">
                   {statsQuery.isLoading ? "..." : (stats?.totalOutOfStock ?? 0)}
                 </p>
               </div>
             </div>
           </div>
-          <div onClick={() => setActiveTab("pending_requests")} className="bg-white rounded-2xl border border-gray-100 p-4 lg:p-5 shadow-sm hover:shadow-md transition-all group cursor-pointer hover:border-orange-200">
+          {/* Pending */}
+          <div onClick={() => setActiveTab("pending_requests")} className="rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.pendingRequests ?? 0) > 0 ? "rgba(249,115,22,0.08)" : "rgba(255,255,255,0.04)", backdropFilter: "blur(12px)", borderColor: (stats?.pendingRequests ?? 0) > 0 ? "rgba(249,115,22,0.3)" : "rgba(255,255,255,0.08)" }}>
             <div className="flex items-center gap-3">
-              <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.pendingRequests ?? 0) > 0 ? "bg-gradient-to-br from-orange-500 to-amber-600 shadow-orange-500/20" : "bg-gradient-to-br from-gray-300 to-gray-400 shadow-gray-500/10"}`}>
+              <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.pendingRequests ?? 0) > 0 ? "bg-gradient-to-br from-orange-500 to-amber-600 shadow-orange-500/30" : "bg-gradient-to-br from-slate-600 to-slate-700 shadow-slate-500/10"}`}>
                 <ClipboardList size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-[10px] lg:text-xs text-gray-500 font-semibold uppercase tracking-wide">Pending</p>
-                <p className={`text-xl lg:text-2xl font-bold leading-none mt-0.5 ${(stats?.pendingRequests ?? 0) > 0 ? "text-orange-600" : "text-gray-900"}`}>
+                <p className="text-[10px] lg:text-xs text-slate-400 font-semibold uppercase tracking-wide">Pending</p>
+                <p className={`text-xl lg:text-2xl font-bold leading-none mt-0.5 ${(stats?.pendingRequests ?? 0) > 0 ? "text-orange-400" : "text-white"}`}>
                   {statsQuery.isLoading ? "..." : (stats?.pendingRequests ?? 0)}
                 </p>
               </div>
             </div>
           </div>
-          <div onClick={() => setActiveTab("orders")} className="bg-white rounded-2xl border border-gray-100 p-4 lg:p-5 shadow-sm hover:shadow-md transition-all group cursor-pointer hover:border-amber-200">
+          {/* Low Stock */}
+          <div onClick={() => setActiveTab("orders")} className="rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.lowStockCount ?? 0) > 0 ? "rgba(245,158,11,0.08)" : "rgba(255,255,255,0.04)", backdropFilter: "blur(12px)", borderColor: (stats?.lowStockCount ?? 0) > 0 ? "rgba(245,158,11,0.3)" : "rgba(255,255,255,0.08)" }}>
             <div className="flex items-center gap-3">
-              <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.lowStockCount ?? 0) > 0 ? "bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/20" : "bg-gradient-to-br from-gray-300 to-gray-400 shadow-gray-500/10"}`}>
+              <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.lowStockCount ?? 0) > 0 ? "bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/30" : "bg-gradient-to-br from-slate-600 to-slate-700 shadow-slate-500/10"}`}>
                 <AlertTriangle size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-[10px] lg:text-xs text-gray-500 font-semibold uppercase tracking-wide">Low Stock</p>
-                <p className={`text-xl lg:text-2xl font-bold leading-none mt-0.5 ${(stats?.lowStockCount ?? 0) > 0 ? "text-amber-600" : "text-gray-900"}`}>
+                <p className="text-[10px] lg:text-xs text-slate-400 font-semibold uppercase tracking-wide">Low Stock</p>
+                <p className={`text-xl lg:text-2xl font-bold leading-none mt-0.5 ${(stats?.lowStockCount ?? 0) > 0 ? "text-amber-400" : "text-white"}`}>
                   {statsQuery.isLoading ? "..." : (stats?.lowStockCount ?? 0)}
                 </p>
               </div>
@@ -1672,17 +1678,18 @@ export default function AdminPanel() {
 
       {/* Tab Navigation */}
       <div className="max-w-[1600px] mx-auto px-4 lg:px-8">
-        <div className="flex gap-1 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-1.5 overflow-x-auto shadow-sm">
+        <div className="flex gap-1 rounded-2xl border border-white/8 p-1.5 overflow-x-auto" style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(12px)" }}>
           {tabs.map((t) => {
             const isActive = activeTab === t.id;
             const colorMap: Record<string, string> = {
-              blue: isActive ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
-              green: isActive ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
-              red: isActive ? "bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
-              orange: isActive ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
-              purple: isActive ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg shadow-purple-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
-              indigo: isActive ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
-              slate: isActive ? "bg-gradient-to-r from-slate-600 to-gray-700 text-white shadow-lg shadow-slate-500/25" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+              blue: isActive ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25" : "text-slate-400 hover:text-white hover:bg-white/8",
+              green: isActive ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25" : "text-slate-400 hover:text-white hover:bg-white/8",
+              red: isActive ? "bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/25" : "text-slate-400 hover:text-white hover:bg-white/8",
+              orange: isActive ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/25" : "text-slate-400 hover:text-white hover:bg-white/8",
+              purple: isActive ? "bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg shadow-purple-500/25" : "text-slate-400 hover:text-white hover:bg-white/8",
+              indigo: isActive ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25" : "text-slate-400 hover:text-white hover:bg-white/8",
+              slate: isActive ? "bg-gradient-to-r from-slate-500 to-slate-700 text-white shadow-lg shadow-slate-500/25" : "text-slate-400 hover:text-white hover:bg-white/8",
+              amber: isActive ? "bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg shadow-amber-500/25" : "text-slate-400 hover:text-white hover:bg-white/8",
             };
             return (
               <button
@@ -1700,7 +1707,7 @@ export default function AdminPanel() {
 
       {/* Content */}
       <main className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 lg:p-6">
+        <div className="rounded-2xl border border-white/8 p-4 lg:p-6" style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(12px)" }}>
           {activeTab === "workers" && <WorkersTab />}
           {activeTab === "orders" && <OrdersTab />}
           {activeTab === "deleted_logs" && <DeletedLogsTab />}
@@ -1712,10 +1719,10 @@ export default function AdminPanel() {
           {activeTab === "maintenance" && (
             <div className="max-w-xl mx-auto py-8 space-y-6">
               {/* Status card */}
-              <div className={`rounded-2xl border-2 p-6 shadow-sm transition-all ${
+              <div className={`rounded-2xl border-2 p-6 transition-all ${
                 maintenanceQuery.data?.maintenanceMode
-                  ? "border-red-300 bg-red-50"
-                  : "border-green-300 bg-green-50"
+                  ? "border-red-500/40 bg-red-500/10"
+                  : "border-emerald-500/40 bg-emerald-500/10"
               }`}>
                 <div className="flex items-center gap-4">
                   <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shadow-md ${
@@ -1728,9 +1735,9 @@ export default function AdminPanel() {
                       : <Power size={26} className="text-white" />}
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-lg font-bold text-gray-900">Maintenance Mode</h2>
+                    <h2 className="text-lg font-bold text-white">Maintenance Mode</h2>
                     <p className={`text-sm font-semibold mt-0.5 ${
-                      maintenanceQuery.data?.maintenanceMode ? "text-red-600" : "text-green-600"
+                      maintenanceQuery.data?.maintenanceMode ? "text-red-400" : "text-emerald-400"
                     }`}>
                       {maintenanceQuery.data?.maintenanceMode ? "🔴 Currently ON — App is under maintenance" : "🟢 Currently OFF — App is live"}
                     </p>
@@ -1739,16 +1746,16 @@ export default function AdminPanel() {
               </div>
 
               {/* Custom message */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-3">
-                <label className="text-sm font-semibold text-gray-700 block">Custom Maintenance Message (optional)</label>
+              <div className="rounded-2xl border border-white/10 p-5 space-y-3" style={{ background: "rgba(255,255,255,0.05)" }}>
+                <label className="text-sm font-semibold text-slate-200 block">Custom Maintenance Message (optional)</label>
                 <textarea
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/5 text-white placeholder-slate-500"
                   rows={3}
                   placeholder="e.g. Estimated downtime: 01/07/2026 08:15 AM — system will be back to normal."
                   value={maintenanceMsg}
                   onChange={e => setMaintenanceMsg(e.target.value)}
                 />
-                <p className="text-xs text-gray-400">Leave empty to show the default message. End Time is auto-filled when you set the schedule.</p>
+                <p className="text-xs text-slate-500">Leave empty to show the default message. End Time is auto-filled when you set the schedule.</p>
               </div>
 
               {/* Manual toggle buttons */}
@@ -1772,25 +1779,25 @@ export default function AdminPanel() {
               </div>
 
               {/* Scheduled Maintenance Window */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+              <div className="rounded-2xl border border-white/10 p-5 space-y-4" style={{ background: "rgba(255,255,255,0.05)" }}>
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                     <CalendarClock size={16} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-gray-900">Schedule Maintenance Window</h3>
-                    <p className="text-xs text-gray-500">System will auto-enable and auto-disable maintenance at the set times</p>
+                    <h3 className="text-sm font-bold text-white">Schedule Maintenance Window</h3>
+                    <p className="text-xs text-slate-400">System will auto-enable and auto-disable maintenance at the set times</p>
                   </div>
                 </div>
 
                 {/* Show existing schedule if any */}
                 {scheduleQuery.data?.startTaskUid && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="bg-blue-500/10 border border-blue-500/25 rounded-xl p-3 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-blue-600 flex-shrink-0" />
+                      <Calendar size={14} className="text-blue-400 flex-shrink-0" />
                       <div>
-                        <p className="text-xs font-semibold text-blue-800">Scheduled Window Active</p>
-                        <p className="text-xs text-blue-600">
+                        <p className="text-xs font-semibold text-blue-300">Scheduled Window Active</p>
+                        <p className="text-xs text-blue-400/80">
                           ON: {scheduleQuery.data.startTime ? new Date(scheduleQuery.data.startTime).toLocaleString() : "—"}
                           {" → "}
                           OFF: {scheduleQuery.data.endTime ? new Date(scheduleQuery.data.endTime).toLocaleString() : "—"}
@@ -1810,19 +1817,19 @@ export default function AdminPanel() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-gray-600">Start Time (Maintenance ON)</label>
+                    <label className="text-xs font-semibold text-slate-300">Start Time (Maintenance ON)</label>
                     <input
                       type="datetime-local"
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/5 text-white"
                       value={scheduleStart}
                       onChange={e => setScheduleStart(e.target.value)}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-gray-600">End Time (Maintenance OFF)</label>
+                    <label className="text-xs font-semibold text-slate-300">End Time (Maintenance OFF)</label>
                     <input
                       type="datetime-local"
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/5 text-white"
                       value={scheduleEnd}
                       onChange={e => {
                         setScheduleEnd(e.target.value);
@@ -1872,10 +1879,10 @@ export default function AdminPanel() {
                   {scheduleMaintenanceMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <CalendarClock size={16} />}
                   Schedule Maintenance Window
                 </button>
-                <p className="text-xs text-gray-400 text-center">Times are in your local timezone. System will auto-trigger at the scheduled times after deployment.</p>
+                <p className="text-xs text-slate-500 text-center">Times are in your local timezone. System will auto-trigger at the scheduled times after deployment.</p>
               </div>
 
-              <p className="text-xs text-gray-400 text-center">
+              <p className="text-xs text-slate-500 text-center">
                 Admin users can still access the app while maintenance mode is ON.
               </p>
             </div>
@@ -1885,22 +1892,22 @@ export default function AdminPanel() {
 
       {/* Logout Confirmation */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl border border-white/10 shadow-2xl w-full max-w-md p-6 space-y-4" style={{ background: "rgba(13,17,23,0.95)", backdropFilter: "blur(20px)" }}>
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/20">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/30">
                 <LogOut size={24} className="text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-gray-900">Confirm Logout</h3>
-                <p className="text-xs text-gray-500">Admin Session</p>
+                <h3 className="font-bold text-lg text-white">Confirm Logout</h3>
+                <p className="text-xs text-slate-400">Admin Session</p>
               </div>
             </div>
-            <p className="text-sm text-gray-600">Are you sure you want to logout from the Admin Panel? Your admin session will be terminated.</p>
-            <div className="flex gap-3 pt-4">
+            <p className="text-sm text-slate-300">Are you sure you want to logout from the Admin Panel? Your admin session will be terminated.</p>
+            <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex-1 border border-white/10 rounded-xl py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/8 transition-colors"
               >
                 Cancel
               </button>
@@ -1911,7 +1918,7 @@ export default function AdminPanel() {
                   setShowLogoutConfirm(false);
                   toast.success("Logged out successfully");
                 }}
-                className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl py-2.5 text-sm font-bold hover:from-red-600 hover:to-rose-700 transition-all shadow-md shadow-red-500/20"
+                className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl py-2.5 text-sm font-bold hover:from-red-600 hover:to-rose-700 transition-all shadow-md shadow-red-500/30"
               >
                 Logout
               </button>
