@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, Flag, Edit3, Calendar, ChevronDown } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, Flag, Edit3, Calendar } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { ActionHistoryCard, type ActionHistoryEvent } from "@/components/ActionHistoryCard";
@@ -93,9 +93,6 @@ function RequestCard({
   canProcessApprove: boolean;
   currentWorkerID?: string;
 }) {
-  // Collapsible state — default collapsed on mobile
-  const [isExpanded, setIsExpanded] = useState(false);
-
   // Cancel reason dialog state (local to card)
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReasonLocal, setCancelReasonLocal] = useState("");
@@ -123,81 +120,49 @@ function RequestCard({
   const isProcessApproved = !!req.processApprovedBy;
 
   return (
-    <div className={`border rounded-xl overflow-hidden ${
+    <div className={`border rounded-xl p-4 space-y-3 ${
       req.status === "approved" ? "bg-green-50 border-green-200" :
       req.status === "cancelled" ? "bg-gray-50 border-gray-200 opacity-70" :
       "bg-white border-border shadow-sm"
     }`}>
-      {/* Header — always visible, clickable to expand/collapse */}
-      <button
-        onClick={() => setIsExpanded(prev => !prev)}
-        className="w-full text-left p-4 flex items-center justify-between gap-2 hover:bg-black/[0.02] active:bg-black/[0.04] transition-colors"
-      >
-        <div className="flex items-center gap-2 min-w-0">
-          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md ${isDelete ? "bg-gradient-to-br from-red-400 to-red-600" : "bg-gradient-to-br from-blue-400 to-blue-600"}`}>
-            {isDelete ? <Trash2 size={16} className="text-white drop-shadow-sm" /> : <Zap size={16} className="text-white drop-shadow-sm fill-white" />}
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isDelete ? "bg-red-100" : "bg-blue-100"}`}>
+            {isDelete ? <Trash2 size={14} className="text-red-600" /> : <Zap size={14} className="text-blue-600" />}
           </div>
-          <div className="min-w-0">
+          <div>
             <p className="text-sm font-bold text-foreground">
               {isDelete ? "Delete Request" : "NPRM Modify Order"}
             </p>
-            <div className="flex items-center gap-2 flex-wrap mt-0.5">
-              {req.isUrgent && isPending && (
-                <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1">
-                  <Flag size={10} className="fill-red-700" /> Urgent
-                </span>
-              )}
-              {/* Production Order, Job No, Master Card shown in collapsed state */}
-              {!isExpanded && snapshot && (
-                <span className="text-xs text-primary font-mono font-semibold">{snapshot.orderID}</span>
-              )}
-              {!isExpanded && action?.jobNo && (
-                <span className="text-xs text-muted-foreground font-mono">#{action.jobNo}</span>
-              )}
-              {!isExpanded && action?.masterCard && (
-                <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-mono">{action.masterCard}</span>
-              )}
-            </div>
+            {req.isUrgent && isPending && (
+              <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1 mt-1">
+                <Flag size={12} className="fill-red-700" /> Order is Urgent
+              </span>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Status Badge */}
+        {/* Single Status Badge - Show ONLY current stage */}
+        <div className="flex-shrink-0">
           {req.status === "cancelled" ? (
-            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-gray-200 text-gray-600 flex items-center gap-1">
-              <XCircle size={12} /> Cancelled
+            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-gray-200 text-gray-600 flex items-center gap-1.5">
+              <XCircle size={14} /> Cancelled
             </span>
           ) : req.status === "approved" ? (
-            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1">
-              <CheckCircle2 size={12} /> Approved
+            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-green-100 text-green-700 flex items-center gap-1.5">
+              <CheckCircle2 size={14} /> Approved
             </span>
           ) : isProcessApproved ? (
-            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-purple-100 text-purple-700 flex items-center gap-1">
-              <Clock size={12} /> In Process
+            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-purple-100 text-purple-700 flex items-center gap-1.5">
+              <Clock size={14} /> In Process
             </span>
           ) : (
-            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-orange-100 text-orange-700 flex items-center gap-1">
-              <AlertCircle size={12} /> Pending
+            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-orange-100 text-orange-700 flex items-center gap-1.5">
+              <AlertCircle size={14} /> Pending
             </span>
           )}
-          {/* Chevron indicator */}
-          <ChevronDown
-            size={16}
-            className={`text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-          />
         </div>
-      </button>
-
-      {/* Collapsible body */}
-      <div
-        className="overflow-hidden"
-        style={{
-          display: "grid",
-          gridTemplateRows: isExpanded ? "1fr" : "0fr",
-          transition: "grid-template-rows 280ms cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
-      >
-        <div className="overflow-hidden" style={{ opacity: isExpanded ? 1 : 0, transition: "opacity 220ms ease" }}>
-        <div className="px-4 pb-4 space-y-3">
+      </div>
 
 
 
@@ -418,9 +383,6 @@ function RequestCard({
           </DropdownMenu>
         </div>
       )}
-        </div>
-        </div>
-      </div>
 
       {/* Process Approve Dialog */}
       {showProcessApproveDialog && (
@@ -766,38 +728,6 @@ function RequestCard({
 
 // Edit History Section Component
 // Compact inline edit history shown inside the order details card
-function InlineEditHistoryDesktop({ requestId }: { requestId: number }) {
-  const historyQuery = trpc.pendingRequests.getEditHistory.useQuery({ requestId });
-  const history = (historyQuery.data ?? []) as Array<{ id: number; editedBy: string; editedAt: string | Date; oldQty: number; newQty: number; remark?: string | null }>;
-  if (history.length === 0) return null;
-  return (
-    <>
-      {history.map((edit) => (
-        <div key={edit.id} className="flex flex-col gap-0.5 rounded-md bg-orange-50 border border-orange-200 px-2 py-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">Edited by</span>
-            <span className="text-[10px] font-semibold text-orange-700">{edit.editedBy}</span>
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[10px] text-muted-foreground">
-              {new Date(edit.editedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}{" "}
-              {new Date(edit.editedAt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
-            </span>
-            <span className="text-[10px] font-semibold">
-              <span className="line-through text-red-400">{edit.oldQty}</span>
-              {" → "}
-              <span className="font-bold text-green-600">{edit.newQty} pcs</span>
-            </span>
-          </div>
-          {edit.remark && (
-            <p className="text-[10px] text-gray-600 italic">&ldquo;{edit.remark}&rdquo;</p>
-          )}
-        </div>
-      ))}
-    </>
-  );
-}
-
 function InlineEditHistory({ requestId }: { requestId: number }) {
   const historyQuery = trpc.pendingRequests.getEditHistory.useQuery({ requestId });
   const history = (historyQuery.data ?? []) as Array<{ id: number; editedBy: string; editedAt: string | Date; oldQty: number; newQty: number; remark?: string | null }>;
@@ -869,14 +799,6 @@ export default function ApprovalCenter() {
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [jobNoSearch, setJobNoSearch] = useState("");
   const [timeFilter, setTimeFilter] = useState<string>("all");
-  // Table action state — used for desktop table row action dialogs
-  const [tableActionReq, setTableActionReq] = useState<PendingRequest | null>(null);
-  const [tableAction, setTableAction] = useState<"cancel" | "process" | "approve" | "edit" | null>(null);
-  const [tableActionCancelReason, setTableActionCancelReason] = useState("");
-  const [tableActionQty, setTableActionQty] = useState("");
-  const [tableActionEditQty, setTableActionEditQty] = useState("");
-  const [tableActionEditRemark, setTableActionEditRemark] = useState("");
-  const [tableActionEditConfirm, setTableActionEditConfirm] = useState(false);
 
   const userLevel = worker?.userLevel ?? "2";
   const canApprove = userLevel === "2";
@@ -1380,308 +1302,24 @@ export default function ApprovalCenter() {
                 )}
               </div>
             ) : (
-              <>
-                {/* Desktop / Tablet — Redesigned 6-column grouped table */}
-                <div className="hidden md:block overflow-x-auto rounded-xl border border-border">
-                  <table className="w-full text-sm border-collapse" style={{ minWidth: "900px" }}>
-                    <thead className="sticky top-0 z-10">
-                      <tr className="bg-muted/70 border-b-2 border-border">
-                        {["Status", "Order Info", "Job Details", "Qty Summary", "Requested By", "Actions"].map(h => (
-                          <th key={h} className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-left py-3 px-4 bg-muted/70 whitespace-nowrap">{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {requests.map((req, idx) => {
-                        let snapshot: OrderSnapshot | null = null;
-                        let action: ActionData | null = null;
-                        try { snapshot = JSON.parse(req.orderSnapshot); } catch { /* ignore */ }
-                        try { if (req.actionData) action = JSON.parse(req.actionData); } catch { /* ignore */ }
-                        const isProcessApproved = !!req.processApprovedBy;
-                        const isPending = req.status === "pending";
-                        const canCancelRow = canApprove || canProcessApprove || req.requestedBy === worker?.workerID;
-                        const rowBg = req.status === "approved" ? "bg-green-50/40" : req.status === "cancelled" ? "bg-gray-50/60" : idx % 2 === 1 ? "bg-muted/20" : "bg-background";
-                        return (
-                          <tr key={req.id} className={`border-b border-border/50 hover:bg-primary/5 transition-colors duration-150 ${rowBg}`}>
-
-                            {/* ── Col 1: Status ── */}
-                            <td className="py-3 px-4 align-top w-[120px]">
-                              <div className="flex flex-col gap-1.5">
-                                {req.status === "cancelled" ? (
-                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-gray-100 text-gray-500 inline-flex items-center gap-1 w-fit border border-gray-200"><XCircle size={10} /> Cancelled</span>
-                                ) : req.status === "approved" ? (
-                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700 inline-flex items-center gap-1 w-fit border border-green-200"><CheckCircle2 size={10} /> Approved</span>
-                                ) : isProcessApproved ? (
-                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-purple-100 text-purple-700 inline-flex items-center gap-1 w-fit border border-purple-200"><Clock size={10} /> In Process</span>
-                                ) : (
-                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-orange-100 text-orange-700 inline-flex items-center gap-1 w-fit border border-orange-200"><AlertCircle size={10} /> Pending</span>
-                                )}
-                                {req.isUrgent && isPending && (
-                                  <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-red-100 text-red-700 inline-flex items-center gap-1 w-fit border border-red-200"><Flag size={9} className="fill-red-700" /> Urgent</span>
-                                )}
-                              </div>
-                            </td>
-
-                            {/* ── Col 2: Order Info (Prod Order + Flute + Size + BQ) ── */}
-                            <td className="py-3 px-4 align-top w-[220px]">
-                              <div className="flex flex-col gap-1.5">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-bold text-primary text-sm leading-tight">{snapshot?.orderID ?? "—"}</span>
-                                  {snapshot?.fluteType && (
-                                    <span className="text-[11px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-200">{snapshot.fluteType}</span>
-                                  )}
-                                </div>
-                                {snapshot && (
-                                  <span className="text-xs font-mono text-muted-foreground">{snapshot.sizeW}×{snapshot.sizeL} mm</span>
-                                )}
-                                {snapshot?.bqComment && (
-                                  <TooltipProvider delayDuration={200}>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <span className="text-[11px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded font-mono border border-amber-200 truncate max-w-[200px] block cursor-default select-none">{snapshot.bqComment}</span>
-                                      </TooltipTrigger>
-                                      <TooltipContent side="right" className="max-w-[320px] font-mono text-xs break-all p-2">{snapshot.bqComment}</TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                )}
-                              </div>
-                            </td>
-
-                            {/* ── Col 3: Job Details (Job No + MC + Board + Scores + Target Black) ── */}
-                            <td className="py-3 px-4 align-top w-[210px]">
-                              {action ? (
-                                <div className="flex flex-col gap-1.5">
-                                  {action.jobNo && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">Job</span>
-                                      <span className="font-mono text-xs font-bold text-foreground bg-gray-100 px-1.5 py-0.5 rounded">{action.jobNo}</span>
-                                    </div>
-                                  )}
-                                  {action.masterCard && (
-                                    <TooltipProvider delayDuration={200}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">MC</span>
-                                            <span className="text-xs text-foreground truncate max-w-[140px] cursor-default">{action.masterCard}</span>
-                                          </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right" className="max-w-[300px] text-xs break-all p-2">{action.masterCard}</TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  )}
-                                  {action.boardSizeW && action.boardSizeL && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">Board</span>
-                                      <span className="font-mono text-xs text-foreground">{action.boardSizeW}×{action.boardSizeL} mm</span>
-                                    </div>
-                                  )}
-                                  {action.scores && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">Score</span>
-                                      <span className="font-mono text-xs text-foreground">{action.scores}</span>
-                                    </div>
-                                  )}
-                                  {action.usedQty != null && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-12 shrink-0">Target</span>
-                                      <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">{action.usedQty} pcs</span>
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground/40">—</span>
-                              )}
-                            </td>
-
-                            {/* ── Col 4: Qty Summary ── */}
-                            <td className="py-3 px-4 align-top w-[140px]">
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between gap-3">
-                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Stock</span>
-                                  <span className="text-xs font-semibold text-foreground tabular-nums">{snapshot ? `${snapshot.qty}` : "—"}</span>
-                                </div>
-                                <div className="flex items-center justify-between gap-3">
-                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">In Proc.</span>
-                                  <span className="text-xs font-semibold text-purple-700 tabular-nums">{req.processApprovedQty ? `${req.processApprovedQty}` : <span className="text-muted-foreground/30">—</span>}</span>
-                                </div>
-                                <div className="h-px bg-border/60" />
-                                <div className="flex items-center justify-between gap-3">
-                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Balance</span>
-                                  <span className="text-xs font-bold text-green-700 tabular-nums">{req.processApprovedQty && snapshot ? `${snapshot.qty - req.processApprovedQty}` : snapshot ? `${snapshot.qty}` : "—"} <span className="text-[10px] font-normal text-muted-foreground">pcs</span></span>
-                                </div>
-                              </div>
-                            </td>
-
-                            {/* ── Col 5: Requested By (+ In Process by / Approved by / Cancelled by / Cancel Reason) ── */}
-                            <td className="py-3 px-4 align-top w-[190px]">
-                              <div className="flex flex-col gap-1.5">
-                                {/* Request By */}
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Request by</span>
-                                  <span className="text-xs font-semibold text-foreground">{req.workerName}</span>
-                                  <span className="text-[11px] text-muted-foreground">{new Date(req.createdAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
-                                </div>
-                                {/* Edited by (edit history) — shown between Request by and In Process by */}
-                                {req.type === "used_update" && <InlineEditHistoryDesktop requestId={req.id} />}
-
-                                {/* In Process by */}
-                                {req.processApprovedBy && (
-                                  <div className="flex flex-col gap-0.5">
-                                    <span className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">In Process by</span>
-                                    <span className="text-xs font-semibold text-purple-700">{req.processApprovedBy}</span>
-                                    {req.processApprovedAt && (
-                                      <span className="text-[11px] text-muted-foreground">{new Date(req.processApprovedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
-                                    )}
-                                  </div>
-                                )}
-                                {/* Approved by */}
-                                {req.status === "approved" && req.reviewedBy && (
-                                  <div className="flex flex-col gap-0.5">
-                                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Approved by</span>
-                                    <span className="text-xs font-semibold text-green-700">{req.reviewedBy}</span>
-                                    {req.reviewedAt && (
-                                      <span className="text-[11px] text-muted-foreground">{new Date(req.reviewedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
-                                    )}
-                                  </div>
-                                )}
-                                {/* Cancelled by + Cancel Reason */}
-                                {req.status === "cancelled" && (
-                                  <>
-                                    {req.reviewedBy && (
-                                      <div className="flex flex-col gap-0.5">
-                                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Cancelled by</span>
-                                        <span className="text-xs font-semibold text-red-600">{req.reviewedBy}</span>
-                                        {req.reviewedAt && (
-                                          <span className="text-[11px] text-muted-foreground">{new Date(req.reviewedAt).toLocaleDateString("en", { day: "2-digit", month: "short", year: "numeric" })}</span>
-                                        )}
-                                      </div>
-                                    )}
-                                    {req.cancelReason && (
-                                      <div className="flex flex-col gap-0.5">
-                                        <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">Cancel Reason</span>
-                                        <TooltipProvider delayDuration={200}>
-                                          <Tooltip>
-                                            <TooltipTrigger asChild>
-                                              <span className="text-[11px] text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded truncate max-w-[160px] block cursor-default">{req.cancelReason}</span>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="left" className="max-w-[260px] text-xs break-words p-2">{req.cancelReason}</TooltipContent>
-                                          </Tooltip>
-                                        </TooltipProvider>
-                                      </div>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            </td>
-
-                            {/* ── Col 6: Actions ── */}
-                            <td className="py-3 px-4 align-top w-[80px]">
-                              {isPending && (canCancelRow || canApprove || canProcessApprove) ? (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" disabled={processingId === req.id} className="gap-1.5 text-xs h-8 px-3 font-semibold">
-                                      {processingId === req.id ? <Loader2 size={12} className="animate-spin" /> : <MoreVertical size={12} />}
-                                      Action
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-48 p-1">
-                                    {canCancelRow && (
-                                      <DropdownMenuItem
-                                        onClick={() => { setTableActionReq(req); setTableAction("cancel"); }}
-                                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 cursor-pointer"
-                                      >
-                                        <XCircle size={16} className="text-red-600 flex-shrink-0" />
-                                        <span className="text-sm font-medium">Cancel</span>
-                                      </DropdownMenuItem>
-                                    )}
-                                    {canProcessApprove && !isProcessApproved && (
-                                      <DropdownMenuItem
-                                        onClick={() => { setTableActionReq(req); setTableAction("process"); }}
-                                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-purple-50 cursor-pointer"
-                                      >
-                                        <PlayCircle size={16} className="text-purple-600 flex-shrink-0" />
-                                        <span className="text-sm font-medium">Process</span>
-                                      </DropdownMenuItem>
-                                    )}
-                                    {canApprove && isProcessApproved && (
-                                      <DropdownMenuItem
-                                        onClick={() => { setTableActionReq(req); setTableAction("approve"); }}
-                                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-green-50 cursor-pointer"
-                                      >
-                                        <CheckCircle2 size={16} className="text-green-600 flex-shrink-0" />
-                                        <span className="text-sm font-medium">Approved</span>
-                                      </DropdownMenuItem>
-                                    )}
-                                    {req.requestedBy === worker?.workerID && req.type === "used_update" && (
-                                      <DropdownMenuItem
-                                        onClick={() => handleToggleUrgent(req.id)}
-                                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-orange-50 cursor-pointer"
-                                      >
-                                        <Flag size={16} className={req.isUrgent ? "text-orange-600 fill-orange-600" : "text-orange-600"} />
-                                        <span className="text-sm font-medium">{req.isUrgent ? "Remove Urgent" : "Mark Urgent"}</span>
-                                      </DropdownMenuItem>
-                                    )}
-                                    {req.type === "used_update" && (
-                                      (req.status === "pending" && !isProcessApproved) ? (
-                                        <DropdownMenuItem
-                                          onClick={() => { setTableActionReq(req); setTableAction("edit"); }}
-                                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-50 cursor-pointer"
-                                        >
-                                          <Edit3 size={16} className="text-blue-600 flex-shrink-0" />
-                                          <span className="text-sm font-medium">Edit Target Black</span>
-                                        </DropdownMenuItem>
-                                      ) : (
-                                        <TooltipProvider delayDuration={100}>
-                                          <Tooltip>
-                                            <TooltipTrigger asChild>
-                                              <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-100 cursor-not-allowed select-none border border-gray-200">
-                                                <Edit3 size={16} className="text-gray-400 flex-shrink-0" />
-                                                <span className="text-sm font-medium text-gray-400">Edit Target Black</span>
-                                              </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="left" className="text-xs max-w-[200px] text-center">
-                                              {isProcessApproved && req.processApprovedBy
-                                                ? <><span className="font-semibold">{req.processApprovedBy}</span> မှ In Process လုပ္ဆောင်နောက်လည့် ပြင်ဆင်ပြုမရပါ</>
-                                                : "Pending status တွင်သာပှ ပြင်ဆင်နိုင်"}
-                                            </TooltipContent>
-                                          </Tooltip>
-                                        </TooltipProvider>
-                                      )
-                                    )}
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">—</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile — keep existing card layout */}
-                <div className="md:hidden space-y-3">
-                  {requests.map(req => (
-                    <RequestCard
-                      key={req.id}
-                      req={req}
-                      onApprove={handleApprove}
-                      onCancel={handleCancel}
-                      onProcessApprove={handleProcessApprove}
-                      onToggleUrgent={handleToggleUrgent}
-                      onEditTargetBlack={handleEditTargetBlack}
-                      isProcessing={processingId === req.id}
-                      canApprove={canApprove}
-                      canCancel={canApprove || canProcessApprove || req.requestedBy === worker?.workerID}
-                      canProcessApprove={canProcessApprove}
-                      currentWorkerID={worker?.workerID}
-                    />
-                  ))}
-                </div>
-              </>
+              <div className="space-y-3">
+                {requests.map(req => (
+                  <RequestCard
+                    key={req.id}
+                    req={req}
+                    onApprove={handleApprove}
+                    onCancel={handleCancel}
+                    onProcessApprove={handleProcessApprove}
+                    onToggleUrgent={handleToggleUrgent}
+                    onEditTargetBlack={handleEditTargetBlack}
+                    isProcessing={processingId === req.id}
+                    canApprove={canApprove}
+                    canCancel={canApprove || canProcessApprove || req.requestedBy === worker?.workerID}
+                    canProcessApprove={canProcessApprove}
+                    currentWorkerID={worker?.workerID}
+                  />
+                ))}
+              </div>
             )}
           </>
         )}
@@ -1771,218 +1409,6 @@ export default function ApprovalCenter() {
           </>
         )}
       </main>
-
-      {/* Table Action Dialogs — for desktop table row actions */}
-      {tableActionReq && tableAction === "cancel" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-md shadow-red-500/30">
-                <XCircle size={20} className="text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Cancel Request</h3>
-                <p className="text-xs text-muted-foreground">Provide a reason for cancellation</p>
-              </div>
-            </div>
-            <textarea
-              rows={3}
-              value={tableActionCancelReason}
-              onChange={e => setTableActionCancelReason(e.target.value)}
-              placeholder="Enter cancellation reason..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 resize-none mb-4"
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <button onClick={() => { setTableActionReq(null); setTableAction(null); setTableActionCancelReason(""); }} className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-50">Go Back</button>
-              <button
-                disabled={tableActionCancelReason.trim() === ""}
-                onClick={async () => {
-                  await handleCancel(tableActionReq!.id, tableActionCancelReason.trim());
-                  setTableActionReq(null); setTableAction(null); setTableActionCancelReason("");
-                }}
-                className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >Confirm Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {tableActionReq && tableAction === "process" && (() => {
-        let snap: OrderSnapshot | null = null;
-        let act: ActionData | null = null;
-        try { snap = JSON.parse(tableActionReq.orderSnapshot); } catch { /* ignore */ }
-        try { if (tableActionReq.actionData) act = JSON.parse(tableActionReq.actionData); } catch { /* ignore */ }
-        const defaultQty = act?.usedQty ?? 0;
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-purple-500/30">
-                  <PlayCircle size={20} className="text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">Mark as In Process</h3>
-                  <p className="text-xs text-muted-foreground">{snap?.orderID} — {act?.jobNo}</p>
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="text-xs font-medium text-gray-700 mb-1 block">Process Qty (pcs)</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={snap?.qty ?? 9999}
-                  value={tableActionQty === "" ? defaultQty : tableActionQty}
-                  onChange={e => setTableActionQty(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
-                  autoFocus
-                />
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => { setTableActionReq(null); setTableAction(null); setTableActionQty(""); }} className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-50">Go Back</button>
-                <button
-                  onClick={async () => {
-                    const qty = tableActionQty === "" ? defaultQty : parseInt(tableActionQty);
-                    await handleProcessApprove(tableActionReq!.id, qty);
-                    setTableActionReq(null); setTableAction(null); setTableActionQty("");
-                  }}
-                  className="flex-1 bg-purple-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-purple-700"
-                >Confirm Process</button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {tableActionReq && tableAction === "approve" && (() => {
-        let snap: OrderSnapshot | null = null;
-        let act: ActionData | null = null;
-        try { snap = JSON.parse(tableActionReq.orderSnapshot); } catch { /* ignore */ }
-        try { if (tableActionReq.actionData) act = JSON.parse(tableActionReq.actionData); } catch { /* ignore */ }
-        const defaultQty = tableActionReq.processApprovedQty ?? act?.usedQty ?? 0;
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-md shadow-green-500/30">
-                  <CheckCircle2 size={20} className="text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">Approve Request</h3>
-                  <p className="text-xs text-muted-foreground">{snap?.orderID} — {act?.jobNo}</p>
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="text-xs font-medium text-gray-700 mb-1 block">Approved Qty (pcs)</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={snap?.qty ?? 9999}
-                  value={tableActionQty === "" ? defaultQty : tableActionQty}
-                  onChange={e => setTableActionQty(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400"
-                  autoFocus
-                />
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => { setTableActionReq(null); setTableAction(null); setTableActionQty(""); }} className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-50">Go Back</button>
-                <button
-                  onClick={async () => {
-                    const qty = tableActionQty === "" ? defaultQty : parseInt(tableActionQty);
-                    await handleApprove(tableActionReq!.id, qty);
-                    setTableActionReq(null); setTableAction(null); setTableActionQty("");
-                  }}
-                  className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700"
-                >Confirm Approve</button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {tableActionReq && tableAction === "edit" && (() => {
-        let act: ActionData | null = null;
-        try { if (tableActionReq.actionData) act = JSON.parse(tableActionReq.actionData); } catch { /* ignore */ }
-        const currentQty = act?.usedQty ?? 0;
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-              {!tableActionEditConfirm ? (
-                <>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/30">
-                      <Edit3 size={20} className="text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900">Edit Target Black</h3>
-                      <p className="text-xs text-muted-foreground">Current: <span className="font-semibold text-orange-600">{currentQty} pcs</span></p>
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">New Target Black Qty (pcs)</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={tableActionEditQty}
-                      onChange={e => setTableActionEditQty(e.target.value)}
-                      placeholder={String(currentQty)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-                      autoFocus
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => { setTableActionReq(null); setTableAction(null); setTableActionEditQty(""); }} className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-50">Cancel</button>
-                    <button
-                      disabled={!tableActionEditQty || parseInt(tableActionEditQty) === currentQty}
-                      onClick={() => setTableActionEditConfirm(true)}
-                      className="flex-1 bg-blue-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >Next</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-                      <AlertTriangle size={20} className="text-amber-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900">Confirm Edit</h3>
-                      <p className="text-xs text-muted-foreground">
-                        <span className="line-through text-red-400">{currentQty}</span>
-                        {" → "}
-                        <span className="font-bold text-green-600">{tableActionEditQty} pcs</span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <label className="text-xs font-medium text-gray-700 mb-1 block">Reason for Edit <span className="text-red-500">*</span></label>
-                    <textarea
-                      rows={2}
-                      value={tableActionEditRemark}
-                      onChange={e => setTableActionEditRemark(e.target.value)}
-                      placeholder="Enter reason for editing Target Black Qty..."
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 resize-none"
-                      autoFocus
-                    />
-                    {tableActionEditRemark.trim() === "" && <p className="text-[10px] text-red-500 mt-1">Remark is required.</p>}
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setTableActionEditConfirm(false)} className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-semibold hover:bg-gray-50">Go Back</button>
-                    <button
-                      disabled={tableActionEditRemark.trim() === ""}
-                      onClick={async () => {
-                        await handleEditTargetBlack(tableActionReq!.id, parseInt(tableActionEditQty), tableActionEditRemark.trim());
-                        setTableActionReq(null); setTableAction(null); setTableActionEditQty(""); setTableActionEditRemark(""); setTableActionEditConfirm(false);
-                      }}
-                      className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >Confirm</button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        );
-      })()}
     </AppLayout>
   );
 }

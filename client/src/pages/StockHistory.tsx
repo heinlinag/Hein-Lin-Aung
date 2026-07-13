@@ -41,25 +41,8 @@ function calcBoardFit(prodW: number, prodL: number, jobW: number, jobL: number):
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock";
-  submittedBy: string | null; createdAt: Date; outOfStockAt?: Date | null;
+  submittedBy: string | null; createdAt: Date;
 };
-
-/** Returns the estimated auto-delete date: outOfStockAt (or createdAt) + 13 months */
-function getAutoDeleteDate(order: Order): Date {
-  const base = order.outOfStockAt ? new Date(order.outOfStockAt) : new Date(order.createdAt);
-  const d = new Date(base);
-  d.setMonth(d.getMonth() + 13);
-  return d;
-}
-
-/** Returns urgency level based on days remaining until auto-delete */
-function getDeleteUrgency(deleteDate: Date): "critical" | "warning" | "normal" {
-  const now = new Date();
-  const daysLeft = Math.ceil((deleteDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (daysLeft <= 30) return "critical";
-  if (daysLeft <= 90) return "warning";
-  return "normal";
-}
 
 // ─── BoardSizeCalcPanel ─────────────────────────────────────────────────────────────────────────────
 function BoardSizeCalcPanel({ prodW, prodL, jobW, jobL, trackingId }: { prodW: number; prodL: number; jobW: string; jobL: string; trackingId?: string }) {
@@ -242,15 +225,15 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                 <p className="font-mono font-bold text-[10px]">{order.trackingId || "N/A"}</p>
               </div>
               <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
-                <p className="text-white/60 text-[9px] uppercase">Total Stock</p>
-                <p className="font-bold text-sm">{order.qty} <span className="text-[9px] font-normal">pcs</span></p>
+                <p className="text-white/60 text-[9px] uppercase">Available Qty</p>
+                <p className="font-bold text-sm">{availableQty} <span className="text-[9px] font-normal">pcs</span></p>
               </div>
             </div>
             <div className="mt-2 bg-white/10 rounded-lg px-2.5 py-1.5">
               <p className="text-white/60 text-[9px] uppercase">BQ</p>
               <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
             </div>
-
+            <p className="text-[9px] text-white/50 mt-1.5">(Stock: {order.qty} − In Process: {inProcessQty} = Available: {availableQty}) | Pending: {pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</p>
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
@@ -412,35 +395,13 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const createNotif = trpc.notifications.create.useMutation();
-  const reservedQtyQuery = trpc.pendingRequests.getReservedQty.useQuery({ orderId: order.id });
-  const reservedData = reservedQtyQuery.data;
-  const inProcessQty = reservedData?.inProcessQty ?? 0;
-  const pendingReservedQty = reservedData?.pendingQty ?? 0;
-  const totalReserved = reservedData?.totalReserved ?? 0;
-  // availableQty = Total Stock minus OTHER orders' reserved qty (pending + in-process)
-  // This does NOT include the current form's Target Black qty — that is "this order"
-  const otherOrdersReserved = totalReserved; // backend only counts existing DB requests, not the current form
-  const availableQty = Math.max(0, order.qty - otherOrdersReserved);
-  // Compute isInsufficientStock: check if this order's needed slit > availableQty
-  const isInsufficientStock = (() => {
-    const targetQty = parseInt(useQty);
-    if (!useQty || isNaN(targetQty) || targetQty <= 0) return false;
-    const jW = parseInt(boardSizeW);
-    const jL = parseInt(boardSizeL);
-    if (boardSizeW && boardSizeL && !isNaN(jW) && !isNaN(jL) && jW > 0 && jL > 0) {
-      const fit = calcBoardFit(order.sizeW, order.sizeL, jW, jL);
-      const pcsPerSlit = fit.piecesW * fit.piecesL;
-      if (pcsPerSlit > 0) {
-        const slitNeeded = Math.ceil(targetQty / pcsPerSlit);
-        return slitNeeded > availableQty;
-      }
-    }
-    // No board size yet — compare targetQty directly
-    return targetQty > availableQty;
-  })();
+  const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery({ orderId: order.id });
+  const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
+  const availableQty = Math.max(0, order.qty - inProcessQty);
   const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
   const pendingRequestsForOrder = (pendingRequestsQuery.data ?? []).filter((req: any) => req.orderID === order.orderID);
   const pendingRequestCount = pendingRequestsForOrder.length;
+
   const handleJobRequest = async () => {
     setJobError("");
     if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
@@ -583,15 +544,15 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                 <p className="font-mono font-bold text-[10px]">{order.trackingId || "N/A"}</p>
               </div>
               <div className="bg-white/10 rounded-lg px-2.5 py-1.5">
-                <p className="text-white/60 text-[9px] uppercase">Total Stock</p>
-                <p className="font-bold text-sm">{order.qty} <span className="text-[9px] font-normal">pcs</span></p>
+                <p className="text-white/60 text-[9px] uppercase">Available Qty</p>
+                <p className="font-bold text-sm">{availableQty} <span className="text-[9px] font-normal">pcs</span></p>
               </div>
             </div>
             <div className="mt-2 bg-white/10 rounded-lg px-2.5 py-1.5">
               <p className="text-white/60 text-[9px] uppercase">BQ</p>
               <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
             </div>
-
+            <p className="text-[9px] text-white/50 mt-1.5">(Stock: {order.qty} − In Process: {inProcessQty} = Available: {availableQty}) | Pending: {pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</p>
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
@@ -661,74 +622,20 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     ) : userLevel === "1" ? (
                       <p className="text-xs text-muted-foreground mt-1">This is your target request qty. Stock will be updated only after Level 1.1 processes it.</p>
                     ) : null}
-                    {/* Production Order pcs needed + available qty check */}
+                    {/* Production Order pcs needed calculation */}
                     {(() => {
                       const targetQty = parseInt(useQty);
                       const jW3 = parseInt(boardSizeW);
                       const jL3 = parseInt(boardSizeL);
                       if (!useQty || isNaN(targetQty) || targetQty <= 0) return null;
-                      // Show needed slit only if board size is provided
-                      const hasBoardSize = boardSizeW && boardSizeL && !isNaN(jW3) && !isNaN(jL3) && jW3 > 0 && jL3 > 0;
-                      let prodPcsNeeded: number | null = null;
-                      if (hasBoardSize) {
-                        const fit = calcBoardFit(order.sizeW, order.sizeL, jW3, jL3);
-                        const pcsPerSlit = fit.piecesW * fit.piecesL;
-                        if (pcsPerSlit > 0) prodPcsNeeded = Math.ceil(targetQty / pcsPerSlit);
-                      }
-                      // Use prodPcsNeeded as the slit qty to check against available, fallback to targetQty
-                      const slitNeeded = prodPcsNeeded ?? targetQty;
-                      const expectedRemaining = availableQty - slitNeeded;
-                      const isInsufficient = slitNeeded > availableQty;
-                      // Sync to outer scope via ref-like approach — store in data attr for button to read
-                      // (React IIFE pattern: we set a variable that the button JSX below can read)
+                      if (!boardSizeW || !boardSizeL || isNaN(jW3) || isNaN(jL3) || jW3 <= 0 || jL3 <= 0) return null;
+                      const fit = calcBoardFit(order.sizeW, order.sizeL, jW3, jL3);
+                      const pcsPerSlit = fit.piecesW * fit.piecesL;
+                      if (pcsPerSlit <= 0) return null;
+                      const prodPcsNeeded = Math.ceil(targetQty / pcsPerSlit);
                       return (
-                        <div className="mt-1.5 space-y-1.5">
-                          {prodPcsNeeded !== null && (
-                            <div className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 border ${
-                              isInsufficient ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"
-                            }`}>
-                              <span className={`text-xs font-semibold ${isInsufficient ? "text-red-700" : "text-blue-700"}`}>
-                                needed slit
-                              </span>
-                              <span className={`text-xs font-bold ${isInsufficient ? "text-red-800" : "text-blue-800"}`}>
-                                {prodPcsNeeded} pcs
-                              </span>
-                              <span className="text-xs text-muted-foreground">NPRM Modify Order</span>
-                            </div>
-                          )}
-                          <div className={`rounded-lg px-2.5 py-1.5 border space-y-1 ${
-                            isInsufficient ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"
-                          }`}>
-                            <div className={`text-[10px] leading-relaxed ${
-                              isInsufficient ? "text-red-700" : "text-foreground"
-                            }`}>
-                              <span className="font-semibold">Total Stock {order.qty} pcs</span>
-                              {prodPcsNeeded !== null && (
-                                <>
-                                  <span> − needed slit </span>
-                                  <span className="font-bold">{slitNeeded} pcs</span>
-                                  <span> NPRM Modify Order</span>
-                                </>
-                              )}
-                              <span> = Available Qty: </span>
-                              <span className={`font-bold ${
-                                isInsufficient ? "text-red-700" : "text-blue-700"
-                              }`}>{availableQty} pcs</span>
-                            </div>
-                            {isInsufficient && (
-                              <div className="text-[10px] text-red-700 font-semibold mt-1">
-                                ⚠ Expected Remaining: {expectedRemaining} pcs (insufficient!)
-                              </div>
-                            )}
-                          </div>
-                          {isInsufficient && (
-                            <div className="flex items-start gap-1.5 bg-red-100 border border-red-300 rounded-lg px-2.5 py-1.5">
-                              <span className="text-red-600 text-xs mt-0.5">⚠️</span>
-                              <p className="text-xs text-red-700 font-semibold">
-                                Insufficient stock! Need {slitNeeded} pcs but only {availableQty} pcs available. Reduce the target qty or wait for other orders to complete.
-                              </p>
-                            </div>
-                          )}
+                        <div className="mt-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5">
+                          <p className="text-xs text-blue-800 font-semibold">needed slit (<span className="font-bold">{prodPcsNeeded} pcs</span>) NPRM Modify Order</p>
                         </div>
                       );
                     })()}
@@ -754,7 +661,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     const qty = parseInt(useQty);
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
                     setShowJobConfirm(true);
-                  }} disabled={isInsufficientStock} className={`w-full text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:active:scale-100 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-purple-500/25" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-orange-500/25"}`}>
+                  }} className={`w-full text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-purple-500/25" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-orange-500/25"}`}>
                     <Clock size={14} /> Submit for Approval
                   </button>
                 ) : (
@@ -769,7 +676,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => setShowJobConfirm(false)} className="flex-1 border-2 border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">Cancel</button>
-                      <button onClick={handleJobRequest} disabled={submitRequest.isPending || isInsufficientStock} className={`flex-1 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
+                      <button onClick={handleJobRequest} disabled={submitRequest.isPending} className={`flex-1 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
                         {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
                         Confirm
                       </button>
@@ -1146,7 +1053,7 @@ export default function StockHistory() {
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-background z-10">
                   <tr className="border-b-2 border-border">
-                    {(["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","BQ","Date", activeTab === "out_of_stock" ? "Auto-Delete" : null,"Actions"].filter(Boolean) as string[]).map(h => (
+                    {["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","BQ","Date","Actions"].map(h => (
                       <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-4 bg-background">{h}</th>
                     ))}
                   </tr>
@@ -1183,27 +1090,6 @@ export default function StockHistory() {
                         <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono break-all leading-relaxed">{order.bqComment}</span>
                       </td>
                       <td className="py-3 pr-4 text-xs text-muted-foreground whitespace-nowrap">{new Date(order.createdAt).toLocaleString()}</td>
-                      {activeTab === "out_of_stock" && (() => {
-                        const deleteDate = getAutoDeleteDate(order);
-                        const urgency = getDeleteUrgency(deleteDate);
-                        const daysLeft = Math.ceil((deleteDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                        return (
-                          <td className="py-3 pr-4">
-                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ${
-                              urgency === "critical" ? "bg-red-100 text-red-700 border border-red-200" :
-                              urgency === "warning" ? "bg-amber-100 text-amber-700 border border-amber-200" :
-                              "bg-orange-50 text-orange-600 border border-orange-100"
-                            }`}>
-                              <Clock size={11} className="flex-shrink-0" />
-                              <span>{deleteDate.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}</span>
-                            </div>
-                            <p className={`text-xs mt-0.5 ${
-                              urgency === "critical" ? "text-red-500" :
-                              urgency === "warning" ? "text-amber-500" : "text-orange-400"
-                            }`}>{daysLeft > 0 ? `${daysLeft}d left` : "Overdue"}</p>
-                          </td>
-                        );
-                      })()}
                       <td className="py-3">
                         <div className="flex items-center gap-2">
                           {activeTab === "current" && (
@@ -1275,22 +1161,6 @@ export default function StockHistory() {
                   </div>
                   <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Tracking ID: <span className="font-mono font-semibold text-foreground">{order.trackingId || "N/A"}</span></p>
-                  {activeTab === "out_of_stock" && (() => {
-                    const deleteDate = getAutoDeleteDate(order);
-                    const urgency = getDeleteUrgency(deleteDate);
-                    const daysLeft = Math.ceil((deleteDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                    return (
-                      <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold ${
-                        urgency === "critical" ? "bg-red-100 text-red-700 border border-red-200" :
-                        urgency === "warning" ? "bg-amber-100 text-amber-700 border border-amber-200" :
-                        "bg-orange-50 text-orange-600 border border-orange-100"
-                      }`}>
-                        <Clock size={12} className="flex-shrink-0" />
-                        <span>Auto-delete: {deleteDate.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}</span>
-                        <span className="opacity-70">({daysLeft > 0 ? `${daysLeft}d left` : "Overdue"})</span>
-                      </div>
-                    );
-                  })()}
                   {activeTab === "current" && (
                     <button
                       onClick={() => setUsedUpdateOrder(order)}

@@ -43,7 +43,6 @@ export const orders = mysqlTable("orders", {
   qty: int("qty").notNull(),
   bqComment: text("bqComment").notNull(),
   status: mysqlEnum("status", ["current", "out_of_stock"]).default("current").notNull(),
-  outOfStockAt: timestamp("outOfStockAt"), // set when status changes to out_of_stock
   submittedBy: varchar("submittedBy", { length: 64 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

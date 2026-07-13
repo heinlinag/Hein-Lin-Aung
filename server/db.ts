@@ -1,4 +1,4 @@
-import { eq, desc, and, or, isNull, isNotNull, lte, inArray, sql as sqlExpr } from "drizzle-orm";
+import { eq, desc, and, sql as sqlExpr } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -164,7 +164,6 @@ export async function getAllOrders(status?: "current" | "out_of_stock") {
       submittedBy: workers.name,
       workerID: orders.submittedBy,
       createdAt: orders.createdAt,
-      outOfStockAt: orders.outOfStockAt,
     })
     .from(orders)
     .leftJoin(workers, eq(orders.submittedBy, workers.workerID));
@@ -201,11 +200,7 @@ export async function createOrder(data: InsertOrder) {
 export async function updateOrderStatus(id: number, status: "current" | "out_of_stock") {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const updateData: Partial<typeof orders.$inferInsert> = { status };
-  if (status === "out_of_stock") {
-    updateData.outOfStockAt = new Date();
-  }
-  await db.update(orders).set(updateData).where(eq(orders.id, id));
+  await db.update(orders).set({ status }).where(eq(orders.id, id));
 }
 
 export async function deleteOrder(id: number) {
@@ -407,49 +402,8 @@ export async function getInProcessQtyForOrder(orderId: number): Promise<number> 
   return total;
 }
 
-/// Returns total reserved qty for a given orderId: pending + in-process (processApproved) used_update requests
-export async function getReservedQtyForOrder(orderId: number): Promise<{ pendingQty: number; inProcessQty: number; totalReserved: number }> {
-  const db = await getDb();
-  if (!db) return { pendingQty: 0, inProcessQty: 0, totalReserved: 0 };
-  const rows = await db
-    .select()
-    .from(pendingRequests)
-    .where(and(
-      eq(pendingRequests.orderId, orderId),
-      eq(pendingRequests.type, "used_update"),
-      eq(pendingRequests.status, "pending")
-    ));
-  // Also get in-process (processApproved but not yet fully approved)
-  const inProcessRows = await db
-    .select()
-    .from(pendingRequests)
-    .where(and(
-      eq(pendingRequests.orderId, orderId),
-      eq(pendingRequests.type, "used_update"),
-      eq(pendingRequests.status, "approved")
-    ));
-  let pendingQty = 0;
-  for (const row of rows) {
-    try {
-      const action = JSON.parse(row.actionData ?? "{}");
-      if (typeof action.usedQty === "number") pendingQty += action.usedQty;
-    } catch { /* ignore */ }
-  }
-  let inProcessQty = 0;
-  for (const row of inProcessRows) {
-    if (typeof row.processApprovedQty === "number") inProcessQty += row.processApprovedQty;
-    else if (typeof row.approvedQty === "number") inProcessQty += row.approvedQty;
-    else {
-      try {
-        const action = JSON.parse(row.actionData ?? "{}");
-        if (typeof action.usedQty === "number") inProcessQty += action.usedQty;
-      } catch { /* ignore */ }
-    }
-  }
-  return { pendingQty, inProcessQty, totalReserved: pendingQty + inProcessQty };
-}
-
 // ─── In-App Notifications ─────────────────────────────────────────────────────
+
 const MAX_NOTIFICATIONS = 200;
 
 export async function createAppNotification(data: Omit<InsertAppNotification, "id" | "createdAt" | "readBy">): Promise<void> {
@@ -543,50 +497,4 @@ export async function getRequestEditHistory(requestId: number) {
   return db.select().from(requestEditHistory)
     .where(eq(requestEditHistory.requestId, requestId))
     .orderBy(desc(requestEditHistory.editedAt));
-}
-
-// ─── Auto-Delete Expired Out of Stock Orders ─────────────────────────────────
-// Deletes orders that have been out_of_stock for more than 13 months
-export async function deleteExpiredOutOfStockOrders(): Promise<{ deletedCount: number }> {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-
-  // Calculate the cutoff date: 13 months ago from now
-  const cutoffDate = new Date();
-  cutoffDate.setMonth(cutoffDate.getMonth() - 13);
-
-  // Find orders that are out_of_stock and outOfStockAt is older than 13 months
-  // Also handle legacy records where outOfStockAt is null but status is out_of_stock
-  // (those were set before the column existed — use createdAt as fallback)
-  const expiredOrders = await db
-    .select({ id: orders.id })
-    .from(orders)
-    .where(
-      and(
-        eq(orders.status, "out_of_stock"),
-        or(
-          // Records with outOfStockAt set and older than 13 months
-          and(
-            isNotNull(orders.outOfStockAt),
-            lte(orders.outOfStockAt, cutoffDate)
-          ),
-          // Legacy records: outOfStockAt is null, use createdAt as fallback
-          and(
-            isNull(orders.outOfStockAt),
-            lte(orders.createdAt, cutoffDate)
-          )
-        )
-      )
-    );
-
-  if (expiredOrders.length === 0) {
-    return { deletedCount: 0 };
-  }
-
-  const expiredIds = expiredOrders.map(o => o.id);
-
-  // Delete the expired orders
-  await db.delete(orders).where(inArray(orders.id, expiredIds));
-
-  return { deletedCount: expiredIds.length };
 }

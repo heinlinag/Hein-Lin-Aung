@@ -1249,11 +1249,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Frontend: removed conflict dialog (no longer needed)
 
 ## Maintenance Mode Feature (Jun 30)
-- [x] Schema: add systemSettings table with maintenanceMode boolean and maintenanceMessage text
-- [x] Server: add system.getMaintenanceStatus (public) and system.setMaintenanceMode (admin-only) procedures
-- [x] Admin Settings: add Maintenance On/Off toggle card
-- [x] Frontend: Maintenance page UI matching screenshot (illustration, Myanmar text, Restart button)
-- [x] Frontend: AppLayout global maintenance check - show maintenance page for non-admin users when ON
+- [ ] Schema: add systemSettings table with maintenanceMode boolean and maintenanceMessage text
+- [ ] Server: add system.getMaintenanceStatus (public) and system.setMaintenanceMode (admin-only) procedures
+- [ ] Admin Settings: add Maintenance On/Off toggle card
+- [ ] Frontend: Maintenance page UI matching screenshot (illustration, Myanmar text, Restart button)
+- [ ] Frontend: AppLayout global maintenance check - show maintenance page for non-admin users when ON
 
 ## Maintenance Mode Feature (Jun 30)
 - [x] Schema: add systemSettings table (key-value store for app config)
@@ -1297,13 +1297,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Database: Add migration SQL for new table
 - [x] Backend: Create editTargetBlackQty procedure (allow all users to edit)
 - [x] Backend: Create getRequestEditHistory procedure to fetch edit history
-- [x] Frontend: Add Edit button to NPRM Modify Order request card (mobile + desktop)
-- [x] Frontend: Create Edit Modal with Target Black Qty input field + Remark textarea
-- [x] Frontend: Display edit history below request details (InlineEditHistory component)
-- [x] Frontend: Validate edit permissions (pending only, not In Process/Approved/Cancelled)
-- [x] Testing: Verify edit functionality works for all user levels (604 tests passing)
-- [x] Testing: Verify edit history displays correctly
-- [x] Testing: Verify all tests pass (604/604)
+- [ ] Frontend: Add Edit button to NPRM Modify Order request card
+- [ ] Frontend: Create Edit Modal with Target Black Qty input field
+- [ ] Frontend: Display edit history below request details (edited by, date, time, old qty, new qty)
+- [ ] Frontend: Validate edit permissions and show appropriate UI
+- [ ] Testing: Verify edit functionality works for all user levels
+- [ ] Testing: Verify edit history displays correctly
+- [ ] Testing: Verify all tests pass
 
 ## NPRM Modify Order Filter Update (Jul 10)
 - [x] Convert status tabs (Pending/Approved/Cancelled/All) to Select dropdown
@@ -1324,57 +1324,3 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Filter displayed requests by Job No match (partial/full)
 - [x] Show "No results" state when no match found
 - [x] Clear search button (X icon)
-
-## NPRM Modify Order - Table Layout Redesign like Stock History (Jul 10)
-- [x] Replace card layout with horizontal data table (like Stock History page)
-- [x] Table columns: Status, Production Order, Flute Type, Size, BQ, Current Qty, Job No, Master Card, Board Size, Scores, Target Black, In Process Qty, Balance, Request By, Actions
-- [x] Preserve sticky filter bar (Status Select, Time filter, Search bar)
-- [x] Preserve Edit Target Black feature in Actions column dropdown
-- [x] Preserve Update Info dropdown (Approve/Cancel/Process-Approve) in Actions column
-- [x] Preserve status badges (Pending/In Process/Approved/Cancelled) in Status column
-- [x] Preserve Urgent badge in table row
-- [x] Mobile: card layout preserved, desktop: table layout
-- [x] Table action dialogs: Cancel, Process, Approve, Edit Target Black
-
-## Collapsible Mobile Card Layout for NPRM Modify Order (Jul 12)
-- [x] Add collapsed/expanded state to each mobile card
-- [x] Default: collapsed (show only header info: Status badge, Production Order, Urgent badge, Request By)
-- [x] Tap to expand: show full order details (ORDER DESCRIPTION section, edit history, action buttons)
-- [x] Smooth expand/collapse animation (transition height or max-height)
-- [x] Visual indicator (chevron icon) to show collapsed/expanded state
-- [x] Preserve all existing features (Edit, Approve, Cancel, Process) in expanded state
-
-## Auto-Delete Out of Stock Records After 13 Months (Jul 12)
-- [x] Read Heartbeat skill to understand periodic job setup
-- [x] Check schema for outOfStockAt or equivalent timestamp field in stockHistory/stockItems table
-- [x] Add outOfStockAt timestamp column if not present, with migration SQL
-- [x] Create Heartbeat scheduled job: daily check, delete records where outOfStockAt < now - 13 months (task_uid: MciGihWaTXWqH6fAq4gwyM, cron: 0 0 1 * * * UTC)
-- [x] Add tRPC procedure or server-side function for the deletion logic (deleteExpiredOutOfStockOrders in db.ts + /api/scheduled/cleanup-out-of-stock endpoint)
-- [x] Test the deletion logic with a unit test (604/604 tests passing)
-
-## Auto-Delete Warning Label on Out of Stock Items (Jul 12)
-- [x] Expose outOfStockAt field in tRPC listOrders response (added to getAllOrders select in db.ts)
-- [x] Calculate estimated delete date = outOfStockAt (or createdAt if null) + 13 months (getAutoDeleteDate helper)
-- [x] Stock History Out of Stock tab: show warning label/badge on each row with estimated delete date
-- [x] Warning label: amber/orange/red color based on urgency (<=30d = red, <=90d = amber, else orange), clock icon, "Auto-delete: [date]" format
-- [x] Mobile card view: show warning label in card (below Tracking ID)
-- [x] Desktop table view: show "Auto-Delete" column with date badge + days remaining
-- [x] Test: verify date calculation is correct (604/604 tests passing)
-
-## NPRM Modify Order Desktop Table Redesign (Jul 12)
-- [x] Reduce 15 columns to a cleaner 6-column grouped layout — Status, Order Info, Job Details, Qty Summary, Requested By, Actions
-- [x] Fix BQ / Master Card / Scores text overflow — truncate with tooltip on hover
-- [x] Use compact badge-style cells for Flute, Size, Qty, Status (bordered rounded badges)
-- [x] Group "Job Info" columns (Job No, Master Card, Board Size, Scores, Target Black) into single "Job Details" cell with label+value rows
-- [x] Make table horizontally scrollable with minWidth:900px, rounded border container
-- [x] Improve Actions column — kept dropdown but with cleaner "Action" button label
-- [x] Ensure readable on Computer (1920px), Desktop (1440px), Laptop (1280px), Tablet (1024px) — 604/604 tests passing
-
-## Purchase Order Form — Available Qty & Needed Slit Real-time Check (Jul 12)
-- [x] Backend: add getReservedQtyForOrder procedure — sums pending + in-process NPRM used_update requests for same orderId (db.ts + routers.ts getReservedQty)
-- [x] Frontend: in Purchase Order form, show "needed slit: X pcs" = ceil(targetBlack / pcsPerSlit) in real-time as user types
-- [x] Frontend: show "Available Qty: Y pcs" = order.qty - totalReserved (pending + in-process orders)
-- [x] Frontend: show "Expected remaining: Z pcs" = availableQty - neededSlit
-- [x] Frontend: show red warning if neededSlit > availableQty (insufficient stock) with detailed message
-- [x] Frontend: header subtitle shows Total Stock / Reserved breakdown / Available Qty
-- [x] Test: 604/604 tests passing
