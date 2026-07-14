@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, History, CheckCircle2, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell, FlaskConical,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -26,8 +26,9 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/submit-order",    label: "Submit Order",    icon: <ClipboardList size={18} /> },
   { href: "/stock-history",   label: "Stock History",   icon: <Package size={18} /> },
   { href: "/usage-history",   label: "Usage History",   icon: <History size={18} /> },
-  { href: "/approval-center", label: "NPRM Modify Order", icon: <CheckCircle2 size={18} /> },
-  { href: "/qr-scanner",      label: "QR Scanner",      icon: <ScanLine size={18} /> },
+  { href: "/approval-center",  label: "NPRM Modify Order",  icon: <CheckCircle2 size={18} /> },
+  { href: "/customer-sample",  label: "Customer Sample",   icon: <FlaskConical size={18} /> },
+  { href: "/qr-scanner",       label: "QR Scanner",         icon: <ScanLine size={18} /> },
   { href: "/chat",            label: "Messages",        icon: <MessageCircle size={18} /> },
   { href: "/notifications",   label: "Notifications",   icon: <Bell size={18} /> },
   { href: "/admin",           label: "Admin Panel",     icon: <ChevronRight size={18} />, adminOnly: true },
@@ -112,6 +113,16 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     { refetchInterval: 30000 }
   );
   const pendingCount = (pendingQuery.data ?? []).length;
+
+  const samplePendingQuery = trpc.customerSamples.list.useQuery(
+    { status: "pending" },
+    { refetchInterval: 30000 }
+  );
+  const sampleProgressQuery = trpc.customerSamples.list.useQuery(
+    { status: "progress" },
+    { refetchInterval: 30000 }
+  );
+  const sampleCount = (samplePendingQuery.data?.length ?? 0) + (sampleProgressQuery.data?.length ?? 0);
 
   const unreadMsgQuery = trpc.chat.getUnreadCount.useQuery(
     { workerID: worker?.workerID ?? "" },
@@ -296,6 +307,11 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               {item.href === "/approval-center" && pendingCount > 0 && (
                 <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
                   {pendingCount > 99 ? "99+" : pendingCount}
+                </span>
+              )}
+              {item.href === "/customer-sample" && sampleCount > 0 && (
+                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
+                  {sampleCount > 99 ? "99+" : sampleCount}
                 </span>
               )}
               {item.href === "/chat" && unreadMsgCount > 0 && (
