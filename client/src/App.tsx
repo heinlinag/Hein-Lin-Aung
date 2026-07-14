@@ -14,6 +14,7 @@ import AdminPanel from "./pages/AdminPanel";
 import UsageHistory from "./pages/UsageHistory";
 import Login from "./pages/Login";
 import ApprovalCenter from "./pages/ApprovalCenter";
+import CustomerSample from "./pages/CustomerSample";
 import Documentation from "./pages/Documentation";
 import SystemStatus from "./pages/SystemStatus";
 import FAQ from "./pages/FAQ";
@@ -87,6 +88,13 @@ function GeoRestrictedRouter() {
               <Route path="/usage-history">
                 <LoginGate>
                   <UsageHistory />
+                </LoginGate>
+              </Route>
+
+              {/* Customer Sample */}
+              <Route path="/customer-sample">
+                <LoginGate>
+                  <CustomerSample />
                 </LoginGate>
               </Route>
 

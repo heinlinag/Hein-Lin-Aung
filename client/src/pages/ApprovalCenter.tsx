@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, Flag, Edit3, Calendar, FlaskConical, Printer, Truck, PackageCheck } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Loader2, RefreshCw, Trash2, Zap, Info, AlertTriangle, PlayCircle, AlertCircle, MoreVertical, Flag, Edit3, Calendar } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { ActionHistoryCard, type ActionHistoryEvent } from "@/components/ActionHistoryCard";
@@ -823,21 +823,7 @@ export default function ApprovalCenter() {
 
   const allRequests = (requestsQuery.data ?? []) as unknown as PendingRequest[];
 
-  // Customer Samples
-  const samplesQuery = trpc.customerSamples.list.useQuery({}, { refetchInterval: 10000 });
-  const updateSampleStatus = trpc.customerSamples.updateStatus.useMutation();
-  const [sampleStatusFilter, setSampleStatusFilter] = useState<"pending" | "progress" | "delivery" | "all">("pending");
-  const [updatingSampleId, setUpdatingSampleId] = useState<number | null>(null);
-  const allSamples = (samplesQuery.data ?? []) as Array<{
-    id: number; productionOrderID: string; trackingId: string | null; fluteType: string;
-    sizeW: number; sizeL: number; bqComment: string; currentQty: number;
-    customerName: string; remark: string | null; deliveryMold: string; deliveryMoldCustom: string | null;
-    status: string; requestedBy: string; workerName: string;
-    progressBy: string | null; progressAt: Date | null;
-    deliveryBy: string | null; deliveryAt: Date | null;
-    createdAt: Date;
-  }>;
-  const filteredSamples = sampleStatusFilter === "all" ? allSamples : allSamples.filter(s => s.status === sampleStatusFilter);
+
   
   // Time filter helper
   const getTimeFilterRange = (filter: string): { start: Date; end: Date } | null => {
@@ -1340,8 +1326,8 @@ export default function ApprovalCenter() {
           </>
         )}
 
-        {/* ─── Sending Prayers Customer Sample Section ─────────────────── */}
-        <div className="mt-8">
+        {/* Customer Sample moved to /customer-sample page */}
+        {false && <div className="mt-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <FlaskConical size={16} className="text-white" />

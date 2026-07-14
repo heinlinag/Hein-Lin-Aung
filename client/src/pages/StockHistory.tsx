@@ -840,7 +840,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                             title: "New Customer Sample Request",
                             body: `Sample request for ${order.orderID} — Customer: ${sampleCustomerName}`,
                             type: "approval",
-                            url: "/approval-center",
+                            url: "/customer-sample",
                             tag: "sample-" + order.orderID,
                             orderID: order.orderID,
                             requireInteraction: true,

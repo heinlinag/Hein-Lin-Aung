@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp, MessageCircle, Info } from "lucide-react";
+import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp, MessageCircle, Info, FlaskConical } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
@@ -62,6 +62,16 @@ const baseFeatures = [
     btnLabel: "View Requests",
     showBadge: true,
     accentColor: "orange",
+  },
+  {
+    icon: <FlaskConical size={28} className="text-white" />,
+    title: "Customer Sample",
+    description: "Manage customer sample requests and track delivery status.",
+    href: "/customer-sample",
+    gradient: "from-emerald-400 to-teal-600",
+    shadowColor: "shadow-emerald-500/20",
+    btnLabel: "View Samples",
+    accentColor: "emerald",
   },
   {
     icon: <MessageCircle size={28} className="text-white" />,

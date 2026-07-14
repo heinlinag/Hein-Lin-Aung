@@ -11,7 +11,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/useMobile";
-import { ClipboardList, History, Settings2, Menu } from "lucide-react";
+import { ClipboardList, History, Settings2, Menu, FlaskConical } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const menuItems = [
   { icon: ClipboardList, label: "Submit Order", path: "/submit-order" },
   { icon: History, label: "Stock History", path: "/stock-history" },
+  { icon: FlaskConical, label: "Customer Sample", path: "/customer-sample" },
   { icon: Settings2, label: "Admin", path: "/admin" },
 ];
 
