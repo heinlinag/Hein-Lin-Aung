@@ -773,7 +773,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                 {/* Sample Qty */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Sample Qty (pcs) <span className="text-destructive">*</span></label>
-                  <input type="number" min={1} value={sampleQty} onChange={e => { const v = e.target.value; setSampleQty(v === "" ? "" : Math.max(1, parseInt(v) || 1)); setSampleError(""); }} placeholder="e.g. 5" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <input type="number" min={1} step={1} value={sampleQty} onChange={e => { const v = e.target.value; if (v === "") { setSampleQty(""); setSampleError(""); return; } const n = parseInt(v, 10); if (!isNaN(n) && n >= 1) { setSampleQty(n); setSampleError(""); } }} onKeyDown={e => { if (["-", "+", "e", "E", ".", ","].includes(e.key)) e.preventDefault(); }} onPaste={e => { const text = e.clipboardData.getData("text"); if (!/^[0-9]+$/.test(text)) e.preventDefault(); }} placeholder="e.g. 5" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
                 {/* Remark */}
                 <div>
