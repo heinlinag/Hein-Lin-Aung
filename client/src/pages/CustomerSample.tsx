@@ -78,6 +78,7 @@ function printSampleLabel(sample: SampleRecord) {
 
   <div class="section">
     <div class="section-title">Sample Details</div>
+    <div class="row"><span class="label">Customer Name :</span><span class="value">${sample.customerName.toUpperCase()}</span></div>
     <div class="row"><span class="label">Production Order :</span><span class="value">${sample.productionOrderID.toUpperCase()}</span></div>
     <div class="row"><span class="label">Board Size :</span><span class="value">(W) ${sample.sizeW} × (L) ${sample.sizeL} mm</span></div>
     ${sample.remark ? `<div class="row"><span class="value" style="font-size:13pt;">${sample.remark.toUpperCase()}</span></div>` : ""}
