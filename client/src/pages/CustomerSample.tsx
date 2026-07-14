@@ -38,25 +38,71 @@ function printSampleLabel(sample: SampleRecord) {
     sample.deliveryMold === "send_to_pp1"
       ? "SEND TO PP1"
       : (sample.deliveryMoldCustom ?? "CUSTOM").toUpperCase();
-  win.document.write(`<!DOCTYPE html><html><head><title>Sample Label</title><style>
-    @page { size: A4; margin: 20mm; }
-    body { font-family: Arial, sans-serif; font-size: 14pt; color: #000; }
-    h1 { font-size: 22pt; text-align: center; border-bottom: 3px solid #000; padding-bottom: 8px; margin-bottom: 20px; }
-    .row { display: flex; gap: 12px; margin-bottom: 14px; }
-    .label { font-weight: bold; min-width: 200px; text-transform: uppercase; }
-    .value { font-size: 16pt; font-weight: bold; }
-    .section { border: 2px solid #000; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
-  </style></head><body>
-    <h1>ABOUT SAMPLE FOR</h1>
-    <div class="section">
-      <div class="row"><span class="label">CUSTOMER NAME :</span><span class="value">${sample.customerName.toUpperCase()}</span></div>
-      <div class="row"><span class="label">PRODUCTION ORDER :</span><span class="value">${sample.productionOrderID.toUpperCase()}</span></div>
-      <div class="row"><span class="label">BOARD SIZE :</span><span class="value">${sample.sizeW} X ${sample.sizeL} MM</span></div>
-      ${sample.remark ? `<div class="row"><span class="label">REMARK :</span><span class="value">${sample.remark.toUpperCase()}</span></div>` : ""}
-      <div class="row"><span class="label">DELIVERY :</span><span class="value">${delivery}</span></div>
+  const logoUrl = `${window.location.origin}/manus-storage/gspp_logo_new_2db75f16.png`;
+  const barcodeId = "barcode-" + sample.productionOrderID.replace(/[^A-Za-z0-9]/g, "");
+  win.document.write(`<!DOCTYPE html><html><head><title>Sample Label — ${sample.productionOrderID}</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
+  <style>
+    @page { size: A4; margin: 15mm 20mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; background: #fff; }
+    .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 16px; }
+    .header-logo { height: 56px; width: auto; object-fit: contain; }
+    .header-title { text-align: center; flex: 1; }
+    .header-title h1 { font-size: 20pt; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+    .header-title p { font-size: 9pt; color: #555; margin-top: 2px; }
+    .barcode-wrap { text-align: right; }
+    .barcode-wrap svg { max-width: 180px; }
+    .barcode-wrap p { font-size: 8pt; color: #555; margin-top: 2px; }
+    .section { border: 2px solid #222; border-radius: 6px; padding: 14px 18px; margin-bottom: 14px; }
+    .section-title { font-size: 8pt; font-weight: bold; text-transform: uppercase; color: #666; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+    .row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+    .row:last-child { margin-bottom: 0; }
+    .label { font-weight: bold; font-size: 9pt; text-transform: uppercase; color: #444; min-width: 160px; flex-shrink: 0; }
+    .value { font-size: 14pt; font-weight: 900; color: #000; }
+    .footer { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 8px; display: flex; justify-content: space-between; font-size: 8pt; color: #888; }
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  </style>
+</head><body>
+  <div class="header">
+    <img class="header-logo" src="${logoUrl}" alt="GSPP Logo" />
+    <div class="header-title">
+      <h1>About Sample For</h1>
+      <p>Customer Sample Delivery Label</p>
     </div>
-    <script>window.onload=function(){window.print();}<\/script>
-  </body></html>`);
+    <div class="barcode-wrap">
+      <svg id="${barcodeId}"></svg>
+      <p>Production Order</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Sample Details</div>
+    <div class="row"><span class="label">Customer Name :</span><span class="value">${sample.customerName.toUpperCase()}</span></div>
+    <div class="row"><span class="label">Production Order :</span><span class="value">${sample.productionOrderID.toUpperCase()}</span></div>
+    <div class="row"><span class="label">Board Size :</span><span class="value">${sample.sizeW} X ${sample.sizeL} MM</span></div>
+    ${sample.remark ? `<div class="row"><span class="label">Remark :</span><span class="value">${sample.remark.toUpperCase()}</span></div>` : ""}
+    <div class="row"><span class="label">Delivery :</span><span class="value">${delivery}</span></div>
+  </div>
+
+  <div class="footer">
+    <span>Printed: ${new Date().toLocaleString()}</span>
+    <span>GSPP Stock Management System</span>
+  </div>
+
+  <script>
+    window.onload = function() {
+      JsBarcode("#${barcodeId}", "${sample.productionOrderID}", {
+        format: "CODE128",
+        width: 2,
+        height: 50,
+        displayValue: false,
+        margin: 0
+      });
+      setTimeout(function(){ window.print(); }, 300);
+    };
+  <\/script>
+</body></html>`);
   win.document.close();
 }
 
