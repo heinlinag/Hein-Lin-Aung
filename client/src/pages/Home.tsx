@@ -72,6 +72,7 @@ const baseFeatures = [
     shadowColor: "shadow-emerald-500/20",
     btnLabel: "View Samples",
     accentColor: "emerald",
+    showSampleBadge: true,
   },
   {
     icon: <MessageCircle size={28} className="text-white" />,
@@ -147,6 +148,16 @@ export default function Home() {
     { refetchInterval: 30000 }
   );
   const pendingCount = (pendingQuery.data ?? []).length;
+
+  const samplePendingQuery = trpc.customerSamples.list.useQuery(
+    { status: "pending" },
+    { refetchInterval: 30000 }
+  );
+  const sampleProgressQuery = trpc.customerSamples.list.useQuery(
+    { status: "progress" },
+    { refetchInterval: 30000 }
+  );
+  const sampleCount = (samplePendingQuery.data?.length ?? 0) + (sampleProgressQuery.data?.length ?? 0);
 
   const unreadMsgQuery = trpc.chat.getUnreadCount.useQuery(
     { workerID: worker?.workerID ?? "" },
@@ -297,6 +308,12 @@ export default function Home() {
                 {f.showBadge && pendingCount > 0 && (
                   <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-lg notif-badge z-10">
                     {pendingCount > 99 ? "99+" : pendingCount}
+                  </span>
+                )}
+                {/* Badge on Customer Sample */}
+                {(f as { showSampleBadge?: boolean }).showSampleBadge && sampleCount > 0 && (
+                  <span className="absolute top-3 right-3 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-lg notif-badge z-10">
+                    {sampleCount > 99 ? "99+" : sampleCount}
                   </span>
                 )}
                 {/* Badge on Messages */}
