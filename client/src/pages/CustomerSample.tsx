@@ -56,6 +56,7 @@ function printSampleLabel(sample: SampleRecord) {
     .barcode-wrap { text-align: right; }
     .barcode-wrap svg { max-width: 180px; }
     .barcode-wrap p { font-size: 8pt; color: #555; margin-top: 2px; }
+    .barcode-text { font-size: 10pt; font-weight: bold; color: #000; margin-top: 4px; font-family: monospace; letter-spacing: 1px; }
     .section { border: 2px solid #222; border-radius: 6px; padding: 14px 18px; margin-bottom: 14px; }
     .section-title { font-size: 8pt; font-weight: bold; text-transform: uppercase; color: #666; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
     .row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
@@ -75,6 +76,7 @@ function printSampleLabel(sample: SampleRecord) {
     <div class="barcode-wrap">
       <svg id="${barcodeId}"></svg>
       <p>Tracking ID</p>
+      <div class="barcode-text">${trackingId}</div>
     </div>
   </div>
 
