@@ -533,3 +533,51 @@ export async function getRequestEditHistory(requestId: number) {
     .where(eq(requestEditHistory.requestId, requestId))
     .orderBy(desc(requestEditHistory.editedAt));
 }
+
+// ─── Customer Samples ─────────────────────────────────────────────────────────
+import { customerSamples, InsertCustomerSample, CustomerSample } from "../drizzle/schema";
+
+export async function createCustomerSample(data: InsertCustomerSample): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(customerSamples).values(data);
+  const res = result as unknown as [{ insertId: number }];
+  return res[0]?.insertId ?? 0;
+}
+
+export async function getCustomerSamples(filter?: { status?: "pending" | "progress" | "delivery" }): Promise<CustomerSample[]> {
+  const db = await getDb();
+  if (!db) return [];
+  if (filter?.status) {
+    return db.select().from(customerSamples)
+      .where(eq(customerSamples.status, filter.status))
+      .orderBy(desc(customerSamples.createdAt));
+  }
+  return db.select().from(customerSamples).orderBy(desc(customerSamples.createdAt));
+}
+
+export async function getCustomerSampleById(id: number): Promise<CustomerSample | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(customerSamples).where(eq(customerSamples.id, id));
+  return rows[0] ?? null;
+}
+
+export async function updateCustomerSampleStatus(
+  id: number,
+  status: "progress" | "delivery",
+  workerName: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const now = new Date();
+  if (status === "progress") {
+    await db.update(customerSamples)
+      .set({ status, progressBy: workerName, progressAt: now })
+      .where(eq(customerSamples.id, id));
+  } else {
+    await db.update(customerSamples)
+      .set({ status, deliveryBy: workerName, deliveryAt: now })
+      .where(eq(customerSamples.id, id));
+  }
+}

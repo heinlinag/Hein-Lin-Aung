@@ -376,3 +376,35 @@ export const systemSettings = mysqlTable("systemSettings", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 export type SystemSetting = typeof systemSettings.$inferSelect;
+
+// Customer Samples table — tracks sample requests sent to customers from Production Orders
+export const customerSamples = mysqlTable("customerSamples", {
+  id: int("id").autoincrement().primaryKey(),
+  // Production Order reference
+  orderId: int("orderId").notNull(),              // references orders.id
+  productionOrderID: varchar("productionOrderID", { length: 64 }).notNull(),  // Production Order string (e.g. A-1181)
+  trackingId: varchar("trackingId", { length: 64 }),      // Tracking ID from order
+  fluteType: varchar("fluteType", { length: 64 }).notNull(),
+  sizeW: int("sizeW").notNull(),                  // Board Size W (auto from order)
+  sizeL: int("sizeL").notNull(),                  // Board Size L (auto from order)
+  bqComment: text("bqComment").notNull(),         // BQ from order
+  currentQty: int("currentQty").notNull(),        // snapshot of qty at request time
+  // Sample request fields
+  customerName: varchar("customerName", { length: 256 }).notNull(),
+  remark: text("remark"),
+  deliveryMold: mysqlEnum("deliveryMold", ["send_to_pp1", "custom"]).notNull(),
+  deliveryMoldCustom: varchar("deliveryMoldCustom", { length: 256 }), // when deliveryMold = custom
+  // Workflow status
+  status: mysqlEnum("status", ["pending", "progress", "delivery"]).default("pending").notNull(),
+  // Requester info
+  requestedBy: varchar("requestedBy", { length: 64 }).notNull(),   // workerID
+  workerName: varchar("workerName", { length: 128 }).notNull(),
+  // Progress / Delivery tracking
+  progressBy: varchar("progressBy", { length: 128 }),
+  progressAt: timestamp("progressAt"),
+  deliveryBy: varchar("deliveryBy", { length: 128 }),
+  deliveryAt: timestamp("deliveryAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type CustomerSample = typeof customerSamples.$inferSelect;
+export type InsertCustomerSample = typeof customerSamples.$inferInsert;

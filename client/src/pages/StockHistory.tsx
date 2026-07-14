@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock } from "lucide-react";
+import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock, FlaskConical, Truck, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -396,7 +396,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
 function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSuccess }: {
   order: Order; workerID: string; userLevel: string; onClose: () => void; onSuccess: () => void;
 }) {
-  const [step, setStep] = useState<"choose" | "job" | "old_stock">("choose");
+  const [step, setStep] = useState<"choose" | "job" | "old_stock" | "sample">("choose");
   const [jobNo, setJobNo] = useState("");
   const [useQty, setUseQty] = useState("");
   const [jobError, setJobError] = useState("");
@@ -407,6 +407,14 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const [boardSizeL, setBoardSizeL] = useState("");
   const [scores, setScores] = useState("");
   const [showPermissionDenied, setShowPermissionDenied] = useState(false);
+  // Sample request state
+  const [sampleCustomerName, setSampleCustomerName] = useState("");
+  const [sampleRemark, setSampleRemark] = useState("");
+  const [sampleDeliveryMold, setSampleDeliveryMold] = useState<"send_to_pp1" | "custom">("send_to_pp1");
+  const [sampleDeliveryCustom, setSampleDeliveryCustom] = useState("");
+  const [sampleError, setSampleError] = useState("");
+  const [showSampleConfirm, setShowSampleConfirm] = useState(false);
+  const createSample = trpc.customerSamples.create.useMutation();
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const createNotif = trpc.notifications.create.useMutation();
@@ -580,6 +588,10 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform"><Zap size={16} className="text-white" /></div>
                   <div><p className="text-sm font-bold text-foreground">NPRM Modify Order</p><p className="text-xs text-muted-foreground">Use for a specific job order</p></div>
                 </button>
+                <button onClick={() => setStep("sample")} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-emerald-400 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50/50 transition-all text-left group shadow-sm">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform"><FlaskConical size={16} className="text-white" /></div>
+                  <div><p className="text-sm font-bold text-foreground">Request Sample</p><p className="text-xs text-muted-foreground">Send request Customer for item Sample</p></div>
+                </button>
                 <button onClick={() => {
                   if (userLevel === "1") {
                     setShowPermissionDenied(true);
@@ -733,6 +745,128 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                   {submitRequest.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
                   Submit
                 </button>
+              </div>
+            </div>
+          )}
+
+          {step === "sample" && (
+            <div>
+              <button onClick={() => { setStep("choose"); setSampleError(""); setShowSampleConfirm(false); }} className="text-xs text-muted-foreground hover:text-foreground mb-3 flex items-center gap-1">← Back</button>
+              <div className="space-y-3">
+                {/* Auto-filled order info */}
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-1.5">
+                  <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Production Order Info (Auto)</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div><span className="text-muted-foreground">Production Order:</span> <span className="font-bold">{order.orderID}</span></div>
+                    <div><span className="text-muted-foreground">Flute Type:</span> <span className="font-bold">{order.fluteType}</span></div>
+                    <div><span className="text-muted-foreground">Board Size:</span> <span className="font-bold">{order.sizeW} × {order.sizeL} mm</span></div>
+                    <div><span className="text-muted-foreground">Current Qty:</span> <span className="font-bold">{order.qty} pcs</span></div>
+                  </div>
+                  <div className="text-xs"><span className="text-muted-foreground">BQ:</span> <span className="font-mono font-bold break-all">{order.bqComment}</span></div>
+                </div>
+                {/* Customer Name */}
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Customer Name <span className="text-destructive">*</span></label>
+                  <input type="text" value={sampleCustomerName} onChange={e => { setSampleCustomerName(e.target.value); setSampleError(""); }} placeholder="e.g. ABC Sdn Bhd" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" autoFocus />
+                </div>
+                {/* Remark */}
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Remark <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span></label>
+                  <textarea value={sampleRemark} onChange={e => setSampleRemark(e.target.value)} placeholder="Any notes or special instructions..." rows={2} className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" />
+                </div>
+                {/* Delivery Mold */}
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Delivery Mold <span className="text-destructive">*</span></label>
+                  <div className="space-y-2">
+                    <button onClick={() => setSampleDeliveryMold("send_to_pp1")} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all text-left ${
+                      sampleDeliveryMold === "send_to_pp1" ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600 hover:border-emerald-300"
+                    }`}>
+                      <Truck size={14} className={sampleDeliveryMold === "send_to_pp1" ? "text-emerald-600" : "text-gray-400"} />
+                      Send To PP1
+                    </button>
+                    <button onClick={() => setSampleDeliveryMold("custom")} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all text-left ${
+                      sampleDeliveryMold === "custom" ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600 hover:border-emerald-300"
+                    }`}>
+                      <ChevronDown size={14} className={sampleDeliveryMold === "custom" ? "text-emerald-600" : "text-gray-400"} />
+                      Custom (Remark)
+                    </button>
+                    {sampleDeliveryMold === "custom" && (
+                      <input type="text" value={sampleDeliveryCustom} onChange={e => setSampleDeliveryCustom(e.target.value)} placeholder="Describe delivery method..." className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    )}
+                  </div>
+                </div>
+                {sampleError && <p className="text-xs text-destructive">{sampleError}</p>}
+                {!showSampleConfirm ? (
+                  <button onClick={() => {
+                    setSampleError("");
+                    if (!sampleCustomerName.trim()) { setSampleError("Customer Name is required."); return; }
+                    if (sampleDeliveryMold === "custom" && !sampleDeliveryCustom.trim()) { setSampleError("Please describe the custom delivery method."); return; }
+                    setShowSampleConfirm(true);
+                  }} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all">
+                    Submit Sample
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                      <p className="text-xs font-bold text-emerald-700 mb-1">Confirm Sample Request</p>
+                      <p className="text-xs text-muted-foreground">Customer: <strong>{sampleCustomerName}</strong></p>
+                      <p className="text-xs text-muted-foreground">Board Size: <strong>{order.sizeW} × {order.sizeL} mm</strong></p>
+                      <p className="text-xs text-muted-foreground">Delivery: <strong>{sampleDeliveryMold === "send_to_pp1" ? "Send To PP1" : sampleDeliveryCustom}</strong></p>
+                      {sampleRemark && <p className="text-xs text-muted-foreground">Remark: <strong>{sampleRemark}</strong></p>}
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setShowSampleConfirm(false)} className="flex-1 border-2 border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">Back</button>
+                      <button onClick={async () => {
+                        setSampleError("");
+                        try {
+                          await createSample.mutateAsync({
+                            orderId: order.id,
+                            productionOrderID: order.orderID,
+                            trackingId: order.trackingId ?? undefined,
+                            fluteType: order.fluteType,
+                            sizeW: order.sizeW,
+                            sizeL: order.sizeL,
+                            bqComment: order.bqComment,
+                            currentQty: order.qty,
+                            customerName: sampleCustomerName,
+                            remark: sampleRemark || undefined,
+                            deliveryMold: sampleDeliveryMold,
+                            deliveryMoldCustom: sampleDeliveryMold === "custom" ? sampleDeliveryCustom : undefined,
+                            requestedBy: workerID,
+                            workerName: workerID,
+                          });
+                          toast.success("Sample request submitted successfully!");
+                          notifyAll.mutate({
+                            title: "New Customer Sample Request",
+                            body: `Sample request for ${order.orderID} — Customer: ${sampleCustomerName}`,
+                            type: "approval",
+                            url: "/approval-center",
+                            tag: "sample-" + order.orderID,
+                            orderID: order.orderID,
+                            requireInteraction: true,
+                          });
+                          createNotif.mutate({
+                            type: "order_request",
+                            title: `Sample Request — ${order.orderID}`,
+                            message: `New sample request for Production Order ${order.orderID}. Customer: ${sampleCustomerName}. Board Size: ${order.sizeW}×${order.sizeL}mm.`,
+                            orderID: order.orderID,
+                            qty: order.qty,
+                            fluteType: order.fluteType,
+                            workerID,
+                            trackingId: order.trackingId,
+                          });
+                          onSuccess();
+                        } catch (err: unknown) {
+                          const e = err as { message?: string };
+                          setSampleError(e?.message ?? "Failed to submit sample request.");
+                        }
+                      }} disabled={createSample.isPending} className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                        {createSample.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                        Confirm
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

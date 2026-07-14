@@ -36,6 +36,10 @@ import {
   logRequestEdit,
   getRequestEditHistory,
   getDb,
+  createCustomerSample,
+  getCustomerSamples,
+  getCustomerSampleById,
+  updateCustomerSampleStatus,
 } from "./db";
 
 import { systemSettings } from "../drizzle/schema";
@@ -1649,6 +1653,72 @@ export const appRouter = router({
             eq(messageReactions.messageType, input.messageType),
             inArray(messageReactions.messageID, input.messageIDs)
           ));
+      }),
+  }),
+  // ─── Customer Samples ────────────────────────────────────────────────────────
+  customerSamples: router({
+    /** Create a new sample request (Level 1 / 1.1 / 2 workers) */
+    create: publicProcedure
+      .input(z.object({
+        orderId: z.number(),
+        productionOrderID: z.string(),
+        trackingId: z.string().optional(),
+        fluteType: z.string(),
+        sizeW: z.number(),
+        sizeL: z.number(),
+        bqComment: z.string(),
+        currentQty: z.number(),
+        customerName: z.string().min(1),
+        remark: z.string().optional(),
+        deliveryMold: z.enum(["send_to_pp1", "custom"]),
+        deliveryMoldCustom: z.string().optional(),
+        requestedBy: z.string(),
+        workerName: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const id = await createCustomerSample({
+          orderId: input.orderId,
+          productionOrderID: input.productionOrderID,
+          trackingId: input.trackingId ?? null,
+          fluteType: input.fluteType,
+          sizeW: input.sizeW,
+          sizeL: input.sizeL,
+          bqComment: input.bqComment,
+          currentQty: input.currentQty,
+          customerName: input.customerName,
+          remark: input.remark ?? null,
+          deliveryMold: input.deliveryMold,
+          deliveryMoldCustom: input.deliveryMoldCustom ?? null,
+          requestedBy: input.requestedBy,
+          workerName: input.workerName,
+        });
+        return { id };
+      }),
+
+    /** List all sample requests, optionally filtered by status */
+    list: publicProcedure
+      .input(z.object({ status: z.enum(["pending", "progress", "delivery"]).optional() }))
+      .query(async ({ input }) => {
+        return getCustomerSamples(input.status ? { status: input.status } : undefined);
+      }),
+
+    /** Get a single sample request by ID */
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getCustomerSampleById(input.id);
+      }),
+
+    /** Update status: pending → progress, progress → delivery */
+    updateStatus: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["progress", "delivery"]),
+        workerName: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        await updateCustomerSampleStatus(input.id, input.status, input.workerName);
+        return { ok: true };
       }),
   }),
 });
