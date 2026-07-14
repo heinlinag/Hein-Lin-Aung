@@ -40,7 +40,8 @@ function printSampleLabel(sample: SampleRecord) {
       ? "SEND TO PP1"
       : (sample.deliveryMoldCustom ?? "CUSTOM").toUpperCase();
   const logoUrl = `${window.location.origin}/manus-storage/gspp_logo_new_2db75f16.png`;
-  const barcodeId = "barcode-" + sample.productionOrderID.replace(/[^A-Za-z0-9]/g, "");
+  const trackingId = sample.trackingId || sample.id.toString();
+  const barcodeId = "barcode-" + trackingId.replace(/[^A-Za-z0-9]/g, "");
   win.document.write(`<!DOCTYPE html><html><head><title>Sample Label — ${sample.productionOrderID}</title>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
   <style>
@@ -73,7 +74,7 @@ function printSampleLabel(sample: SampleRecord) {
     </div>
     <div class="barcode-wrap">
       <svg id="${barcodeId}"></svg>
-      <p>Production Order</p>
+      <p>Tracking ID</p>
     </div>
   </div>
 
@@ -93,7 +94,7 @@ function printSampleLabel(sample: SampleRecord) {
 
   <script>
     window.onload = function() {
-      JsBarcode("#${barcodeId}", "${sample.productionOrderID}", {
+      JsBarcode("#${barcodeId}", "${trackingId}", {
         format: "CODE128",
         width: 2,
         height: 50,
