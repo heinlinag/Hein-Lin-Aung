@@ -409,6 +409,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const [showPermissionDenied, setShowPermissionDenied] = useState(false);
   // Sample request state
   const [sampleCustomerName, setSampleCustomerName] = useState("");
+  const [sampleQty, setSampleQty] = useState(1);
   const [sampleRemark, setSampleRemark] = useState("");
   const [sampleDeliveryMold, setSampleDeliveryMold] = useState<"send_to_pp1" | "custom">("send_to_pp1");
   const [sampleDeliveryCustom, setSampleDeliveryCustom] = useState("");
@@ -769,6 +770,11 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Customer Name <span className="text-destructive">*</span></label>
                   <input type="text" value={sampleCustomerName} onChange={e => { setSampleCustomerName(e.target.value); setSampleError(""); }} placeholder="e.g. ABC Sdn Bhd" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" autoFocus />
                 </div>
+                {/* Sample Qty */}
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Sample Qty (pcs) <span className="text-destructive">*</span></label>
+                  <input type="number" min={1} value={sampleQty} onChange={e => { setSampleQty(Math.max(1, parseInt(e.target.value) || 1)); setSampleError(""); }} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
                 {/* Remark */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Remark <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span></label>
@@ -810,6 +816,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
                       <p className="text-xs font-bold text-emerald-700 mb-1">Confirm Sample Request</p>
                       <p className="text-xs text-muted-foreground">Customer: <strong>{sampleCustomerName}</strong></p>
+                      <p className="text-xs text-muted-foreground">Sample Qty: <strong>{sampleQty} pcs</strong></p>
                       <p className="text-xs text-muted-foreground">Board Size: <strong>{order.sizeW} × {order.sizeL} mm</strong></p>
                       <p className="text-xs text-muted-foreground">Delivery: <strong>{sampleDeliveryMold === "send_to_pp1" ? "Send To PP1" : sampleDeliveryCustom}</strong></p>
                       {sampleRemark && <p className="text-xs text-muted-foreground">Remark: <strong>{sampleRemark}</strong></p>}
@@ -829,6 +836,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                             bqComment: order.bqComment,
                             currentQty: order.qty,
                             customerName: sampleCustomerName,
+                            sampleQty: sampleQty,
                             remark: sampleRemark || undefined,
                             deliveryMold: sampleDeliveryMold,
                             deliveryMoldCustom: sampleDeliveryMold === "custom" ? sampleDeliveryCustom : undefined,

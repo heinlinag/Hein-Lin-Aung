@@ -391,6 +391,7 @@ export const customerSamples = mysqlTable("customerSamples", {
   currentQty: int("currentQty").notNull(),        // snapshot of qty at request time
   // Sample request fields
   customerName: varchar("customerName", { length: 256 }).notNull(),
+  sampleQty: int("sampleQty").notNull().default(1),  // Qty to send as sample
   remark: text("remark"),
   deliveryMold: mysqlEnum("deliveryMold", ["send_to_pp1", "custom"]).notNull(),
   deliveryMoldCustom: varchar("deliveryMoldCustom", { length: 256 }), // when deliveryMold = custom

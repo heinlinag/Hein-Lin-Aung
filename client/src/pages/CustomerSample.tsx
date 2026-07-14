@@ -17,6 +17,7 @@ type SampleRecord = {
   sizeL: number;
   bqComment: string;
   currentQty: number;
+  sampleQty: number;
   customerName: string;
   remark: string | null;
   deliveryMold: string;
@@ -81,6 +82,7 @@ function printSampleLabel(sample: SampleRecord) {
     <div class="row"><span class="label">Customer Name :</span><span class="value">${sample.customerName.toUpperCase()}</span></div>
     <div class="row"><span class="label">Production Order :</span><span class="value">${sample.productionOrderID.toUpperCase()}</span></div>
     <div class="row"><span class="label">Board Size :</span><span class="value">(W) ${sample.sizeW} × (L) ${sample.sizeL} mm</span></div>
+    <div class="row"><span class="label">Sample Qty :</span><span class="value">${sample.sampleQty} PCS</span></div>
     ${sample.remark ? `<div class="row"><span class="value" style="font-size:13pt;">${sample.remark.toUpperCase()}</span></div>` : ""}
   </div>
 
@@ -199,6 +201,10 @@ function SampleCard({
         <div className="flex items-center gap-1.5">
           <span className="text-[9px] uppercase text-muted-foreground w-24 shrink-0">Customer</span>
           <span className="text-xs font-bold text-foreground">{sample.customerName}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[9px] uppercase text-muted-foreground w-24 shrink-0">Sample Qty</span>
+          <span className="text-xs font-bold text-foreground">{sample.sampleQty} pcs</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[9px] uppercase text-muted-foreground w-24 shrink-0">Board Size</span>
