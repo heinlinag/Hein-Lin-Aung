@@ -99,7 +99,7 @@ function SampleCard({
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">
-              Sending Prayers Customer Sample
+              Sending Customer Sample
             </p>
             <p className="text-[10px] text-muted-foreground">
               {new Date(sample.createdAt).toLocaleString()}
@@ -303,7 +303,7 @@ export default function CustomerSample() {
           </div>
           <div className="flex-1">
             <h1 className="text-lg font-bold text-foreground">Customer Sample</h1>
-            <p className="text-xs text-muted-foreground">Sending Prayers Customer Sample Requests</p>
+            <p className="text-xs text-muted-foreground">Sending Customer Sample Requests</p>
           </div>
           <button
             onClick={async () => {
