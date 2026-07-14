@@ -409,7 +409,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const [showPermissionDenied, setShowPermissionDenied] = useState(false);
   // Sample request state
   const [sampleCustomerName, setSampleCustomerName] = useState("");
-  const [sampleQty, setSampleQty] = useState(1);
+  const [sampleQty, setSampleQty] = useState<number | "">("");
   const [sampleRemark, setSampleRemark] = useState("");
   const [sampleDeliveryMold, setSampleDeliveryMold] = useState<"send_to_pp1" | "custom">("send_to_pp1");
   const [sampleDeliveryCustom, setSampleDeliveryCustom] = useState("");
@@ -773,7 +773,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                 {/* Sample Qty */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Sample Qty (pcs) <span className="text-destructive">*</span></label>
-                  <input type="number" min={1} value={sampleQty} onChange={e => { setSampleQty(Math.max(1, parseInt(e.target.value) || 1)); setSampleError(""); }} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <input type="number" min={1} value={sampleQty} onChange={e => { const v = e.target.value; setSampleQty(v === "" ? "" : Math.max(1, parseInt(v) || 1)); setSampleError(""); }} placeholder="e.g. 5" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
                 {/* Remark */}
                 <div>
@@ -806,6 +806,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                   <button onClick={() => {
                     setSampleError("");
                     if (!sampleCustomerName.trim()) { setSampleError("Customer Name is required."); return; }
+                    if (sampleQty === "" || sampleQty < 1) { setSampleError("Sample Qty is required (minimum 1)."); return; }
                     if (sampleDeliveryMold === "custom" && !sampleDeliveryCustom.trim()) { setSampleError("Please describe the custom delivery method."); return; }
                     setShowSampleConfirm(true);
                   }} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl py-2.5 text-sm font-bold hover:shadow-lg transition-all">
@@ -836,7 +837,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                             bqComment: order.bqComment,
                             currentQty: order.qty,
                             customerName: sampleCustomerName,
-                            sampleQty: sampleQty,
+                            sampleQty: sampleQty as number,
                             remark: sampleRemark || undefined,
                             deliveryMold: sampleDeliveryMold,
                             deliveryMoldCustom: sampleDeliveryMold === "custom" ? sampleDeliveryCustom : undefined,

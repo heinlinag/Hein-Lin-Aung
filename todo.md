@@ -1249,11 +1249,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Frontend: removed conflict dialog (no longer needed)
 
 ## Maintenance Mode Feature (Jun 30)
-- [ ] Schema: add systemSettings table with maintenanceMode boolean and maintenanceMessage text
-- [ ] Server: add system.getMaintenanceStatus (public) and system.setMaintenanceMode (admin-only) procedures
-- [ ] Admin Settings: add Maintenance On/Off toggle card
-- [ ] Frontend: Maintenance page UI matching screenshot (illustration, Myanmar text, Restart button)
-- [ ] Frontend: AppLayout global maintenance check - show maintenance page for non-admin users when ON
+- [x] Schema: add systemSettings table with maintenanceMode boolean and maintenanceMessage text
+- [x] Server: add system.getMaintenanceStatus (public) and system.setMaintenanceMode (admin-only) procedures
+- [x] Admin Settings: add Maintenance On/Off toggle card
+- [x] Frontend: Maintenance page UI matching screenshot (illustration, Myanmar text, Restart button)
+- [x] Frontend: AppLayout global maintenance check - show maintenance page for non-admin users when ON
 
 ## Maintenance Mode Feature (Jun 30)
 - [x] Schema: add systemSettings table (key-value store for app config)
@@ -1297,13 +1297,13 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Database: Add migration SQL for new table
 - [x] Backend: Create editTargetBlackQty procedure (allow all users to edit)
 - [x] Backend: Create getRequestEditHistory procedure to fetch edit history
-- [ ] Frontend: Add Edit button to NPRM Modify Order request card
-- [ ] Frontend: Create Edit Modal with Target Black Qty input field
-- [ ] Frontend: Display edit history below request details (edited by, date, time, old qty, new qty)
-- [ ] Frontend: Validate edit permissions and show appropriate UI
-- [ ] Testing: Verify edit functionality works for all user levels
-- [ ] Testing: Verify edit history displays correctly
-- [ ] Testing: Verify all tests pass
+- [x] Frontend: Add Edit button to NPRM Modify Order request card
+- [x] Frontend: Create Edit Modal with Target Black Qty input field
+- [x] Frontend: Display edit history below request details (edited by, date, time, old qty, new qty)
+- [x] Frontend: Validate edit permissions and show appropriate UI
+- [x] Testing: Verify edit functionality works for all user levels
+- [x] Testing: Verify edit history displays correctly
+- [x] Testing: Verify all tests pass
 
 ## NPRM Modify Order Filter Update (Jul 10)
 - [x] Convert status tabs (Pending/Approved/Cancelled/All) to Select dropdown
@@ -1324,3 +1324,12 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Filter displayed requests by Job No match (partial/full)
 - [x] Show "No results" state when no match found
 - [x] Clear search button (X icon)
+
+## Add Sample Qty to Customer Sample Feature (Jul 14)
+- [x] DB: Add sampleQty column (int NOT NULL DEFAULT 1) to customerSamples table via SQL
+- [x] Schema: Add sampleQty field to customerSamples table in drizzle/schema.ts
+- [x] Router: Add sampleQty to customerSamples.create input schema and mutation body
+- [x] StockHistory.tsx: Add sampleQty useState(1), number input field (between Customer Name and Remark), shown in confirm panel, passed to createSample.mutateAsync
+- [x] CustomerSample.tsx: Add sampleQty to SampleRecord type
+- [x] CustomerSample.tsx: Show "Sample Qty: X pcs" row in card display (after Customer Name)
+- [x] CustomerSample.tsx: Show "SAMPLE QTY: X PCS" row in Print Label A4
