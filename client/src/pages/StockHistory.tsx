@@ -797,7 +797,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                       Custom (Remark)
                     </button>
                     {sampleDeliveryMold === "custom" && (
-                      <input type="text" value={sampleDeliveryCustom} onChange={e => setSampleDeliveryCustom(e.target.value)} placeholder="Describe delivery method..." className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      <input type="text" value={sampleDeliveryCustom} onChange={e => setSampleDeliveryCustom(e.target.value)} placeholder="Exp: Send To (Name)" className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                     )}
                   </div>
                 </div>
