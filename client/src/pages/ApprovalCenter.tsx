@@ -66,6 +66,7 @@ type ActionData = {
   boardSizeL?: number | null;
   scores?: string | null;
   targetBlackQty?: number;
+  remark?: string | null;
 };
 
 function RequestCard({
@@ -231,6 +232,13 @@ function RequestCard({
             <span className="text-xs text-muted-foreground">Target Black</span>
             <span className="text-sm font-semibold text-orange-600">{action.usedQty} pcs</span>
           </div>
+          {/* Highlights For Operator Remark */}
+          {action.remark && (
+            <div className="bg-amber-50 border border-amber-200 rounded p-2.5">
+              <p className="text-xs font-semibold text-amber-900 mb-1">Highlights For Operator</p>
+              <p className="text-xs text-amber-800 leading-relaxed">{action.remark}</p>
+            </div>
+          )}
           {/* Inline Edit History in order details */}
           <InlineEditHistory requestId={req.id} />
           <div className="flex items-center justify-between">
