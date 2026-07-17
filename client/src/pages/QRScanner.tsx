@@ -23,6 +23,7 @@ interface VerifiedOrder {
   qty: number;
   bqComment: string;
   status: string;
+  remark?: string | null;
 }
 
 type TabType = "scanner" | "history";
@@ -467,6 +468,20 @@ export default function QRScanner() {
                             </span>
                           </div>
                         </div>
+
+                        {order.remark && (
+                          <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-400 rounded-lg p-4 mb-4 shadow-md">
+                            <div className="flex items-start gap-3">
+                              <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                <AlertTriangle className="text-red-600" size={20} />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-bold text-red-900 text-sm uppercase tracking-wide mb-2">Highlights For Operator</p>
+                                <p className="text-red-800 text-sm leading-relaxed font-medium">{order.remark}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {scannedData.qty > 0 && scannedData.qty !== order.qty && (
                           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
