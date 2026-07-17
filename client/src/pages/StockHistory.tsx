@@ -777,7 +777,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                 </div>
                 {/* Remark */}
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Remark <span className="text-muted-foreground/60 normal-case font-normal">(optional)</span></label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Remark For Customer <span className="text-muted-foreground/60 normal-case font-normal">(Can you be highlights for message to customer)</span></label>
                   <textarea value={sampleRemark} onChange={e => setSampleRemark(e.target.value)} placeholder="Any notes or special instructions..." rows={2} className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" />
                 </div>
                 {/* Delivery Mold */}
