@@ -279,6 +279,9 @@ export default function Home() {
         </div>
       </div>
 
+      {/* SEO H2 Heading */}
+      <h2 className="sr-only">Stock Management Tools and Features</h2>
+
       {/* Announcement marquee ticker */}
       <AnnouncementBanner />
 
