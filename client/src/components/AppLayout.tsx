@@ -329,7 +329,8 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
         </nav>
 
         {/* Footer */}
-        <div className="px-2.5 pb-3 pt-2 border-t border-gray-100 mt-auto">
+        <div className="px-2.5 pb-3 pt-2 border-t border-gray-100 mt-auto space-y-2">
+          <p className="text-xs text-gray-400 text-center px-2 py-1">Created by HEiNANN</p>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
