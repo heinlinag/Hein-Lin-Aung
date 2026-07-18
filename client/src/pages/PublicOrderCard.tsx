@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
@@ -29,8 +30,23 @@ export default function PublicOrderCard() {
     { enabled: !!trackingId, retry: 1 }
   );
 
+  useEffect(() => {
+    const metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (metaKeywords) {
+      metaKeywords.setAttribute('content', 'order tracking, stock status, inventory check, QR code, StockDash');
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'keywords';
+      meta.content = 'order tracking, stock status, inventory check, QR code, StockDash';
+      document.head.appendChild(meta);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex flex-col items-center justify-center p-4">
+      {/* SEO H1 Heading */}
+      <h1 className="sr-only">Order Tracking Status</h1>
+
       {/* Header branding */}
       <div className="mb-6 flex flex-col items-center gap-2">
         <div className="flex items-center gap-2">
@@ -90,7 +106,7 @@ export default function PublicOrderCard() {
             {/* Section title */}
             <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
               <Package className="w-4 h-4 text-slate-400" />
-              <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Current Stock Record</span>
+              <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Current Stock Record</h2>
             </div>
 
             {/* Grid: Production Order + Balance */}

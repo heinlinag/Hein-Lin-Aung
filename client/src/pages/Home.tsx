@@ -8,6 +8,19 @@ import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 
+// Add SEO meta keywords
+if (typeof document !== 'undefined') {
+  const metaKeywords = document.querySelector('meta[name="keywords"]');
+  if (metaKeywords) {
+    metaKeywords.setAttribute('content', 'stock management, inventory tracking, order management, QR scanner, StockDash');
+  } else {
+    const meta = document.createElement('meta');
+    meta.name = 'keywords';
+    meta.content = 'stock management, inventory tracking, order management, QR scanner, StockDash';
+    document.head.appendChild(meta);
+  }
+}
+
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
 const APP_VERSION = "Web App Version 3.2.0";
 
@@ -278,7 +291,7 @@ export default function Home() {
           {/* Section header */}
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-lg font-bold text-gray-900" style={{ fontFamily: "Lora, serif" }}>Quick Actions</h3>
+              <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: "Lora, serif" }}>Quick Actions</h2>
               <p className="text-xs text-gray-500 mt-0.5">Access your most used features</p>
             </div>
             <div className="hidden lg:flex items-center gap-1.5 text-xs text-gray-400">
