@@ -159,12 +159,15 @@ export default function PublicOrderCard() {
           </div>
 
           {/* Footer note */}
-          <p className="text-center text-xs text-slate-400 mt-4">
-            Powered by{" "}
-            <a href="https://stockdash.click" className="text-blue-500 hover:underline inline-flex items-center gap-0.5">
-              StockDash <ExternalLink className="w-3 h-3" />
-            </a>
-          </p>
+          <div className="text-center text-xs text-slate-400 mt-4 space-y-1">
+            <p>
+              Powered by{" "}
+              <a href="https://stockdash.click" className="text-blue-500 hover:underline inline-flex items-center gap-0.5">
+                StockDash <ExternalLink className="w-3 h-3" />
+              </a>
+            </p>
+            <p className="text-slate-500 font-medium">Created by HEiNANN</p>
+          </div>
         </div>
       )}
     </div>
