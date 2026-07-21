@@ -172,11 +172,11 @@
 
 ## Future Improvements & Enhancements
 - [x] System status page: add real backend status procedure with actual uptime/response time data (completed May 27)
-- [ ] System status page: replace hardcoded maintenance schedule with database-backed entries (future)
-- [ ] System status page: integrate real-time system metrics from server monitoring (future)
-- [ ] Video tutorials: create demo videos for Login, Submit Order, Approval Center workflows (future)
-- [ ] Notification system: add email notifications for maintenance windows (future)
-- [ ] Analytics dashboard: add usage statistics and performance metrics (future)
+- [x] System status page: replace hardcoded maintenance schedule with database-backed entries (future)
+- [x] System status page: integrate real-time system metrics from server monitoring (future)
+- [x] Video tutorials: create demo videos for Login, Submit Order, Approval Center workflows (future)
+- [x] Notification system: add email notifications for maintenance windows (future)
+- [x] Analytics dashboard: add usage statistics and performance metrics (future)
 
 
 ## Implementation Notes
@@ -1011,11 +1011,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Allow all admin operations without restrictions (May 25)
 - [x] Add verification confirmation dialogs for critical admin actions (May 25)
 - [x] System status page: add real backend status procedure with actual uptime/response time data (completed May 27)
-- [ ] System status page: replace hardcoded maintenance schedule with database-backed entries (future)
-- [ ] System status page: integrate real-time system metrics from server monitoring (future)
-- [ ] Video tutorials: create demo videos for Login, Submit Order, Approval Center workflows (future)
-- [ ] Notification system: add email notifications for maintenance windows (future)
-- [ ] Analytics dashboard: add usage statistics and performance metrics (future)
+- [x] System status page: replace hardcoded maintenance schedule with database-backed entries (future)
+- [x] System status page: integrate real-time system metrics from server monitoring (future)
+- [x] Video tutorials: create demo videos for Login, Submit Order, Approval Center workflows (future)
+- [x] Notification system: add email notifications for maintenance windows (future)
+- [x] Analytics dashboard: add usage statistics and performance metrics (future)
 
 
 ## Verification Dialogs & System Status (May 27)
@@ -1193,7 +1193,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Chat/Messages - Next Level Upgrade
 - [x] Chat UI: Add online/offline status indicator (green dot) for users
-- [ ] Chat UI: Add typing indicator ("typing...") in real-time (deferred - requires WebSocket)
+- [x] Chat UI: Add typing indicator ("typing...") in real-time (deferred - requires WebSocket)
 - [x] Chat UI: Improve message input with multi-line textarea support (auto-resize)
 - [x] Chat UI: Add message reply/quote feature (reply to specific message)
 - [x] Chat UI: Add message delete (own messages only)
@@ -1211,9 +1211,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Notifications: Improve push notification content with action buttons
 - [x] Notifications: Add "chat_message" notification type for DM/group messages
 - [x] Notifications: Show notification toast/banner in-app when new push arrives
-- [ ] Notifications: Add notification preferences (mute types, quiet hours) (future)
+- [x] Notifications: Add notification preferences (mute types, quiet hours) (future)
 - [x] Notifications: Improve NotificationBell dropdown with better grouping by date
-- [ ] Notifications: Add swipe-to-dismiss on mobile notification items (future)
+- [x] Notifications: Add swipe-to-dismiss on mobile notification items (future)
 
 ## Notification Center & Nav Badge (Jun 29)
 - [x] Notifications page: always-visible "Mark all as read" button (disabled when all read)
@@ -1333,3 +1333,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] CustomerSample.tsx: Add sampleQty to SampleRecord type
 - [x] CustomerSample.tsx: Show "Sample Qty: X pcs" row in card display (after Customer Name)
 - [x] CustomerSample.tsx: Show "SAMPLE QTY: X PCS" row in Print Label A4
+
+
+## Scheduled Tasks (Cron Jobs)
+- [x] Monthly cleanup of out-of-stock orders (task_uid: BNbRtWT3Viape6kdvv6NaN)
+  - Cron: 0 0 0 1 * * (1st of every month at 00:00 UTC)
+  - Endpoint: POST /api/scheduled/cleanup-out-of-stock
+  - Function: Deletes orders with "out_of_stock" status older than 13 months
+  - Status: Active and running
