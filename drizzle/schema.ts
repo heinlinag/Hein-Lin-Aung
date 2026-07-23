@@ -21,6 +21,7 @@ export const workers = mysqlTable("workers", {
   name: varchar("name", { length: 128 }).notNull(),
   department: varchar("department", { length: 128 }).notNull(),
   userLevel: mysqlEnum("userLevel", ["1", "1.1", "2"]).default("2").notNull(),
+  permissions: text("permissions"), // JSON: { submitOrder, viewStock, nprmModifyOrder, customerSample, qrScanner, viewChat, viewNotifications } — null = not yet configured
   lastSeenAt: timestamp("lastSeenAt"),
   // One-device session tracking
   activeDeviceToken: varchar("activeDeviceToken", { length: 128 }),  // fingerprint of active device

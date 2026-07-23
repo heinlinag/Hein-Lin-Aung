@@ -1637,7 +1637,7 @@ export default function AdminPanel() {
       {isDark && <div className="fixed inset-0 opacity-[0.035] pointer-events-none" style={{ backgroundImage: "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)", backgroundSize: "40px 40px" }} />}
       {/* Header */}
       <header className={`sticky top-0 z-20 border-b ${headerBorder}`} style={{ background: headerBg, backdropFilter: "blur(20px)" }}>
-        <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-3 flex items-center gap-3">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-3 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 flex-shrink-0">
             <img src={LOGO_URL} alt="GSPP" className="h-7 w-7 object-contain" />
           </div>
@@ -1704,7 +1704,7 @@ export default function AdminPanel() {
       {/* Maintenance Mode Warning Banner */}
       {maintenanceQuery.data?.maintenanceMode && (
         <div className="bg-red-500/15 border-b border-red-500/30">
-          <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-2.5 flex items-center justify-between gap-3">
+          <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-2.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
                 <ShieldAlert size={14} className="text-red-400" />
@@ -1725,7 +1725,7 @@ export default function AdminPanel() {
       )}
 
       {/* Stats Grid */}
-      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-5 md:py-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
           {/* Current Stock */}
           <div className="rounded-2xl border p-4 lg:p-5 transition-all group" style={{ background: cardBg, backdropFilter: "blur(12px)", borderColor: cardBorder }}>
@@ -1787,7 +1787,7 @@ export default function AdminPanel() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="max-w-[1600px] mx-auto px-4 lg:px-8">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10">
         <div className="flex gap-1 rounded-2xl border p-1.5 overflow-x-auto" style={{ background: tabBarBg, backdropFilter: "blur(12px)", borderColor: tabBarBorder }}>
           {tabs.map((t) => {
             const isActive = activeTab === t.id;
@@ -1816,7 +1816,7 @@ export default function AdminPanel() {
       </div>
 
       {/* Content */}
-      <main className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+      <main className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-5 md:py-6">
         <div className="rounded-2xl border p-4 lg:p-6" style={{ background: contentBg, backdropFilter: "blur(12px)", borderColor: contentBorder }}>
           {activeTab === "workers" && <WorkersTab />}
           {activeTab === "orders" && <OrdersTab />}

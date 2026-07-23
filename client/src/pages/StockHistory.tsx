@@ -1160,7 +1160,7 @@ export default function StockHistory() {
   return (
     <AppLayout pageTitle="Stock History">
       {/* Enhanced Header with Level Badge and Refresh */}
-      <div className="flex justify-between items-center px-4 lg:px-8 pt-5 pb-2">
+      <div className="flex justify-between items-center px-4 md:px-6 lg:px-8 xl:px-10 pt-4 md:pt-5 pb-2">
         {(userLevel === "1" || userLevel === "1.1") && (
           <div className="flex items-center gap-2 text-xs text-orange-700 font-semibold bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 px-3 py-1.5 rounded-full shadow-sm">
             <Clock size={13} className="animate-pulse" /> {userLevel === "1.1" ? "Level 1.1 — Auto-approved" : "Level 1 — Requires Approval"}
@@ -1174,9 +1174,9 @@ export default function StockHistory() {
         <RefreshButton onRefresh={() => utils.orders.list.invalidate()} />
       </div>
 
-      <main className="container lg:max-w-none lg:px-8 py-4">
+      <main className="container lg:max-w-none lg:px-8 xl:px-10 py-4">
         {/* Enhanced Tabs with pill style */}
-        <div className="flex gap-1 mb-5 bg-gray-100/80 p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-4 md:mb-5 bg-gray-100/80 p-1 rounded-xl w-fit">
           <button onClick={() => setActiveTab("current")} className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${activeTab === "current" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
             <span className="flex items-center gap-1.5"><Package size={14} /> Current Stock</span>
           </button>
@@ -1186,7 +1186,7 @@ export default function StockHistory() {
         </div>
 
         {/* Enhanced Search with better styling */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 mb-4 md:mb-5 sticky top-0 z-10 bg-white/95 backdrop-blur-md py-3 -mx-4 md:-mx-6 lg:-mx-8 xl:-mx-10 px-4 md:px-6 lg:px-8 xl:px-10 border-b border-gray-100 shadow-sm">
           <div className="relative group">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input type="text" value={searchOrderID} onChange={e => setSearchOrderID(e.target.value.toUpperCase())} placeholder="Search Production Order…" className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all" />
