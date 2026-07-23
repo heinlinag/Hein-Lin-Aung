@@ -273,9 +273,26 @@ export default function Login() {
                 <div className="absolute right-3 top-1/2 -translate-y-1/2"><User size={16} className="text-gray-300" /></div>
               </div>
             </div>
-            {error && (
+            {error && error !== "NEEDS_PERMISSION_UPDATE" && (
               <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-600 font-medium anim-fade-in flex items-start gap-2">
                 <span className="text-red-400 mt-0.5">!</span>{error}
+              </div>
+            )}
+            {error === "NEEDS_PERMISSION_UPDATE" && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm anim-fade-in space-y-2">
+                <div className="flex items-start gap-2 text-amber-800 font-semibold">
+                  <span className="text-amber-500 mt-0.5">⚠</span>
+                  Account Not Configured
+                </div>
+                <p className="text-amber-700 text-xs leading-relaxed">Your account has not been configured yet. Please contact your Administrator to update your account permissions before logging in.</p>
+                <a
+                  href={`https://wa.me/${import.meta.env.VITE_ADMIN_WHATSAPP?.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-semibold transition-colors"
+                >
+                  <MessageCircle size={14} /> Contact Administrator on WhatsApp
+                </a>
               </div>
             )}
             <button
