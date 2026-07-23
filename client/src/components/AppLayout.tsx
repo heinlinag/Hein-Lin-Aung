@@ -14,26 +14,6 @@ import { trpc } from "@/lib/trpc";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-  adminOnly?: boolean;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { href: "/",               label: "Home",             icon: <Home size={18} /> },
-  { href: "/submit-order",    label: "Submit Order",    icon: <ClipboardList size={18} /> },
-  { href: "/stock-history",   label: "Stock History",   icon: <Package size={18} /> },
-
-  { href: "/approval-center",  label: "NPRM Modify Order",  icon: <CheckCircle2 size={18} /> },
-  { href: "/customer-sample",  label: "Customer Sample",   icon: <FlaskConical size={18} /> },
-  { href: "/qr-scanner",       label: "QR Scanner",         icon: <ScanLine size={18} /> },
-  { href: "/chat",            label: "Messages",        icon: <MessageCircle size={18} /> },
-  { href: "/notifications",   label: "Notifications",   icon: <Bell size={18} /> },
-  { href: "/admin",           label: "Admin Panel",     icon: <ChevronRight size={18} />, adminOnly: true },
-];
-
 interface AppLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
@@ -50,7 +30,7 @@ function levelLabel(level: string) {
 
 export default function AppLayout({ children, pageTitle, headerActions, fullHeight }: AppLayoutProps) {
   const [location, navigate] = useLocation();
-  const { worker, logoutWorker } = useAuth();
+  const { worker, logoutWorker, hasPermission } = useAuth();
   const deactivateDevice = trpc.workers.deactivateDevice.useMutation();
   const userLevel = worker?.userLevel ?? "2";
   const lv = levelLabel(userLevel);
@@ -148,6 +128,35 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const isActive = (href: string) => location === href;
 
   const goTo = (href: string) => { setProfileOpen(false); navigate(href); };
+
+  // ── Permission-filtered sidebar nav items ──────────────────────────────
+  type SideNavItem = {
+    href: string;
+    label: string;
+    icon: React.ReactNode;
+    badge?: number;
+    badgeColor?: string;
+  };
+
+  const allSideNavItems: SideNavItem[] = [
+    { href: "/", label: "Home", icon: <Home size={18} /> },
+    ...(hasPermission("submitOrder") ? [{ href: "/submit-order", label: "Submit Order", icon: <ClipboardList size={18} /> }] : []),
+    ...(hasPermission("viewStock") ? [{ href: "/stock-history", label: "Stock History", icon: <Package size={18} /> }] : []),
+    ...(hasPermission("nprmModifyOrder") ? [{ href: "/approval-center", label: "NPRM Modify Order", icon: <CheckCircle2 size={18} />, badge: pendingCount > 0 ? pendingCount : undefined, badgeColor: "bg-red-500" }] : []),
+    ...(hasPermission("customerSample") ? [{ href: "/customer-sample", label: "Customer Sample", icon: <FlaskConical size={18} />, badge: sampleCount > 0 ? sampleCount : undefined, badgeColor: "bg-red-500" }] : []),
+    ...(hasPermission("qrScanner") ? [{ href: "/qr-scanner", label: "QR Scanner", icon: <ScanLine size={18} /> }] : []),
+    ...(hasPermission("viewChat") ? [{ href: "/chat", label: "Messages", icon: <MessageCircle size={18} />, badge: unreadMsgCount > 0 ? unreadMsgCount : undefined, badgeColor: "bg-red-500" }] : []),
+    ...(hasPermission("viewNotifications") ? [{ href: "/notifications", label: "Notifications", icon: <Bell size={18} />, badge: unreadNotifCount > 0 ? unreadNotifCount : undefined, badgeColor: "bg-blue-500" }] : []),
+  ];
+
+  // Mobile bottom nav: Home + up to 4 permitted items
+  const mobileBottomItems: SideNavItem[] = [
+    { href: "/", icon: <Home size={20} />, label: "Home" },
+    ...(hasPermission("submitOrder") ? [{ href: "/submit-order", icon: <ClipboardList size={20} />, label: "Orders" }] : []),
+    ...(hasPermission("viewChat") ? [{ href: "/chat", icon: <MessageCircle size={20} />, label: "Chat", badge: unreadMsgCount, badgeColor: "bg-red-500" }] : []),
+    ...(hasPermission("viewNotifications") ? [{ href: "/notifications", icon: <Bell size={20} />, label: "Alerts", badge: unreadNotifCount, badgeColor: "bg-blue-500" }] : []),
+    ...(hasPermission("viewStock") ? [{ href: "/stock-history", icon: <Package size={20} />, label: "Stock" }] : []),
+  ].slice(0, 5);
 
   /* ── Profile Dropdown ─────────────────────────────────────────────── */
   const ProfileDropdown = () => (
@@ -290,7 +299,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
         {/* Nav links */}
         <nav className="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.filter(item => !item.adminOnly).map(item => (
+          {allSideNavItems.map(item => (
             <button
               key={item.href}
               onClick={() => navigate(item.href)}
@@ -304,24 +313,9 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                 {item.icon}
               </span>
               <span className="flex-1 text-left">{item.label}</span>
-              {item.href === "/approval-center" && pendingCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
-                  {pendingCount > 99 ? "99+" : pendingCount}
-                </span>
-              )}
-              {item.href === "/customer-sample" && sampleCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
-                  {sampleCount > 99 ? "99+" : sampleCount}
-                </span>
-              )}
-              {item.href === "/chat" && unreadMsgCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
-                  {unreadMsgCount > 99 ? "99+" : unreadMsgCount}
-                </span>
-              )}
-              {item.href === "/notifications" && unreadNotifCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
-                  {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className={`min-w-[20px] h-[20px] ${item.badgeColor ?? "bg-red-500"} text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse`}>
+                  {item.badge > 99 ? "99+" : item.badge}
                 </span>
               )}
             </button>
@@ -360,19 +354,21 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                 {headerActions && (
                   <div className="shrink-0">{headerActions}</div>
                 )}
-                {/* Notification Bell — mobile header */}
-                <button
-                  onClick={() => navigate("/notifications")}
-                  className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
-                  aria-label="Notifications"
-                >
-                  <Bell size={18} className="text-gray-600" />
-                  {unreadNotifCount > 0 && (
-                    <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm">
-                      {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
-                    </span>
-                  )}
-                </button>
+                {/* Notification Bell — mobile header (only if permitted) */}
+                {hasPermission("viewNotifications") && (
+                  <button
+                    onClick={() => navigate("/notifications")}
+                    className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                    aria-label="Notifications"
+                  >
+                    <Bell size={18} className="text-gray-600" />
+                    {unreadNotifCount > 0 && (
+                      <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm">
+                        {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
+                      </span>
+                    )}
+                  </button>
+                )}
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(v => !v)}
@@ -406,13 +402,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       {worker && (
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-gray-200/60 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
           <div className="flex items-stretch h-16">
-            {[
-              { href: "/",             icon: <Home size={20} />,          label: "Home" },
-              { href: "/submit-order", icon: <ClipboardList size={20} />, label: "Orders" },
-              { href: "/chat",         icon: <MessageCircle size={20} />, label: "Chat",  badge: unreadMsgCount },
-              { href: "/notifications",icon: <Bell size={20} />,          label: "Alerts", badge: unreadNotifCount },
-              { href: "/stock-history",icon: <Package size={20} />,       label: "Stock" },
-            ].map(item => {
+            {mobileBottomItems.map(item => {
               const active = location === item.href;
               return (
                 <button
@@ -426,7 +416,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                     {item.icon}
                     {item.badge && item.badge > 0 ? (
                       <span className={`absolute -top-1 -right-1.5 min-w-[15px] h-[15px] text-white text-[8px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm ${
-                        item.href === "/notifications" ? "bg-blue-500" : "bg-red-500"
+                        item.badgeColor ?? "bg-red-500"
                       }`}>
                         {item.badge > 99 ? "99+" : item.badge}
                       </span>

@@ -155,7 +155,34 @@ function SettingsTab() {
   );
 }
 
-type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; createdAt: Date };
+type WorkerPermissions = {
+  submitOrder: boolean;
+  viewStock: boolean;
+  nprmModifyOrder: boolean;
+  customerSample: boolean;
+  qrScanner: boolean;
+  viewChat: boolean;
+  viewNotifications: boolean;
+};
+const DEFAULT_PERMISSIONS: WorkerPermissions = {
+  submitOrder: false,
+  viewStock: false,
+  nprmModifyOrder: false,
+  customerSample: false,
+  qrScanner: false,
+  viewChat: false,
+  viewNotifications: false,
+};
+const PERMISSION_LABELS: { key: keyof WorkerPermissions; label: string; desc: string }[] = [
+  { key: "submitOrder", label: "Submit Order", desc: "Can submit purchase orders" },
+  { key: "viewStock", label: "View Stock", desc: "Can view stock history" },
+  { key: "nprmModifyOrder", label: "NPRM Modify Order", desc: "Can submit NPRM modify requests" },
+  { key: "customerSample", label: "Customer Sample", desc: "Can submit customer sample requests" },
+  { key: "qrScanner", label: "QR Scanner", desc: "Can use QR scanner to update orders" },
+  { key: "viewChat", label: "Chat", desc: "Can access team chat" },
+  { key: "viewNotifications", label: "Notifications", desc: "Can view notifications" },
+];
+type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; permissions?: string | null; createdAt: Date };
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
@@ -186,6 +213,7 @@ function WorkersTab() {
   const [newName, setNewName] = useState("");
   const [newDept, setNewDept] = useState("");
   const [newUserLevel, setNewUserLevel] = useState<"1" | "1.1" | "2">("2");
+  const [newPermissions, setNewPermissions] = useState<WorkerPermissions>({ ...DEFAULT_PERMISSIONS });
   const [addError, setAddError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
   const [deleteVerifyPassword, setDeleteVerifyPassword] = useState("");
@@ -196,6 +224,7 @@ function WorkersTab() {
   const [editName, setEditName] = useState("");
   const [editDept, setEditDept] = useState("");
   const [editUserLevel, setEditUserLevel] = useState<"1" | "1.1" | "2">("2");
+  const [editPermissions, setEditPermissions] = useState<WorkerPermissions>({ ...DEFAULT_PERMISSIONS });
   const [editConfirmID, setEditConfirmID] = useState("");
   const [editStep, setEditStep] = useState<"form" | "confirm">("form");
   const [editError, setEditError] = useState("");
@@ -428,6 +457,26 @@ function WorkersTab() {
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{newUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : newUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
               </div>
+              {/* Permissions */}
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 block">Permissions</label>
+                <div className="space-y-2 bg-gray-50 rounded-lg p-3">
+                  {PERMISSION_LABELS.map(({ key, label, desc }) => (
+                    <label key={key} className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newPermissions[key]}
+                        onChange={e => setNewPermissions(prev => ({ ...prev, [key]: e.target.checked }))}
+                        className="mt-0.5 accent-primary"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-foreground">{label}</span>
+                        <p className="text-xs text-muted-foreground">{desc}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
               {addError && <p className="text-xs text-destructive">{addError}</p>}
             </div>
             <div className="flex gap-2 mt-4">
@@ -470,6 +519,26 @@ function WorkersTab() {
                       <button type="button" onClick={() => setEditUserLevel("2")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "2" ? "bg-green-100 border-green-400 text-green-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 2</button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">{editUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : editUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
+                  </div>
+                  {/* Permissions */}
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 block">Permissions</label>
+                    <div className="space-y-2 bg-gray-50 rounded-lg p-3">
+                      {PERMISSION_LABELS.map(({ key, label, desc }) => (
+                        <label key={key} className="flex items-start gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editPermissions[key]}
+                            onChange={e => setEditPermissions(prev => ({ ...prev, [key]: e.target.checked }))}
+                            className="mt-0.5 accent-primary"
+                          />
+                          <div>
+                            <span className="text-sm font-medium text-foreground">{label}</span>
+                            <p className="text-xs text-muted-foreground">{desc}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   {editError && <p className="text-xs text-destructive">{editError}</p>}
                 </div>

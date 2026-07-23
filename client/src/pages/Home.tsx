@@ -143,7 +143,7 @@ function NotificationBanner({ onDismiss }: { onDismiss: () => void }) {
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const { worker } = useAuth();
+  const { worker, hasPermission } = useAuth();
   usePushNotifications(worker?.workerID ?? null);
   const userLevel = worker?.userLevel ?? "2";
 
@@ -209,19 +209,21 @@ export default function Home() {
         </div>
 
         <div className="relative px-4 lg:px-8 py-8 lg:py-10">
-          {/* Mobile bell badge */}
-          <button
-            onClick={() => navigate("/approval-center")}
-            className="lg:hidden absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-all border border-white/20"
-            title="Approval Center"
-          >
-            <CheckCircle2 size={18} className="text-white" />
-            {pendingCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg">
-                {pendingCount > 99 ? "99+" : pendingCount}
-              </span>
-            )}
-          </button>
+          {/* Mobile bell badge — only if permitted */}
+          {hasPermission("nprmModifyOrder") && (
+            <button
+              onClick={() => navigate("/approval-center")}
+              className="lg:hidden absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-all border border-white/20"
+              title="Approval Center"
+            >
+              <CheckCircle2 size={18} className="text-white" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg">
+                  {pendingCount > 99 ? "99+" : pendingCount}
+                </span>
+              )}
+            </button>
+          )}
 
           <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:items-center lg:gap-6">
             {/* Logo and title */}
@@ -296,7 +298,15 @@ export default function Home() {
 
           {/* Cards grid - responsive */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {baseFeatures.map((f) => {
+            {baseFeatures.filter((f) => {
+              if (f.href === "/qr-scanner") return hasPermission("qrScanner");
+              if (f.href === "/submit-order") return hasPermission("submitOrder");
+              if (f.href === "/stock-history") return hasPermission("viewStock");
+              if (f.href === "/approval-center") return hasPermission("nprmModifyOrder");
+              if (f.href === "/customer-sample") return hasPermission("customerSample");
+              if (f.href === "/chat") return hasPermission("viewChat");
+              return true;
+            }).map((f) => {
               const isNPRMCard = f.title === "NPRM Modify Order";
               const tooltipText = isNPRMCard 
                 ? "Review pending requests from Level 1/1.1 users. Approve, cancel, or process-approve based on your user level."
