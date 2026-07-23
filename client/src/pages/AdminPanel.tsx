@@ -386,7 +386,7 @@ function WorkersTab() {
       {/* Add Worker Dialog */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-foreground mb-4">Add Worker</h3>
             <div className="space-y-3">
               <div>
@@ -461,7 +461,7 @@ function WorkersTab() {
       {/* Edit Worker Dialog */}
       {editTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 max-h-[90vh] overflow-y-auto">
             {editStep === "form" ? (
               <>
                 <h3 className="font-bold text-foreground mb-1">Edit Worker</h3>
