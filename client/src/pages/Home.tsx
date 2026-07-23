@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { ClipboardList, Package, History, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp, MessageCircle, Info, FlaskConical } from "lucide-react";
+import { ClipboardList, Package, CheckCircle2, Bell, BellOff, X, ScanLine, ArrowRight, Activity, TrendingUp, MessageCircle, Info, FlaskConical } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { trpc } from "@/lib/trpc";
@@ -55,16 +55,7 @@ const baseFeatures = [
     btnLabel: "View Stock",
     accentColor: "green",
   },
-  {
-    icon: <History size={28} className="text-white" />,
-    title: "Usage History",
-    description: "Track how orders have been used by Job No or Old Stock.",
-    href: "/usage-history",
-    gradient: "from-purple-500 to-violet-600",
-    shadowColor: "shadow-purple-500/20",
-    btnLabel: "View Usage",
-    accentColor: "purple",
-  },
+
   {
     icon: <CheckCircle2 size={28} className="text-white" />,
     title: "NPRM Modify Order",

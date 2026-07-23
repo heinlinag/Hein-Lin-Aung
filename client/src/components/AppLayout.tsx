@@ -6,7 +6,7 @@
 import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
-  ClipboardList, Package, History, CheckCircle2, LogOut,
+  ClipboardList, Package, CheckCircle2, LogOut,
   User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell, FlaskConical,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,7 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/",               label: "Home",             icon: <Home size={18} /> },
   { href: "/submit-order",    label: "Submit Order",    icon: <ClipboardList size={18} /> },
   { href: "/stock-history",   label: "Stock History",   icon: <Package size={18} /> },
-  { href: "/usage-history",   label: "Usage History",   icon: <History size={18} /> },
+
   { href: "/approval-center",  label: "NPRM Modify Order",  icon: <CheckCircle2 size={18} /> },
   { href: "/customer-sample",  label: "Customer Sample",   icon: <FlaskConical size={18} /> },
   { href: "/qr-scanner",       label: "QR Scanner",         icon: <ScanLine size={18} /> },
