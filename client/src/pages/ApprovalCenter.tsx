@@ -186,8 +186,8 @@ function RequestCard({
             <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-semibold">{snapshot.bqComment}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Correct Qty</span>
-            <span className="text-sm font-semibold">{snapshot.qty} pcs</span>
+            <span className="text-xs text-muted-foreground">Current Qty</span>
+            <span className="text-sm font-semibold">{req.processApprovedQty ? `${snapshot.qty - req.processApprovedQty} pcs` : `${snapshot.qty} pcs`}</span>
           </div>
         </div>
       )}
