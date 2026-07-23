@@ -27,6 +27,38 @@ import MaintenancePage from "./pages/Maintenance";
 import AdminLogin from "./pages/AdminLogin";
 import { trpc } from "./lib/trpc";
 import { useAuth } from "./contexts/AuthContext";
+import type { WorkerPermissions } from "./contexts/AuthContext";
+import { ShieldOff, MessageCircle } from "lucide-react";
+
+/** Permission gate: shows access-denied screen when worker lacks required permission */
+function PermissionGate({ permission, children }: { permission: keyof WorkerPermissions; children: React.ReactNode }) {
+  const { hasPermission, worker } = useAuth();
+  const ADMIN_WHATSAPP = import.meta.env.VITE_ADMIN_WHATSAPP ?? "";
+  if (!worker) return <>{children}</>; // LoginGate handles unauthenticated
+  if (hasPermission(permission)) return <>{children}</>;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="max-w-sm w-full text-center space-y-4">
+        <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+          <ShieldOff size={32} className="text-amber-600 dark:text-amber-400" />
+        </div>
+        <h2 className="text-xl font-semibold text-foreground">Access Restricted</h2>
+        <p className="text-sm text-muted-foreground">You don't have permission to access this page. Please contact your Administrator to update your account.</p>
+        {ADMIN_WHATSAPP && (
+          <a
+            href={`https://wa.me/${ADMIN_WHATSAPP.replace(/[^0-9]/g, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors"
+          >
+            <MessageCircle size={16} />
+            Contact Administrator
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
 
 
 /** Admin route: shows AdminLogin password screen when not authenticated, AdminPanel when authenticated */
@@ -76,32 +108,42 @@ function GeoRestrictedRouter() {
               </Route>
               <Route path="/submit-order">
                 <LoginGate>
-                  <SubmitOrder />
+                  <PermissionGate permission="submitOrder">
+                    <SubmitOrder />
+                  </PermissionGate>
                 </LoginGate>
               </Route>
               <Route path="/stock-history">
                 <LoginGate>
-                  <StockHistory />
+                  <PermissionGate permission="viewStock">
+                    <StockHistory />
+                  </PermissionGate>
                 </LoginGate>
               </Route>
               {/* Customer Sample */}
               <Route path="/customer-sample">
                 <LoginGate>
-                  <CustomerSample />
+                  <PermissionGate permission="customerSample">
+                    <CustomerSample />
+                  </PermissionGate>
                 </LoginGate>
               </Route>
 
-              {/* Approval Center: Level 2 workers only */}
+              {/* Approval Center */}
               <Route path="/approval-center">
                 <LoginGate>
-                  <ApprovalCenter />
+                  <PermissionGate permission="nprmModifyOrder">
+                    <ApprovalCenter />
+                  </PermissionGate>
                 </LoginGate>
               </Route>
 
               {/* QR Scanner */}
               <Route path="/qr-scanner">
                 <LoginGate>
-                  <QRScanner />
+                  <PermissionGate permission="qrScanner">
+                    <QRScanner />
+                  </PermissionGate>
                 </LoginGate>
               </Route>
 
@@ -109,7 +151,9 @@ function GeoRestrictedRouter() {
               <Route path="/notifications" component={Notifications} />
               <Route path="/chat">
                 <LoginGate>
-                  <Chat />
+                  <PermissionGate permission="viewChat">
+                    <Chat />
+                  </PermissionGate>
                 </LoginGate>
               </Route>
 

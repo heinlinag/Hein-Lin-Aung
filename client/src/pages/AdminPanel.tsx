@@ -428,6 +428,23 @@ function WorkersTab() {
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{newUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : newUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
               </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 block">Permissions</label>
+                <div className="space-y-1.5 border border-border rounded-lg p-3 bg-gray-50/50">
+                  {PERMISSION_LABELS.map(p => (
+                    <label key={p.key} className="flex items-center gap-2.5 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={newPermissions[p.key]}
+                        onChange={e => setNewPermissions(prev => ({ ...prev, [p.key]: e.target.checked }))}
+                        className="w-4 h-4 rounded accent-blue-600"
+                      />
+                      <span className="text-sm text-foreground group-hover:text-primary transition-colors">{p.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
               {addError && <p className="text-xs text-destructive">{addError}</p>}
             </div>
             <div className="flex gap-2 mt-4">
@@ -470,6 +487,23 @@ function WorkersTab() {
                       <button type="button" onClick={() => setEditUserLevel("2")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "2" ? "bg-green-100 border-green-400 text-green-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 2</button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">{editUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : editUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 block">Permissions</label>
+                    <div className="space-y-1.5 border border-border rounded-lg p-3 bg-gray-50/50">
+                      {PERMISSION_LABELS.map(p => (
+                        <label key={p.key} className="flex items-center gap-2.5 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={editPermissions[p.key]}
+                            onChange={e => setEditPermissions(prev => ({ ...prev, [p.key]: e.target.checked }))}
+                            className="w-4 h-4 rounded accent-blue-600"
+                          />
+                          <span className="text-sm text-foreground group-hover:text-primary transition-colors">{p.label}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   {editError && <p className="text-xs text-destructive">{editError}</p>}
                 </div>
