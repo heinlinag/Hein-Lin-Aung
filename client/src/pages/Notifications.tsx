@@ -366,7 +366,7 @@ export default function Notifications() {
 
   return (
     <AppLayout pageTitle="Notifications">
-      <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 xl:max-w-4xl">
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-3 sm:py-5">
         {/* Header */}
         <div className="flex items-center justify-between mb-3 sm:mb-5 gap-2">
           <div className="min-w-0">

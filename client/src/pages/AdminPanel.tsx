@@ -155,34 +155,7 @@ function SettingsTab() {
   );
 }
 
-type WorkerPermissions = {
-  submitOrder: boolean;
-  viewStock: boolean;
-  nprmModifyOrder: boolean;
-  customerSample: boolean;
-  qrScanner: boolean;
-  viewChat: boolean;
-  viewNotifications: boolean;
-};
-const DEFAULT_PERMISSIONS: WorkerPermissions = {
-  submitOrder: false,
-  viewStock: false,
-  nprmModifyOrder: false,
-  customerSample: false,
-  qrScanner: false,
-  viewChat: false,
-  viewNotifications: false,
-};
-const PERMISSION_LABELS: { key: keyof WorkerPermissions; label: string; desc: string }[] = [
-  { key: "submitOrder", label: "Submit Order", desc: "Can submit purchase orders" },
-  { key: "viewStock", label: "View Stock", desc: "Can view stock history" },
-  { key: "nprmModifyOrder", label: "NPRM Modify Order", desc: "Can submit NPRM modify requests" },
-  { key: "customerSample", label: "Customer Sample", desc: "Can submit customer sample requests" },
-  { key: "qrScanner", label: "QR Scanner", desc: "Can use QR scanner to update orders" },
-  { key: "viewChat", label: "Chat", desc: "Can access team chat" },
-  { key: "viewNotifications", label: "Notifications", desc: "Can view notifications" },
-];
-type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; permissions?: string | null; createdAt: Date };
+type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; createdAt: Date };
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
@@ -213,7 +186,6 @@ function WorkersTab() {
   const [newName, setNewName] = useState("");
   const [newDept, setNewDept] = useState("");
   const [newUserLevel, setNewUserLevel] = useState<"1" | "1.1" | "2">("2");
-  const [newPermissions, setNewPermissions] = useState<WorkerPermissions>({ ...DEFAULT_PERMISSIONS });
   const [addError, setAddError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
   const [deleteVerifyPassword, setDeleteVerifyPassword] = useState("");
@@ -224,7 +196,6 @@ function WorkersTab() {
   const [editName, setEditName] = useState("");
   const [editDept, setEditDept] = useState("");
   const [editUserLevel, setEditUserLevel] = useState<"1" | "1.1" | "2">("2");
-  const [editPermissions, setEditPermissions] = useState<WorkerPermissions>({ ...DEFAULT_PERMISSIONS });
   const [editConfirmID, setEditConfirmID] = useState("");
   const [editStep, setEditStep] = useState<"form" | "confirm">("form");
   const [editError, setEditError] = useState("");
@@ -232,7 +203,6 @@ function WorkersTab() {
   const addWorker = trpc.workers.add.useMutation();
   const deleteWorker = trpc.workers.delete.useMutation();
   const updateWorker = trpc.workers.update.useMutation();
-  const updatePermissions = trpc.workers.updatePermissions.useMutation();
 
   const openEdit = (w: Worker) => {
     setEditTarget(w);
@@ -240,9 +210,6 @@ function WorkersTab() {
     setEditName(w.name);
     setEditDept(w.department);
     setEditUserLevel(w.userLevel);
-    // Load existing permissions or default to all false
-    const parsed = w.permissions ? (() => { try { return JSON.parse(w.permissions!); } catch { return null; } })() : null;
-    setEditPermissions(parsed ? { ...DEFAULT_PERMISSIONS, ...parsed } : { ...DEFAULT_PERMISSIONS });
     setEditConfirmID("");
     setEditStep("form");
     setEditError("");
@@ -274,12 +241,6 @@ function WorkersTab() {
         confirmWorkerID: editConfirmID.trim(),
         adminPassword: getAdminPassword(),
       });
-      // Also save permissions
-      await updatePermissions.mutateAsync({
-        id: editTarget.id,
-        permissions: editPermissions,
-        adminPassword: getAdminPassword(),
-      });
       toast.success("Worker updated successfully.");
       utils.workers.list.invalidate();
       setEditTarget(null);
@@ -296,11 +257,11 @@ function WorkersTab() {
       return;
     }
     try {
-      await addWorker.mutateAsync({ workerID: newWorkerID.trim(), name: newName.trim(), department: newDept.trim(), userLevel: newUserLevel, permissions: newPermissions, adminPassword: getAdminPassword() });
+      await addWorker.mutateAsync({ workerID: newWorkerID.trim(), name: newName.trim(), department: newDept.trim(), userLevel: newUserLevel, adminPassword: getAdminPassword() });
       toast.success("Worker added.");
       utils.workers.list.invalidate();
       setShowAdd(false);
-      setNewWorkerID(""); setNewName(""); setNewDept(""); setNewUserLevel("2"); setNewPermissions({ ...DEFAULT_PERMISSIONS });
+      setNewWorkerID(""); setNewName(""); setNewDept(""); setNewUserLevel("2");
     } catch (err: unknown) {
       const e = err as { message?: string };
       setAddError(e?.message ?? "Failed to add worker.");
@@ -425,7 +386,7 @@ function WorkersTab() {
       {/* Add Worker Dialog */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
             <h3 className="font-bold text-foreground mb-4">Add Worker</h3>
             <div className="space-y-3">
               <div>
@@ -467,23 +428,7 @@ function WorkersTab() {
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{newUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : newUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
               </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 block">Permissions</label>
-                <div className="space-y-1.5 border border-border rounded-lg p-3 bg-gray-50/50">
-                  {PERMISSION_LABELS.map(p => (
-                    <label key={p.key} className="flex items-center gap-2.5 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={newPermissions[p.key]}
-                        onChange={e => setNewPermissions((prev: WorkerPermissions) => ({ ...prev, [p.key]: e.target.checked }))}
-                        className="w-4 h-4 rounded accent-blue-600"
-                      />
-                      <span className="text-sm text-foreground group-hover:text-primary transition-colors">{p.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-                            {addError && <p className="text-xs text-destructive">{addError}</p>}
+              {addError && <p className="text-xs text-destructive">{addError}</p>}
             </div>
             <div className="flex gap-2 mt-4">
               <button onClick={() => { setShowAdd(false); setAddError(""); }} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
@@ -499,7 +444,7 @@ function WorkersTab() {
       {/* Edit Worker Dialog */}
       {editTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
             {editStep === "form" ? (
               <>
                 <h3 className="font-bold text-foreground mb-1">Edit Worker</h3>

@@ -102,9 +102,8 @@ export const appRouter = router({
             deepLink: "/notifications",
           });
         }
-        const perms = worker.permissions ? JSON.parse(worker.permissions) : null;
         return {
-          worker: { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel, permissions: perms },
+          worker: { id: worker.id, workerID: worker.workerID, name: worker.name, department: worker.department, userLevel: worker.userLevel },
           wasDisplaced,
           ip,
         };
@@ -171,15 +170,6 @@ export const appRouter = router({
         name: z.string().min(1).max(128),
         department: z.string().min(1).max(128),
         userLevel: z.enum(["1", "1.1", "2"]).default("2"),
-        permissions: z.object({
-          submitOrder: z.boolean(),
-          viewStock: z.boolean(),
-          nprmModifyOrder: z.boolean(),
-          customerSample: z.boolean(),
-          qrScanner: z.boolean(),
-          viewChat: z.boolean(),
-          viewNotifications: z.boolean(),
-        }).optional(),
         adminPassword: z.string(),
       }))
       .mutation(async ({ input }) => {
@@ -190,13 +180,7 @@ export const appRouter = router({
         }
         const existing = await getWorkerByWorkerID(input.workerID);
         if (existing) throw new TRPCError({ code: "CONFLICT", message: "Employee ID already exists" });
-        await createWorker({
-          workerID: input.workerID,
-          name: input.name,
-          department: input.department,
-          userLevel: input.userLevel,
-          permissions: input.permissions ? JSON.stringify(input.permissions) : null,
-        });
+        await createWorker({ workerID: input.workerID, name: input.name, department: input.department, userLevel: input.userLevel });
         return { success: true };
       }),
     delete: publicProcedure
@@ -243,30 +227,6 @@ export const appRouter = router({
           department: input.department,
           userLevel: input.userLevel,
         });
-        return { success: true };
-      }),
-    /** Update permissions for a specific worker */
-    updatePermissions: publicProcedure
-      .input(z.object({
-        id: z.number().int().positive(),
-        permissions: z.object({
-          submitOrder: z.boolean(),
-          viewStock: z.boolean(),
-          nprmModifyOrder: z.boolean(),
-          customerSample: z.boolean(),
-          qrScanner: z.boolean(),
-          viewChat: z.boolean(),
-          viewNotifications: z.boolean(),
-        }),
-        adminPassword: z.string(),
-      }))
-      .mutation(async ({ input }) => {
-        const db = await getDb();
-        const effectivePw = await getEffectiveAdminPassword(db);
-        if (input.adminPassword !== effectivePw) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
-        }
-        await updateWorkerById(input.id, { permissions: JSON.stringify(input.permissions) });
         return { success: true };
       }),
   }),

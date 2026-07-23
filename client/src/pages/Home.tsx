@@ -30,7 +30,6 @@ const baseFeatures = [
     title: "QR Scanner",
     description: "Scan QR codes to verify orders and update balances in real time.",
     href: "/qr-scanner",
-    permission: "qrScanner",
     gradient: "from-teal-500 to-cyan-600",
     shadowColor: "shadow-teal-500/20",
     btnLabel: "Open Scanner",
@@ -41,7 +40,6 @@ const baseFeatures = [
     title: "Submit Order",
     description: "Submit a new Manual Slitter order with Flute Type, Size, and Qty.",
     href: "/submit-order",
-    permission: "submitOrder",
     gradient: "from-blue-500 to-indigo-600",
     shadowColor: "shadow-blue-500/20",
     btnLabel: "Submit Order",
@@ -52,7 +50,6 @@ const baseFeatures = [
     title: "Stock History",
     description: "View current stock and out-of-stock orders. Filter by BQ.",
     href: "/stock-history",
-    permission: "viewStock",
     gradient: "from-emerald-500 to-green-600",
     shadowColor: "shadow-emerald-500/20",
     btnLabel: "View Stock",
@@ -64,7 +61,6 @@ const baseFeatures = [
     title: "NPRM Modify Order",
     description: "Review and manage pending requests for actions.",
     href: "/approval-center",
-    permission: "nprmModifyOrder",
     gradient: "from-orange-500 to-amber-600",
     shadowColor: "shadow-orange-500/20",
     btnLabel: "View Requests",
@@ -76,7 +72,6 @@ const baseFeatures = [
     title: "Customer Sample",
     description: "Manage customer sample requests and track delivery status.",
     href: "/customer-sample",
-    permission: "customerSample",
     gradient: "from-emerald-400 to-teal-600",
     shadowColor: "shadow-emerald-500/20",
     btnLabel: "View Samples",
@@ -88,7 +83,6 @@ const baseFeatures = [
     title: "Messages",
     description: "Send direct messages to other workers in real time.",
     href: "/chat",
-    permission: "viewChat",
     gradient: "from-[#075e54] to-[#128c7e]",
     shadowColor: "shadow-teal-700/20",
     btnLabel: "Open Messages",
@@ -115,7 +109,7 @@ function NotificationBanner({ onDismiss }: { onDismiss: () => void }) {
   };
 
   return (
-    <div className="mx-4 md:mx-6 lg:mx-8 xl:mx-10 mt-4 mb-0 max-w-7xl 2xl:mx-auto">
+    <div className="mx-4 lg:mx-8 mt-4 mb-0 max-w-6xl xl:mx-auto">
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-sm">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
           <Bell size={18} className="text-white" />
@@ -149,7 +143,7 @@ function NotificationBanner({ onDismiss }: { onDismiss: () => void }) {
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const { worker, hasPermission } = useAuth();
+  const { worker } = useAuth();
   usePushNotifications(worker?.workerID ?? null);
   const userLevel = worker?.userLevel ?? "2";
 
@@ -214,7 +208,7 @@ export default function Home() {
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4" />
         </div>
 
-        <div className="relative px-4 md:px-6 lg:px-8 xl:px-10 py-8 md:py-10 lg:py-12">
+        <div className="relative px-4 lg:px-8 py-8 lg:py-10">
           {/* Mobile bell badge */}
           <button
             onClick={() => navigate("/approval-center")}
@@ -229,14 +223,14 @@ export default function Home() {
             )}
           </button>
 
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center lg:gap-6">
+          <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:items-center lg:gap-6">
             {/* Logo and title */}
             <div className="flex items-center gap-4 mb-4 lg:mb-0">
               <div className="w-14 h-14 lg:w-16 lg:h-16 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 shadow-xl">
                 <img src={LOGO_URL} alt="GSPP" className="h-10 w-10 lg:h-12 lg:w-12 object-contain" />
               </div>
               <div>
-                <h2 className="text-xl lg:text-2xl xl:text-3xl font-bold text-white" style={{ fontFamily: "Lora, serif" }}>
+                <h2 className="text-xl lg:text-2xl font-bold text-white" style={{ fontFamily: "Lora, serif" }}>
                   PP4 Manual Slitter
                 </h2>
                 <p className="text-white/70 text-xs lg:text-sm font-medium">Stock Management System</p>
@@ -261,7 +255,7 @@ export default function Home() {
 
           {/* Quick stats */}
           {pendingCount > 0 && (
-            <div className="max-w-7xl mx-auto mt-4">
+            <div className="max-w-6xl mx-auto mt-4">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/15">
                 <Activity size={14} className="text-orange-300" />
                 <span className="text-white/80 text-xs font-medium">
@@ -286,23 +280,23 @@ export default function Home() {
       {showNotifBanner && <NotificationBanner onDismiss={dismissBanner} />}
 
       {/* Feature cards grid */}
-      <div className="px-4 md:px-6 lg:px-8 xl:px-10 py-6 lg:py-8 xl:py-10">
-        <div className="max-w-7xl mx-auto">
+      <div className="px-4 lg:px-8 py-6 lg:py-8">
+        <div className="max-w-6xl mx-auto">
           {/* Section header */}
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-lg xl:text-xl font-bold text-gray-900" style={{ fontFamily: "Lora, serif" }}>Quick Actions</h2>
+              <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: "Lora, serif" }}>Quick Actions</h2>
               <p className="text-xs text-gray-500 mt-0.5">Access your most used features</p>
             </div>
             <div className="hidden lg:flex items-center gap-1.5 text-xs text-gray-400">
               <TrendingUp size={12} />
-              <span>{baseFeatures.filter(f => !f.permission || hasPermission(f.permission as Parameters<typeof hasPermission>[0])).length} features available</span>
+              <span>5 features available</span>
             </div>
           </div>
 
           {/* Cards grid - responsive */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 xl:gap-6">
-            {baseFeatures.filter(f => !f.permission || hasPermission(f.permission as Parameters<typeof hasPermission>[0])).map((f) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {baseFeatures.map((f) => {
               const isNPRMCard = f.title === "NPRM Modify Order";
               const tooltipText = isNPRMCard 
                 ? "Review pending requests from Level 1/1.1 users. Approve, cancel, or process-approve based on your user level."
@@ -312,7 +306,7 @@ export default function Home() {
                 <div
                   key={f.href}
                   onClick={() => navigate(f.href)}
-                  className={`group relative rounded-2xl p-5 md:p-6 bg-white border border-gray-100 shadow-sm hover:shadow-xl ${f.shadowColor} transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden`}
+                  className={`group relative rounded-2xl p-5 bg-white border border-gray-100 shadow-sm hover:shadow-xl ${f.shadowColor} transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden`}
                 >
                 {/* Background gradient on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${f.gradient} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300`} />
@@ -337,17 +331,17 @@ export default function Home() {
                 )}
 
                 {/* Icon */}
-                <div className={`w-12 h-12 xl:w-14 xl:h-14 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center mb-4 shadow-lg ${f.shadowColor} group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center mb-4 shadow-lg ${f.shadowColor} group-hover:scale-110 transition-transform duration-300`}>
                   {f.icon}
                 </div>
 
                 {/* Content */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
-                    <h3 className="font-bold text-gray-900 text-base xl:text-lg mb-1.5 group-hover:text-gray-800">
+                    <h3 className="font-bold text-gray-900 text-base mb-1.5 group-hover:text-gray-800">
                       {f.title}
                     </h3>
-                    <p className="text-xs md:text-sm text-gray-500 leading-relaxed mb-4 line-clamp-2">
+                    <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">
                       {f.description}
                     </p>
                   </div>
