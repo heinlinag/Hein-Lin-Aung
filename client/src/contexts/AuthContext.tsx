@@ -6,11 +6,22 @@ const ADMIN_PW_KEY = "gspp_admin_pw"; // sessionStorage — cleared on tab close
 // No expiry — session persists until explicit logout (one-device enforcement)
 const SESSION_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // effectively permanent (1 year)
 
+export type WorkerPermissions = {
+  submitOrder: boolean;
+  viewStock: boolean;
+  nprmModifyOrder: boolean;
+  customerSample: boolean;
+  qrScanner: boolean;
+  viewChat: boolean;
+  viewNotifications: boolean;
+};
+
 interface WorkerSession {
   workerID: string;
   name: string;
   department: string;
   userLevel: "1" | "1.1" | "2";
+  permissions: WorkerPermissions | null; // null = not yet configured by admin
   expiresAt: number;
   deviceToken?: string;
 }
@@ -18,12 +29,20 @@ interface WorkerSession {
 interface AuthState {
   worker: WorkerSession | null;
   isAdminAuthenticated: boolean;
-  loginWorker: (workerID: string, name: string, department: string, userLevel: "1" | "1.1" | "2", deviceToken?: string) => void;
+  loginWorker: (
+    workerID: string,
+    name: string,
+    department: string,
+    userLevel: "1" | "1.1" | "2",
+    deviceToken?: string,
+    permissions?: WorkerPermissions | null
+  ) => void;
   loginAdmin: (password?: string) => void;
   logoutWorker: () => void;
   logoutAdmin: () => void;
   isWorkerLoggedIn: () => boolean;
   getAdminPassword: () => string;
+  hasPermission: (key: keyof WorkerPermissions) => boolean;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -59,12 +78,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const loginWorker = (workerID: string, name: string, department: string, userLevel: "1" | "1.1" | "2" = "2", deviceToken?: string) => {
+  const loginWorker = (
+    workerID: string,
+    name: string,
+    department: string,
+    userLevel: "1" | "1.1" | "2" = "2",
+    deviceToken?: string,
+    permissions?: WorkerPermissions | null
+  ) => {
     const session: WorkerSession = {
       workerID,
       name,
       department,
       userLevel,
+      permissions: permissions ?? null,
       expiresAt: Date.now() + SESSION_DURATION_MS,
       deviceToken,
     };
@@ -103,6 +130,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return true;
   };
 
+  const hasPermission = (key: keyof WorkerPermissions): boolean => {
+    if (!worker) return false;
+    if (!worker.permissions) return false; // null = not yet configured
+    return worker.permissions[key] === true;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -114,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logoutAdmin,
         isWorkerLoggedIn,
         getAdminPassword,
+        hasPermission,
       }}
     >
       {children}

@@ -1230,7 +1230,7 @@ export default function Chat() {
     <div className="h-full flex overflow-hidden bg-[#f0f2f5]">
       {/* Desktop/Tablet: Side-by-side */}
       <div className="hidden md:flex w-full h-full">
-        <div className="w-[360px] lg:w-[400px] flex-shrink-0 border-r border-gray-200 h-full overflow-hidden">
+        <div className="w-[300px] md:w-[340px] lg:w-[380px] xl:w-[420px] flex-shrink-0 border-r border-gray-200 h-full overflow-hidden">
           <SidebarList {...sidebarProps} />
         </div>
         <div className="flex-1 h-full overflow-hidden relative">

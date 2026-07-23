@@ -1100,7 +1100,7 @@ export default function ApprovalCenter() {
 
   return (
     <AppLayout pageTitle="NPRM Modify Order">
-      <main className="container lg:max-w-none lg:px-8 py-5">
+      <main className="container lg:max-w-none lg:px-8 xl:px-10 py-4 md:py-5">
         <div></div>
 
         {/* Level info banners */}
@@ -1140,7 +1140,7 @@ export default function ApprovalCenter() {
         {true && (
           <>
             {/* Sticky filter bar — sticks to top on mobile scroll */}
-            <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm pb-3 pt-1 -mx-4 px-4 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+            <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md pb-3 pt-1 -mx-4 md:-mx-6 lg:-mx-8 xl:-mx-10 px-4 md:px-6 lg:px-8 xl:px-10 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border-b border-gray-100">
             {/* Status & Time Filters */}
             <div className="flex gap-3 mb-3 items-center flex-wrap justify-center sm:justify-start">
               {/* Status Select */}

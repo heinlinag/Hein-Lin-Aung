@@ -225,7 +225,7 @@ export default function QRScanner() {
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-2xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 xl:max-w-3xl">
         {/* Header */}
         <div className="mb-5">
           <div className="flex items-center gap-3 mb-1">

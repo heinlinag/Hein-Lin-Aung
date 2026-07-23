@@ -157,11 +157,17 @@ export default function Login() {
   };
 
   const completeLogin = (
-    worker: { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2" },
+    worker: { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; permissions?: Record<string, boolean> | null },
     deviceToken: string,
     deviceName: string,
   ) => {
-    loginWorker(worker.workerID, worker.name, worker.department, worker.userLevel, deviceToken);
+    // If permissions is null (not yet configured by admin), show contact admin message
+    if (worker.permissions === null || worker.permissions === undefined) {
+      setError("NEEDS_PERMISSION_UPDATE");
+      setLoading(false);
+      return;
+    }
+    loginWorker(worker.workerID, worker.name, worker.department, worker.userLevel, deviceToken, worker.permissions as import("@/contexts/AuthContext").WorkerPermissions);
     notifyLogin.mutate({ title: "Employee Login", body: worker.name + " (" + worker.workerID + ") logged in on " + deviceName, tag: "worker-login" });
     setSuccessName(worker.name);
     setTimeout(() => {
@@ -183,7 +189,7 @@ export default function Login() {
       const deviceName = getDeviceName();
       const result = await checkDevice.mutateAsync({ workerID: workerID.trim(), deviceToken, deviceName });
       completeLogin(
-        result.worker as { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2" },
+        result.worker as { workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; permissions?: Record<string, boolean> | null },
         deviceToken,
         deviceName,
       );
