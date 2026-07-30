@@ -3,7 +3,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import AppLayout from "@/components/AppLayout";
-import { CheckCircle, XCircle, AlertTriangle, Loader2, ScanLine, RefreshCw, Package, Edit3, X, History, Clock, User, ArrowRight } from "lucide-react";
+import { CheckCircle, XCircle, AlertTriangle, Loader2, ScanLine, RefreshCw, Package, Edit3, X, History, Camera, Keyboard, BarChart2 } from "lucide-react";
 import { QRScanHistoryCard } from "@/components/QRScanHistoryCard";
 
 interface ScannedOrder {
@@ -30,7 +30,7 @@ type TabType = "scanner" | "history";
 export default function QRScanner() {
   const initialTrackingId = new URLSearchParams(window.location.search).get("trackingId")?.toUpperCase() ?? "";
 
-  const [activeTab, setActiveTab] = useState<TabType>(initialTrackingId ? "scanner" : "scanner");
+  const [activeTab, setActiveTab] = useState<TabType>("scanner");
   const [scanning, setScanning] = useState(false);
   const [scannedData, setScannedData] = useState<ScannedOrder | null>(
     initialTrackingId ? { orderId: initialTrackingId, qty: 0, bq: "", boardSize: "" } : null
@@ -48,11 +48,10 @@ export default function QRScanner() {
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   const hasLoggedScan = useRef<string | null>(null);
 
-  // Detect mobile/desktop on mount and resize
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const { data: verifyResult, isLoading: verifying, refetch: refetchVerify } = trpc.orders.qrVerifyByTrackingId.useQuery(
@@ -82,18 +81,12 @@ export default function QRScanner() {
     },
   });
 
-  // Log scan when order is verified (once per unique trackingId)
   useEffect(() => {
     if (verifyResult?.found && verifyTrackingId && hasLoggedScan.current !== verifyTrackingId) {
       hasLoggedScan.current = verifyTrackingId;
-      // Try to get worker info from localStorage (set during login)
       const workerID = localStorage.getItem("workerID") || "UNKNOWN";
       const workerName = localStorage.getItem("workerName") || "Unknown";
-      logScanMutation.mutate({
-        orderId: verifyTrackingId,
-        scannedBy: workerID,
-        scannedByName: workerName,
-      });
+      logScanMutation.mutate({ orderId: verifyTrackingId, scannedBy: workerID, scannedByName: workerName });
     }
   }, [verifyResult, verifyTrackingId]);
 
@@ -118,10 +111,7 @@ export default function QRScanner() {
 
   const stopScanner = async () => {
     if (scannerRef.current) {
-      try {
-        await scannerRef.current.stop();
-        scannerRef.current.clear();
-      } catch {}
+      try { await scannerRef.current.stop(); scannerRef.current.clear(); } catch {}
       scannerRef.current = null;
     }
     setScanning(false);
@@ -131,8 +121,6 @@ export default function QRScanner() {
     stopScanner();
     try {
       let raw = text.trim();
-      // Strip the full public URL prefix if present (e.g. https://stockdash.click/check.qr/PP...)
-      const URL_PREFIX = "https://stockdash.click/check.qr/";
       if (raw.toLowerCase().includes("/check.qr/")) {
         const idx = raw.toLowerCase().indexOf("/check.qr/");
         raw = raw.slice(idx + "/check.qr/".length);
@@ -148,22 +136,10 @@ export default function QRScanner() {
   };
 
   const validateTrackingId = (trackingId: string): { valid: boolean; error?: string } => {
-    if (!trackingId || trackingId.trim().length === 0) {
-      return { valid: false, error: "Tracking ID is required" };
-    }
-    
+    if (!trackingId || trackingId.trim().length === 0) return { valid: false, error: "Tracking ID is required" };
     const trimmed = trackingId.trim().toUpperCase();
-    
-    // Check format: should start with PP4 and contain only alphanumeric characters
-    if (!/^PP4[A-Z0-9]+$/.test(trimmed)) {
-      return { valid: false, error: "Invalid format. Tracking ID must start with 'PP4' and contain only letters and numbers" };
-    }
-    
-    // Check length: typically PP4 + 12-16 characters (total 15-19)
-    if (trimmed.length < 10 || trimmed.length > 25) {
-      return { valid: false, error: `Invalid length. Tracking ID should be 10-25 characters (got ${trimmed.length})` };
-    }
-    
+    if (!/^PP4[A-Z0-9]+$/.test(trimmed)) return { valid: false, error: "Invalid format. Must start with 'PP4'" };
+    if (trimmed.length < 10 || trimmed.length > 25) return { valid: false, error: `Invalid length (got ${trimmed.length}, expected 10-25)` };
     return { valid: true };
   };
 
@@ -171,13 +147,8 @@ export default function QRScanner() {
     e.preventDefault();
     const trackingId = (e.currentTarget as HTMLFormElement).querySelector("input")?.value?.trim().toUpperCase();
     if (!trackingId) return;
-    
     const validation = validateTrackingId(trackingId);
-    if (!validation.valid) {
-      toast.error(validation.error || "Invalid Tracking ID");
-      return;
-    }
-    
+    if (!validation.valid) { toast.error(validation.error || "Invalid Tracking ID"); return; }
     setVerifyTrackingId(trackingId);
     setScannedData({ orderId: trackingId, qty: 0, bq: "", boardSize: "" });
   };
@@ -185,14 +156,8 @@ export default function QRScanner() {
   const handleUpdateBalance = () => {
     if (!verifyResult?.order) return;
     const qty = parseInt(newQty);
-    if (isNaN(qty) || qty < 0) {
-      toast.error("Please enter a valid quantity (0 or more)");
-      return;
-    }
-    if (!employeeId.trim()) {
-      toast.error("Employee ID is required for verification");
-      return;
-    }
+    if (isNaN(qty) || qty < 0) { toast.error("Please enter a valid quantity (0 or more)"); return; }
+    if (!employeeId.trim()) { toast.error("Employee ID is required for verification"); return; }
     const currentOrder = verifyResult.order as VerifiedOrder;
     setUpdateLoading(true);
     updateBalanceMutation.mutate({
@@ -202,9 +167,7 @@ export default function QRScanner() {
       oldQty: currentOrder.qty,
       employeeId: employeeId.trim().toUpperCase(),
       note: updateNote.trim() || undefined,
-    }, {
-      onSettled: () => setUpdateLoading(false),
-    });
+    }, { onSettled: () => setUpdateLoading(false) });
   };
 
   const resetScanner = () => {
@@ -216,80 +179,94 @@ export default function QRScanner() {
     hasLoggedScan.current = null;
   };
 
-  useEffect(() => {
-    return () => { stopScanner(); };
-  }, []);
+  useEffect(() => { return () => { stopScanner(); }; }, []);
 
   const order = verifyResult?.order as VerifiedOrder | null | undefined;
   const isMatch = verifyResult?.found && scannedData && order;
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-5">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <ScanLine className="text-blue-600" size={22} />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">QR Scanner</h1>
-          </div>
-          <p className="text-sm text-gray-500 ml-12">Scan order labels to verify stock and update balance</p>
+      {/* ── HERO BANNER ── */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-900 px-4 pt-8 pb-10 mb-0">
+        {/* Animated background orbs */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-40px] left-[-40px] w-64 h-64 rounded-full bg-cyan-500/10 blur-3xl animate-pulse" />
+          <div className="absolute bottom-[-30px] right-[-20px] w-48 h-48 rounded-full bg-blue-500/10 blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-teal-400/5 blur-2xl" />
+          {/* Grid overlay */}
+          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+          {/* Scan line animation */}
+          <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent animate-[scanline_3s_linear_infinite]" style={{ top: "40%" }} />
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5">
-          <button
-            onClick={() => setActiveTab("scanner")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${activeTab === "scanner" ? "bg-white text-blue-700 shadow-sm" : "text-gray-600 hover:text-gray-800"}`}
-          >
-            <ScanLine size={15} />
-            Scanner
-          </button>
-          <button
-            onClick={() => { setActiveTab("history"); refetchHistory(); }}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${activeTab === "history" ? "bg-white text-blue-700 shadow-sm" : "text-gray-600 hover:text-gray-800"}`}
-          >
-            <History size={15} />
-            Scanned History
-          </button>
+        <div className="relative max-w-2xl mx-auto">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 rounded-xl bg-cyan-500/20 border border-cyan-400/30 backdrop-blur-sm">
+              <ScanLine className="text-cyan-400" size={22} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">QR Scanner</h1>
+              <p className="text-cyan-300/70 text-xs mt-0.5">Scan order labels to verify stock and update balance</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-4 py-5">
+        {/* ── TABS ── */}
+        <div className="flex gap-1 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-1 mb-5 shadow-inner">
+          {(["scanner", "history"] as TabType[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { setActiveTab(tab); if (tab === "history") refetchHistory(); }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === tab
+                  ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+              }`}
+            >
+              {tab === "scanner" ? <ScanLine size={15} /> : <History size={15} />}
+              {tab === "scanner" ? "Scanner" : "Scan History"}
+            </button>
+          ))}
         </div>
 
         {/* ── SCANNER TAB ── */}
         {activeTab === "scanner" && (
           <>
             {!scannedData && (
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">
-                <div className="p-4 border-b border-gray-100 bg-gray-50">
+              <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-md shadow-xl mb-4">
+                {/* Mode toggle */}
+                <div className="px-4 pt-4 pb-3 border-b border-white/10">
                   <div className="flex gap-2">
                     {isMobile ? (
                       <>
                         <button
                           onClick={() => { setManualInput(false); if (!scanning) startScanner(); }}
-                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${!manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+                          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${!manualInput ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md" : "text-slate-400 hover:text-slate-200 bg-white/5 border border-white/10"}`}
                         >
-                          📷 Camera Scan
+                          <Camera size={14} /> Camera Scan
                         </button>
                         <button
                           onClick={() => { setManualInput(true); stopScanner(); }}
-                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+                          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${manualInput ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md" : "text-slate-400 hover:text-slate-200 bg-white/5 border border-white/10"}`}
                         >
-                          ⌨️ Manual Input
+                          <Keyboard size={14} /> Manual Input
                         </button>
                       </>
                     ) : (
                       <>
                         <button
-                          onClick={() => { setManualInput(false); }}
-                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${!manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+                          onClick={() => setManualInput(false)}
+                          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${!manualInput ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md" : "text-slate-400 hover:text-slate-200 bg-white/5 border border-white/10"}`}
                         >
-                          📊 Barcode Scan
+                          <BarChart2 size={14} /> Barcode Scan
                         </button>
                         <button
-                          onClick={() => { setManualInput(true); }}
-                          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${manualInput ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+                          onClick={() => setManualInput(true)}
+                          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${manualInput ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md" : "text-slate-400 hover:text-slate-200 bg-white/5 border border-white/10"}`}
                         >
-                          ⌨️ Manual Input
+                          <Keyboard size={14} /> Manual Input
                         </button>
                       </>
                     )}
@@ -299,51 +276,55 @@ export default function QRScanner() {
                 <div className="p-4">
                   {!manualInput ? (
                     <div>
-                      <div
-                        id="qr-reader"
-                        ref={scannerDivRef}
-                        className="w-full rounded-xl overflow-hidden bg-gray-900"
-                        style={{ minHeight: "280px" }}
-                      />
-                      {!scanning && (
-                        <div className="mt-3 text-center">
+                      {/* Frosted-glass scan frame */}
+                      <div className="relative rounded-2xl overflow-hidden border-2 border-cyan-400/30 shadow-lg shadow-cyan-500/10" style={{ minHeight: "280px", background: "rgba(0,0,0,0.6)" }}>
+                        {/* Corner decorations */}
+                        <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-cyan-400 rounded-tl-lg z-10" />
+                        <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-400 rounded-tr-lg z-10" />
+                        <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-400 rounded-bl-lg z-10" />
+                        <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-cyan-400 rounded-br-lg z-10" />
+                        {/* Scan line sweep */}
+                        {scanning && (
+                          <div className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent z-10 animate-[scanline_2s_linear_infinite]" style={{ top: "50%" }} />
+                        )}
+                        <div id="qr-reader" ref={scannerDivRef} className="w-full" style={{ minHeight: "280px" }} />
+                      </div>
+
+                      <div className="mt-3 text-center">
+                        {!scanning ? (
                           <button
                             onClick={startScanner}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 mx-auto"
+                            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 mx-auto shadow-lg shadow-cyan-500/20 transition-all duration-200"
                           >
-                            <ScanLine size={16} />
-                            Start Camera
+                            <Camera size={16} /> Start Camera
                           </button>
-                        </div>
-                      )}
-                      {scanning && (
-                        <div className="mt-3 text-center">
-                          <button
-                            onClick={stopScanner}
-                            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 mx-auto"
-                          >
-                            <X size={16} />
-                            Stop Camera
-                          </button>
-                          <p className="text-xs text-gray-500 mt-2">Point camera at QR code on the label</p>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="space-y-2">
+                            <button
+                              onClick={stopScanner}
+                              className="bg-red-500/80 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 mx-auto backdrop-blur-sm transition-all duration-200"
+                            >
+                              <X size={16} /> Stop Camera
+                            </button>
+                            <p className="text-xs text-slate-400">Point camera at QR code on the label</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : isMobile ? (
                     <form onSubmit={handleManualVerify} className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tracking ID or Reference Number</label>
+                        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Tracking ID</label>
                         <input
                           type="text"
-                          placeholder="e.g. PP41305262026A206"
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
-                          onChange={(e) => e.target.value = e.target.value.toUpperCase()}
+                          className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 backdrop-blur-sm transition-all duration-200 uppercase"
+                          onChange={(e) => { e.target.value = e.target.value.toUpperCase(); }}
                         />
-                        <p className="text-xs text-gray-500 mt-1">Only Tracking ID format (starting with PP4)</p>
+                        <p className="text-xs text-slate-500 mt-1">Only Tracking ID format (starting with PP4)</p>
                       </div>
                       <button
                         type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm"
+                        className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white py-3 rounded-xl font-medium text-sm shadow-lg shadow-cyan-500/20 transition-all duration-200"
                       >
                         Verify Order
                       </button>
@@ -351,37 +332,30 @@ export default function QRScanner() {
                   ) : (
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Barcode Scanner / Tracking ID</label>
+                        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Barcode Scanner / Tracking ID</label>
                         <input
                           ref={barcodeInputRef}
                           type="text"
                           placeholder="Scan barcode or enter Tracking ID (PP4...)"
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                          className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 backdrop-blur-sm transition-all duration-200 uppercase"
                           onChange={(e) => {
                             e.target.value = e.target.value.toUpperCase();
-                            if (e.target.value.length > 0 && e.target.value.startsWith('PP4')) {
+                            if (e.target.value.length > 0 && e.target.value.startsWith("PP4")) {
                               const validation = validateTrackingId(e.target.value);
-                              if (validation.valid) {
-                                setVerifyTrackingId(e.target.value);
-                                e.target.value = '';
-                              }
+                              if (validation.valid) { setVerifyTrackingId(e.target.value); e.target.value = ""; }
                             }
                           }}
                           onKeyPress={(e) => {
-                            if (e.key === 'Enter' && barcodeInputRef.current?.value) {
+                            if (e.key === "Enter" && barcodeInputRef.current?.value) {
                               const validation = validateTrackingId(barcodeInputRef.current.value);
-                              if (validation.valid) {
-                                setVerifyTrackingId(barcodeInputRef.current.value);
-                                barcodeInputRef.current.value = '';
-                              } else {
-                                toast.error(validation.error || "Invalid Tracking ID");
-                              }
+                              if (validation.valid) { setVerifyTrackingId(barcodeInputRef.current.value); barcodeInputRef.current.value = ""; }
+                              else toast.error(validation.error || "Invalid Tracking ID");
                             }
                           }}
                           autoFocus
                         />
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">Tracking ID or Reference number only (Format: PP4...)</p>
+                      <p className="text-xs text-slate-500">Tracking ID or Reference number only (Format: PP4...)</p>
                     </div>
                   )}
                 </div>
@@ -391,91 +365,83 @@ export default function QRScanner() {
             {scannedData && (
               <div className="space-y-4">
                 {scannedData.bq && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <div className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 backdrop-blur-sm p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <ScanLine className="text-blue-600" size={16} />
-                      <span className="text-sm font-semibold text-blue-800">Scanned QR Data</span>
+                      <ScanLine className="text-cyan-400" size={16} />
+                      <span className="text-sm font-semibold text-cyan-300">Scanned QR Data</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-gray-500">Production Order:</span> <span className="font-bold">{scannedData.orderId}</span></div>
-                      <div><span className="text-gray-500">Qty:</span> <span className="font-bold">{scannedData.qty} pcs</span></div>
-                      {scannedData.bq && <div><span className="text-gray-500">BQ:</span> <span className="font-medium">{scannedData.bq}</span></div>}
-                      {scannedData.boardSize && <div><span className="text-gray-500">Board Size:</span> <span className="font-medium">{scannedData.boardSize}</span></div>}
+                      <div><span className="text-slate-400">Production Order:</span> <span className="font-bold text-white">{scannedData.orderId}</span></div>
+                      <div><span className="text-slate-400">Qty:</span> <span className="font-bold text-white">{scannedData.qty} pcs</span></div>
+                      {scannedData.bq && <div><span className="text-slate-400">BQ:</span> <span className="font-medium text-slate-200">{scannedData.bq}</span></div>}
+                      {scannedData.boardSize && <div><span className="text-slate-400">Board Size:</span> <span className="font-medium text-slate-200">{scannedData.boardSize}</span></div>}
                     </div>
                   </div>
                 )}
 
                 {verifying && (
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center justify-center gap-3">
-                    <Loader2 className="animate-spin text-blue-600" size={20} />
-                    <span className="text-gray-600">Verifying against Stock History...</span>
+                  <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 flex items-center justify-center gap-3">
+                    <Loader2 className="animate-spin text-cyan-400" size={20} />
+                    <span className="text-slate-300 text-sm">Verifying against Stock History...</span>
                   </div>
                 )}
 
                 {!verifying && verifyResult && (
-                  <div className={`rounded-xl border-2 overflow-hidden ${isMatch ? "border-green-400" : "border-red-400"}`}>
-                    <div className={`px-4 py-3 flex items-center gap-3 ${isMatch ? "bg-green-50" : "bg-red-50"}`}>
+                  <div className={`rounded-xl border-2 overflow-hidden backdrop-blur-sm ${isMatch ? "border-emerald-400/50 bg-emerald-500/5" : "border-red-400/50 bg-red-500/5"}`}>
+                    {/* Status header */}
+                    <div className={`px-4 py-3 flex items-center gap-3 ${isMatch ? "bg-emerald-500/15 border-b border-emerald-400/20" : "bg-red-500/15 border-b border-red-400/20"}`}>
                       {isMatch ? (
-                        <CheckCircle className="text-green-600 shrink-0" size={22} />
+                        <CheckCircle className="text-emerald-400 shrink-0" size={22} />
                       ) : (
-                        <XCircle className="text-red-600 shrink-0" size={22} />
+                        <XCircle className="text-red-400 shrink-0" size={22} />
                       )}
                       <div>
-                        <p className={`font-bold text-base ${isMatch ? "text-green-800" : "text-red-800"}`}>
+                        <p className={`font-bold text-base ${isMatch ? "text-emerald-300" : "text-red-300"}`}>
                           {isMatch ? "✓ Order Found in Stock History" : "✗ Order Not Found"}
                         </p>
-                        <p className={`text-xs ${isMatch ? "text-green-600" : "text-red-600"}`}>
+                        <p className={`text-xs ${isMatch ? "text-emerald-400/70" : "text-red-400/70"}`}>
                           {isMatch ? "This label matches a record in the system" : "No matching order found for this QR code"}
                         </p>
                       </div>
                     </div>
 
                     {isMatch && order && (
-                      <div className="bg-white p-4">
+                      <div className="p-4">
                         <div className="flex items-center gap-2 mb-3">
-                          <Package className="text-gray-500" size={16} />
-                          <span className="text-sm font-semibold text-gray-700">Current Stock Record</span>
+                          <Package className="text-slate-400" size={16} />
+                          <span className="text-sm font-semibold text-slate-300">Current Stock Record</span>
                         </div>
                         <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Production Order</p>
-                            <p className="font-bold text-gray-900 text-base">{order.orderID}</p>
+                          {[
+                            { label: "Production Order", value: order.orderID, className: "font-bold text-white text-base" },
+                            { label: "Current Balance", value: `${order.qty} pcs${order.qty <= 50 ? " ⚠ Low" : ""}`, className: `font-bold text-base ${order.qty <= 50 ? "text-orange-400" : "text-emerald-400"}` },
+                            { label: "Flute Type", value: order.fluteType, className: "font-semibold text-slate-200" },
+                            { label: "Board Size", value: `${order.sizeW} × ${order.sizeL} mm`, className: "font-semibold text-slate-200" },
+                          ].map(({ label, value, className }) => (
+                            <div key={label} className="bg-white/5 border border-white/10 rounded-xl p-3">
+                              <p className="text-xs text-slate-500 uppercase font-medium mb-1">{label}</p>
+                              <p className={className}>{value}</p>
+                            </div>
+                          ))}
+                          <div className="bg-white/5 border border-white/10 rounded-xl p-3 col-span-2">
+                            <p className="text-xs text-slate-500 uppercase font-medium mb-1">BQ Comment</p>
+                            <p className="font-semibold text-amber-300 bg-amber-500/10 border border-amber-400/20 px-2 py-1 rounded-lg inline-block">{order.bqComment}</p>
                           </div>
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Current Balance</p>
-                            <p className={`font-bold text-base ${order.qty <= 50 ? "text-orange-600" : "text-green-700"}`}>
-                              {order.qty} pcs
-                              {order.qty <= 50 && <span className="ml-1 text-xs">⚠ Low</span>}
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Flute Type</p>
-                            <p className="font-semibold text-gray-900">{order.fluteType}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Board Size</p>
-                            <p className="font-semibold text-gray-900">{order.sizeW} × {order.sizeL} mm</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-3 col-span-2">
-                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">BQ Comment</p>
-                            <p className="font-semibold text-yellow-700 bg-yellow-50 px-2 py-1 rounded inline-block">{order.bqComment}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-3 col-span-2">
-                            <p className="text-xs text-gray-500 uppercase font-medium mb-1">Status</p>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "current" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                          <div className="bg-white/5 border border-white/10 rounded-xl p-3 col-span-2">
+                            <p className="text-xs text-slate-500 uppercase font-medium mb-1">Status</p>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "current" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30" : "bg-red-500/20 text-red-300 border border-red-400/30"}`}>
                               {order.status === "current" ? "In Stock" : "Out of Stock"}
                             </span>
                           </div>
                         </div>
 
                         {scannedData.qty > 0 && scannedData.qty !== order.qty && (
-                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start gap-2">
-                            <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={16} />
+                          <div className="bg-amber-500/10 border border-amber-400/30 rounded-xl p-3 mb-4 flex items-start gap-2">
+                            <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={16} />
                             <div className="text-sm">
-                              <p className="font-semibold text-amber-800">Balance Mismatch Detected</p>
-                              <p className="text-amber-700 mt-0.5">
+                              <p className="font-semibold text-amber-300">Balance Mismatch Detected</p>
+                              <p className="text-amber-400/80 mt-0.5">
                                 Label shows <strong>{scannedData.qty} pcs</strong> but system shows <strong>{order.qty} pcs</strong>.
-                                Consider updating the balance below.
                               </p>
                             </div>
                           </div>
@@ -483,10 +449,9 @@ export default function QRScanner() {
 
                         <button
                           onClick={() => { setNewQty(String(order.qty)); setShowUpdateDialog(true); }}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2"
+                          className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white py-2.5 rounded-xl font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all duration-200"
                         >
-                          <Edit3 size={16} />
-                          Update Balance
+                          <Edit3 size={16} /> Update Balance
                         </button>
                       </div>
                     )}
@@ -495,50 +460,46 @@ export default function QRScanner() {
 
                 <button
                   onClick={resetScanner}
-                  className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2"
+                  className="w-full border border-white/20 bg-white/5 hover:bg-white/10 text-slate-300 py-2.5 rounded-xl font-medium text-sm flex items-center justify-center gap-2 backdrop-blur-sm transition-all duration-200"
                 >
-                  <RefreshCw size={16} />
-                  Scan Another QR Code
+                  <RefreshCw size={16} /> Scan Another QR Code
                 </button>
               </div>
             )}
           </>
         )}
 
-        {/* ── SCANNED HISTORY TAB ── */}
+        {/* ── HISTORY TAB ── */}
         {activeTab === "history" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-gray-900">Recent Scan Events</h3>
-                <p className="text-xs text-gray-500 mt-0.5">(Latest 200)</p>
+                <h3 className="text-base font-bold text-white">Recent Scan Events</h3>
+                <p className="text-xs text-slate-500 mt-0.5">(Latest 200)</p>
               </div>
               <button
-                onClick={() => {
-                  refetchHistory();
-                  toast.success("History refreshed", { duration: 2000 });
-                }}
+                onClick={() => { refetchHistory(); toast.success("History refreshed", { duration: 2000 }); }}
                 disabled={historyLoading}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Refresh scan history"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm text-cyan-400 hover:text-cyan-300 hover:bg-white/5 font-medium rounded-lg transition-all duration-200 disabled:opacity-50"
               >
-                <RefreshCw size={14} className={historyLoading ? "animate-spin" : ""} />
-                Refresh
+                <RefreshCw size={14} className={historyLoading ? "animate-spin" : ""} /> Refresh
               </button>
             </div>
 
             {historyLoading && (
               <div className="flex items-center justify-center py-12 gap-3">
-                <Loader2 className="animate-spin text-blue-600" size={20} />
-                <span className="text-gray-500 text-sm">Loading history...</span>
+                <Loader2 className="animate-spin text-cyan-400" size={20} />
+                <span className="text-slate-400 text-sm">Loading history...</span>
               </div>
             )}
 
             {!historyLoading && (!scanHistory || scanHistory.length === 0) && (
-              <div className="text-center py-12 text-gray-400">
-                <History size={40} className="mx-auto mb-3 opacity-30" />
-                <p className="font-medium">No scan history yet</p>
-                <p className="text-sm mt-1">Scans and balance updates will appear here</p>
+              <div className="text-center py-16">
+                <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                  <History size={28} className="text-slate-500" />
+                </div>
+                <p className="font-semibold text-slate-300">No scan history yet</p>
+                <p className="text-sm text-slate-500 mt-1">Scans and balance updates will appear here</p>
               </div>
             )}
 
@@ -547,90 +508,102 @@ export default function QRScanner() {
             ))}
           </div>
         )}
+      </div>
 
-        {/* Update Balance Dialog */}
-        {showUpdateDialog && order && (
-          <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-              <div className="p-5 border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-gray-900">Update Balance</h3>
-                  <button onClick={() => setShowUpdateDialog(false)} className="p-1.5 hover:bg-gray-100 rounded-lg">
-                    <X size={18} className="text-gray-500" />
-                  </button>
-                </div>
-                <p className="text-sm text-gray-500 mt-1">Order: <strong>{order.orderID}</strong> · Current: <strong>{order.qty} pcs</strong></p>
+      {/* ── UPDATE BALANCE DIALOG ── */}
+      {showUpdateDialog && order && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+          <div className="relative w-full max-w-md rounded-2xl overflow-hidden border border-white/10 bg-slate-900/90 backdrop-blur-xl shadow-2xl">
+            {/* Accent bar */}
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500" />
+
+            <div className="p-5 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">Update Balance</h3>
+                <button onClick={() => setShowUpdateDialog(false)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                  <X size={18} className="text-slate-400" />
+                </button>
+              </div>
+              <p className="text-sm text-slate-400 mt-1">Order: <strong className="text-slate-200">{order.orderID}</strong> · Current: <strong className="text-cyan-400">{order.qty} pcs</strong></p>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  New Balance (pcs) <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={newQty}
+                  onChange={(e) => setNewQty(e.target.value)}
+                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 transition-all duration-200"
+                  placeholder="Enter new quantity"
+                />
+                {newQty !== "" && !isNaN(parseInt(newQty)) && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    Change: {order.qty} → {parseInt(newQty)} pcs
+                    {parseInt(newQty) < order.qty && <span className="text-orange-400 ml-1">(-{order.qty - parseInt(newQty)} pcs)</span>}
+                    {parseInt(newQty) > order.qty && <span className="text-emerald-400 ml-1">(+{parseInt(newQty) - order.qty} pcs)</span>}
+                  </p>
+                )}
               </div>
 
-              <div className="p-5 space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    New Balance (pcs) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={newQty}
-                    onChange={(e) => setNewQty(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter new quantity"
-                  />
-                  {newQty !== "" && !isNaN(parseInt(newQty)) && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Change: {order.qty} → {parseInt(newQty)} pcs
-                      {parseInt(newQty) < order.qty && <span className="text-orange-600 ml-1">(-{order.qty - parseInt(newQty)} pcs)</span>}
-                      {parseInt(newQty) > order.qty && <span className="text-green-600 ml-1">(+{parseInt(newQty) - order.qty} pcs)</span>}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Employee ID (for verification) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={employeeId}
-                    onChange={(e) => setEmployeeId(e.target.value.toUpperCase())}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
-                    placeholder="Enter your Employee ID"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    Note <span className="text-gray-400 font-normal">(optional)</span>
-                  </label>
-                  <textarea
-                    value={updateNote}
-                    onChange={(e) => setUpdateNote(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    rows={2}
-                    placeholder="Reason for balance update..."
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Employee ID <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value.toUpperCase())}
+                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 transition-all duration-200 uppercase"
+                  placeholder="Enter your Employee ID"
+                />
               </div>
 
-              <div className="p-5 pt-0 flex gap-3">
-                <button
-                  onClick={() => setShowUpdateDialog(false)}
-                  className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdateBalance}
-                  disabled={updateLoading || !newQty || !employeeId}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2"
-                >
-                  {updateLoading ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
-                  Confirm & Verify
-                </button>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Note <span className="text-slate-600 font-normal normal-case">(optional)</span>
+                </label>
+                <textarea
+                  value={updateNote}
+                  onChange={(e) => setUpdateNote(e.target.value)}
+                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 transition-all duration-200 resize-none"
+                  rows={2}
+                  placeholder="Reason for balance update..."
+                />
               </div>
             </div>
+
+            <div className="p-5 pt-0 flex gap-3">
+              <button
+                onClick={() => setShowUpdateDialog(false)}
+                className="flex-1 border border-white/20 bg-white/5 hover:bg-white/10 text-slate-300 py-2.5 rounded-xl font-medium text-sm transition-all duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateBalance}
+                disabled={updateLoading || !newQty || !employeeId}
+                className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 text-white py-2.5 rounded-xl font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all duration-200"
+              >
+                {updateLoading ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
+                Confirm & Verify
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes scanline {
+          0% { transform: translateY(-100px); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(200px); opacity: 0; }
+        }
+      `}</style>
     </AppLayout>
   );
 }
