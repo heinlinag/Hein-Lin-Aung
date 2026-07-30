@@ -1213,7 +1213,7 @@ function PendingRequestsTab() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-bold text-foreground">Pending Requests</h2>
+        <h2 className="text-base font-bold text-white">Pending Requests</h2>
         <RefreshButton onRefresh={() => utils.pendingRequests.list.invalidate()} />
       </div>
       {/* Status filter */}
@@ -1225,9 +1225,9 @@ function PendingRequestsTab() {
         ))}
       </div>
       {listQuery.isLoading ? (
-        <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-muted-foreground" /></div>
+        <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-slate-400" /></div>
       ) : requests.length === 0 ? (
-        <div className="text-center py-10 text-muted-foreground text-sm">No {statusFilter} requests</div>
+        <div className="text-center py-10 text-slate-400 text-sm">No {statusFilter} requests</div>
       ) : (
         <div className="space-y-3">
           {requests.map(req => {
@@ -1235,7 +1235,7 @@ function PendingRequestsTab() {
             const action = (() => { try { return req.actionData ? JSON.parse(req.actionData) : {}; } catch { return {}; } })();
             const isPending = req.status === "pending";
             return (
-              <div key={req.id} className="rounded-xl p-4 border" style={{ background: "rgba(30,41,59,0.75)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.10)" }}>
+              <div key={req.id} className="rounded-xl p-4 border" style={{ background: "rgba(15,23,42,0.92)", backdropFilter: "blur(16px)", borderColor: "rgba(255,255,255,0.12)" }}>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
                     <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${req.type === "delete" ? "bg-red-500/20 text-red-300 border-red-500/30" : "bg-blue-500/20 text-blue-300 border-blue-500/30"}`}>
@@ -1247,34 +1247,34 @@ function PendingRequestsTab() {
                       {req.status}
                     </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">{new Date(req.createdAt).toLocaleString()}</span>
+                  <span className="text-xs text-slate-400">{new Date(req.createdAt).toLocaleString()}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-2">
-                  <div><span className="text-muted-foreground">Production Order: </span><span className="font-semibold">{snapshot.orderID ?? "—"}</span></div>
-                  <div><span className="text-muted-foreground">Requested by: </span><span className="font-semibold">{req.workerName} ({req.requestedBy})</span></div>
+                  <div><span className="text-slate-400">Production Order: </span><span className="font-semibold text-white">{snapshot.orderID ?? "—"}</span></div>
+                  <div><span className="text-slate-400">Requested by: </span><span className="font-semibold text-white">{req.workerName} ({req.requestedBy})</span></div>
                   {req.type === "used_update" && action.usedQty && (
-                    <div><span className="text-muted-foreground">Use Qty: </span><span className="font-semibold text-blue-700">{action.usedQty} pcs</span></div>
+                    <div><span className="text-slate-400">Use Qty: </span><span className="font-semibold text-blue-300">{action.usedQty} pcs</span></div>
                   )}
                   {req.type === "used_update" && action.jobNo && (
-                    <div><span className="text-muted-foreground">Job No: </span><span className="font-semibold font-mono">{action.jobNo}</span></div>
+                    <div><span className="text-slate-400">Job No: </span><span className="font-semibold font-mono text-white">{action.jobNo}</span></div>
                   )}
                   {req.type === "used_update" && action.masterCard && (
-                    <div><span className="text-muted-foreground">Master Card: </span><span className="font-semibold font-mono">{action.masterCard}</span></div>
+                    <div><span className="text-slate-400">Master Card: </span><span className="font-semibold font-mono text-white">{action.masterCard}</span></div>
                   )}
                   {req.type === "used_update" && (action.boardSizeW || action.boardSizeL) && (
-                    <div><span className="text-muted-foreground">Board Size: </span><span className="font-semibold">{action.boardSizeW ?? "—"}×{action.boardSizeL ?? "—"} mm</span></div>
+                    <div><span className="text-slate-400">Board Size: </span><span className="font-semibold text-white">{action.boardSizeW ?? "—"}×{action.boardSizeL ?? "—"} mm</span></div>
                   )}
                   {req.type === "used_update" && action.scores && (
-                    <div className="col-span-2"><span className="text-muted-foreground">Scores: </span><span className="font-semibold font-mono">{action.scores}</span></div>
+                    <div className="col-span-2"><span className="text-slate-400">Scores: </span><span className="font-semibold font-mono text-white">{action.scores}</span></div>
                   )}
                   {(req as any).processApprovedBy && (
                     <div className="col-span-2 flex items-center gap-1.5">
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">⚙ In Process</span>
-                      <span className="text-xs text-muted-foreground">by {(req as any).processApprovedBy}</span>
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">⚙ In Process</span>
+                      <span className="text-xs text-slate-400">by {(req as any).processApprovedBy}</span>
                     </div>
                   )}
                   {req.reviewedBy && (
-                    <div className="col-span-2"><span className="text-muted-foreground">Reviewed by: </span><span className="font-semibold">{req.reviewedBy}</span></div>
+                    <div className="col-span-2"><span className="text-slate-400">Reviewed by: </span><span className="font-semibold text-white">{req.reviewedBy}</span></div>
                   )}
                 </div>
                 {isPending && (
