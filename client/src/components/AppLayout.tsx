@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, CheckCircle2, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell, FlaskConical,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell, FlaskConical, FileText, LifeBuoy, CircleHelp,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -31,6 +31,13 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/chat",           label: "Messages",         icon: <MessageCircle size={16} /> },
   { href: "/notifications",  label: "Notifications",    icon: <Bell size={16} /> },
   { href: "/admin",          label: "Admin Panel",      icon: <ChevronRight size={16} />, adminOnly: true },
+];
+
+const RESOURCE_NAV_ITEMS: NavItem[] = [
+  { href: "/user-profile",   label: "My Profile",       icon: <User size={16} /> },
+  { href: "/docs",           label: "Documentation",    icon: <BookOpen size={16} /> },
+  { href: "/help",           label: "Help Center",       icon: <LifeBuoy size={16} /> },
+  { href: "/faq",            label: "FAQ",               icon: <CircleHelp size={16} /> },
 ];
 
 interface AppLayoutProps {
@@ -190,27 +197,19 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
         </div>
       </div>
 
-      {/* Quick links */}
+      {/* Quick links - System Status only */}
       <div className="px-3 py-2 border-b border-slate-100">
-        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide px-2 mb-1">Quick Access</p>
-        {[
-          { href: "/user-profile", icon: <User size={15} className="text-indigo-600" />, bg: "bg-indigo-50", label: "My Profile" },
-          { href: "/docs",   icon: <BookOpen size={15} className="text-blue-600" />, bg: "bg-blue-50",   label: "Documentation" },
-          { href: "/help",   icon: <HelpCircle size={15} className="text-blue-600" />, bg: "bg-blue-50", label: "Help Center" },
-          { href: "/faq",    icon: <HelpCircle size={15} className="text-amber-600" />, bg: "bg-amber-50",label: "FAQ" },
-          { href: "/status", icon: <Activity size={15} className="text-green-600" />, bg: "bg-green-50",  label: "System Status", extra: <span className="w-2 h-2 rounded-full bg-green-500 mr-1" /> },
-        ].map(({ href, icon, bg, label, extra }) => (
-          <button
-            key={href}
-            onClick={() => goTo(href)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-          >
-            <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>{icon}</div>
-            <span className="flex-1 text-left">{label}</span>
-            {extra}
-            <ChevronRight size={13} className="text-slate-400" />
-          </button>
-        ))}
+        <button
+          onClick={() => goTo("/status")}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+        >
+          <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+            <Activity size={15} className="text-green-600" />
+          </div>
+          <span className="flex-1 text-left">System Status</span>
+          <span className="w-2 h-2 rounded-full bg-green-500 mr-1" />
+          <ChevronRight size={13} className="text-slate-400" />
+        </button>
       </div>
 
       {/* Logout */}
@@ -374,9 +373,51 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
           })}
         </nav>
 
+        {/* Resources section */}
+        <div className="relative px-2.5 py-2" style={{ borderTop: "1px solid rgba(99,102,241,0.10)" }}>
+          <p className="text-[9px] font-bold text-indigo-400/50 uppercase tracking-widest px-3 mb-1">Resources</p>
+          {RESOURCE_NAV_ITEMS.map(item => {
+            const active = isActive(item.href);
+            return (
+              <button
+                key={item.href}
+                onClick={() => navigate(item.href)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group relative"
+                style={active ? {
+                  background: "linear-gradient(135deg, rgba(99,102,241,0.9) 0%, rgba(59,130,246,0.9) 100%)",
+                  boxShadow: "0 4px 14px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.1)",
+                  color: "white",
+                } : {
+                  color: "rgba(148,163,184,0.85)",
+                }}
+                onMouseEnter={e => {
+                  if (!active) {
+                    e.currentTarget.style.background = "rgba(99,102,241,0.12)";
+                    e.currentTarget.style.color = "rgba(255,255,255,0.9)";
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!active) {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "rgba(148,163,184,0.85)";
+                  }
+                }}
+              >
+                {active && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white/60 rounded-full" />
+                )}
+                <span className={`flex-shrink-0 transition-colors duration-200 ${active ? "text-white" : "text-slate-500 group-hover:text-indigo-300"}`}>
+                  {item.icon}
+                </span>
+                <span className="flex-1 text-left">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Footer */}
         <div
-          className="relative px-2.5 pb-4 pt-3 mt-auto space-y-1"
+          className="relative px-2.5 pb-4 pt-3 space-y-1"
           style={{ borderTop: "1px solid rgba(99,102,241,0.15)" }}
         >
           <p className="text-[9px] text-indigo-400/40 text-center px-2 py-1 font-medium">Created by HEiNANN</p>

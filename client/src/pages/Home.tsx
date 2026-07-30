@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import {
   ClipboardList, Package, CheckCircle2, Bell, X, ScanLine, ArrowRight,
   Activity, MessageCircle, FlaskConical, Info, Zap, TrendingUp,
-  Users, BarChart3, Clock, Sparkles,
+  Users, BarChart3, Clock, Sparkles, User, BookOpen, LifeBuoy, CircleHelp,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -234,6 +234,46 @@ const baseFeatures = [
     btnLabel: "Open Messages",
     showMessageBadge: true,
     accentRgb: "7,94,84",
+  },
+  {
+    icon: <User size={26} className="text-white" />,
+    title: "My Profile",
+    description: "Update your profile picture, display name, and Employee ID.",
+    href: "/user-profile",
+    gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+    glowColor: "rgba(99,102,241,0.3)",
+    btnLabel: "View Profile",
+    accentRgb: "99,102,241",
+  },
+  {
+    icon: <BookOpen size={26} className="text-white" />,
+    title: "Documentation",
+    description: "Read the full user guide and system documentation.",
+    href: "/docs",
+    gradient: "linear-gradient(135deg, #3b82f6, #0ea5e9)",
+    glowColor: "rgba(59,130,246,0.3)",
+    btnLabel: "Read Docs",
+    accentRgb: "59,130,246",
+  },
+  {
+    icon: <LifeBuoy size={26} className="text-white" />,
+    title: "Help Center",
+    description: "Get support, troubleshooting guides, and contact assistance.",
+    href: "/help",
+    gradient: "linear-gradient(135deg, #06b6d4, #0891b2)",
+    glowColor: "rgba(6,182,212,0.3)",
+    btnLabel: "Get Help",
+    accentRgb: "6,182,212",
+  },
+  {
+    icon: <CircleHelp size={26} className="text-white" />,
+    title: "FAQ",
+    description: "Find answers to the most frequently asked questions.",
+    href: "/faq",
+    gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
+    glowColor: "rgba(245,158,11,0.3)",
+    btnLabel: "Browse FAQ",
+    accentRgb: "245,158,11",
   },
 ];
 
