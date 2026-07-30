@@ -72,6 +72,12 @@ export default function UserProfile() {
   const [uploading,   setUploading]   = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Confirmation dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    type: "name" | "id";
+  }>({ open: false, type: "name" });
+
   const handleAvatarClick = () => fileInputRef.current?.click();
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,6 +129,22 @@ export default function UserProfile() {
       setEditingId(false);
     } catch (err: any) { toast.error(err?.message ?? "Failed to update Employee ID"); }
   };
+
+  // Intercept Save → show confirmation dialog first
+  const requestSaveName = () => {
+    if (!nameVal.trim()) return;
+    setConfirmDialog({ open: true, type: "name" });
+  };
+  const requestSaveId = () => {
+    if (!idVal.trim()) return;
+    setConfirmDialog({ open: true, type: "id" });
+  };
+  const handleConfirm = async () => {
+    setConfirmDialog(d => ({ ...d, open: false }));
+    if (confirmDialog.type === "name") await saveName();
+    else await saveId();
+  };
+  const handleCancelConfirm = () => setConfirmDialog(d => ({ ...d, open: false }));
 
   if (!worker) { navigate("/login"); return null; }
 
@@ -238,7 +260,7 @@ export default function UserProfile() {
                 editing={editingName}
                 onEdit={startEditName}
                 onCancel={cancelEditName}
-                onSave={saveName}
+                onSave={requestSaveName}
                 saving={updateNameMut.isPending}
                 editValue={nameVal}
                 onEditChange={setNameVal}
@@ -255,7 +277,7 @@ export default function UserProfile() {
                 editing={editingId}
                 onEdit={startEditId}
                 onCancel={cancelEditId}
-                onSave={saveId}
+                onSave={requestSaveId}
                 saving={updateIdMut.isPending}
                 editValue={idVal}
                 onEditChange={setIdVal}
@@ -297,6 +319,136 @@ export default function UserProfile() {
 
         </div>
       </div>
+
+      {/* ── Confirmation Dialog ──────────────────────────────────── */}
+      {confirmDialog.open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
+          onClick={handleCancelConfirm}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-6 space-y-4"
+            style={{
+              background: "linear-gradient(135deg, rgba(15,23,42,0.97) 0%, rgba(30,27,75,0.97) 100%)",
+              border: confirmDialog.type === "name"
+                ? "1px solid rgba(99,102,241,0.40)"
+                : "1px solid rgba(245,158,11,0.40)",
+              backdropFilter: "blur(20px)",
+              boxShadow: confirmDialog.type === "name"
+                ? "0 24px 64px rgba(99,102,241,0.25), 0 4px 16px rgba(0,0,0,0.4)"
+                : "0 24px 64px rgba(245,158,11,0.20), 0 4px 16px rgba(0,0,0,0.4)",
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Accent top bar */}
+            <div
+              className="h-1 rounded-full -mt-6 -mx-6 mb-4"
+              style={{
+                background: confirmDialog.type === "name"
+                  ? "linear-gradient(90deg, #6366f1, #8b5cf6)"
+                  : "linear-gradient(90deg, #f59e0b, #d97706)",
+                borderRadius: "16px 16px 0 0",
+              }}
+            />
+
+            {/* Icon + Title */}
+            <div className="flex items-center gap-3">
+              <div
+                className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: confirmDialog.type === "name"
+                    ? "linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2))"
+                    : "linear-gradient(135deg, rgba(245,158,11,0.3), rgba(217,119,6,0.2))",
+                  border: confirmDialog.type === "name"
+                    ? "1px solid rgba(99,102,241,0.4)"
+                    : "1px solid rgba(245,158,11,0.4)",
+                }}
+              >
+                <AlertTriangle size={20} style={{ color: confirmDialog.type === "name" ? "#818cf8" : "#fbbf24" }} />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base">
+                  {confirmDialog.type === "name" ? "Change Display Name?" : "Change Employee ID?"}
+                </h3>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.8)" }}>
+                  {confirmDialog.type === "name" ? "Please read the notice below" : "Important — read carefully"}
+                </p>
+              </div>
+            </div>
+
+            {/* Warning box */}
+            <div
+              className="rounded-xl p-4 space-y-2"
+              style={{
+                background: confirmDialog.type === "name"
+                  ? "rgba(99,102,241,0.10)"
+                  : "rgba(245,158,11,0.10)",
+                border: confirmDialog.type === "name"
+                  ? "1px solid rgba(99,102,241,0.25)"
+                  : "1px solid rgba(245,158,11,0.25)",
+              }}
+            >
+              {confirmDialog.type === "name" ? (
+                <>
+                  <p className="text-sm font-semibold" style={{ color: "#a5b4fc" }}>
+                    ⏳ 7-Day Cooldown
+                  </p>
+                  <p className="text-xs leading-relaxed" style={{ color: "rgba(203,213,225,0.9)" }}>
+                    After saving, you will <strong style={{ color: "white" }}>not be able to change your Display Name again for 7 days</strong>. Make sure the new name is correct before confirming.
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: "rgba(148,163,184,0.7)" }}>
+                    New name: <strong style={{ color: "#c7d2fe" }}>{nameVal}</strong>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold" style={{ color: "#fcd34d" }}>
+                    ⏳ 30-Day Cooldown + Login Change
+                  </p>
+                  <p className="text-xs leading-relaxed" style={{ color: "rgba(203,213,225,0.9)" }}>
+                    After saving, you will <strong style={{ color: "white" }}>not be able to change your Employee ID again for 30 days</strong>. Your new ID will also become your <strong style={{ color: "white" }}>login credential</strong> — remember it!
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: "rgba(148,163,184,0.7)" }}>
+                    New ID: <strong style={{ color: "#fde68a" }}>{idVal}</strong>
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={handleCancelConfirm}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={{
+                  background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "rgba(148,163,184,1)",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.07)"; }}
+              >
+                ✕ Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                style={{
+                  background: confirmDialog.type === "name"
+                    ? "linear-gradient(135deg, #6366f1, #8b5cf6)"
+                    : "linear-gradient(135deg, #f59e0b, #d97706)",
+                  boxShadow: confirmDialog.type === "name"
+                    ? "0 4px 14px rgba(99,102,241,0.4)"
+                    : "0 4px 14px rgba(245,158,11,0.4)",
+                }}
+              >
+                ✓ Confirm Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
