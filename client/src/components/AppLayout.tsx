@@ -1,7 +1,7 @@
 /**
  * AppLayout — Responsive layout wrapper
- * Mobile  : sticky top header + full-width content
- * Desktop : fixed left sidebar (240px) + scrollable main content
+ * Mobile  : sticky top header + full-width content + bottom nav
+ * Desktop : fixed left dark-glassmorphism sidebar + scrollable main content
  */
 import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
@@ -22,30 +22,28 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/",               label: "Home",             icon: <Home size={18} /> },
-  { href: "/submit-order",    label: "Submit Order",    icon: <ClipboardList size={18} /> },
-  { href: "/stock-history",   label: "Stock History",   icon: <Package size={18} /> },
-
-  { href: "/approval-center",  label: "NPRM Modify Order",  icon: <CheckCircle2 size={18} /> },
-  { href: "/customer-sample",  label: "Customer Sample",   icon: <FlaskConical size={18} /> },
-  { href: "/qr-scanner",       label: "QR Scanner",         icon: <ScanLine size={18} /> },
-  { href: "/chat",            label: "Messages",        icon: <MessageCircle size={18} /> },
-  { href: "/notifications",   label: "Notifications",   icon: <Bell size={18} /> },
-  { href: "/admin",           label: "Admin Panel",     icon: <ChevronRight size={18} />, adminOnly: true },
+  { href: "/",               label: "Home",             icon: <Home size={16} /> },
+  { href: "/submit-order",   label: "Submit Order",     icon: <ClipboardList size={16} /> },
+  { href: "/stock-history",  label: "Stock History",    icon: <Package size={16} /> },
+  { href: "/approval-center",label: "NPRM Modify Order",icon: <CheckCircle2 size={16} /> },
+  { href: "/customer-sample",label: "Customer Sample",  icon: <FlaskConical size={16} /> },
+  { href: "/qr-scanner",     label: "QR Scanner",       icon: <ScanLine size={16} /> },
+  { href: "/chat",           label: "Messages",         icon: <MessageCircle size={16} /> },
+  { href: "/notifications",  label: "Notifications",    icon: <Bell size={16} /> },
+  { href: "/admin",          label: "Admin Panel",      icon: <ChevronRight size={16} />, adminOnly: true },
 ];
 
 interface AppLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
   headerActions?: React.ReactNode;
-  /** When true: hides desktop page title bar and sets main to overflow-hidden (for full-height pages like Chat) */
   fullHeight?: boolean;
 }
 
 function levelLabel(level: string) {
-  if (level === "1")   return { text: "Level 1",   bg: "bg-orange-100", fg: "text-orange-700", badge: "bg-orange-200 text-orange-700" };
-  if (level === "1.1") return { text: "Level 1.1", bg: "bg-purple-100", fg: "text-purple-700", badge: "bg-purple-200 text-purple-700" };
-  return                      { text: "Level 2",   bg: "bg-green-100",  fg: "text-green-700",  badge: "bg-green-200 text-green-700" };
+  if (level === "1")   return { text: "Level 1",   bg: "bg-orange-100", fg: "text-orange-700", badge: "bg-orange-500/20 text-orange-300 border border-orange-400/30", badgeLight: "bg-orange-200 text-orange-700" };
+  if (level === "1.1") return { text: "Level 1.1", bg: "bg-purple-100", fg: "text-purple-700", badge: "bg-purple-500/20 text-purple-300 border border-purple-400/30", badgeLight: "bg-purple-200 text-purple-700" };
+  return                      { text: "Level 2",   bg: "bg-green-100",  fg: "text-green-700",  badge: "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30", badgeLight: "bg-green-200 text-green-700" };
 }
 
 export default function AppLayout({ children, pageTitle, headerActions, fullHeight }: AppLayoutProps) {
@@ -58,7 +56,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     if (!profileOpen) return;
     const handler = (e: MouseEvent) => {
@@ -70,7 +67,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     return () => document.removeEventListener("mousedown", handler);
   }, [profileOpen]);
 
-  // Close on Escape
   useEffect(() => {
     if (!profileOpen) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setProfileOpen(false); };
@@ -78,15 +74,10 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     return () => document.removeEventListener("keydown", handler);
   }, [profileOpen]);
 
-  // ── Global single-device heartbeat ─────────────────────────────────────
-  // Every 30 s, ping the server with our deviceToken.
-  // If another device has taken over, server returns displaced:true → auto-logout.
   const heartbeatMutation = trpc.chat.heartbeat.useMutation({
     onSuccess: (data) => {
       if (data && (data as { displaced?: boolean }).displaced) {
-        // Another device logged in — force this session out
         if (worker?.workerID) {
-          // No need to call deactivateDevice; server already switched the token
           logoutWorker();
           navigate("/login?reason=displaced");
         }
@@ -97,16 +88,13 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   useEffect(() => {
     if (!worker?.workerID) return;
     const deviceToken = localStorage.getItem("gspp_device_token") ?? undefined;
-    // Initial check on mount
     heartbeatMutation.mutate({ workerID: worker.workerID, deviceToken });
-    // Periodic check every 30 s
     const interval = setInterval(() => {
       heartbeatMutation.mutate({ workerID: worker.workerID, deviceToken });
     }, 30000);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [worker?.workerID]);
-  // ─────────────────────────────────────────────────────────────────────────
 
   const pendingQuery = trpc.pendingRequests.list.useQuery(
     { status: "pending" },
@@ -137,7 +125,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const unreadNotifCount = unreadNotifQuery.data?.count ?? 0;
 
   const handleLogout = () => {
-    // Clear server-side device session before local logout
     if (worker?.workerID) {
       deactivateDevice.mutate({ workerID: worker.workerID });
     }
@@ -146,12 +133,14 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   };
 
   const isActive = (href: string) => location === href;
-
   const goTo = (href: string) => { setProfileOpen(false); navigate(href); };
 
-  /* ── Profile Dropdown ─────────────────────────────────────────────── */
+  /* ── Profile Dropdown (light style for readability) ─────────────── */
   const ProfileDropdown = () => (
-    <div className="absolute top-full mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden lg:left-1/2 lg:-translate-x-1/2 right-0 lg:right-auto" style={{ pointerEvents: 'auto' }}>
+    <div
+      className="absolute top-full mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden lg:left-0 right-0 lg:right-auto"
+      style={{ pointerEvents: "auto" }}
+    >
       {/* Header */}
       <div className={`px-5 py-4 ${lv.bg} flex items-center justify-between`}>
         <div className="flex items-center gap-3">
@@ -169,79 +158,51 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       </div>
 
       {/* Info rows */}
-      <div className="px-5 py-3 space-y-2 border-b border-border">
-        <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-          <IdCard size={13} className="shrink-0 text-gray-400" />
-          <span className="font-medium text-foreground">Employee ID</span>
-          <span className="ml-auto font-mono font-semibold text-foreground">{worker?.workerID}</span>
+      <div className="px-5 py-3 space-y-2 border-b border-slate-100">
+        <div className="flex items-center gap-2.5 text-xs text-slate-500">
+          <IdCard size={13} className="shrink-0 text-slate-400" />
+          <span className="font-medium text-slate-700">Employee ID</span>
+          <span className="ml-auto font-mono font-semibold text-slate-900">{worker?.workerID}</span>
         </div>
-        <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-          <Building2 size={13} className="shrink-0 text-gray-400" />
-          <span className="font-medium text-foreground">Department</span>
-          <span className="ml-auto text-foreground">{worker?.department || "—"}</span>
+        <div className="flex items-center gap-2.5 text-xs text-slate-500">
+          <Building2 size={13} className="shrink-0 text-slate-400" />
+          <span className="font-medium text-slate-700">Department</span>
+          <span className="ml-auto text-slate-900">{worker?.department || "—"}</span>
         </div>
-        <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
-          <Shield size={13} className="shrink-0 text-gray-400" />
-          <span className="font-medium text-foreground">Access Level</span>
-          <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${lv.badge}`}>{lv.text}</span>
+        <div className="flex items-center gap-2.5 text-xs text-slate-500">
+          <Shield size={13} className="shrink-0 text-slate-400" />
+          <span className="font-medium text-slate-700">Access Level</span>
+          <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${lv.badgeLight}`}>{lv.text}</span>
         </div>
       </div>
 
       {/* Quick links */}
-      <div className="px-3 py-2 border-b border-border">
-        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide px-2 mb-1">Quick Access</p>
-
-        <button
-          onClick={() => goTo("/docs")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-foreground hover:bg-gray-100 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-            <BookOpen size={15} className="text-blue-600" />
-          </div>
-          <span className="flex-1 text-left">Documentation</span>
-          <ChevronRight size={13} className="text-muted-foreground" />
-        </button>
-
-        <button
-          onClick={() => goTo("/help")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-foreground hover:bg-gray-100 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-            <HelpCircle size={15} className="text-blue-600" />
-          </div>
-          <span className="flex-1 text-left">Help Center</span>
-          <ChevronRight size={13} className="text-muted-foreground" />
-        </button>
-
-        <button
-          onClick={() => goTo("/faq")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-foreground hover:bg-gray-100 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-            <HelpCircle size={15} className="text-amber-600" />
-          </div>
-          <span className="flex-1 text-left">FAQ</span>
-          <ChevronRight size={13} className="text-muted-foreground" />
-        </button>
-
-        <button
-          onClick={() => goTo("/status")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-foreground hover:bg-gray-100 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-            <Activity size={15} className="text-green-600" />
-          </div>
-          <span className="flex-1 text-left">System Status</span>
-          <span className="w-2 h-2 rounded-full bg-green-500 mr-1" />
-          <ChevronRight size={13} className="text-muted-foreground" />
-        </button>
+      <div className="px-3 py-2 border-b border-slate-100">
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide px-2 mb-1">Quick Access</p>
+        {[
+          { href: "/docs",   icon: <BookOpen size={15} className="text-blue-600" />, bg: "bg-blue-50",   label: "Documentation" },
+          { href: "/help",   icon: <HelpCircle size={15} className="text-blue-600" />, bg: "bg-blue-50", label: "Help Center" },
+          { href: "/faq",    icon: <HelpCircle size={15} className="text-amber-600" />, bg: "bg-amber-50",label: "FAQ" },
+          { href: "/status", icon: <Activity size={15} className="text-green-600" />, bg: "bg-green-50",  label: "System Status", extra: <span className="w-2 h-2 rounded-full bg-green-500 mr-1" /> },
+        ].map(({ href, icon, bg, label, extra }) => (
+          <button
+            key={href}
+            onClick={() => goTo(href)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>{icon}</div>
+            <span className="flex-1 text-left">{label}</span>
+            {extra}
+            <ChevronRight size={13} className="text-slate-400" />
+          </button>
+        ))}
       </div>
 
       {/* Logout */}
       <div className="px-3 py-2">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
         >
           <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
             <LogOut size={15} className="text-red-500" />
@@ -254,88 +215,164 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* ── Desktop/Laptop/Tablet Sidebar ────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-[220px] xl:w-[260px] 2xl:w-[280px] shrink-0 border-r border-gray-200/60 bg-white sticky top-0 h-screen overflow-y-auto shadow-sm">
+
+      {/* ── Desktop/Laptop/Tablet Dark Glassmorphism Sidebar ─────────── */}
+      <aside
+        className="hidden lg:flex flex-col w-[220px] xl:w-[256px] 2xl:w-[272px] shrink-0 sticky top-0 h-screen overflow-y-auto"
+        style={{
+          background: "linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)",
+          borderRight: "1px solid rgba(99,102,241,0.15)",
+          boxShadow: "4px 0 24px rgba(0,0,0,0.35)",
+        }}
+      >
+        {/* Subtle grid overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.04]"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        {/* Glow orb top */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+        {/* Glow orb bottom */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+
         {/* Brand */}
-        <div className="flex items-center gap-3 px-4 xl:px-5 py-4 border-b border-gray-100">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 flex-shrink-0">
+        <div
+          className="relative flex items-center gap-3 px-4 xl:px-5 py-4"
+          style={{ borderBottom: "1px solid rgba(99,102,241,0.2)" }}
+        >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 flex-shrink-0">
             <img src={LOGO_URL} alt="GSPP" className="h-6 w-6 object-contain" />
           </div>
           <div className="min-w-0">
-            <div className="font-bold text-xs text-gray-900 leading-tight truncate">PP4 Manual Slitter</div>
-            <div className="text-[10px] text-gray-500 leading-tight font-medium">Stock Management</div>
+            <div className="font-bold text-xs text-white leading-tight truncate">PP4 Manual Slitter</div>
+            <div className="text-[10px] text-indigo-300/70 leading-tight font-medium">Stock Management</div>
+          </div>
+          {/* Online indicator */}
+          <div className="ml-auto flex items-center gap-1 shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
           </div>
         </div>
 
-        {/* Worker info */}
+        {/* Worker info card */}
         {worker && (
-          <div
-            className="mx-3 mt-4 mb-3 px-3 py-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50/50 cursor-pointer hover:from-blue-100/80 hover:to-indigo-100/50 transition-all duration-300 border border-blue-100/50 hover:border-blue-200 group"
-            onClick={() => setProfileOpen(v => !v)}
-            ref={profileRef}
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
-                <User size={14} className="text-white" />
+          <div className="relative mx-3 mt-4 mb-3">
+            <div
+              className="px-3 py-3 rounded-xl cursor-pointer transition-all duration-300 group"
+              style={{
+                background: "rgba(99,102,241,0.12)",
+                border: "1px solid rgba(99,102,241,0.25)",
+                backdropFilter: "blur(8px)",
+              }}
+              onClick={() => setProfileOpen(v => !v)}
+              ref={profileRef}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.2)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(99,102,241,0.12)")}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300">
+                  <User size={14} className="text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-white truncate">{worker.name}</div>
+                  <div className="text-[10px] text-indigo-300/70 truncate">{worker.workerID}</div>
+                </div>
+                <span className={`shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-md ${lv.badge}`}>Lv{userLevel}</span>
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-gray-900 truncate">{worker.name}</div>
-                <div className="text-[10px] text-gray-500 truncate">{worker.workerID}</div>
-              </div>
-              <span className={`shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-md ${lv.badge}`}>Lv{userLevel}</span>
             </div>
             {profileOpen && <ProfileDropdown />}
           </div>
         )}
 
+        {/* Section label */}
+        <div className="relative px-4 mb-1">
+          <p className="text-[9px] font-bold text-indigo-400/50 uppercase tracking-widest">Navigation</p>
+        </div>
+
         {/* Nav links */}
-        <nav className="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.filter(item => !item.adminOnly).map(item => (
-            <button
-              key={item.href}
-              onClick={() => navigate(item.href)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
-                isActive(item.href)
-                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/25"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              }`}
-            >
-              <span className={`flex-shrink-0 ${isActive(item.href) ? "" : "text-gray-400"}`}>
-                {item.icon}
-              </span>
-              <span className="flex-1 text-left">{item.label}</span>
-              {item.href === "/approval-center" && pendingCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
-                  {pendingCount > 99 ? "99+" : pendingCount}
+        <nav className="relative flex-1 px-2.5 py-1 space-y-0.5 overflow-y-auto">
+          {NAV_ITEMS.filter(item => !item.adminOnly).map(item => {
+            const active = isActive(item.href);
+            return (
+              <button
+                key={item.href}
+                onClick={() => navigate(item.href)}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group relative"
+                style={active ? {
+                  background: "linear-gradient(135deg, rgba(99,102,241,0.9) 0%, rgba(59,130,246,0.9) 100%)",
+                  boxShadow: "0 4px 14px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.1)",
+                  color: "white",
+                } : {
+                  color: "rgba(148,163,184,0.85)",
+                }}
+                onMouseEnter={e => {
+                  if (!active) {
+                    e.currentTarget.style.background = "rgba(99,102,241,0.12)";
+                    e.currentTarget.style.color = "rgba(255,255,255,0.9)";
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!active) {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "rgba(148,163,184,0.85)";
+                  }
+                }}
+              >
+                {/* Active left accent */}
+                {active && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-white/60 rounded-full" />
+                )}
+                <span className={`flex-shrink-0 transition-colors duration-200 ${active ? "text-white" : "text-slate-500 group-hover:text-indigo-300"}`}>
+                  {item.icon}
                 </span>
-              )}
-              {item.href === "/customer-sample" && sampleCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
-                  {sampleCount > 99 ? "99+" : sampleCount}
-                </span>
-              )}
-              {item.href === "/chat" && unreadMsgCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
-                  {unreadMsgCount > 99 ? "99+" : unreadMsgCount}
-                </span>
-              )}
-              {item.href === "/notifications" && unreadNotifCount > 0 && (
-                <span className="min-w-[20px] h-[20px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
-                  {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
-                </span>
-              )}
-            </button>
-          ))}
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.href === "/approval-center" && pendingCount > 0 && (
+                  <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
+                    {pendingCount > 99 ? "99+" : pendingCount}
+                  </span>
+                )}
+                {item.href === "/customer-sample" && sampleCount > 0 && (
+                  <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
+                    {sampleCount > 99 ? "99+" : sampleCount}
+                  </span>
+                )}
+                {item.href === "/chat" && unreadMsgCount > 0 && (
+                  <span className="min-w-[20px] h-[20px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
+                    {unreadMsgCount > 99 ? "99+" : unreadMsgCount}
+                  </span>
+                )}
+                {item.href === "/notifications" && unreadNotifCount > 0 && (
+                  <span className="min-w-[20px] h-[20px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
+                    {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Footer */}
-        <div className="px-2.5 pb-3 pt-2 border-t border-gray-100 mt-auto space-y-2">
-          <p className="text-xs text-gray-400 text-center px-2 py-1">Created by HEiNANN</p>
+        <div
+          className="relative px-2.5 pb-4 pt-3 mt-auto space-y-1"
+          style={{ borderTop: "1px solid rgba(99,102,241,0.15)" }}
+        >
+          <p className="text-[9px] text-indigo-400/40 text-center px-2 py-1 font-medium">Created by HEiNANN</p>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200"
+            style={{ color: "rgba(148,163,184,0.7)" }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = "rgba(239,68,68,0.12)";
+              e.currentTarget.style.color = "rgba(252,165,165,1)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "rgba(148,163,184,0.7)";
+            }}
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
             <span className="flex-1 text-left">Logout</span>
           </button>
         </div>
@@ -343,11 +380,11 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
       {/* ── Main content area ──────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile/Tablet top header — always shown on Chat page (fullHeight), hidden on lg+ for other pages */}
+        {/* Mobile/Tablet top header */}
         <header className={`${fullHeight ? "flex" : "lg:hidden"} border-b border-gray-200/60 bg-white/95 backdrop-blur-md sticky top-0 z-20 shadow-sm`}>
           <div className="px-3 py-2 flex items-center gap-2">
             <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-sm">
                 <img src={LOGO_URL} alt="GSPP" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" />
               </div>
             </button>
@@ -357,10 +394,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
             </div>
             {worker && (
               <div className="flex items-center gap-1.5 shrink-0">
-                {headerActions && (
-                  <div className="shrink-0">{headerActions}</div>
-                )}
-                {/* Notification Bell — mobile header */}
+                {headerActions && <div className="shrink-0">{headerActions}</div>}
                 <button
                   onClick={() => navigate("/notifications")}
                   className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
@@ -376,7 +410,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(v => !v)}
-                    className="flex items-center gap-1 bg-blue-50 text-blue-700 rounded-full px-2 py-1 text-[10px] font-semibold hover:bg-blue-100 transition-colors border border-blue-100"
+                    className="flex items-center gap-1 bg-indigo-50 text-indigo-700 rounded-full px-2 py-1 text-[10px] font-semibold hover:bg-indigo-100 transition-colors border border-indigo-100"
                   >
                     <User size={10} className="shrink-0" />
                     <span>Profile</span>
@@ -388,7 +422,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
           </div>
         </header>
 
-         {/* Desktop page title bar */}
+        {/* Desktop page title bar */}
         {pageTitle && !fullHeight && (
           <div className="hidden lg:flex items-center px-8 py-4 border-b border-border bg-white">
             <h1 className="text-base sm:text-lg md:text-xl font-bold text-foreground" style={{ fontFamily: "Lora, serif" }}>
@@ -396,6 +430,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
             </h1>
           </div>
         )}
+
         {/* Page content */}
         <main className={`flex-1 min-h-0 ${fullHeight ? "overflow-hidden pb-[64px] lg:pb-0" : "overflow-y-auto pb-[64px] lg:pb-0"}`}>
           {children}
@@ -407,11 +442,11 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-gray-200/60 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
           <div className="flex items-stretch h-16">
             {[
-              { href: "/",             icon: <Home size={20} />,          label: "Home" },
-              { href: "/submit-order", icon: <ClipboardList size={20} />, label: "Orders" },
-              { href: "/chat",         icon: <MessageCircle size={20} />, label: "Chat",  badge: unreadMsgCount },
-              { href: "/notifications",icon: <Bell size={20} />,          label: "Alerts", badge: unreadNotifCount },
-              { href: "/stock-history",icon: <Package size={20} />,       label: "Stock" },
+              { href: "/",              icon: <Home size={20} />,          label: "Home" },
+              { href: "/submit-order",  icon: <ClipboardList size={20} />, label: "Orders" },
+              { href: "/chat",          icon: <MessageCircle size={20} />, label: "Chat",   badge: unreadMsgCount },
+              { href: "/notifications", icon: <Bell size={20} />,          label: "Alerts", badge: unreadNotifCount },
+              { href: "/stock-history", icon: <Package size={20} />,       label: "Stock" },
             ].map(item => {
               const active = location === item.href;
               return (
@@ -419,7 +454,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                   key={item.href}
                   onClick={() => navigate(item.href)}
                   className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-all duration-200 ${
-                    active ? "text-blue-600" : "text-gray-400 hover:text-gray-600"
+                    active ? "text-indigo-600" : "text-gray-400 hover:text-gray-600"
                   }`}
                 >
                   <span className="relative">
@@ -432,11 +467,11 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                       </span>
                     ) : null}
                   </span>
-                  <span className={`text-[10px] font-medium leading-none ${
-                    active ? "text-blue-600" : "text-gray-400"
-                  }`}>{item.label}</span>
+                  <span className={`text-[10px] font-medium leading-none ${active ? "text-indigo-600" : "text-gray-400"}`}>
+                    {item.label}
+                  </span>
                   {active && (
-                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-500 rounded-full" />
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-500 rounded-full" />
                   )}
                 </button>
               );
