@@ -458,7 +458,7 @@ export default function Login() {
                       onChange={(e) => { setWorkerID(e.target.value); setError(""); }}
                       onFocus={() => setInputFocused(true)}
                       onBlur={() => setInputFocused(false)}
-                      placeholder="e.g. EMP-001"
+                      placeholder="Enter Employee ID"
                       className="w-full pl-11 pr-4 py-4 rounded-2xl text-sm font-semibold text-gray-800 placeholder:text-gray-300 outline-none transition-all duration-300"
                       style={{
                         background: inputFocused ? "rgba(238,242,255,0.8)" : "rgba(248,250,252,0.8)",
