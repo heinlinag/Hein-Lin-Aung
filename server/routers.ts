@@ -5,6 +5,7 @@ import { COOKIE_NAME, ADMIN_PASSWORD } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import { notifyOwner } from "./_core/notification";
 import {
   getAllWorkers,
   getWorkerByWorkerID,
@@ -1797,6 +1798,22 @@ export const appRouter = router({
           workerID: input.newEmployeeId,
           employeeIdChangedAt: new Date(),
         });
+
+        // Security alert — notify admin whenever an Employee ID is changed
+        const changedAt = new Date().toLocaleString("en-GB", {
+          day: "2-digit", month: "short", year: "numeric",
+          hour: "2-digit", minute: "2-digit", hour12: false,
+        });
+        await notifyOwner({
+          title: "🔐 Security Alert: Employee ID Changed",
+          content:
+            `Worker "${worker.name}" (${worker.department}) changed their Employee ID.\n` +
+            `Old ID: ${input.workerID}\n` +
+            `New ID: ${input.newEmployeeId}\n` +
+            `Changed at: ${changedAt}\n\n` +
+            `If this change was not authorised, please review the account immediately.`,
+        }).catch(() => { /* non-blocking — don't fail the mutation if notification fails */ });
+
         return { success: true, newWorkerID: input.newEmployeeId };
       }),
 
