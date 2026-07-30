@@ -56,6 +56,14 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
+  // Fetch profile picture & display name
+  const profileQuery = trpc.profile.get.useQuery(
+    { workerID: worker?.workerID ?? "" },
+    { enabled: !!worker?.workerID, staleTime: 60_000 }
+  );
+  const profilePic = profileQuery.data?.profilePicture ?? null;
+  const displayName = profileQuery.data?.displayName ?? worker?.name ?? "";
+
   useEffect(() => {
     if (!profileOpen) return;
     const handler = (e: MouseEvent) => {
@@ -144,11 +152,17 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       {/* Header */}
       <div className={`px-5 py-4 ${lv.bg} flex items-center justify-between`}>
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-full bg-white/70 flex items-center justify-center shadow-sm">
-            <User size={20} className={lv.fg} />
+          <div className="w-11 h-11 rounded-full overflow-hidden bg-white/70 shadow-sm shrink-0">
+            {profilePic ? (
+              <img src={profilePic} alt="avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className={`w-full h-full flex items-center justify-center`}>
+                <User size={20} className={lv.fg} />
+              </div>
+            )}
           </div>
           <div>
-            <p className={`font-bold text-sm ${lv.fg}`}>{worker?.name}</p>
+            <p className={`font-bold text-sm ${lv.fg}`}>{displayName || worker?.name}</p>
             <p className="text-xs text-gray-500">{worker?.workerID}</p>
           </div>
         </div>
@@ -273,11 +287,17 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(99,102,241,0.12)")}
             >
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300">
-                  <User size={14} className="text-white" />
+                <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0 shadow-md shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300">
+                  {profilePic ? (
+                    <img src={profilePic} alt="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">{worker.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-bold text-white truncate">{worker.name}</div>
+                  <div className="text-xs font-bold text-white truncate">{displayName || worker.name}</div>
                   <div className="text-[10px] text-indigo-300/70 truncate">{worker.workerID}</div>
                 </div>
                 <span className={`shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-md ${lv.badge}`}>Lv{userLevel}</span>
@@ -411,10 +431,18 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(v => !v)}
-                    className="flex items-center gap-1 bg-indigo-50 text-indigo-700 rounded-full px-2 py-1 text-[10px] font-semibold hover:bg-indigo-100 transition-colors border border-indigo-100"
+                    className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 rounded-full pl-0.5 pr-2.5 py-0.5 text-[10px] font-semibold hover:bg-indigo-100 transition-colors border border-indigo-100"
                   >
-                    <User size={10} className="shrink-0" />
-                    <span>Profile</span>
+                    <div className="w-6 h-6 rounded-full overflow-hidden shrink-0">
+                      {profilePic ? (
+                        <img src={profilePic} alt="avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-indigo-200 flex items-center justify-center">
+                          <User size={10} className="text-indigo-600" />
+                        </div>
+                      )}
+                    </div>
+                    <span>{displayName?.split(" ")[0] || worker?.name?.split(" ")[0] || "Profile"}</span>
                   </button>
                   {profileOpen && <ProfileDropdown />}
                 </div>

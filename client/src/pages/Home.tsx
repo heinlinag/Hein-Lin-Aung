@@ -274,6 +274,14 @@ export default function Home() {
   const workersQuery = trpc.workers.list.useQuery();
   const workersCount = workersQuery.data?.length ?? 0;
 
+  // Profile picture for greeting card
+  const profileQuery = trpc.profile.get.useQuery(
+    { workerID: worker?.workerID ?? "" },
+    { enabled: !!worker?.workerID, staleTime: 60_000 }
+  );
+  const profilePic = profileQuery.data?.profilePicture ?? null;
+  const displayName = profileQuery.data?.displayName ?? worker?.name ?? "";
+
   const DISMISS_KEY = "notif_banner_dismissed";
   const [showNotifBanner, setShowNotifBanner] = useState(false);
   useEffect(() => {
@@ -399,13 +407,19 @@ export default function Home() {
                       border: "1px solid rgba(255,255,255,0.12)",
                     }}>
                     {/* Avatar */}
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-base shadow-lg shrink-0"
-                      style={{ background: lvl.gradient }}>
-                      {worker.name.charAt(0).toUpperCase()}
+                    <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shrink-0">
+                      {profilePic ? (
+                        <img src={profilePic} alt="avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center font-black text-white text-base"
+                          style={{ background: lvl.gradient }}>
+                          {worker.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest">{getGreeting()}</p>
-                      <p className="text-white font-bold text-sm leading-tight mt-0.5">{worker.name}</p>
+                      <p className="text-white font-bold text-sm leading-tight mt-0.5">{displayName || worker.name}</p>
                       <div className="flex items-center gap-1.5 mt-1">
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                           style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}>
