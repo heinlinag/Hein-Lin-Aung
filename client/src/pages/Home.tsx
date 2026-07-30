@@ -699,7 +699,7 @@ export default function Home() {
       </footer>
       {/* Access Restricted Dialog */}
       <Dialog open={showAccessRestricted} onOpenChange={setShowAccessRestricted}>
-        <DialogContent className="w-full max-w-sm">
+        <DialogContent className="w-full max-w-sm data-[state=open]:slide-in-from-bottom-6 data-[state=closed]:slide-out-to-bottom-4 duration-300">
           <DialogHeader className="items-center text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3"
               style={{ background: "rgba(245,158,11,0.12)" }}>
