@@ -1159,39 +1159,89 @@ export default function StockHistory() {
 
   return (
     <AppLayout pageTitle="Stock History">
-      {/* Enhanced Header with Level Badge and Refresh */}
-      <div className="flex justify-between items-center px-4 md:px-6 lg:px-8 xl:px-10 pt-4 md:pt-5 pb-2">
-        {(userLevel === "1" || userLevel === "1.1") && (
-          <div className="flex items-center gap-2 text-xs text-orange-700 font-semibold bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 px-3 py-1.5 rounded-full shadow-sm">
-            <Clock size={13} className="animate-pulse" /> {userLevel === "1.1" ? "Level 1.1 — Auto-approved" : "Level 1 — Requires Approval"}
+      {/* Glassmorphism Hero Banner */}
+      <div className="relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)" }}>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10"
+            style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
+          <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full opacity-8"
+            style={{ background: "radial-gradient(circle, #10b981, transparent)" }} />
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }} />
+        </div>
+        <div className="relative px-4 lg:px-8 xl:px-10 py-6 lg:py-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-start gap-3">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-xl shrink-0"
+                style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.2)" }}>
+                <Package size={20} className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-black text-white leading-tight" style={{ fontFamily: "Lora, serif" }}>Stock History</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  {(userLevel === "1" || userLevel === "1.1") && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full text-amber-200"
+                      style={{ background: "rgba(245,158,11,0.2)", border: "1px solid rgba(245,158,11,0.3)" }}>
+                      <Clock size={10} className="animate-pulse" />
+                      {userLevel === "1.1" ? "Level 1.1 — Auto-approved" : "Level 1 — Requires Approval"}
+                    </span>
+                  )}
+                  {userLevel === "2" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full text-emerald-200"
+                      style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.3)" }}>
+                      <Zap size={10} /> Level 2 — Direct Actions
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <RefreshButton onRefresh={() => utils.orders.list.invalidate()} />
           </div>
-        )}
-        {userLevel === "2" && (
-          <div className="flex items-center gap-2 text-xs text-emerald-700 font-semibold bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 px-3 py-1.5 rounded-full shadow-sm">
-            <Zap size={13} /> Level 2 — Direct Actions
-          </div>
-        )}
-        <RefreshButton onRefresh={() => utils.orders.list.invalidate()} />
+        </div>
       </div>
 
       <main className="container lg:max-w-none lg:px-8 xl:px-10 py-4">
-        {/* Enhanced Tabs with pill style */}
-        <div className="flex gap-1 mb-4 md:mb-5 bg-gray-100/80 p-1 rounded-xl w-fit">
-          <button onClick={() => setActiveTab("current")} className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${activeTab === "current" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-            <span className="flex items-center gap-1.5"><Package size={14} /> Current Stock</span>
+        {/* Glassmorphism Tabs */}
+        <div className="flex gap-1.5 mb-4 md:mb-5 p-1.5 rounded-2xl w-fit"
+          style={{ background: "rgba(241,245,249,0.8)", border: "1px solid rgba(226,232,240,0.6)" }}>
+          <button onClick={() => setActiveTab("current")}
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
+            style={activeTab === "current" ? {
+              background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+              color: "#fff",
+              boxShadow: "0 4px 16px rgba(99,102,241,0.3)",
+            } : { color: "#64748b" }}>
+            <Package size={14} /> Current Stock
           </button>
-          <button onClick={() => setActiveTab("out_of_stock")} className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${activeTab === "out_of_stock" ? "bg-white text-red-600 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-            <span className="flex items-center gap-1.5"><AlertTriangle size={14} /> Out of Stock</span>
+          <button onClick={() => setActiveTab("out_of_stock")}
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
+            style={activeTab === "out_of_stock" ? {
+              background: "linear-gradient(135deg, #ef4444, #dc2626)",
+              color: "#fff",
+              boxShadow: "0 4px 16px rgba(239,68,68,0.3)",
+            } : { color: "#64748b" }}>
+            <AlertTriangle size={14} /> Out of Stock
           </button>
         </div>
 
-        {/* Enhanced Search with better styling */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 mb-4 md:mb-5 sticky top-0 z-10 bg-white/95 backdrop-blur-md py-3 -mx-4 md:-mx-6 lg:-mx-8 xl:-mx-10 px-4 md:px-6 lg:px-8 xl:px-10 border-b border-gray-100 shadow-sm">
+        {/* Glassmorphism Sticky Filter Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 mb-4 md:mb-5 sticky top-0 z-10 py-3 -mx-4 md:-mx-6 lg:-mx-8 xl:-mx-10 px-4 md:px-6 lg:px-8 xl:px-10"
+          style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(226,232,240,0.6)", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
           <div className="relative group">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <input type="text" value={searchOrderID} onChange={e => setSearchOrderID(e.target.value.toUpperCase())} placeholder="Search Production Order…" className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+            <input type="text" value={searchOrderID} onChange={e => setSearchOrderID(e.target.value.toUpperCase())} placeholder="Search Production Order…"
+              className="w-full rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none transition-all"
+              style={{ background: "rgba(241,245,249,0.8)", border: "1px solid rgba(226,232,240,0.8)" }}
+              onFocus={e => { e.currentTarget.style.border = "1px solid rgba(99,102,241,0.5)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; }}
+              onBlur={e => { e.currentTarget.style.border = "1px solid rgba(226,232,240,0.8)"; e.currentTarget.style.boxShadow = ""; }} />
           </div>
-          <select value={searchFlute} onChange={e => setSearchFlute(e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all appearance-none cursor-pointer">
+          <select value={searchFlute} onChange={e => setSearchFlute(e.target.value)}
+            className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all appearance-none cursor-pointer"
+            style={{ background: "rgba(241,245,249,0.8)", border: "1px solid rgba(226,232,240,0.8)" }}>
             <option value="">Select Flute Type</option>
             <option value="BA">BA</option>
             <option value="BE">BE</option>
@@ -1201,8 +1251,12 @@ export default function StockHistory() {
             <option value="E">E</option>
           </select>
           <div className="relative group">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <input type="text" value={searchBQ} onChange={e => setSearchBQ(e.target.value.toUpperCase())} placeholder={searchFlute ? "Search BQ Comment…" : "Select Flute Type first"} disabled={!searchFlute} className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white shadow-sm transition-all disabled:bg-gray-50/80 disabled:text-muted-foreground disabled:shadow-none" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+            <input type="text" value={searchBQ} onChange={e => setSearchBQ(e.target.value.toUpperCase())} placeholder={searchFlute ? "Search BQ Comment…" : "Select Flute Type first"} disabled={!searchFlute}
+              className="w-full rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: "rgba(241,245,249,0.8)", border: "1px solid rgba(226,232,240,0.8)" }}
+              onFocus={e => { e.currentTarget.style.border = "1px solid rgba(99,102,241,0.5)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; }}
+              onBlur={e => { e.currentTarget.style.border = "1px solid rgba(226,232,240,0.8)"; e.currentTarget.style.boxShadow = ""; }} />
           </div>
         </div>
 
@@ -1376,12 +1430,21 @@ export default function StockHistory() {
               </table>
             </div>
 
-            {/* Mobile cards */}
+            {/* Mobile cards — glassmorphism */}
             <div className="md:hidden space-y-3">
               {filtered.map(order => {
                 const isLowStock = activeTab === "current" && order.qty < LOW_STOCK_THRESHOLD;
                 return (
-                <div key={order.id} className={`border rounded-2xl shadow-sm p-4 space-y-3 transition-all duration-200 hover:shadow-md ${isLowStock ? "bg-gradient-to-br from-orange-50 to-amber-50/50 border-orange-200" : "bg-white border-gray-100 hover:border-primary/20"}`}>
+                <div key={order.id} className="relative rounded-2xl overflow-hidden transition-all duration-200"
+                  style={{
+                    background: isLowStock ? "linear-gradient(135deg, rgba(255,237,213,0.9), rgba(254,243,199,0.8))" : "rgba(255,255,255,0.9)",
+                    backdropFilter: "blur(16px)",
+                    border: isLowStock ? "1px solid rgba(251,146,60,0.3)" : "1px solid rgba(255,255,255,0.9)",
+                    boxShadow: isLowStock ? "0 4px 20px rgba(251,146,60,0.12), 0 1px 4px rgba(0,0,0,0.04)" : "0 4px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)",
+                  }}>
+                  <div className="absolute top-0 inset-x-0 h-0.5"
+                    style={{ background: isLowStock ? "linear-gradient(90deg, #f59e0b, #ef4444)" : "linear-gradient(90deg, #6366f1, #8b5cf6)" }} />
+                  <div className="p-4 space-y-3">
                   {order.trackingId && <span className="hidden md:inline-block text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold">Ref: {order.trackingId}</span>}
                   <div className="flex items-start justify-between">
                     <div>
@@ -1435,8 +1498,10 @@ export default function StockHistory() {
                       <><Zap size={14} /> Purchase Order</>
                     </button>
                   )}
+                  </div>
                 </div>
-              )})}
+              );
+            })}
             </div>
           </>
         )}

@@ -120,11 +120,27 @@ function RequestCard({
   const isProcessApproved = !!req.processApprovedBy;
 
   return (
-    <div className={`border rounded-xl p-4 space-y-3 ${
-      req.status === "approved" ? "bg-green-50 border-green-200" :
-      req.status === "cancelled" ? "bg-gray-50 border-gray-200 opacity-70" :
-      "bg-white border-border shadow-sm"
-    }`}>
+    <div className="relative rounded-2xl overflow-hidden transition-all duration-200"
+      style={{
+        background: req.status === "approved" ? "rgba(240,253,244,0.95)" :
+          req.status === "cancelled" ? "rgba(248,250,252,0.85)" :
+          "rgba(255,255,255,0.95)",
+        backdropFilter: "blur(16px)",
+        border: req.status === "approved" ? "1px solid rgba(74,222,128,0.3)" :
+          req.status === "cancelled" ? "1px solid rgba(203,213,225,0.5)" :
+          req.isUrgent ? "1px solid rgba(239,68,68,0.3)" :
+          "1px solid rgba(255,255,255,0.9)",
+        boxShadow: req.status === "cancelled" ? "none" :
+          req.isUrgent ? "0 4px 20px rgba(239,68,68,0.1), 0 1px 4px rgba(0,0,0,0.04)" :
+          "0 4px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)",
+        opacity: req.status === "cancelled" ? 0.7 : 1,
+      }}>
+      <div className="absolute top-0 inset-x-0 h-0.5"
+        style={{ background: req.status === "approved" ? "linear-gradient(90deg, #22c55e, #10b981)" :
+          req.status === "cancelled" ? "linear-gradient(90deg, #94a3b8, #cbd5e1)" :
+          req.isUrgent ? "linear-gradient(90deg, #ef4444, #f97316)" :
+          "linear-gradient(90deg, #6366f1, #8b5cf6)" }} />
+      <div className="p-4 space-y-3">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -722,6 +738,7 @@ function RequestCard({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
