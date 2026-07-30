@@ -1356,3 +1356,14 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Read-only fields: Department, Access Level, Member Since
 - [x] Route /user-profile added to App.tsx (LoginGate protected)
 - [x] "My Profile" link added to AppLayout profile dropdown
+
+## Security Audit Log (Admin Panel)
+- [x] Add audit_logs table to drizzle/schema.ts
+- [x] Apply migration SQL via webdev_execute_sql
+- [x] Add createAuditLog and getAuditLogs helpers to server/db.ts
+- [x] Add auditLog.list tRPC procedure (admin-only)
+- [x] Wire createAuditLog into updateEmployeeId mutation
+- [x] Wire createAuditLog into updateDisplayName mutation
+- [x] Wire createAuditLog into uploadPicture mutation
+- [x] Build SecurityAuditLogTab component with dark glassmorphism design
+- [x] Add "Audit Log" tab to AdminPanel tab list

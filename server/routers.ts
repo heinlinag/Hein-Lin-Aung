@@ -6,6 +6,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { notifyOwner } from "./_core/notification";
+import { createAuditLog, getAuditLogs } from "./db";
 import {
   getAllWorkers,
   getWorkerByWorkerID,
@@ -1765,10 +1766,20 @@ export const appRouter = router({
             throw new TRPCError({ code: "FORBIDDEN", message: `Display name can only be changed every 7 days. ${daysLeft} day(s) remaining.` });
           }
         }
+        const oldName = worker.displayName ?? worker.name;
         await updateWorkerById(worker.id, {
           displayName: input.displayName,
           displayNameChangedAt: new Date(),
         });
+        // Audit log entry
+        await createAuditLog({
+          workerID: worker.workerID,
+          workerName: worker.name,
+          department: worker.department,
+          action: "display_name_changed",
+          oldValue: oldName,
+          newValue: input.displayName,
+        }).catch(() => {});
         return { success: true };
       }),
 
@@ -1814,7 +1825,32 @@ export const appRouter = router({
             `If this change was not authorised, please review the account immediately.`,
         }).catch(() => { /* non-blocking — don't fail the mutation if notification fails */ });
 
+        // Audit log entry
+        await createAuditLog({
+          workerID: input.newEmployeeId,
+          workerName: worker.name,
+          department: worker.department,
+          action: "employee_id_changed",
+          oldValue: input.workerID,
+          newValue: input.newEmployeeId,
+        }).catch(() => {});
+
         return { success: true, newWorkerID: input.newEmployeeId };
+      }),
+
+    /** List audit logs — admin use only */
+    listAuditLogs: publicProcedure
+      .input(z.object({
+        workerID: z.string().optional(),
+        action: z.string().optional(),
+        limit: z.number().min(1).max(500).optional(),
+      }))
+      .query(async ({ input }) => {
+        return getAuditLogs({
+          workerID: input.workerID,
+          action: input.action,
+          limit: input.limit ?? 200,
+        });
       }),
 
     /** Upload profile picture — accepts base64 data URL */
@@ -1838,6 +1874,15 @@ export const appRouter = router({
         const key = `profile-pictures/${input.workerID}_avatar.${ext}`;
         const { url } = await storagePut(key, buffer, mimeType);
         await updateWorkerById(worker.id, { profilePicture: url });
+        // Audit log entry
+        await createAuditLog({
+          workerID: worker.workerID,
+          workerName: worker.name,
+          department: worker.department,
+          action: "profile_picture_changed",
+          oldValue: worker.profilePicture ?? null,
+          newValue: url,
+        }).catch(() => {});
         return { success: true, url };
       }),
   }),

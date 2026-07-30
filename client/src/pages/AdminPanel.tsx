@@ -1506,10 +1506,246 @@ function AdminNotificationsTab() {
   );
 }
 
+// ─── Security Audit Log Tab ─────────────────────────────────────────────────
+const ACTION_LABELS: Record<string, { label: string; color: string; icon: string }> = {
+  employee_id_changed:     { label: "Employee ID Changed",     color: "#f59e0b", icon: "🪪" },
+  display_name_changed:    { label: "Display Name Changed",    color: "#6366f1", icon: "✏️" },
+  profile_picture_changed: { label: "Profile Picture Changed", color: "#22d3ee", icon: "🖼️" },
+};
+
+function SecurityAuditLogTab({ isDark }: { isDark: boolean }) {
+  const [filterAction, setFilterAction] = useState("");
+  const [filterWorker, setFilterWorker] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+
+  const logsQuery = trpc.profile.listAuditLogs.useQuery(
+    { limit: 200 },
+    { refetchInterval: 15000 }
+  );
+
+  const logs = (logsQuery.data ?? []).filter((log) => {
+    if (filterAction && log.action !== filterAction) return false;
+    if (filterWorker && !log.workerID.toLowerCase().includes(filterWorker.toLowerCase()) &&
+        !log.workerName.toLowerCase().includes(filterWorker.toLowerCase())) return false;
+    if (searchInput) {
+      const q = searchInput.toLowerCase();
+      if (!log.workerID.toLowerCase().includes(q) &&
+          !log.workerName.toLowerCase().includes(q) &&
+          !log.department.toLowerCase().includes(q) &&
+          !(log.oldValue ?? "").toLowerCase().includes(q) &&
+          !(log.newValue ?? "").toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const cardBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.92)";
+  const borderCol = isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.12)";
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-500/25">
+          <ShieldAlert size={20} className="text-white" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-white">Security Audit Log</h2>
+          <p className="text-sm" style={{ color: "rgba(148,163,184,1)" }}>Profile &amp; identity change history</p>
+        </div>
+        <button
+          onClick={() => logsQuery.refetch()}
+          className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white"
+          style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+        >
+          <RefreshCw size={13} className={logsQuery.isFetching ? "animate-spin" : ""} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-2">
+        {/* Search */}
+        <input
+          type="text"
+          placeholder="Search worker / ID / value…"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          className="flex-1 min-w-[180px] px-3 py-2 rounded-xl text-sm text-white placeholder-slate-500 outline-none"
+          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)" }}
+        />
+        {/* Action filter pills */}
+        <div className="flex gap-1 flex-wrap">
+          {["", "employee_id_changed", "display_name_changed", "profile_picture_changed"].map((a) => {
+            const meta = a ? ACTION_LABELS[a] : null;
+            const active = filterAction === a;
+            return (
+              <button
+                key={a}
+                onClick={() => setFilterAction(a)}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                style={{
+                  background: active ? (meta?.color ?? "#6366f1") + "33" : "rgba(255,255,255,0.06)",
+                  border: `1px solid ${active ? (meta?.color ?? "#6366f1") + "66" : "rgba(255,255,255,0.10)"}`,
+                  color: active ? (meta?.color ?? "#a5b4fc") : "rgba(148,163,184,1)",
+                }}
+              >
+                {a ? `${meta?.icon} ${meta?.label}` : "All Actions"}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-3">
+        {Object.entries(ACTION_LABELS).map(([key, meta]) => {
+          const count = (logsQuery.data ?? []).filter(l => l.action === key).length;
+          return (
+            <div key={key} className="rounded-xl p-3 flex items-center gap-3"
+              style={{ background: cardBg, border: `1px solid ${borderCol}`, backdropFilter: "blur(12px)" }}>
+              <span className="text-2xl">{meta.icon}</span>
+              <div>
+                <p className="text-xl font-bold text-white">{count}</p>
+                <p className="text-xs" style={{ color: meta.color }}>{meta.label}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Loading / empty */}
+      {logsQuery.isLoading && (
+        <div className="flex items-center justify-center py-16 gap-3">
+          <Loader2 size={24} className="animate-spin text-teal-400" />
+          <span className="text-slate-400">Loading audit logs…</span>
+        </div>
+      )}
+      {!logsQuery.isLoading && logs.length === 0 && (
+        <div className="text-center py-16">
+          <ShieldAlert size={40} className="mx-auto mb-3 text-slate-600" />
+          <p className="text-slate-400 font-medium">No audit entries found</p>
+          <p className="text-slate-600 text-sm mt-1">Profile changes will appear here automatically</p>
+        </div>
+      )}
+
+      {/* Desktop table */}
+      {!logsQuery.isLoading && logs.length > 0 && (
+        <div className="hidden md:block overflow-x-auto rounded-xl" style={{ border: `1px solid ${borderCol}` }}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ background: "rgba(255,255,255,0.04)", borderBottom: `1px solid ${borderCol}` }}>
+                {["#", "Action", "Worker", "Department", "Old Value", "New Value", "Date & Time"].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: "rgba(148,163,184,1)" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {logs.map((log, idx) => {
+                const meta = ACTION_LABELS[log.action] ?? { label: log.action, color: "#94a3b8", icon: "🔒" };
+                return (
+                  <tr key={log.id} style={{ borderBottom: `1px solid ${borderCol}` }}
+                    className="hover:bg-white/[0.02] transition-colors">
+                    <td className="px-4 py-3 text-slate-500 text-xs">{idx + 1}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                        style={{ background: meta.color + "22", color: meta.color, border: `1px solid ${meta.color}44` }}>
+                        {meta.icon} {meta.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-white">{log.workerName}</p>
+                      <p className="text-xs" style={{ color: "rgba(148,163,184,1)" }}>{log.workerID}</p>
+                    </td>
+                    <td className="px-4 py-3 text-slate-300">{log.department}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs px-2 py-0.5 rounded" style={{ background: "rgba(239,68,68,0.15)", color: "#fca5a5" }}>
+                        {log.oldValue ? (log.oldValue.startsWith("/manus-storage") ? "[image]"
+                          : log.oldValue.length > 30 ? log.oldValue.slice(0, 30) + "…" : log.oldValue) : "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs px-2 py-0.5 rounded" style={{ background: "rgba(34,197,94,0.15)", color: "#86efac" }}>
+                        {log.newValue ? (log.newValue.startsWith("/manus-storage") ? "[image]"
+                          : log.newValue.length > 30 ? log.newValue.slice(0, 30) + "…" : log.newValue) : "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs" style={{ color: "rgba(148,163,184,1)" }}>
+                      {new Date(log.createdAt).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Mobile cards */}
+      {!logsQuery.isLoading && logs.length > 0 && (
+        <div className="md:hidden space-y-3">
+          {logs.map((log, idx) => {
+            const meta = ACTION_LABELS[log.action] ?? { label: log.action, color: "#94a3b8", icon: "🔒" };
+            return (
+              <div key={log.id} className="rounded-2xl p-4 space-y-3"
+                style={{ background: "rgba(15,23,42,0.85)", border: `1px solid ${meta.color}33`, backdropFilter: "blur(16px)" }}>
+                {/* Top row */}
+                <div className="flex items-start justify-between gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                    style={{ background: meta.color + "22", color: meta.color, border: `1px solid ${meta.color}44` }}>
+                    {meta.icon} {meta.label}
+                  </span>
+                  <span className="text-xs" style={{ color: "rgba(100,116,139,1)" }}>#{idx + 1}</span>
+                </div>
+                {/* Worker info */}
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ background: `linear-gradient(135deg, ${meta.color}66, ${meta.color}33)` }}>
+                    {log.workerName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white text-sm">{log.workerName}</p>
+                    <p className="text-xs" style={{ color: "rgba(148,163,184,1)" }}>{log.workerID} · {log.department}</p>
+                  </div>
+                </div>
+                {/* Change */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-lg p-2" style={{ background: "rgba(239,68,68,0.10)" }}>
+                    <p className="text-xs mb-0.5" style={{ color: "rgba(252,165,165,0.7)" }}>Old</p>
+                    <p className="text-xs font-medium" style={{ color: "#fca5a5" }}>
+                      {log.oldValue ? (log.oldValue.startsWith("/manus-storage") ? "[image]" : log.oldValue) : "—"}
+                    </p>
+                  </div>
+                  <div className="rounded-lg p-2" style={{ background: "rgba(34,197,94,0.10)" }}>
+                    <p className="text-xs mb-0.5" style={{ color: "rgba(134,239,172,0.7)" }}>New</p>
+                    <p className="text-xs font-medium" style={{ color: "#86efac" }}>
+                      {log.newValue ? (log.newValue.startsWith("/manus-storage") ? "[image]" : log.newValue) : "—"}
+                    </p>
+                  </div>
+                </div>
+                {/* Timestamp */}
+                <p className="text-xs" style={{ color: "rgba(100,116,139,1)" }}>
+                  🕐 {new Date(log.createdAt).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Footer count */}
+      {!logsQuery.isLoading && logs.length > 0 && (
+        <p className="text-center text-xs" style={{ color: "rgba(100,116,139,1)" }}>
+          Showing {logs.length} of {logsQuery.data?.length ?? 0} entries
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { logoutAdmin, getAdminPassword } = useAuth();
-  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings" | "notifications">("workers");
+  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings" | "notifications" | "audit_log">("workers");
   const maintenanceQuery = trpc.system.getMaintenanceStatus.useQuery(undefined, { refetchInterval: 10000 });
   const scheduleQuery = trpc.system.getScheduledMaintenance.useQuery(undefined, { refetchInterval: 15000 });
   const setMaintenanceMutation = trpc.system.setMaintenanceMode.useMutation({
@@ -1617,6 +1853,7 @@ export default function AdminPanel() {
     { id: "contact_messages" as const, label: "Messages", icon: <Inbox size={16} />, color: "purple" },
     { id: "announcements" as const, label: "Announcements", icon: <Megaphone size={16} />, color: "indigo" },
     { id: "notifications" as const, label: "Notifications", icon: <Bell size={16} />, color: "amber" },
+    { id: "audit_log" as const, label: "Audit Log", icon: <ShieldAlert size={16} />, color: "teal" },
     { id: "maintenance" as const, label: "Maintenance", icon: <Wrench size={16} />, color: "red" },
     { id: "settings" as const, label: "Settings", icon: <Settings2 size={16} />, color: "slate" },
   ];
@@ -1818,6 +2055,7 @@ export default function AdminPanel() {
               indigo: isActive ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25" : tabInactive,
               slate: isActive ? "bg-gradient-to-r from-slate-500 to-slate-700 text-white shadow-lg shadow-slate-500/25" : tabInactive,
               amber: isActive ? "bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg shadow-amber-500/25" : tabInactive,
+              teal: isActive ? "bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/25" : tabInactive,
             };
             return (
               <button
@@ -1844,6 +2082,7 @@ export default function AdminPanel() {
           {activeTab === "announcements" && <AnnouncementsTab />}
           {activeTab === "settings" && <SettingsTab />}
           {activeTab === "notifications" && <AdminNotificationsTab />}
+          {activeTab === "audit_log" && <SecurityAuditLogTab isDark={isDark} />}
           {activeTab === "maintenance" && (
             <div className="max-w-xl mx-auto py-8 space-y-6">
               {/* Status card */}

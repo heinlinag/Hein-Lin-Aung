@@ -415,3 +415,18 @@ export const customerSamples = mysqlTable("customerSamples", {
 });
 export type CustomerSample = typeof customerSamples.$inferSelect;
 export type InsertCustomerSample = typeof customerSamples.$inferInsert;
+
+// Security Audit Log — records profile/identity changes for security review
+export const auditLogs = mysqlTable("auditLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  workerID: varchar("workerID", { length: 64 }).notNull(),   // who made the change
+  workerName: varchar("workerName", { length: 128 }).notNull(),
+  department: varchar("department", { length: 128 }).notNull(),
+  action: varchar("action", { length: 64 }).notNull(),       // e.g. "employee_id_changed", "display_name_changed", "profile_picture_changed"
+  oldValue: text("oldValue"),                                // previous value (null if not applicable)
+  newValue: text("newValue"),                                // new value
+  ipAddress: varchar("ipAddress", { length: 64 }),           // request IP (best-effort)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;

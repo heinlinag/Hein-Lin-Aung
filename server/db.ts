@@ -1,6 +1,6 @@
 import { eq, desc, and, or, isNull, isNotNull, lte, inArray, sql as sqlExpr } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory } from "../drizzle/schema";
+import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory, auditLogs, InsertAuditLog, AuditLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -580,4 +580,27 @@ export async function updateCustomerSampleStatus(
       .set({ status, deliveryBy: workerName, deliveryAt: now })
       .where(eq(customerSamples.id, id));
   }
+}
+
+// ─── Security Audit Log ──────────────────────────────────────────────────────
+
+export async function createAuditLog(entry: InsertAuditLog): Promise<void> {
+  const db = await getDb();
+  if (!db) return; // non-blocking — don't throw if DB is unavailable
+  await db.insert(auditLogs).values(entry);
+}
+
+export async function getAuditLogs(opts?: {
+  workerID?: string;
+  action?: string;
+  limit?: number;
+}): Promise<AuditLog[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [];
+  if (opts?.workerID) conditions.push(eq(auditLogs.workerID, opts.workerID));
+  if (opts?.action)   conditions.push(eq(auditLogs.action,   opts.action));
+  const query = db.select().from(auditLogs);
+  const withWhere = conditions.length > 0 ? query.where(and(...conditions)) : query;
+  return withWhere.orderBy(desc(auditLogs.createdAt)).limit(opts?.limit ?? 200);
 }
