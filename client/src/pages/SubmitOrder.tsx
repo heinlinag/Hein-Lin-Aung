@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { Send, Loader2, AlertTriangle, Package, Layers, Ruler, Hash, FileText, CheckCircle2, ArrowRight } from "lucide-react";
+import { Send, Loader2, AlertTriangle, Package, Layers, Ruler, Hash, FileText, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 
@@ -26,7 +26,6 @@ export default function SubmitOrder() {
   const notifyAll = trpc.push.sendToAll.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
 
-  // Debounced Production Order duplicate check
   const [debouncedOrderID, setDebouncedOrderID] = useState("");
   useEffect(() => {
     const t = setTimeout(() => setDebouncedOrderID(orderID.trim()), 500);
@@ -38,7 +37,6 @@ export default function SubmitOrder() {
   );
   const isDuplicate = duplicateCheck.data?.exists === true;
 
-  // Track form progress
   useEffect(() => {
     const effectiveFluteType = fluteType === "Manual" ? manualFlute.trim() : fluteType;
     if (bqComment.trim()) setCurrentStep(4);
@@ -54,7 +52,6 @@ export default function SubmitOrder() {
       navigate("/login");
       return;
     }
-
     const effectiveFluteType = fluteType === "Manual" ? manualFlute.trim() : fluteType;
     if (!orderID.trim() || !effectiveFluteType || !sizeW || !sizeL || !qty || !bqComment.trim()) {
       toast.error("Please fill in all required fields.");
@@ -98,184 +95,274 @@ export default function SubmitOrder() {
     }
   };
 
+  const inputBase = "w-full rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all duration-200 font-medium placeholder:text-gray-400";
+  const inputStyle = `${inputBase} bg-white/70 border border-white/60 focus:bg-white focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60 shadow-sm`;
+  const inputError = `${inputBase} bg-red-50/80 border border-red-300 focus:ring-2 focus:ring-red-200 shadow-sm`;
+
   return (
     <AppLayout pageTitle="Submit Order">
-      {/* Worker Banner */}
-      {worker && (
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-2.5 px-4 flex items-center justify-center gap-2 text-xs shadow-sm">
-          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <span className="text-[10px] font-bold">{worker.name.charAt(0)}</span>
+      <style>{`
+        @keyframes successPop {
+          0% { transform: scale(0); opacity: 0; }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .success-pop { animation: successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        @keyframes floatOrb {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-12px) scale(1.05); }
+        }
+        .orb-float { animation: floatOrb 6s ease-in-out infinite; }
+        .orb-float-slow { animation: floatOrb 9s ease-in-out infinite reverse; }
+        @keyframes scanLine {
+          0% { transform: translateY(-100%); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(400%); opacity: 0; }
+        }
+        .scan-line { animation: scanLine 3s ease-in-out infinite; }
+        .glass-card {
+          background: rgba(255,255,255,0.85);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,255,255,0.9);
+          box-shadow: 0 4px 24px rgba(99,102,241,0.08), 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .glass-card:hover {
+          box-shadow: 0 8px 32px rgba(99,102,241,0.14), 0 2px 8px rgba(0,0,0,0.06);
+        }
+      `}</style>
+
+      {/* Hero Banner */}
+      <div className="relative overflow-hidden" style={{
+        background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4338ca 60%, #6366f1 100%)",
+        minHeight: "120px"
+      }}>
+        {/* Grid overlay */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+          backgroundSize: "32px 32px"
+        }} />
+        {/* Floating orbs */}
+        <div className="absolute top-2 right-8 w-24 h-24 rounded-full orb-float opacity-20" style={{ background: "radial-gradient(circle, #a5b4fc, #6366f1)" }} />
+        <div className="absolute bottom-0 right-24 w-16 h-16 rounded-full orb-float-slow opacity-15" style={{ background: "radial-gradient(circle, #c7d2fe, #818cf8)" }} />
+        <div className="absolute top-4 left-1/3 w-12 h-12 rounded-full orb-float opacity-10" style={{ background: "radial-gradient(circle, #e0e7ff, #a5b4fc)" }} />
+        {/* Scan line */}
+        <div className="absolute inset-x-0 h-px scan-line" style={{ background: "linear-gradient(90deg, transparent, rgba(165,180,252,0.6), transparent)" }} />
+
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-900/40" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1))", border: "1px solid rgba(255,255,255,0.3)" }}>
+                <Package size={22} className="text-white" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 flex items-center justify-center shadow-sm">
+                <Sparkles size={8} className="text-white" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white tracking-tight">Submit Order</h1>
+              <p className="text-indigo-200 text-xs mt-0.5">Create a new production order</p>
+            </div>
           </div>
-          <span>Logged in as <strong>{worker.name}</strong> ({worker.workerID}) &middot; {worker.department}</span>
+          {worker && (
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-white">{worker.name.charAt(0)}</span>
+              </div>
+              <span className="text-xs text-indigo-100 font-medium">{worker.name} · {worker.workerID}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile worker badge */}
+      {worker && (
+        <div className="sm:hidden px-4 py-2 flex items-center gap-2" style={{ background: "rgba(99,102,241,0.06)", borderBottom: "1px solid rgba(99,102,241,0.1)" }}>
+          <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center">
+            <span className="text-[9px] font-bold text-indigo-600">{worker.name.charAt(0)}</span>
+          </div>
+          <span className="text-xs text-indigo-700 font-medium">{worker.name} ({worker.workerID}) · {worker.department}</span>
         </div>
       )}
 
-      <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5">
+      {/* Main content */}
+      <div className="px-3 sm:px-4 lg:px-6 py-4 sm:py-5" style={{ background: "linear-gradient(180deg, rgba(238,242,255,0.6) 0%, rgba(245,247,255,0.3) 100%)" }}>
         <div className="max-w-2xl mx-auto lg:mx-0">
-          {/* Page heading (mobile only) */}
-          <div className="lg:hidden mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20">
-                <Package size={16} className="text-white" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">Submit Order</h2>
-                <p className="text-[10px] text-muted-foreground">Create a new production order</p>
-              </div>
-            </div>
-          </div>
 
           {/* Progress Steps */}
-          <div className="mb-4 hidden sm:block">
-            <div className="flex items-center justify-between relative">
-              <div className="absolute top-3.5 left-0 right-0 h-0.5 bg-gray-200 rounded-full" />
-              <div className="absolute top-3.5 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500" style={{ width: `${((currentStep - 1) / 3) * 100}%` }} />
-              {[
-                { step: 1, label: "Order Info", icon: Package },
-                { step: 2, label: "Dimensions", icon: Ruler },
-                { step: 3, label: "BQ Formula", icon: FileText },
-                { step: 4, label: "Review", icon: CheckCircle2 },
-              ].map(({ step, label, icon: Icon }) => (
-                <div key={step} className="relative flex flex-col items-center z-10">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/30" : "bg-gray-100 text-gray-400 border-2 border-gray-200"}`}>
-                    <Icon size={12} />
+          <div className="mb-5 hidden sm:block">
+            <div className="glass-card rounded-2xl p-4">
+              <div className="flex items-center justify-between relative">
+                <div className="absolute top-3.5 left-0 right-0 h-0.5 rounded-full" style={{ background: "rgba(199,210,254,0.6)" }} />
+                <div className="absolute top-3.5 left-0 h-0.5 rounded-full transition-all duration-500" style={{
+                  width: `${((currentStep - 1) / 3) * 100}%`,
+                  background: "linear-gradient(90deg, #6366f1, #8b5cf6)"
+                }} />
+                {[
+                  { step: 1, label: "Order Info", icon: Package, color: "from-indigo-500 to-blue-500" },
+                  { step: 2, label: "Dimensions", icon: Ruler, color: "from-emerald-500 to-teal-500" },
+                  { step: 3, label: "BQ Formula", icon: FileText, color: "from-amber-500 to-orange-500" },
+                  { step: 4, label: "Review", icon: CheckCircle2, color: "from-purple-500 to-indigo-500" },
+                ].map(({ step, label, icon: Icon, color }) => (
+                  <div key={step} className="relative flex flex-col items-center z-10">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${currentStep >= step ? `bg-gradient-to-br ${color} text-white shadow-indigo-500/30` : "bg-white border-2 border-indigo-100 text-gray-400"}`}>
+                      <Icon size={13} />
+                    </div>
+                    <span className={`text-[10px] mt-1.5 font-semibold transition-colors ${currentStep >= step ? "text-indigo-600" : "text-gray-400"}`}>{label}</span>
                   </div>
-                  <span className={`text-[9px] mt-1 font-medium ${currentStep >= step ? "text-blue-600" : "text-gray-400"}`}>{label}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Section 1: Order Info */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 space-y-3 transition-all hover:shadow-md">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center">
-                  <Package size={12} className="text-blue-600" />
-                </div>
-                <h3 className="text-sm font-bold text-foreground">Order Information</h3>
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-3.5">
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {/* Production Order */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Production Order <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={orderID}
-                      onChange={e => setOrderID(e.target.value.toUpperCase())}
-                      placeholder="Enter order ID"
-                      className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 bg-gray-50 focus:bg-white transition-all ${isDuplicate ? "border-red-300 focus:ring-red-400" : "border-gray-200 focus:ring-blue-400 focus:border-blue-400"}`}
-                    />
+            {/* Section 1: Order Info */}
+            <div className="glass-card rounded-2xl overflow-hidden transition-all duration-200">
+              <div className="h-0.5" style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }} />
+              <div className="p-4 sm:p-5 space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center shadow-sm" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
+                    <Package size={13} className="text-white" />
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-800">Order Information</h3>
+                  {currentStep >= 1 && orderID && <div className="ml-auto w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center"><CheckCircle2 size={11} className="text-indigo-600" /></div>}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* Production Order */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Production Order <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={orderID}
+                        onChange={e => setOrderID(e.target.value.toUpperCase())}
+                        placeholder="Enter order ID"
+                        className={isDuplicate ? inputError : inputStyle}
+                      />
+                      {!isDuplicate && debouncedOrderID && duplicateCheck.data && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <CheckCircle2 size={16} className="text-emerald-500" />
+                        </div>
+                      )}
+                    </div>
+                    {isDuplicate && (
+                      <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-100">
+                        <AlertTriangle size={12} /> <strong>{debouncedOrderID}</strong> already exists
+                      </p>
+                    )}
                     {!isDuplicate && debouncedOrderID && duplicateCheck.data && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <CheckCircle2 size={16} className="text-green-500" />
-                      </div>
+                      <p className="mt-1.5 text-xs text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100">
+                        <CheckCircle2 size={12} /> Available
+                      </p>
                     )}
                   </div>
-                  {isDuplicate && (
-                    <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
-                      <AlertTriangle size={12} /> <strong>{debouncedOrderID}</strong> already exists
-                    </p>
-                  )}
-                  {!isDuplicate && debouncedOrderID && duplicateCheck.data && (
-                    <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
-                      <CheckCircle2 size={12} /> Available
-                    </p>
-                  )}
-                </div>
 
-                {/* Flute Type */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Flute Type <span className="text-red-500">*</span>
-                  </label>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {FLUTE_TYPES.filter(ft => ft !== "Manual").map(ft => (
+                  {/* Flute Type */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Flute Type <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {FLUTE_TYPES.filter(ft => ft !== "Manual").map(ft => (
+                        <button
+                          key={ft}
+                          type="button"
+                          onClick={() => setFluteType(ft)}
+                          className={`py-2 text-xs font-bold rounded-xl border-2 transition-all duration-150 ${fluteType === ft
+                            ? "border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-200"
+                            : "border-gray-200 bg-white/70 text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/50"}`}
+                        >
+                          {ft}
+                        </button>
+                      ))}
                       <button
-                        key={ft}
                         type="button"
-                        onClick={() => setFluteType(ft)}
-                        className={`py-1.5 text-xs font-bold rounded-lg border-2 transition-all ${fluteType === ft ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm" : "border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50/50"}`}
+                        onClick={() => setFluteType("Manual")}
+                        className={`py-2 text-xs font-bold rounded-xl border-2 transition-all duration-150 col-span-2 ${fluteType === "Manual"
+                          ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm shadow-purple-200"
+                          : "border-gray-200 bg-white/70 text-gray-600 hover:border-purple-300 hover:bg-purple-50/50"}`}
                       >
-                        {ft}
+                        Manual
                       </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setFluteType("Manual")}
-                      className={`py-1.5 text-xs font-bold rounded-lg border-2 transition-all col-span-2 ${fluteType === "Manual" ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm" : "border-gray-200 text-gray-600 hover:border-purple-300 hover:bg-purple-50/50"}`}
-                    >
-                      Manual
-                    </button>
+                    </div>
+                    {fluteType === "Manual" && (
+                      <input
+                        type="text"
+                        value={manualFlute}
+                        onChange={e => setManualFlute(e.target.value)}
+                        placeholder="Enter custom flute type"
+                        className={`mt-2 ${inputStyle} focus:border-purple-300 focus:ring-purple-200/60`}
+                      />
+                    )}
                   </div>
-                  {fluteType === "Manual" && (
-                    <input
-                      type="text"
-                      value={manualFlute}
-                      onChange={e => setManualFlute(e.target.value)}
-                      placeholder="Enter custom flute type"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-gray-50 focus:bg-white transition-all"
-                    />
-                  )}
                 </div>
               </div>
             </div>
 
             {/* Section 2: Dimensions & Qty */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 space-y-3 transition-all hover:shadow-md">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-emerald-50 flex items-center justify-center">
-                  <Ruler size={12} className="text-emerald-600" />
-                </div>
-                <h3 className="text-sm font-bold text-foreground">Dimensions & Quantity</h3>
-              </div>
-
-              <div className="space-y-3">
-                {/* Size */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Size (W x L) mm <span className="text-red-500">*</span>
-                  </label>
-                  <div className="space-y-2">
-                    <input
-                      type="number"
-                      value={sizeW}
-                      onChange={e => setSizeW(e.target.value)}
-                      placeholder="Width"
-                      min={1}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
-                    />
-                    <input
-                      type="number"
-                      value={sizeL}
-                      onChange={e => setSizeL(e.target.value)}
-                      placeholder="Length"
-                      min={1}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
-                    />
+            <div className="glass-card rounded-2xl overflow-hidden transition-all duration-200">
+              <div className="h-0.5" style={{ background: "linear-gradient(90deg, #10b981, #059669)" }} />
+              <div className="p-4 sm:p-5 space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center shadow-sm" style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
+                    <Ruler size={13} className="text-white" />
                   </div>
+                  <h3 className="text-sm font-bold text-gray-800">Dimensions & Quantity</h3>
+                  {sizeW && sizeL && qty && <div className="ml-auto w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center"><CheckCircle2 size={11} className="text-emerald-600" /></div>}
                 </div>
 
-                {/* Order Qty */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                    Order Qty (pcs) <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={qty}
-                      onChange={e => setQty(e.target.value)}
-                      placeholder="Enter quantity"
-                      min={1}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-gray-50 focus:bg-white transition-all"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Hash size={14} className="text-gray-400" />
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Size (W × L) mm <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={sizeW}
+                          onChange={e => setSizeW(e.target.value)}
+                          placeholder="Width"
+                          min={1}
+                          className={`${inputStyle} focus:border-emerald-300 focus:ring-emerald-200/60`}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">W</span>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={sizeL}
+                          onChange={e => setSizeL(e.target.value)}
+                          placeholder="Length"
+                          min={1}
+                          className={`${inputStyle} focus:border-emerald-300 focus:ring-emerald-200/60`}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">L</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Order Qty (pcs) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={qty}
+                        onChange={e => setQty(e.target.value)}
+                        placeholder="Enter quantity"
+                        min={1}
+                        className={`${inputStyle} focus:border-emerald-300 focus:ring-emerald-200/60`}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <Hash size={14} className="text-gray-400" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -283,61 +370,86 @@ export default function SubmitOrder() {
             </div>
 
             {/* Section 3: BQ Comment */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 space-y-2.5 transition-all hover:shadow-md">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-amber-50 flex items-center justify-center">
-                  <Layers size={12} className="text-amber-600" />
+            <div className="glass-card rounded-2xl overflow-hidden transition-all duration-200">
+              <div className="h-0.5" style={{ background: "linear-gradient(90deg, #f59e0b, #d97706)" }} />
+              <div className="p-4 sm:p-5 space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center shadow-sm" style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}>
+                    <Layers size={13} className="text-white" />
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-800">BQ Comment</h3>
+                  <span className="text-[10px] text-gray-400 ml-auto bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">Board Quality formula</span>
                 </div>
-                <h3 className="text-sm font-bold text-foreground">BQ Comment</h3>
-                <span className="text-[10px] text-gray-400 ml-auto">Board Quality formula</span>
-              </div>
 
-              {/* BQ Shortcut Buttons */}
-              <div className="flex flex-wrap gap-1.5">
-                {["LR", "MP", "KL", "LP", "KC", "WT"].map(prefix => (
+                {/* BQ Shortcut Buttons */}
+                <div className="flex flex-wrap gap-1.5">
+                  {["LR", "MP", "KL", "LP", "KC", "WT"].map(prefix => (
+                    <button
+                      key={prefix}
+                      type="button"
+                      onClick={() => setBqComment(prev => prev + prefix)}
+                      className="px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 active:scale-95 font-mono shadow-sm"
+                      style={{
+                        background: "rgba(255,255,255,0.9)",
+                        border: "1.5px solid rgba(245,158,11,0.25)",
+                        color: "#92400e"
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLButtonElement).style.background = "rgba(254,243,199,0.9)";
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(245,158,11,0.6)";
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.9)";
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(245,158,11,0.25)";
+                      }}
+                    >
+                      {prefix}
+                    </button>
+                  ))}
                   <button
-                    key={prefix}
                     type="button"
-                    onClick={() => setBqComment(prev => prev + prefix)}
-                    className="px-2.5 py-1 text-xs font-bold rounded-md bg-gradient-to-b from-white to-gray-50 border border-gray-200 text-gray-700 hover:border-amber-400 hover:text-amber-700 hover:bg-amber-50 transition-all shadow-sm active:scale-95 font-mono"
+                    onClick={() => setBqComment("")}
+                    className="px-3 py-1.5 text-xs font-bold rounded-lg border border-red-200 text-red-500 hover:bg-red-50 hover:border-red-400 transition-all ml-auto"
                   >
-                    {prefix}
+                    Clear
                   </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setBqComment("")}
-                  className="px-2.5 py-1 text-xs font-bold rounded-md border border-red-200 text-red-500 hover:bg-red-50 hover:border-red-400 transition-all ml-auto"
-                >
-                  Clear
-                </button>
-              </div>
-              <textarea
-                value={bqComment}
-                onChange={e => setBqComment(e.target.value.toUpperCase())}
-                placeholder="e.g. LR170MP115MP115MP115LR170"
-                rows={2}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 bg-gray-50 focus:bg-white transition-all resize-none font-mono"
-              />
-              {bqComment && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-amber-600 font-semibold mb-0.5">Preview</p>
-                  <p className="text-xs font-mono font-bold text-amber-800 break-all">{bqComment}</p>
                 </div>
-              )}
+
+                <textarea
+                  value={bqComment}
+                  onChange={e => setBqComment(e.target.value.toUpperCase())}
+                  placeholder="e.g. LR170MP115MP115MP115LR170"
+                  rows={2}
+                  className={`${inputStyle} focus:border-amber-300 focus:ring-amber-200/60 resize-none font-mono`}
+                />
+
+                {bqComment && (
+                  <div className="rounded-xl px-3.5 py-2.5 border" style={{
+                    background: "linear-gradient(135deg, rgba(254,243,199,0.8), rgba(253,230,138,0.4))",
+                    border: "1px solid rgba(245,158,11,0.25)"
+                  }}>
+                    <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">Preview</p>
+                    <p className="text-xs font-mono font-bold text-amber-800 break-all">{bqComment}</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Submit Button */}
-            <div className="pt-1">
+            <div className="pt-1 pb-2">
               <button
                 type="submit"
                 disabled={submitOrder.isPending}
-                className="w-full lg:w-auto lg:px-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[0.98]"
+                className="w-full lg:w-auto lg:px-14 rounded-2xl py-3.5 text-sm font-bold text-white flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] disabled:opacity-60"
+                style={{
+                  background: "linear-gradient(135deg, #4f46e5, #6366f1, #7c3aed)",
+                  boxShadow: "0 4px 20px rgba(99,102,241,0.35), 0 1px 4px rgba(0,0,0,0.1)"
+                }}
               >
                 {submitOrder.isPending ? (
                   <><Loader2 size={16} className="animate-spin" /> Submitting...</>
                 ) : (
-                  <><Send size={16} /> Submit Order <ArrowRight size={14} /></>
+                  <><Send size={15} /> Submit Order <ArrowRight size={14} /></>
                 )}
               </button>
             </div>
@@ -347,11 +459,12 @@ export default function SubmitOrder() {
 
       {/* Confirmation Dialog */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200" style={{ background: "rgba(15,10,60,0.7)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-md animate-in zoom-in-95 duration-200 rounded-2xl overflow-hidden shadow-2xl" style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(255,255,255,0.9)" }}>
+            <div className="h-1" style={{ background: "linear-gradient(90deg, #f59e0b, #ef4444, #f97316)" }} />
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md" style={{ background: "linear-gradient(135deg, #fef3c7, #fde68a)" }}>
                   <AlertTriangle size={22} className="text-orange-600" />
                 </div>
                 <div>
@@ -359,39 +472,36 @@ export default function SubmitOrder() {
                   <p className="text-xs text-gray-500">Review your order details</p>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 mb-5 space-y-2.5 border border-gray-100">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Production Order</span>
-                  <span className="font-bold text-blue-700">{orderID.trim()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Flute Type</span>
-                  <span className="font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md text-xs">{fluteType === "Manual" ? manualFlute.trim() : fluteType}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Size</span>
-                  <span className="font-mono text-xs">{sizeW} &times; {sizeL} mm</span>
-                </div>
+              <div className="rounded-2xl p-4 mb-5 space-y-2.5" style={{ background: "linear-gradient(135deg, rgba(238,242,255,0.8), rgba(224,231,255,0.4))", border: "1px solid rgba(199,210,254,0.5)" }}>
+                {[
+                  { label: "Production Order", value: orderID.trim(), cls: "font-bold text-indigo-700" },
+                  { label: "Flute Type", value: fluteType === "Manual" ? manualFlute.trim() : fluteType, cls: "font-semibold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-lg text-xs" },
+                  { label: "Size", value: `${sizeW} × ${sizeL} mm`, cls: "font-mono text-xs" },
+                  { label: "Qty", value: `${qty} pcs`, cls: "font-bold text-lg text-emerald-700" },
+                ].map(({ label, value, cls }) => (
+                  <div key={label} className="flex justify-between text-sm items-center">
+                    <span className="text-gray-500">{label}</span>
+                    <span className={cls}>{value}</span>
+                  </div>
+                ))}
                 <div className="flex justify-between text-sm items-start">
                   <span className="text-gray-500">BQ</span>
-                  <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md font-mono font-semibold text-[10px] break-words max-w-[60%] text-right">{bqComment}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Qty</span>
-                  <span className="font-bold text-lg text-emerald-700">{qty} <span className="text-xs font-normal text-gray-500">pcs</span></span>
+                  <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-lg font-mono font-semibold text-[10px] break-words max-w-[60%] text-right">{bqComment}</span>
                 </div>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 border-2 border-gray-200 rounded-xl py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all"
+                  className="flex-1 rounded-xl py-3 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
+                  style={{ border: "2px solid rgba(229,231,235,1)" }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmedSubmit}
                   disabled={submitOrder.isPending}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl py-3 text-sm font-bold text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="flex-1 rounded-xl py-3 text-sm font-bold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)", boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}
                 >
                   {submitOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                   Confirm
@@ -404,77 +514,55 @@ export default function SubmitOrder() {
 
       {/* Success Screen */}
       {successData && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200" style={{ background: "rgba(5,10,40,0.85)", backdropFilter: "blur(12px)" }}>
+          <div className="w-full max-w-md animate-in zoom-in-95 duration-200 rounded-2xl overflow-hidden shadow-2xl" style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(255,255,255,0.9)" }}>
+            <div className="h-1" style={{ background: "linear-gradient(90deg, #10b981, #059669, #34d399)" }} />
             <div className="p-6 text-center">
-              {/* Success Animation */}
-              <style>{`
-                @keyframes successPop {
-                  0% { transform: scale(0); opacity: 0; }
-                  50% { transform: scale(1.2); }
-                  100% { transform: scale(1); opacity: 1; }
-                }
-                .success-pop { animation: successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-              `}</style>
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center mx-auto mb-4 success-pop">
-                <CheckCircle2 size={40} className="text-green-600" />
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 success-pop shadow-lg" style={{ background: "linear-gradient(135deg, #d1fae5, #a7f3d0)", boxShadow: "0 8px 32px rgba(16,185,129,0.25)" }}>
+                <CheckCircle2 size={40} className="text-emerald-600" />
               </div>
               <h3 className="font-bold text-gray-900 text-xl mb-1">Order Submitted!</h3>
-              <p className="text-sm text-gray-500 mb-6">Your order has been created successfully</p>
-              
-              {/* Tracking ID */}
-              <div className="bg-gradient-to-r from-teal-50 via-cyan-50 to-blue-50 rounded-xl p-4 mb-5 border border-teal-200">
+              <p className="text-sm text-gray-500 mb-5">Your order has been created successfully</p>
+
+              <div className="rounded-2xl p-4 mb-4" style={{ background: "linear-gradient(135deg, rgba(204,251,241,0.8), rgba(167,243,208,0.4))", border: "1px solid rgba(52,211,153,0.3)" }}>
                 <p className="text-[10px] text-teal-600 font-bold uppercase tracking-wider mb-1">Tracking ID</p>
                 <p className="text-xl font-bold text-teal-700 font-mono break-all">{successData.trackingId}</p>
               </div>
-              
-              {/* Order Summary */}
-              <div className="bg-gray-50 rounded-xl p-4 mb-5 text-left space-y-2 border border-gray-100">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Production Order</span>
-                  <span className="font-bold text-blue-700">{successData.orderID}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Flute</span>
-                  <span className="font-semibold">{successData.fluteType}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Size</span>
-                  <span className="font-mono text-xs">{successData.sizeW} &times; {successData.sizeL} mm</span>
-                </div>
+
+              <div className="rounded-2xl p-4 mb-5 text-left space-y-2" style={{ background: "rgba(248,250,252,0.9)", border: "1px solid rgba(226,232,240,0.8)" }}>
+                {[
+                  { label: "Production Order", value: successData.orderID, cls: "font-bold text-indigo-700" },
+                  { label: "Flute", value: successData.fluteType, cls: "font-semibold" },
+                  { label: "Size", value: `${successData.sizeW} × ${successData.sizeL} mm`, cls: "font-mono text-xs" },
+                  { label: "Qty", value: `${successData.qty} pcs`, cls: "font-bold" },
+                ].map(({ label, value, cls }) => (
+                  <div key={label} className="flex justify-between text-sm">
+                    <span className="text-gray-500">{label}</span>
+                    <span className={cls}>{value}</span>
+                  </div>
+                ))}
                 <div className="flex justify-between text-sm items-start">
                   <span className="text-gray-500">BQ</span>
-                  <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono font-semibold text-[10px] break-words max-w-[60%] text-right">{successData.bqComment}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Qty</span>
-                  <span className="font-bold">{successData.qty} pcs</span>
+                  <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-mono font-semibold text-[10px] break-words max-w-[60%] text-right">{successData.bqComment}</span>
                 </div>
               </div>
-              
-              {/* Action Buttons */}
+
               <div className="flex gap-3">
                 <button
-                  onClick={() => {
-                    setSuccessData(null);
-                    navigate("/stock-history");
-                  }}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl py-3 text-sm font-bold text-white hover:shadow-lg transition-all"
+                  onClick={() => { setSuccessData(null); navigate("/stock-history"); }}
+                  className="flex-1 rounded-xl py-3 text-sm font-bold text-white transition-all"
+                  style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)", boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}
                 >
                   View Stock
                 </button>
                 <button
                   onClick={() => {
                     setSuccessData(null);
-                    setOrderID("");
-                    setFluteType("");
-                    setManualFlute("");
-                    setSizeW("");
-                    setSizeL("");
-                    setQty("");
-                    setBqComment("");
+                    setOrderID(""); setFluteType(""); setManualFlute("");
+                    setSizeW(""); setSizeL(""); setQty(""); setBqComment("");
                   }}
-                  className="flex-1 border-2 border-gray-200 rounded-xl py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all"
+                  className="flex-1 rounded-xl py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
+                  style={{ border: "2px solid rgba(229,231,235,1)" }}
                 >
                   New Order
                 </button>
