@@ -350,32 +350,32 @@ function WorkersTab() {
           {/* Mobile cards */}
           <div className="md:hidden space-y-2">
             {workers.map(w => (
-              <div key={w.id} className="p-4 bg-white border border-border rounded-xl shadow-sm">
+              <div key={w.id} className="p-4 rounded-xl border" style={{ background: "rgba(30,41,59,0.75)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.10)" }}>
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="text-xs text-muted-foreground">Employee ID</p>
-                    <p className="text-sm font-bold text-primary">{w.workerID}</p>
+                    <p className="text-xs text-slate-400">Employee ID</p>
+                    <p className="text-sm font-bold text-indigo-300">{w.workerID}</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => openEdit(w)} className="text-muted-foreground hover:text-primary p-1" title="Edit">
+                    <button onClick={() => openEdit(w)} className="text-slate-400 hover:text-indigo-300 p-1 transition-colors" title="Edit">
                       <Pencil size={15} />
                     </button>
-                    <button onClick={() => setDeleteTarget(w)} className="text-muted-foreground hover:text-destructive p-1" title="Delete">
+                    <button onClick={() => setDeleteTarget(w)} className="text-slate-400 hover:text-red-400 p-1 transition-colors" title="Delete">
                       <Trash2 size={15} />
                     </button>
                   </div>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground text-xs">Name</span>
-                  <span className="text-foreground font-medium">{w.name}</span>
+                  <span className="text-slate-400 text-xs">Name</span>
+                  <span className="text-white font-medium">{w.name}</span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
-                  <span className="text-muted-foreground text-xs">Department</span>
-                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
+                  <span className="text-slate-400 text-xs">Department</span>
+                  <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
-                  <span className="text-muted-foreground text-xs">User Level</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : w.userLevel === "1.1" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>Level {w.userLevel}</span>
+                  <span className="text-slate-400 text-xs">User Level</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${w.userLevel === "1" ? "bg-orange-500/20 text-orange-300 border-orange-500/30" : w.userLevel === "1.1" ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-green-500/20 text-green-300 border-green-500/30"}`}>Level {w.userLevel}</span>
                 </div>
               </div>
             ))}
@@ -385,54 +385,56 @@ function WorkersTab() {
 
       {/* Add Worker Dialog */}
       {showAdd && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-            <h3 className="font-bold text-foreground mb-4">Add Worker</h3>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl border shadow-2xl w-full max-w-sm p-6" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+            {/* Accent bar */}
+            <div className="h-1 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
+            <h3 className="font-bold text-white mb-4 flex items-center gap-2"><Plus size={16} className="text-indigo-400" /> Add Worker</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Employee ID</label>
-                <input type="text" value={newWorkerID} onChange={e => { setNewWorkerID(e.target.value); setAddError(""); }} placeholder="e.g. DN156" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Employee ID</label>
+                <input type="text" value={newWorkerID} onChange={e => { setNewWorkerID(e.target.value); setAddError(""); }} placeholder="e.g. DN156" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Name</label>
-                <input type="text" value={newName} onChange={e => { setNewName(e.target.value); setAddError(""); }} placeholder="Full name" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Name</label>
+                <input type="text" value={newName} onChange={e => { setNewName(e.target.value); setAddError(""); }} placeholder="Full name" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Department</label>
-                <input type="text" value={newDept} onChange={e => { setNewDept(e.target.value); setAddError(""); }} placeholder="e.g. Production" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Department</label>
+                <input type="text" value={newDept} onChange={e => { setNewDept(e.target.value); setAddError(""); }} placeholder="e.g. Production" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">User Level</label>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">User Level</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setNewUserLevel("1")}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${newUserLevel === "1" ? "bg-orange-100 border-orange-400 text-orange-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${newUserLevel === "1" ? "bg-orange-500/25 border-orange-500/50 text-orange-300" : "border-white/10 text-slate-400 hover:bg-white/8"}`}
                   >
                     Level 1
                   </button>
                   <button
                     type="button"
                     onClick={() => setNewUserLevel("1.1")}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${newUserLevel === "1.1" ? "bg-purple-100 border-purple-400 text-purple-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${newUserLevel === "1.1" ? "bg-purple-500/25 border-purple-500/50 text-purple-300" : "border-white/10 text-slate-400 hover:bg-white/8"}`}
                   >
                     Level 1.1
                   </button>
                   <button
                     type="button"
                     onClick={() => setNewUserLevel("2")}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${newUserLevel === "2" ? "bg-green-100 border-green-400 text-green-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${newUserLevel === "2" ? "bg-green-500/25 border-green-500/50 text-green-300" : "border-white/10 text-slate-400 hover:bg-white/8"}`}
                   >
                     Level 2
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{newUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : newUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
+                <p className="text-xs text-slate-500 mt-1">{newUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : newUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
               </div>
-              {addError && <p className="text-xs text-destructive">{addError}</p>}
+              {addError && <p className="text-xs text-red-400">{addError}</p>}
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={() => { setShowAdd(false); setAddError(""); }} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
-              <button onClick={handleAdd} disabled={addWorker.isPending} className="flex-1 gspp-gradient text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+              <button onClick={() => { setShowAdd(false); setAddError(""); }} className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 transition-colors">Cancel</button>
+              <button onClick={handleAdd} disabled={addWorker.isPending} className="flex-1 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                 {addWorker.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
                 Add
               </button>
@@ -443,63 +445,65 @@ function WorkersTab() {
 
       {/* Edit Worker Dialog */}
       {editTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl border shadow-2xl w-full max-w-sm p-6" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+            {/* Accent bar */}
+            <div className="h-1 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
             {editStep === "form" ? (
               <>
-                <h3 className="font-bold text-foreground mb-1">Edit Worker</h3>
-                <p className="text-xs text-muted-foreground mb-4">Update details for <strong>{editTarget.workerID}</strong></p>
+                <h3 className="font-bold text-white mb-1 flex items-center gap-2"><Pencil size={15} className="text-indigo-400" /> Edit Worker</h3>
+                <p className="text-xs text-slate-400 mb-4">Update details for <strong className="text-indigo-300">{editTarget.workerID}</strong></p>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Employee ID</label>
-                    <input type="text" value={editWorkerID} onChange={e => { setEditWorkerID(e.target.value.toUpperCase()); setEditError(""); }} placeholder="e.g. DN156" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Employee ID</label>
+                    <input type="text" value={editWorkerID} onChange={e => { setEditWorkerID(e.target.value.toUpperCase()); setEditError(""); }} placeholder="e.g. DN156" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Name</label>
-                    <input type="text" value={editName} onChange={e => { setEditName(e.target.value); setEditError(""); }} placeholder="Full name" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Name</label>
+                    <input type="text" value={editName} onChange={e => { setEditName(e.target.value); setEditError(""); }} placeholder="Full name" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Department</label>
-                    <input type="text" value={editDept} onChange={e => { setEditDept(e.target.value); setEditError(""); }} placeholder="e.g. Production" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Department</label>
+                    <input type="text" value={editDept} onChange={e => { setEditDept(e.target.value); setEditError(""); }} placeholder="e.g. Production" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">User Level</label>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">User Level</label>
                     <div className="flex gap-2">
-                      <button type="button" onClick={() => setEditUserLevel("1")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "1" ? "bg-orange-100 border-orange-400 text-orange-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 1</button>
-                      <button type="button" onClick={() => setEditUserLevel("1.1")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "1.1" ? "bg-purple-100 border-purple-400 text-purple-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 1.1</button>
-                      <button type="button" onClick={() => setEditUserLevel("2")} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${editUserLevel === "2" ? "bg-green-100 border-green-400 text-green-700" : "border-border text-muted-foreground hover:bg-gray-50"}`}>Level 2</button>
+                      <button type="button" onClick={() => setEditUserLevel("1")} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${editUserLevel === "1" ? "bg-orange-500/25 border-orange-500/50 text-orange-300" : "border-white/10 text-slate-400 hover:bg-white/8"}`}>Level 1</button>
+                      <button type="button" onClick={() => setEditUserLevel("1.1")} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${editUserLevel === "1.1" ? "bg-purple-500/25 border-purple-500/50 text-purple-300" : "border-white/10 text-slate-400 hover:bg-white/8"}`}>Level 1.1</button>
+                      <button type="button" onClick={() => setEditUserLevel("2")} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${editUserLevel === "2" ? "bg-green-500/25 border-green-500/50 text-green-300" : "border-white/10 text-slate-400 hover:bg-white/8"}`}>Level 2</button>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">{editUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : editUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
+                    <p className="text-xs text-slate-500 mt-1">{editUserLevel === "1" ? "Level 1: Actions require Level 2 approval" : editUserLevel === "1.1" ? "Level 1.1: Can process-approve Level 1 requests (Level 2 gives final approval)" : "Level 2: Can approve/cancel Level 1 requests"}</p>
                   </div>
-                  {editError && <p className="text-xs text-destructive">{editError}</p>}
+                  {editError && <p className="text-xs text-red-400">{editError}</p>}
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => setEditTarget(null)} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
-                  <button onClick={handleEditSave} className="flex-1 gspp-gradient text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90">Next →</button>
+                  <button onClick={() => setEditTarget(null)} className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 transition-colors">Cancel</button>
+                  <button onClick={handleEditSave} className="flex-1 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90">Next →</button>
                 </div>
               </>
             ) : (
               <>
-                <h3 className="font-bold text-foreground mb-1">Confirm Update</h3>
-                <p className="text-sm text-muted-foreground mb-4">To confirm, please re-enter the Employee ID <strong className="text-primary">{editWorkerID}</strong> below.</p>
+                <h3 className="font-bold text-white mb-1">Confirm Update</h3>
+                <p className="text-sm text-slate-400 mb-4">To confirm, please re-enter the Employee ID <strong className="text-indigo-300">{editWorkerID}</strong> below.</p>
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Re-enter Employee ID</label>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Re-enter Employee ID</label>
                   <input
                     type="text"
                     value={editConfirmID}
                     onChange={e => { setEditConfirmID(e.target.value.toUpperCase()); setEditError(""); }}
                     placeholder={`Type ${editWorkerID} to confirm`}
-                    className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                     autoFocus
                   />
-                  {editError && <p className="text-xs text-destructive mt-2">{editError}</p>}
+                  {editError && <p className="text-xs text-red-400 mt-2">{editError}</p>}
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => { setEditStep("form"); setEditError(""); }} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">← Back</button>
+                  <button onClick={() => { setEditStep("form"); setEditError(""); }} className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 transition-colors">← Back</button>
                   <button
                     onClick={handleEditSave}
                     disabled={updateWorker.isPending || editConfirmID.trim() !== editWorkerID.trim()}
-                    className="flex-1 gspp-gradient text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {updateWorker.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
                     Save Changes
@@ -513,30 +517,34 @@ function WorkersTab() {
 
       {/* Delete Confirm */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl border shadow-2xl w-full max-w-sm p-6" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+            {/* Red accent bar */}
+            <div className="h-1 bg-gradient-to-r from-red-500 to-rose-600 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
             <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle size={20} className="text-destructive" />
-              <h3 className="font-bold text-foreground">Delete Worker - Verification Required</h3>
+              <div className="w-9 h-9 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={18} className="text-red-400" />
+              </div>
+              <h3 className="font-bold text-white">Delete Worker</h3>
             </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              This action cannot be undone. You are about to permanently delete <strong>{deleteTarget.name}</strong> ({deleteTarget.workerID}) from the system.
+            <p className="text-sm text-slate-400 mb-4">
+              This action cannot be undone. You are about to permanently delete <strong className="text-white">{deleteTarget.name}</strong> <span className="text-red-400">({deleteTarget.workerID})</span> from the system.
             </p>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-              <p className="text-xs text-red-700 font-semibold mb-2">⚠️ Enter admin password to confirm:</p>
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-4">
+              <p className="text-xs text-red-400 font-semibold mb-2">⚠️ Enter admin password to confirm:</p>
               <input
                 type="password"
                 value={deleteVerifyPassword}
                 onChange={e => setDeleteVerifyPassword(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleDelete()}
                 placeholder="Admin password"
-                className="w-full border border-red-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive"
+                className="w-full bg-white/5 border border-red-500/30 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50"
                 autoFocus
               />
             </div>
             <div className="flex gap-2">
-              <button onClick={() => { setDeleteTarget(null); setDeleteVerifyPassword(""); }} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
-              <button onClick={handleDelete} disabled={deleteWorker.isPending || !deleteVerifyPassword} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+              <button onClick={() => { setDeleteTarget(null); setDeleteVerifyPassword(""); }} className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 transition-colors">Cancel</button>
+              <button onClick={handleDelete} disabled={deleteWorker.isPending || !deleteVerifyPassword} className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                 {deleteWorker.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
                 Delete Worker
               </button>
@@ -794,53 +802,53 @@ function OrdersTab() {
           {/* Mobile cards */}
           <div className="md:hidden space-y-2">
             {orders.map(order => (
-              <div key={order.id} className="p-4 bg-white border border-border rounded-xl shadow-sm space-y-2">
-                {order.trackingId && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-mono font-bold inline-block">Ref: {order.trackingId}</span>}
+              <div key={order.id} className="p-4 rounded-xl border space-y-2" style={{ background: "rgba(30,41,59,0.75)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.10)" }}>
+                {order.trackingId && <span className="text-xs bg-teal-500/20 text-teal-300 border border-teal-500/30 px-2 py-1 rounded font-mono font-bold inline-block">Ref: {order.trackingId}</span>}
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Production Order</p>
-                    <p className="text-sm font-bold text-primary">{order.orderID}</p>
+                    <p className="text-xs text-slate-400">Production Order</p>
+                    <p className="text-sm font-bold text-indigo-300">{order.orderID}</p>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Flute</span>
-                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Flute : {order.fluteType}</span>
+                  <span className="text-xs text-slate-400">Flute</span>
+                  <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full font-medium">Flute : {order.fluteType}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Size</span>
-                  <span className="text-sm font-mono text-foreground">{order.sizeW}×{order.sizeL}</span>
+                  <span className="text-xs text-slate-400">Size</span>
+                  <span className="text-sm font-mono text-white">{order.sizeW}×{order.sizeL}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Qty</span>
-                  <span className="text-sm text-foreground">{order.qty}</span>
+                  <span className="text-xs text-slate-400">Qty</span>
+                  <span className="text-sm text-white">{order.qty}</span>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">BQ</p>
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono break-all">{order.bqComment}</span>
+                  <p className="text-xs text-slate-400 mb-1">BQ</p>
+                  <span className="text-xs bg-amber-500/15 text-amber-300 border border-amber-500/25 px-2 py-0.5 rounded font-mono break-all">{order.bqComment}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Submitted By</span>
-                  <span className="text-xs text-foreground">{order.submittedBy ?? "-"}</span>
+                  <span className="text-xs text-slate-400">Submitted By</span>
+                  <span className="text-xs text-white">{order.submittedBy ?? "-"}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Date</span>
-                  <span className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</span>
+                  <span className="text-xs text-slate-400">Date</span>
+                  <span className="text-xs text-slate-400">{new Date(order.createdAt).toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-border">
-                  <span className="text-xs text-muted-foreground">Status</span>
+                <div className="flex justify-between items-center pt-2 border-t border-white/10">
+                  <span className="text-xs text-slate-400">Status</span>
                   <button
                     onClick={() => handleStatusChange(order, order.status === "current" ? "out_of_stock" : "current")}
                     disabled={updateStatus.isPending}
-                    className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-opacity hover:opacity-70 ${order.status === "current" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                    className={`text-xs px-2 py-0.5 rounded-full font-semibold border transition-opacity hover:opacity-70 ${order.status === "current" ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-slate-600/40 text-slate-400 border-slate-500/30"}`}
                   >
                     {order.status === "current" ? "Current" : "Out"}
                   </button>
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <button onClick={() => { setUsedUpdateTarget(order); setUsedUpdateStep("type"); setUsedUpdateType("job_no"); setJobNo(""); setUsedQty(""); setMasterCard(""); setBoardSizeW(""); setBoardSizeL(""); setScores(""); setUsedUpdateError(""); }} className="flex-1 bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5">
+                  <button onClick={() => { setUsedUpdateTarget(order); setUsedUpdateStep("type"); setUsedUpdateType("job_no"); setJobNo(""); setUsedQty(""); setMasterCard(""); setBoardSizeW(""); setBoardSizeL(""); setScores(""); setUsedUpdateError(""); }} className="flex-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 text-xs font-semibold py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5">
                     <Zap size={13} /> Used Update
                   </button>
-                  <button onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }} className="flex-1 bg-red-100 text-red-700 hover:bg-red-200 text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5">
+                  <button onClick={() => { setDeleteTarget(order); setConfirmWorkerID(""); setDeleteError(""); }} className="flex-1 bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 text-xs font-semibold py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5">
                     <Trash2 size={13} /> Delete
                   </button>
                 </div>
@@ -852,11 +860,17 @@ function OrdersTab() {
 
       {/* Delete Order Dialog */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-            <h3 className="font-bold text-foreground mb-2">Delete Order</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Enter an Employee ID to confirm deletion of order <strong className="text-foreground">{deleteTarget.orderID}</strong>.
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl border shadow-2xl w-full max-w-sm p-6" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+            <div className="h-1 bg-gradient-to-r from-red-500 to-rose-600 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-9 h-9 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                <Trash2 size={16} className="text-red-400" />
+              </div>
+              <h3 className="font-bold text-white">Delete Order</h3>
+            </div>
+            <p className="text-sm text-slate-400 mb-4">
+              Enter an Employee ID to confirm deletion of order <strong className="text-red-300">{deleteTarget.orderID}</strong>.
             </p>
             <input
               type="text"
@@ -864,13 +878,13 @@ function OrdersTab() {
               onChange={e => { setConfirmWorkerID(e.target.value); setDeleteError(""); }}
               onKeyDown={e => e.key === "Enter" && handleDeleteOrder()}
               placeholder="Employee ID"
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive mb-1"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 mb-1"
               autoFocus
             />
-            {deleteError && <p className="text-xs text-destructive mb-2">{deleteError}</p>}
+            {deleteError && <p className="text-xs text-red-400 mb-2">{deleteError}</p>}
             <div className="flex gap-2 mt-3">
-              <button onClick={() => { setDeleteTarget(null); setConfirmWorkerID(""); setDeleteError(""); }} className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50">Cancel</button>
-              <button onClick={handleDeleteOrder} disabled={deleteOrder.isPending} className="flex-1 bg-destructive text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+              <button onClick={() => { setDeleteTarget(null); setConfirmWorkerID(""); setDeleteError(""); }} className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 transition-colors">Cancel</button>
+              <button onClick={handleDeleteOrder} disabled={deleteOrder.isPending} className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
                 {deleteOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
                 Delete
               </button>
@@ -881,31 +895,32 @@ function OrdersTab() {
 
       {/* Used Update Dialog */}
       {usedUpdateTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-foreground mb-4">Used Update - {usedUpdateTarget.orderID}</h3>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl border shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+            <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
+            <h3 className="font-bold text-white mb-4 flex items-center gap-2"><Zap size={15} className="text-blue-400" /> Used Update — <span className="text-blue-300">{usedUpdateTarget.orderID}</span></h3>
 
             {usedUpdateStep === "type" ? (
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 block">Update Type</label>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">Update Type</label>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setUsedUpdateType("job_no")}
-                      className={`flex-1 py-2.5 rounded-lg font-semibold transition-colors ${
+                      className={`flex-1 py-2.5 rounded-xl font-semibold border transition-colors ${
                         usedUpdateType === "job_no"
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-100 text-foreground hover:bg-gray-200"
+                          ? "bg-blue-500/25 border-blue-500/50 text-blue-300"
+                          : "border-white/10 text-slate-400 hover:bg-white/8"
                       }`}
                     >
                       Job No
                     </button>
                     <button
                       onClick={() => setUsedUpdateType("old_stock")}
-                      className={`flex-1 py-2.5 rounded-lg font-semibold transition-colors ${
+                      className={`flex-1 py-2.5 rounded-xl font-semibold border transition-colors ${
                         usedUpdateType === "old_stock"
-                          ? "bg-red-600 text-white"
-                          : "bg-gray-100 text-foreground hover:bg-gray-200"
+                          ? "bg-red-500/25 border-red-500/50 text-red-300"
+                          : "border-white/10 text-slate-400 hover:bg-white/8"
                       }`}
                     >
                       Old Stock
@@ -916,72 +931,72 @@ function OrdersTab() {
                 {usedUpdateType === "job_no" ? (
                   <>
                     <div>
-                      <label className="text-sm font-semibold text-foreground mb-1 block">Job No <span className="text-red-600">*</span></label>
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Job No <span className="text-red-400">*</span></label>
                       <input
                         type="text"
                         value={jobNo}
                         onChange={e => { setJobNo(e.target.value.toUpperCase()); setUsedUpdateError(""); }}
                         placeholder="Enter Job No"
-                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-semibold text-foreground mb-1 block">Master Card <span className="text-red-600">*</span></label>
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Master Card <span className="text-red-400">*</span></label>
                       <input
                         type="text"
                         value={masterCard}
                         onChange={e => { setMasterCard(e.target.value.toUpperCase()); setUsedUpdateError(""); }}
                         placeholder="Enter Master Card"
-                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-sm font-semibold text-foreground mb-1 block">Width <span className="text-red-600">*</span></label>
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Width <span className="text-red-400">*</span></label>
                         <input
                           type="number"
                           value={boardSizeW}
                           onChange={e => { setBoardSizeW(e.target.value); setUsedUpdateError(""); }}
                           placeholder="W"
-                          className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-semibold text-foreground mb-1 block">Length <span className="text-red-600">*</span></label>
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Length <span className="text-red-400">*</span></label>
                         <input
                           type="number"
                           value={boardSizeL}
                           onChange={e => { setBoardSizeL(e.target.value); setUsedUpdateError(""); }}
                           placeholder="L"
-                          className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-semibold text-foreground mb-1 block">Scores (optional)</label>
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Scores (optional)</label>
                       <input
                         type="text"
                         value={scores}
                         onChange={e => { setScores(e.target.value); setUsedUpdateError(""); }}
                         placeholder="Enter Scores"
-                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                       />
                     </div>
                   </>
                 ) : (
                   <div>
-                    <label className="text-sm font-semibold text-foreground mb-1 block">Used Qty <span className="text-red-600">*</span></label>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Used Qty <span className="text-red-400">*</span></label>
                     <input
                       type="number"
                       value={usedQty}
                       onChange={e => { setUsedQty(e.target.value); setUsedUpdateError(""); }}
                       placeholder="Enter quantity used"
-                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50"
                     />
                   </div>
                 )}
 
-                {usedUpdateError && <p className="text-xs text-destructive">{usedUpdateError}</p>}
+                {usedUpdateError && <p className="text-xs text-red-400">{usedUpdateError}</p>}
 
                 <div className="flex gap-2 pt-2">
                   <button
@@ -996,14 +1011,14 @@ function OrdersTab() {
                       setScores("");
                       setUsedUpdateError("");
                     }}
-                    className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50"
+                    className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleUsedUpdate}
                     disabled={logUsage.isPending}
-                    className="flex-1 bg-blue-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
                     Next
@@ -1012,33 +1027,33 @@ function OrdersTab() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-900 font-semibold mb-2">Confirm {usedUpdateType === "job_no" ? "Job No" : "Old Stock"} Update</p>
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3">
+                  <p className="text-sm text-blue-300 font-semibold mb-2">Confirm {usedUpdateType === "job_no" ? "Job No" : "Old Stock"} Update</p>
                   {usedUpdateType === "job_no" ? (
-                    <div className="space-y-1 text-xs text-blue-800">
-                      <p><strong>Job No:</strong> {jobNo}</p>
-                      <p><strong>Master Card:</strong> {masterCard}</p>
-                      <p><strong>Board Size:</strong> {boardSizeW}×{boardSizeL} mm</p>
-                      {scores && <p><strong>Scores:</strong> {scores}</p>}
+                    <div className="space-y-1 text-xs text-slate-300">
+                      <p><strong className="text-white">Job No:</strong> {jobNo}</p>
+                      <p><strong className="text-white">Master Card:</strong> {masterCard}</p>
+                      <p><strong className="text-white">Board Size:</strong> {boardSizeW}×{boardSizeL} mm</p>
+                      {scores && <p><strong className="text-white">Scores:</strong> {scores}</p>}
                     </div>
                   ) : (
-                    <p className="text-xs text-blue-800"><strong>Used Qty:</strong> {usedQty} pcs</p>
+                    <p className="text-xs text-slate-300"><strong className="text-white">Used Qty:</strong> {usedQty} pcs</p>
                   )}
                 </div>
 
-                {usedUpdateError && <p className="text-xs text-destructive">{usedUpdateError}</p>}
+                {usedUpdateError && <p className="text-xs text-red-400">{usedUpdateError}</p>}
 
                 <div className="flex gap-2">
                   <button
                     onClick={() => setUsedUpdateStep("type")}
-                    className="flex-1 border border-border rounded-lg py-2.5 text-sm font-medium text-foreground hover:bg-gray-50"
+                    className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 transition-colors"
                   >
                     Back
                   </button>
                   <button
                     onClick={handleUsedUpdate}
                     disabled={logUsage.isPending}
-                    className="flex-1 bg-blue-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     {logUsage.isPending ? <Loader2 size={14} className="animate-spin" /> : null}
                     Confirm
@@ -1112,31 +1127,31 @@ function DeletedLogsTab() {
           {/* Mobile cards */}
           <div className="md:hidden space-y-2">
             {logs.map(log => (
-              <div key={log.id} className="p-4 bg-red-50 border border-red-100 rounded-xl shadow-sm space-y-2">
+              <div key={log.id} className="p-4 rounded-xl border space-y-2" style={{ background: "rgba(30,41,59,0.75)", backdropFilter: "blur(12px)", borderColor: "rgba(239,68,68,0.20)" }}>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Production Order</p>
-                    <p className="text-sm font-bold text-red-600">{log.orderID}</p>
+                    <p className="text-xs text-slate-400">Production Order</p>
+                    <p className="text-sm font-bold text-red-400">{log.orderID}</p>
                   </div>
-                  <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold">Deleted</span>
+                  <span className="text-xs bg-red-500/20 text-red-300 border border-red-500/30 px-2 py-0.5 rounded-full font-semibold">Deleted</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">Flute : {log.fluteType}</span>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-mono">{log.sizeW}×{log.sizeL} mm</span>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{log.qty} pcs</span>
+                  <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full font-medium">Flute : {log.fluteType}</span>
+                  <span className="text-xs bg-white/10 text-slate-300 border border-white/10 px-2 py-0.5 rounded-full font-mono">{log.sizeW}×{log.sizeL} mm</span>
+                  <span className="text-xs bg-white/10 text-slate-300 border border-white/10 px-2 py-0.5 rounded-full">{log.qty} pcs</span>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">BQ</p>
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-mono break-all">{log.bqComment}</span>
+                  <p className="text-xs text-slate-400 mb-1">BQ</p>
+                  <span className="text-xs bg-amber-500/15 text-amber-300 border border-amber-500/25 px-2 py-0.5 rounded font-mono break-all">{log.bqComment}</span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-red-100">
+                <div className="flex justify-between items-center pt-2 border-t border-red-500/20">
                   <div>
-                    <p className="text-xs text-muted-foreground">Deleted By</p>
-                    <p className="text-xs font-semibold text-foreground">{log.deletedBy}</p>
+                    <p className="text-xs text-slate-400">Deleted By</p>
+                    <p className="text-xs font-semibold text-white">{log.deletedBy}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Deleted At</p>
-                    <p className="text-xs text-muted-foreground">{new Date(log.deletedAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-400">Deleted At</p>
+                    <p className="text-xs text-slate-400">{new Date(log.deletedAt).toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -1205,7 +1220,7 @@ function PendingRequestsTab() {
       <div className="flex gap-2 mb-4">
         {(["pending", "approved", "cancelled"] as const).map(s => (
           <button key={s} onClick={() => setStatusFilter(s)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-colors ${statusFilter === s ? (s === "pending" ? "bg-orange-500 text-white" : s === "approved" ? "bg-green-600 text-white" : "bg-gray-500 text-white") : "bg-gray-100 text-muted-foreground hover:bg-gray-200"}`}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-colors border ${statusFilter === s ? (s === "pending" ? "bg-orange-500/25 border-orange-500/50 text-orange-300" : s === "approved" ? "bg-green-500/25 border-green-500/50 text-green-300" : "bg-slate-500/25 border-slate-500/50 text-slate-300") : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"}`}
           >{s}</button>
         ))}
       </div>
@@ -1220,14 +1235,14 @@ function PendingRequestsTab() {
             const action = (() => { try { return req.actionData ? JSON.parse(req.actionData) : {}; } catch { return {}; } })();
             const isPending = req.status === "pending";
             return (
-              <div key={req.id} className="border border-border rounded-xl p-4 bg-white shadow-sm">
+              <div key={req.id} className="rounded-xl p-4 border" style={{ background: "rgba(30,41,59,0.75)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.10)" }}>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
-                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${req.type === "delete" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
+                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${req.type === "delete" ? "bg-red-500/20 text-red-300 border-red-500/30" : "bg-blue-500/20 text-blue-300 border-blue-500/30"}`}>
                       {req.type === "delete" ? <Trash2 size={10} /> : <RefreshCw size={10} />}
                       {req.type === "delete" ? "Delete" : "Used Update"}
                     </span>
-                    <span className={`ml-2 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${req.status === "pending" ? "bg-orange-100 text-orange-700" : req.status === "approved" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                    <span className={`ml-2 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${req.status === "pending" ? "bg-orange-500/20 text-orange-300 border-orange-500/30" : req.status === "approved" ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-slate-500/20 text-slate-400 border-slate-500/30"}`}>
                       {req.status === "pending" ? <Clock size={10} /> : req.status === "approved" ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
                       {req.status}
                     </span>
@@ -1265,18 +1280,18 @@ function PendingRequestsTab() {
                 {isPending && (
                   <div className="flex gap-2 pt-1 flex-wrap">
                     <button onClick={() => { setCancelDialog({ id: req.id }); setCancelReason(""); }} disabled={processingId === req.id}
-                      className="flex-1 min-w-[80px] border border-border rounded-lg py-2 text-xs font-semibold text-muted-foreground hover:bg-gray-50 hover:text-destructive transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
+                      className="flex-1 min-w-[80px] border border-red-500/30 bg-red-500/10 rounded-xl py-2 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
                       <XCircle size={12} /> Cancel
                     </button>
                     {req.type === "used_update" && !(req as any).processApprovedBy && (
                       <button onClick={() => { const aq = action.usedQty ?? null; setProcessDialog({ id: req.id, requestedQty: aq }); setProcessQtyInput(aq ? String(aq) : ""); }} disabled={processingId === req.id}
-                        className="flex-1 min-w-[80px] bg-purple-600 text-white rounded-lg py-2 text-xs font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
+                        className="flex-1 min-w-[80px] bg-purple-500/20 border border-purple-500/30 text-purple-300 rounded-xl py-2 text-xs font-semibold hover:bg-purple-500/30 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
                         {processingId === req.id ? <Loader2 size={12} className="animate-spin" /> : <span>⚙</span>}
                         Process
                       </button>
                     )}
                     <button onClick={() => { const aq = req.type === "used_update" ? (action.usedQty ?? null) : null; setApproveDialog({ id: req.id, requestedQty: aq, isDelete: req.type === "delete" }); setApprovedQtyInput(aq ? String(aq) : ""); }} disabled={processingId === req.id}
-                      className="flex-1 min-w-[80px] bg-green-600 text-white rounded-lg py-2 text-xs font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
+                      className="flex-1 min-w-[80px] bg-green-500/20 border border-green-500/30 text-green-300 rounded-xl py-2 text-xs font-semibold hover:bg-green-500/30 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
                       {processingId === req.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
                       Approve
                     </button>
@@ -1290,29 +1305,30 @@ function PendingRequestsTab() {
 
       {/* Cancel Reason Dialog */}
       {cancelDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl border shadow-2xl w-full max-w-sm" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
             <div className="p-5">
+              <div className="h-1 bg-gradient-to-r from-red-500 to-rose-600 rounded-t-xl -mx-5 -mt-5 mb-5 rounded-tl-2xl rounded-tr-2xl" />
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <XCircle size={20} className="text-red-600" />
+                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                  <XCircle size={18} className="text-red-400" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-base">Cancel Request</h3>
+                <h3 className="font-bold text-white text-base">Cancel Request</h3>
               </div>
-              <p className="text-sm text-gray-600 mb-3">Please provide a reason for cancelling this request.</p>
+              <p className="text-sm text-slate-400 mb-3">Please provide a reason for cancelling this request.</p>
               <textarea
                 value={cancelReason}
                 onChange={e => setCancelReason(e.target.value)}
                 placeholder="Enter cancel reason..."
                 rows={3}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300 mb-4"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 mb-4"
               />
               <div className="flex gap-3">
-                <button onClick={() => setCancelDialog(null)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                <button onClick={() => setCancelDialog(null)} className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/10 transition-colors">Back</button>
                 <button
                   onClick={async () => { if (!cancelReason.trim()) { toast.error("Cancel reason is required."); return; } const id = cancelDialog.id; setCancelDialog(null); await handleCancel(id, cancelReason.trim()); }}
                   disabled={!cancelReason.trim()}
-                  className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-red-700 disabled:opacity-50"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-50"
                 >Confirm Cancel</button>
               </div>
             </div>
@@ -1322,35 +1338,36 @@ function PendingRequestsTab() {
 
       {/* Approve with Qty Dialog */}
       {approveDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl border shadow-2xl w-full max-w-sm" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
             <div className="p-5">
+              <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-t-xl -mx-5 -mt-5 mb-5 rounded-tl-2xl rounded-tr-2xl" />
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle2 size={20} className="text-green-600" />
+                <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 size={18} className="text-green-400" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-base">Approve Request</h3>
+                <h3 className="font-bold text-white text-base">Approve Request</h3>
               </div>
               {!approveDialog.isDelete && approveDialog.requestedQty !== null && (
                 <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-2">Requested Qty: <strong>{approveDialog.requestedQty} pcs</strong></p>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Approved Qty (optional — leave blank to use requested)</label>
+                  <p className="text-sm text-slate-400 mb-2">Requested Qty: <strong className="text-white">{approveDialog.requestedQty} pcs</strong></p>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Approved Qty (optional — leave blank to use requested)</label>
                   <input
                     type="number"
                     min={1}
                     value={approvedQtyInput}
                     onChange={e => setApprovedQtyInput(e.target.value)}
                     placeholder={String(approveDialog.requestedQty)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50"
                   />
                 </div>
               )}
-              {approveDialog.isDelete && <p className="text-sm text-gray-600 mb-4">Are you sure you want to approve this delete request? This action cannot be undone.</p>}
+              {approveDialog.isDelete && <p className="text-sm text-slate-400 mb-4">Are you sure you want to approve this delete request? This action cannot be undone.</p>}
               <div className="flex gap-3">
-                <button onClick={() => setApproveDialog(null)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                <button onClick={() => setApproveDialog(null)} className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/10 transition-colors">Back</button>
                 <button
                   onClick={async () => { const id = approveDialog.id; const aq = approvedQtyInput ? parseInt(approvedQtyInput) : undefined; setApproveDialog(null); await handleApprove(id, aq); }}
-                  className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-green-700"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90"
                 >Confirm Approve</button>
               </div>
             </div>
@@ -1359,35 +1376,36 @@ function PendingRequestsTab() {
       )}
       {/* Process Approve Dialog */}
       {processDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-2xl border shadow-2xl w-full max-w-sm" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
             <div className="p-5">
+              <div className="h-1 bg-gradient-to-r from-purple-500 to-violet-600 rounded-t-xl -mx-5 -mt-5 mb-5 rounded-tl-2xl rounded-tr-2xl" />
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-purple-600 text-lg">⚙</span>
+                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-purple-300 text-lg">⚙</span>
                 </div>
-                <h3 className="font-bold text-gray-900 text-base">Approve Request (process approved request)</h3>
+                <h3 className="font-bold text-white text-base">Process Approve Request</h3>
               </div>
               {processDialog.requestedQty !== null && (
                 <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-2">Requested Qty: <strong>{processDialog.requestedQty} pcs</strong></p>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Approved Qty (optional — leave blank to use requested)</label>
+                  <p className="text-sm text-slate-400 mb-2">Requested Qty: <strong className="text-white">{processDialog.requestedQty} pcs</strong></p>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Approved Qty (optional — leave blank to use requested)</label>
                   <input
                     type="number"
                     min={1}
                     value={processQtyInput}
                     onChange={e => setProcessQtyInput(e.target.value)}
                     placeholder={String(processDialog.requestedQty)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   />
                 </div>
               )}
-              <p className="text-xs text-gray-500 mb-4">This marks the request as "In Process". Level 2 final approval is still required.</p>
+              <p className="text-xs text-slate-500 mb-4">This marks the request as "In Process". Level 2 final approval is still required.</p>
               <div className="flex gap-3">
-                <button onClick={() => setProcessDialog(null)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Back</button>
+                <button onClick={() => setProcessDialog(null)} className="flex-1 border border-white/10 bg-white/5 rounded-xl py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/10 transition-colors">Back</button>
                 <button
                   onClick={async () => { const id = processDialog.id; const pq = processQtyInput ? parseInt(processQtyInput) : undefined; setProcessDialog(null); await handleProcessApprove(id, pq); }}
-                  className="flex-1 bg-purple-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-purple-700"
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90"
                 >Confirm Process</button>
               </div>
             </div>
@@ -1435,36 +1453,36 @@ function AdminNotificationsTab() {
           <BellRing size={22} className="text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Broadcast Notification</h2>
-          <p className="text-sm text-gray-500">Send a custom notification to all workers</p>
+          <h2 className="text-xl font-bold text-white">Broadcast Notification</h2>
+          <p className="text-sm text-slate-400">Send a custom notification to all workers</p>
         </div>
       </div>
 
       {/* Compose Form */}
-      <form onSubmit={handleSend} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <form onSubmit={handleSend} className="rounded-2xl border p-6 space-y-4" style={{ background: "rgba(30,41,59,0.75)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.10)" }}>
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-gray-700">Notification Title</label>
+          <label className="text-sm font-semibold text-slate-300">Notification Title</label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. System Update, Important Notice"
             maxLength={100}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50"
           />
-          <p className="text-xs text-gray-400 text-right">{title.length}/100</p>
+          <p className="text-xs text-slate-500 text-right">{title.length}/100</p>
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-gray-700">Message</label>
+          <label className="text-sm font-semibold text-slate-300">Message</label>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your notification message here..."
             maxLength={500}
             rows={4}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none"
           />
-          <p className="text-xs text-gray-400 text-right">{message.length}/500</p>
+          <p className="text-xs text-slate-500 text-right">{message.length}/500</p>
         </div>
         <button
           type="submit"
@@ -1477,11 +1495,11 @@ function AdminNotificationsTab() {
       </form>
 
       {/* Info */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-        <Bell size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-amber-800">
+      <div className="rounded-xl border p-4 flex gap-3" style={{ background: "rgba(251,191,36,0.08)", borderColor: "rgba(251,191,36,0.25)" }}>
+        <Bell size={18} className="text-amber-400 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-amber-300">
           <p className="font-semibold mb-1">Broadcast Notification</p>
-          <p>This notification will appear in the <strong>Alerts</strong> tab of all workers immediately. Workers can also send custom alerts to each other from the Chat page.</p>
+          <p className="text-amber-400/80">This notification will appear in the <strong className="text-amber-300">Alerts</strong> tab of all workers immediately. Workers can also send custom alerts to each other from the Chat page.</p>
         </div>
       </div>
     </div>
