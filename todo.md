@@ -1341,3 +1341,18 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
   - Endpoint: POST /api/scheduled/cleanup-out-of-stock
   - Function: Deletes orders with "out_of_stock" status older than 13 months
   - Status: Active and running
+
+## User Profile (/user-profile)
+- [x] DB schema: add profilePicture, displayName, displayNameChangedAt, employeeIdChangedAt to workers table
+- [x] Migration SQL applied via webdev_execute_sql
+- [x] tRPC profile.get procedure
+- [x] tRPC profile.updateDisplayName procedure (7-day cooldown enforcement)
+- [x] tRPC profile.updateEmployeeId procedure (30-day cooldown enforcement)
+- [x] tRPC profile.uploadPicture procedure (base64 → S3 storage)
+- [x] UserProfile page with dark glassmorphism design
+- [x] Profile picture upload (click avatar, file picker, base64 upload)
+- [x] Display Name edit with 7-day cooldown indicator
+- [x] Employee ID edit with 30-day cooldown indicator + warning banner
+- [x] Read-only fields: Department, Access Level, Member Since
+- [x] Route /user-profile added to App.tsx (LoginGate protected)
+- [x] "My Profile" link added to AppLayout profile dropdown

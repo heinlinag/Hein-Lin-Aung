@@ -180,6 +180,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       <div className="px-3 py-2 border-b border-slate-100">
         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide px-2 mb-1">Quick Access</p>
         {[
+          { href: "/user-profile", icon: <User size={15} className="text-indigo-600" />, bg: "bg-indigo-50", label: "My Profile" },
           { href: "/docs",   icon: <BookOpen size={15} className="text-blue-600" />, bg: "bg-blue-50",   label: "Documentation" },
           { href: "/help",   icon: <HelpCircle size={15} className="text-blue-600" />, bg: "bg-blue-50", label: "Help Center" },
           { href: "/faq",    icon: <HelpCircle size={15} className="text-amber-600" />, bg: "bg-amber-50",label: "FAQ" },

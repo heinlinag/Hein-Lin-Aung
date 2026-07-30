@@ -42,7 +42,8 @@ import {
   updateCustomerSampleStatus,
 } from "./db";
 
-import { systemSettings } from "../drizzle/schema";
+import { systemSettings, workers } from "../drizzle/schema";
+import { storagePut } from "./storage";
 import { eq } from "drizzle-orm";
 /** Get effective admin password — DB-stored takes precedence over hardcoded default */
 async function getEffectiveAdminPassword(db: Awaited<ReturnType<typeof getDb>>): Promise<string> {
@@ -1721,6 +1722,106 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await updateCustomerSampleStatus(input.id, input.status, input.workerName);
         return { ok: true };
+      }),
+  }),
+
+  // ─── User Profile ──────────────────────────────────────────────────────────
+  profile: router({
+    /** Get full profile for a worker by workerID */
+    get: publicProcedure
+      .input(z.object({ workerID: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker not found" });
+        return {
+          id: worker.id,
+          workerID: worker.workerID,
+          name: worker.name,
+          department: worker.department,
+          userLevel: worker.userLevel,
+          displayName: worker.displayName ?? null,
+          profilePicture: worker.profilePicture ?? null,
+          displayNameChangedAt: worker.displayNameChangedAt ?? null,
+          employeeIdChangedAt: worker.employeeIdChangedAt ?? null,
+          createdAt: worker.createdAt,
+        };
+      }),
+
+    /** Update display name (7-day cooldown) */
+    updateDisplayName: publicProcedure
+      .input(z.object({
+        workerID: z.string().min(1),
+        displayName: z.string().min(1).max(64),
+      }))
+      .mutation(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker not found" });
+        // 7-day cooldown check
+        if (worker.displayNameChangedAt) {
+          const daysSince = (Date.now() - worker.displayNameChangedAt.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysSince < 7) {
+            const daysLeft = Math.ceil(7 - daysSince);
+            throw new TRPCError({ code: "FORBIDDEN", message: `Display name can only be changed every 7 days. ${daysLeft} day(s) remaining.` });
+          }
+        }
+        await updateWorkerById(worker.id, {
+          displayName: input.displayName,
+          displayNameChangedAt: new Date(),
+        });
+        return { success: true };
+      }),
+
+    /** Update Employee ID (30-day cooldown) */
+    updateEmployeeId: publicProcedure
+      .input(z.object({
+        workerID: z.string().min(1),
+        newEmployeeId: z.string().min(1).max(64),
+      }))
+      .mutation(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker not found" });
+        // 30-day cooldown check
+        if (worker.employeeIdChangedAt) {
+          const daysSince = (Date.now() - worker.employeeIdChangedAt.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysSince < 30) {
+            const daysLeft = Math.ceil(30 - daysSince);
+            throw new TRPCError({ code: "FORBIDDEN", message: `Employee ID can only be changed every 30 days. ${daysLeft} day(s) remaining.` });
+          }
+        }
+        // Check uniqueness
+        const existing = await getWorkerByWorkerID(input.newEmployeeId);
+        if (existing && existing.id !== worker.id) {
+          throw new TRPCError({ code: "CONFLICT", message: "Employee ID already in use" });
+        }
+        await updateWorkerById(worker.id, {
+          workerID: input.newEmployeeId,
+          employeeIdChangedAt: new Date(),
+        });
+        return { success: true, newWorkerID: input.newEmployeeId };
+      }),
+
+    /** Upload profile picture — accepts base64 data URL */
+    uploadPicture: publicProcedure
+      .input(z.object({
+        workerID: z.string().min(1),
+        dataUrl: z.string().min(1), // base64 data URL: data:image/jpeg;base64,...
+      }))
+      .mutation(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker not found" });
+        // Parse base64 data URL
+        const match = input.dataUrl.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/);
+        if (!match) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid image format. Use JPEG, PNG, or WebP." });
+        const [, mimeType, base64Data] = match;
+        const ext = mimeType.split("/")[1];
+        const buffer = Buffer.from(base64Data, "base64");
+        if (buffer.length > 5 * 1024 * 1024) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Image must be under 5MB" });
+        }
+        const key = `profile-pictures/${input.workerID}_avatar.${ext}`;
+        const { url } = await storagePut(key, buffer, mimeType);
+        await updateWorkerById(worker.id, { profilePicture: url });
+        return { success: true, url };
       }),
   }),
 });

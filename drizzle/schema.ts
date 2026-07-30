@@ -28,6 +28,11 @@ export const workers = mysqlTable("workers", {
   activeDeviceName: varchar("activeDeviceName", { length: 256 }),   // human-readable device name
   activeDeviceIP: varchar("activeDeviceIP", { length: 64 }),        // IP address of active session
   activeLoginAt: timestamp("activeLoginAt"),                         // when the active session started
+  // Profile fields
+  profilePicture: text("profilePicture"),             // S3 URL for profile picture
+  displayName: varchar("displayName", { length: 128 }), // custom display name (editable, 7-day cooldown)
+  displayNameChangedAt: timestamp("displayNameChangedAt"), // last time displayName was changed
+  employeeIdChangedAt: timestamp("employeeIdChangedAt"),   // last time workerID was changed (30-day cooldown)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type Worker = typeof workers.$inferSelect;

@@ -23,6 +23,7 @@ import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import PublicOrderCard from "./pages/PublicOrderCard";
 import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
+import UserProfile from "./pages/UserProfile";
 import MaintenancePage from "./pages/Maintenance";
 import AdminLogin from "./pages/AdminLogin";
 import { trpc } from "./lib/trpc";
@@ -107,6 +108,11 @@ function GeoRestrictedRouter() {
 
               {/* Direct Messages */}
               <Route path="/notifications" component={Notifications} />
+              <Route path="/user-profile">
+                <LoginGate>
+                  <UserProfile />
+                </LoginGate>
+              </Route>
               <Route path="/chat">
                 <LoginGate>
                   <Chat />
