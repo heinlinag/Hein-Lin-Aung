@@ -314,10 +314,10 @@ export default function QRScanner() {
                   ) : isMobile ? (
                     <form onSubmit={handleManualVerify} className="space-y-3">
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Tracking ID</label>
+                        <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Tracking ID</label>
                         <input
                           type="text"
-                          className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 backdrop-blur-sm transition-all duration-200 uppercase"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 shadow-sm transition-all duration-200 uppercase"
                           onChange={(e) => { e.target.value = e.target.value.toUpperCase(); }}
                         />
                         <p className="text-xs text-slate-500 mt-1">Only Tracking ID format (starting with PP4)</p>
@@ -332,12 +332,12 @@ export default function QRScanner() {
                   ) : (
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Barcode Scanner / Tracking ID</label>
+                        <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Barcode Scanner / Tracking ID</label>
                         <input
                           ref={barcodeInputRef}
                           type="text"
                           placeholder="Scan barcode or enter Tracking ID (PP4...)"
-                          className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 backdrop-blur-sm transition-all duration-200 uppercase"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 shadow-sm transition-all duration-200 uppercase"
                           onChange={(e) => {
                             e.target.value = e.target.value.toUpperCase();
                             if (e.target.value.length > 0 && e.target.value.startsWith("PP4")) {
@@ -537,7 +537,7 @@ export default function QRScanner() {
                   min="0"
                   value={newQty}
                   onChange={(e) => setNewQty(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 transition-all duration-200"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 shadow-sm transition-all duration-200"
                   placeholder="Enter new quantity"
                 />
                 {newQty !== "" && !isNaN(parseInt(newQty)) && (
@@ -557,7 +557,7 @@ export default function QRScanner() {
                   type="text"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value.toUpperCase())}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 transition-all duration-200 uppercase"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 shadow-sm transition-all duration-200 uppercase"
                   placeholder="Enter your Employee ID"
                 />
               </div>
@@ -569,7 +569,7 @@ export default function QRScanner() {
                 <textarea
                   value={updateNote}
                   onChange={(e) => setUpdateNote(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400/50 transition-all duration-200 resize-none"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 shadow-sm transition-all duration-200 resize-none"
                   rows={2}
                   placeholder="Reason for balance update..."
                 />
