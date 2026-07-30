@@ -387,19 +387,19 @@ export default function QRScanner() {
                 )}
 
                 {!verifying && verifyResult && (
-                  <div className={`rounded-xl border-2 overflow-hidden backdrop-blur-sm ${isMatch ? "border-emerald-400/50 bg-emerald-500/5" : "border-red-400/50 bg-red-500/5"}`}>
+                  <div className={`rounded-xl border-2 overflow-hidden ${isMatch ? "border-emerald-400 bg-emerald-50" : "border-red-400 bg-red-50"}`}>
                     {/* Status header */}
-                    <div className={`px-4 py-3 flex items-center gap-3 ${isMatch ? "bg-emerald-500/15 border-b border-emerald-400/20" : "bg-red-500/15 border-b border-red-400/20"}`}>
+                    <div className={`px-4 py-3 flex items-center gap-3 ${isMatch ? "bg-emerald-100 border-b border-emerald-200" : "bg-red-100 border-b border-red-200"}`}>
                       {isMatch ? (
                         <CheckCircle className="text-emerald-400 shrink-0" size={22} />
                       ) : (
                         <XCircle className="text-red-400 shrink-0" size={22} />
                       )}
                       <div>
-                        <p className={`font-bold text-base ${isMatch ? "text-emerald-300" : "text-red-300"}`}>
+                        <p className={`font-bold text-base ${isMatch ? "text-emerald-800" : "text-red-800"}`}>
                           {isMatch ? "✓ Order Found in Stock History" : "✗ Order Not Found"}
                         </p>
-                        <p className={`text-xs ${isMatch ? "text-emerald-400/70" : "text-red-400/70"}`}>
+                        <p className={`text-xs ${isMatch ? "text-emerald-600" : "text-red-600"}`}>
                           {isMatch ? "This label matches a record in the system" : "No matching order found for this QR code"}
                         </p>
                       </div>
@@ -408,39 +408,39 @@ export default function QRScanner() {
                     {isMatch && order && (
                       <div className="p-4">
                         <div className="flex items-center gap-2 mb-3">
-                          <Package className="text-slate-400" size={16} />
-                          <span className="text-sm font-semibold text-slate-300">Current Stock Record</span>
+                          <Package className="text-slate-500" size={16} />
+                          <span className="text-sm font-semibold text-slate-700">Current Stock Record</span>
                         </div>
                         <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                           {[
-                            { label: "Production Order", value: order.orderID, className: "font-bold text-white text-base" },
-                            { label: "Current Balance", value: `${order.qty} pcs${order.qty <= 50 ? " ⚠ Low" : ""}`, className: `font-bold text-base ${order.qty <= 50 ? "text-orange-400" : "text-emerald-400"}` },
-                            { label: "Flute Type", value: order.fluteType, className: "font-semibold text-slate-200" },
-                            { label: "Board Size", value: `${order.sizeW} × ${order.sizeL} mm`, className: "font-semibold text-slate-200" },
+                            { label: "Production Order", value: order.orderID, className: "font-bold text-slate-900 text-base" },
+                            { label: "Current Balance", value: `${order.qty} pcs${order.qty <= 50 ? " ⚠ Low" : ""}`, className: `font-bold text-base ${order.qty <= 50 ? "text-orange-600" : "text-emerald-700"}` },
+                            { label: "Flute Type", value: order.fluteType, className: "font-semibold text-slate-800" },
+                            { label: "Board Size", value: `${order.sizeW} × ${order.sizeL} mm`, className: "font-semibold text-slate-800" },
                           ].map(({ label, value, className }) => (
-                            <div key={label} className="bg-white/5 border border-white/10 rounded-xl p-3">
+                            <div key={label} className="bg-white border border-slate-200 rounded-xl p-3">
                               <p className="text-xs text-slate-500 uppercase font-medium mb-1">{label}</p>
                               <p className={className}>{value}</p>
                             </div>
                           ))}
-                          <div className="bg-white/5 border border-white/10 rounded-xl p-3 col-span-2">
+                          <div className="bg-white border border-slate-200 rounded-xl p-3 col-span-2">
                             <p className="text-xs text-slate-500 uppercase font-medium mb-1">BQ Comment</p>
-                            <p className="font-semibold text-amber-300 bg-amber-500/10 border border-amber-400/20 px-2 py-1 rounded-lg inline-block">{order.bqComment}</p>
+                            <p className="font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg inline-block">{order.bqComment}</p>
                           </div>
-                          <div className="bg-white/5 border border-white/10 rounded-xl p-3 col-span-2">
+                          <div className="bg-white border border-slate-200 rounded-xl p-3 col-span-2">
                             <p className="text-xs text-slate-500 uppercase font-medium mb-1">Status</p>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "current" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30" : "bg-red-500/20 text-red-300 border border-red-400/30"}`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === "current" ? "bg-emerald-100 text-emerald-800 border border-emerald-300" : "bg-red-100 text-red-800 border border-red-300"}`}>
                               {order.status === "current" ? "In Stock" : "Out of Stock"}
                             </span>
                           </div>
                         </div>
 
                         {scannedData.qty > 0 && scannedData.qty !== order.qty && (
-                          <div className="bg-amber-500/10 border border-amber-400/30 rounded-xl p-3 mb-4 flex items-start gap-2">
-                            <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={16} />
+                          <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 mb-4 flex items-start gap-2">
+                            <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={16} />
                             <div className="text-sm">
-                              <p className="font-semibold text-amber-300">Balance Mismatch Detected</p>
-                              <p className="text-amber-400/80 mt-0.5">
+                              <p className="font-semibold text-amber-800">Balance Mismatch Detected</p>
+                              <p className="text-amber-700 mt-0.5">
                                 Label shows <strong>{scannedData.qty} pcs</strong> but system shows <strong>{order.qty} pcs</strong>.
                               </p>
                             </div>
