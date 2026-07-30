@@ -313,49 +313,105 @@ export default function HelpCenter() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Help Center</h1>
-            <p className="text-gray-600">Find answers to your questions and get support</p>
-          </div>
-
-          <div className="mb-6 relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search help topics..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="mb-6">
-            <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:grid sm:grid-cols-4">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center justify-center sm:justify-start gap-1.5 px-3 sm:px-4 py-2.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs sm:text-sm flex-shrink-0 ${
-                    activeTab === tab.id
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  {tab.icon}
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-                </button>
-              ))}
+      {/* Hero */}
+      <div className="relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, #0f172a 0%, #0c4a6e 50%, #1e3a5f 100%)" }}>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10"
+            style={{ background: "radial-gradient(circle, #0891b2, transparent)" }} />
+          <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full opacity-8"
+            style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }} />
+        </div>
+        <div className="relative px-4 lg:px-8 py-10 lg:py-14">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl shrink-0"
+                style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.2)" }}>
+                <BookOpen size={26} className="text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-cyan-200"
+                    style={{ background: "rgba(8,145,178,0.2)", border: "1px solid rgba(8,145,178,0.3)" }}>
+                    Support
+                  </span>
+                </div>
+                <h1 className="text-3xl lg:text-4xl font-black text-white leading-tight" style={{ fontFamily: "Lora, serif" }}>
+                  Help Center
+                </h1>
+                <p className="text-white/50 text-sm mt-1.5">Find answers, guides, and contact support</p>
+              </div>
+            </div>
+            {/* Search */}
+            <div className="relative mt-6">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.4)" }} />
+              <input
+                type="text"
+                placeholder="Search help topics..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm text-white placeholder-white/30 focus:outline-none"
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                }}
+              />
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            {activeTab === "faq" && <FAQSection />}
-            {activeTab === "guides" && <GuidesSection />}
-            {activeTab === "troubleshooting" && <TroubleshootingSection />}
-            {activeTab === "contact" && <ContactSection />}
+      {/* Tab Nav */}
+      <div className="px-4 lg:px-8 py-4 sticky top-0 z-10"
+        style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(226,232,240,0.6)" }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex gap-2 overflow-x-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
+                style={activeTab === tab.id ? {
+                  background: "linear-gradient(135deg, #0891b2, #0e7490)",
+                  color: "#fff",
+                  boxShadow: "0 4px 12px rgba(8,145,178,0.3)",
+                } : {
+                  background: "rgba(241,245,249,0.8)",
+                  color: "#64748b",
+                  border: "1px solid rgba(226,232,240,0.6)",
+                }}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-4 lg:px-8 py-6 lg:py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="rounded-2xl overflow-hidden"
+            style={{
+              background: "rgba(255,255,255,0.85)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.9)",
+              boxShadow: "0 8px 32px rgba(8,145,178,0.08), 0 2px 8px rgba(0,0,0,0.04)",
+            }}>
+            <div className="absolute top-0 inset-x-0 h-0.5" style={{ background: "linear-gradient(90deg, #0891b2, #6366f1)" }} />
+            <div className="p-6">
+              {activeTab === "faq" && <FAQSection />}
+              {activeTab === "guides" && <GuidesSection />}
+              {activeTab === "troubleshooting" && <TroubleshootingSection />}
+              {activeTab === "contact" && <ContactSection />}
+            </div>
           </div>
         </div>
       </div>

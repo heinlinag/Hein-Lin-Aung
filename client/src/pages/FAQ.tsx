@@ -1,6 +1,24 @@
-import { useState } from 'react';
-import { ChevronDown, HelpCircle, Search } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ChevronDown, HelpCircle, Search, Sparkles } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
+import { useLocation } from 'wouter';
+
+const FAQ_ANIM = `
+@keyframes faqSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes faqFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes faqFloatOrb {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+.faq-slide-up { animation: faqSlideUp 0.55s cubic-bezier(0.22,0.61,0.36,1) both; }
+.faq-fade-in  { animation: faqFadeIn 0.5s cubic-bezier(0.22,0.61,0.36,1) both; }
+`;
 
 const faqData = [
   {
@@ -296,6 +314,15 @@ export default function FAQ() {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [, navigate] = useLocation();
+  const styleInjected = useRef(false);
+  useEffect(() => {
+    if (styleInjected.current) return;
+    styleInjected.current = true;
+    const el = document.createElement('style');
+    el.textContent = FAQ_ANIM;
+    document.head.appendChild(el);
+  }, []);
 
   const toggleExpand = (id: string) => {
     setExpandedItems((prev) =>
@@ -320,89 +347,157 @@ export default function FAQ() {
 
   return (
     <AppLayout>
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-10 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
-            <HelpCircle size={14} /> Help Center
+      {/* Hero */}
+      <div className="relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #1e3a5f 100%)" }}>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10"
+            style={{ background: "radial-gradient(circle, #8b5cf6, transparent)", animation: "faqFloatOrb 9s ease-in-out infinite" }} />
+          <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full opacity-8"
+            style={{ background: "radial-gradient(circle, #6366f1, transparent)", animation: "faqFloatOrb 13s ease-in-out 2s infinite" }} />
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }} />
+        </div>
+        <div className="relative px-4 lg:px-8 py-10 lg:py-14">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-start gap-4 faq-slide-up">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl shrink-0"
+                style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.2)" }}>
+                <HelpCircle size={26} className="text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-violet-200"
+                    style={{ background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.3)" }}>
+                    {totalQuestions}+ Answers
+                  </span>
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-blue-200"
+                    style={{ background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.3)" }}>
+                    8 Categories
+                  </span>
+                </div>
+                <h1 className="text-3xl lg:text-4xl font-black text-white leading-tight" style={{ fontFamily: "Lora, serif" }}>
+                  Frequently Asked Questions
+                </h1>
+                <p className="text-white/50 text-sm mt-1.5">
+                  Answers covering all features of PP4 Manual Slitter Stock Management System
+                </p>
+              </div>
+            </div>
+            {/* Search bar in hero */}
+            <div className="relative mt-6 faq-fade-in" style={{ animationDelay: "0.15s" }}>
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.4)" }} />
+              <input
+                type="text"
+                placeholder="Search questions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm text-white placeholder-white/30 focus:outline-none"
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                }}
+              />
+            </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Frequently Asked Questions</h1>
-          <p className="text-gray-500 text-base">
-            {totalQuestions} answers covering all features of PP4 Manual Slitter Stock Management System
-          </p>
         </div>
+      </div>
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search questions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white shadow-sm"
-          />
-        </div>
-
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          <button
-            onClick={() => setActiveCategory(null)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
-              activeCategory === null
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            All Categories
-          </button>
-          {faqData.map((section) => (
+      {/* Category Filter */}
+      <div className="px-4 lg:px-8 py-4 sticky top-0 z-10"
+        style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(226,232,240,0.6)" }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-wrap gap-2">
             <button
-              key={section.category}
-              onClick={() => setActiveCategory(section.category)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
-                activeCategory === section.category
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
-              }`}
+              onClick={() => setActiveCategory(null)}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all"
+              style={activeCategory === null ? {
+                background: "linear-gradient(135deg, #8b5cf6, #6366f1)",
+                color: "#fff",
+                boxShadow: "0 4px 12px rgba(139,92,246,0.3)",
+              } : {
+                background: "rgba(241,245,249,0.8)",
+                color: "#64748b",
+                border: "1px solid rgba(226,232,240,0.6)",
+              }}
             >
-              {section.icon} {section.category}
+              All
             </button>
-          ))}
+            {faqData.map((section) => (
+              <button
+                key={section.category}
+                onClick={() => setActiveCategory(section.category)}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
+                style={activeCategory === section.category ? {
+                  background: "linear-gradient(135deg, #8b5cf6, #6366f1)",
+                  color: "#fff",
+                  boxShadow: "0 4px 12px rgba(139,92,246,0.3)",
+                } : {
+                  background: "rgba(241,245,249,0.8)",
+                  color: "#64748b",
+                  border: "1px solid rgba(226,232,240,0.6)",
+                }}
+              >
+                {section.icon} {section.category}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {/* FAQ Items */}
-        <div className="space-y-3">
+      {/* FAQ Items */}
+      <div className="px-4 lg:px-8 py-6 lg:py-8">
+        <div className="max-w-4xl mx-auto space-y-3">
           {filteredData.map((section) => (
             <div key={section.category} className="space-y-3">
               {section.questions.map((item, idx) => {
                 const itemId = `${section.category}-${idx}`;
                 const isExpanded = expandedItems.includes(itemId);
-
                 return (
                   <div
                     key={itemId}
-                    className="border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow overflow-hidden"
+                    className="relative rounded-2xl overflow-hidden faq-fade-in"
+                    style={{
+                      animationDelay: `${idx * 0.04}s`,
+                      background: isExpanded ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.85)",
+                      backdropFilter: "blur(16px)",
+                      border: isExpanded ? "1px solid rgba(139,92,246,0.25)" : "1px solid rgba(255,255,255,0.9)",
+                      boxShadow: isExpanded
+                        ? "0 8px 32px rgba(139,92,246,0.12), 0 2px 8px rgba(0,0,0,0.04)"
+                        : "0 2px 8px rgba(0,0,0,0.04)",
+                      transition: "all 0.2s ease",
+                    }}
                   >
+                    {isExpanded && <div className="absolute top-0 inset-x-0 h-0.5" style={{ background: "linear-gradient(90deg, #8b5cf6, #6366f1)" }} />}
                     <button
                       onClick={() => toggleExpand(itemId)}
-                      className="w-full px-5 py-4 flex items-start justify-between hover:bg-gray-50 transition-colors"
+                      className="w-full px-5 py-4 flex items-start justify-between transition-colors"
                     >
-                      <span className="text-left font-semibold text-gray-900 text-sm">{item.question}</span>
-                      <ChevronDown
-                        size={18}
-                        className={`flex-shrink-0 text-gray-400 transition-transform ml-3 ${
-                          isExpanded ? 'rotate-180' : ''
-                        }`}
-                      />
+                      <span className="text-left font-bold text-gray-900 text-sm leading-relaxed">{item.question}</span>
+                      <div className="shrink-0 ml-3 w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                        style={isExpanded ? {
+                          background: "linear-gradient(135deg, #8b5cf6, #6366f1)",
+                          boxShadow: "0 4px 12px rgba(139,92,246,0.3)",
+                        } : {
+                          background: "rgba(241,245,249,0.8)",
+                        }}>
+                        <ChevronDown
+                          size={15}
+                          className={`transition-transform ${isExpanded ? "rotate-180 text-white" : "text-gray-400"}`}
+                        />
+                      </div>
                     </button>
-
                     {isExpanded && (
-                      <div className="px-5 py-4 bg-gray-50 border-t border-gray-200">
-                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                          {item.answer}
-                        </p>
+                      <div className="px-5 pb-5">
+                        <div className="rounded-xl p-4" style={{ background: "rgba(241,245,249,0.6)" }}>
+                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {item.answer}
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -410,15 +505,18 @@ export default function FAQ() {
               })}
             </div>
           ))}
+          {filteredData.length === 0 && (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: "rgba(241,245,249,0.8)" }}>
+                <Sparkles size={28} className="text-gray-300" />
+              </div>
+              <p className="text-gray-400 font-medium">No questions found.</p>
+              <p className="text-gray-300 text-sm mt-1">Try a different search or category.</p>
+            </div>
+          )}
         </div>
-
-        {filteredData.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No questions found. Try a different search or category.</p>
-          </div>
-        )}
       </div>
-    </div>
     </AppLayout>
   );
 }

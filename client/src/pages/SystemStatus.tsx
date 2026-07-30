@@ -206,169 +206,226 @@ export default function SystemStatus() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-teal-600 text-white px-4 py-12 md:py-16">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex items-center gap-3 mb-4">
-              <Activity size={32} />
-              <h1 className="text-3xl md:text-4xl font-bold">System Status</h1>
+      {/* Hero */}
+      <div className="relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, #0f172a 0%, #064e3b 50%, #0f172a 100%)" }}>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10"
+            style={{ background: "radial-gradient(circle, #10b981, transparent)" }} />
+          <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full opacity-8"
+            style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }} />
+        </div>
+        <div className="relative px-4 lg:px-8 py-10 lg:py-14">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl shrink-0"
+                style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.2)" }}>
+                <Activity size={26} className="text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full text-emerald-200"
+                    style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.3)" }}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    {systemInfo.status === "operational" ? "All Systems Operational" : systemInfo.status === "degraded" ? "Degraded" : "System Down"}
+                  </span>
+                </div>
+                <h1 className="text-3xl lg:text-4xl font-black text-white leading-tight" style={{ fontFamily: "Lora, serif" }}>
+                  System Status
+                </h1>
+                <p className="text-white/50 text-sm mt-1.5">Last updated: {systemInfo.lastUpdate}</p>
+              </div>
             </div>
-            <p className="text-blue-100 text-lg">
-              Real-time monitoring and updates for the PP4 Manual Slitter Stock Management System
-            </p>
+            {/* Quick stats row */}
+            <div className="grid grid-cols-3 gap-3 mt-6">
+              {[
+                { label: "Uptime", value: systemInfo.uptime },
+                { label: "Response", value: `${systemInfo.responseTime}ms` },
+                { label: "Version", value: "3.2.0" },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-2xl p-3 text-center"
+                  style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                  <p className="text-white font-black text-lg leading-none">{stat.value}</p>
+                  <p className="text-white/40 text-[10px] mt-1 font-medium">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="max-w-5xl mx-auto px-4 py-12">
-          {/* Current Status Card */}
-          <div className={`border-2 rounded-2xl p-8 mb-12 ${statusBg[systemInfo.status]}`}>
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-4">
+      {/* Main content */}
+      <div className="px-4 lg:px-8 py-6 lg:py-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+
+          {/* Overall Status Card */}
+          <div className="relative rounded-2xl overflow-hidden"
+            style={{
+              background: systemInfo.status === "operational"
+                ? "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.05))"
+                : systemInfo.status === "degraded"
+                ? "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(217,119,6,0.05))"
+                : "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.05))",
+              backdropFilter: "blur(20px)",
+              border: systemInfo.status === "operational"
+                ? "1px solid rgba(16,185,129,0.2)"
+                : systemInfo.status === "degraded"
+                ? "1px solid rgba(245,158,11,0.2)"
+                : "1px solid rgba(239,68,68,0.2)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.04)",
+            }}>
+            <div className="absolute top-0 inset-x-0 h-0.5"
+              style={{ background: systemInfo.status === "operational" ? "linear-gradient(90deg, #10b981, #059669)" : systemInfo.status === "degraded" ? "linear-gradient(90deg, #f59e0b, #d97706)" : "linear-gradient(90deg, #ef4444, #dc2626)" }} />
+            <div className="p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+                style={{ background: systemInfo.status === "operational" ? "rgba(16,185,129,0.15)" : systemInfo.status === "degraded" ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)" }}>
                 {statusIcon[systemInfo.status]}
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 capitalize">
-                    System {systemInfo.status}
-                  </h2>
-                  <p className={`text-sm font-semibold ${statusColor[systemInfo.status]}`}>
-                    {systemInfo.status === 'operational' && 'All systems operational'}
-                    {systemInfo.status === 'degraded' && 'Some services experiencing issues'}
-                    {systemInfo.status === 'down' && 'System currently unavailable'}
-                  </p>
-                </div>
               </div>
-              <button
-                onClick={() => { const btn = document.getElementById('sys-refresh-icon'); if (btn) { btn.classList.add('animate-spin'); setTimeout(() => btn.classList.remove('animate-spin'), 700); } window.location.reload(); }}
-                className="px-4 py-2 bg-white text-gray-900 font-semibold rounded-lg hover:shadow-md transition-shadow"
-              >
-                Refresh
-              </button>
-            </div>
-
-            {/* Status Metrics */}
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Server size={18} className="text-blue-600" />
-                  <span className="text-sm font-semibold text-gray-600">Uptime</span>
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{systemInfo.uptime}</p>
-                <p className="text-xs text-gray-500">Last 30 days</p>
-              </div>
-
-              <div className="bg-white rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock size={18} className="text-green-600" />
-                  <span className="text-sm font-semibold text-gray-600">Response Time</span>
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{systemInfo.responseTime}ms</p>
-                <p className="text-xs text-gray-500">Average</p>
-              </div>
-
-              <div className="bg-white rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity size={18} className="text-purple-600" />
-                  <span className="text-sm font-semibold text-gray-600">Last Updated</span>
-                </div>
-                <p className="text-sm font-bold text-gray-900">Just now</p>
-                <p className="text-xs text-gray-500">{systemInfo.lastUpdate}</p>
+              <div>
+                <p className={`text-lg font-black ${statusColor[systemInfo.status]}`}>
+                  System {systemInfo.status.charAt(0).toUpperCase() + systemInfo.status.slice(1)}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  {systemInfo.status === "operational" && "All systems are running normally"}
+                  {systemInfo.status === "degraded" && "Some services experiencing issues"}
+                  {systemInfo.status === "down" && "System currently unavailable"}
+                </p>
               </div>
             </div>
+          </div>
+
+          {/* System Components */}
+          <div>
+            <h3 className="text-lg font-black text-gray-900 mb-4">System Components</h3>
+            {components.length > 0 ? (
+              <div className="grid md:grid-cols-2 gap-3">
+                {components.map((component, idx) => (
+                  <div key={idx} className="relative rounded-2xl overflow-hidden"
+                    style={{
+                      background: "rgba(255,255,255,0.85)",
+                      backdropFilter: "blur(16px)",
+                      border: "1px solid rgba(255,255,255,0.9)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                    }}>
+                    <div className="absolute top-0 inset-x-0 h-0.5"
+                      style={{ background: component.status === "operational" ? "linear-gradient(90deg, #10b981, #059669)" : component.status === "degraded" ? "linear-gradient(90deg, #f59e0b, #d97706)" : "linear-gradient(90deg, #ef4444, #dc2626)" }} />
+                    <div className="p-4 flex items-center justify-between">
+                      <span className="font-bold text-gray-900 text-sm">{component.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">{component.responseTime}ms</span>
+                        <div className={`w-2 h-2 rounded-full ${component.status === "operational" ? "bg-emerald-500 animate-pulse" : component.status === "degraded" ? "bg-amber-500" : "bg-red-500"}`} />
+                        <span className={`text-xs font-bold ${component.status === "operational" ? "text-emerald-600" : component.status === "degraded" ? "text-amber-600" : "text-red-600"}`}>
+                          {component.status.charAt(0).toUpperCase() + component.status.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl p-8 text-center"
+                style={{ background: "rgba(241,245,249,0.6)", border: "1px solid rgba(226,232,240,0.6)" }}>
+                <p className="text-gray-400">Loading system components...</p>
+              </div>
+            )}
           </div>
 
           {/* Recent Updates */}
-          <div className="mb-12">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Recent Updates</h3>
-            <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-black text-gray-900 mb-4">Recent Updates</h3>
+            <div className="space-y-3">
               {recentUpdates.map((update, idx) => (
-                <div key={idx} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${updateTypeColor[update.type]}`}>
+                <div key={idx} className="relative rounded-2xl overflow-hidden"
+                  style={{
+                    background: "rgba(255,255,255,0.85)",
+                    backdropFilter: "blur(16px)",
+                    border: "1px solid rgba(255,255,255,0.9)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                  }}>
+                  <div className="absolute top-0 inset-x-0 h-0.5"
+                    style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }} />
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`px-2.5 py-1 rounded-xl text-[10px] font-bold ${updateTypeColor[update.type]}`}>
                         {update.type.charAt(0).toUpperCase() + update.type.slice(1)}
                       </span>
-                      <span className="text-sm text-gray-500">{update.date}</span>
+                      <span className="text-xs text-gray-400">{update.date}</span>
                     </div>
+                    <h4 className="font-black text-gray-900 text-sm mb-1">{update.title}</h4>
+                    <p className="text-gray-600 text-xs leading-relaxed">{update.description}</p>
                   </div>
-                  <h4 className="text-lg font-bold text-gray-900 mb-2">{update.title}</h4>
-                  <p className="text-gray-700">{update.description}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Maintenance Schedule */}
-          <div className="mb-12">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Scheduled Maintenance</h3>
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
-              <p className="text-gray-700 mb-6">
-                We perform regular maintenance to ensure optimal system performance and security. During maintenance windows, the system may be temporarily unavailable.
-              </p>
-              <div className="space-y-4">
-                {maintenanceSchedule.map((maintenance, idx) => (
-                  <div key={idx} className="bg-white rounded-lg p-4 border border-blue-100">
-                    <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-lg font-black text-gray-900 mb-4">Scheduled Maintenance</h3>
+            <div className="relative rounded-2xl overflow-hidden"
+              style={{
+                background: "rgba(255,255,255,0.85)",
+                backdropFilter: "blur(16px)",
+                border: "1px solid rgba(255,255,255,0.9)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+              }}>
+              <div className="absolute top-0 inset-x-0 h-0.5"
+                style={{ background: "linear-gradient(90deg, #0891b2, #0e7490)" }} />
+              <div className="p-5">
+                <p className="text-gray-500 text-sm mb-4">
+                  Regular maintenance windows for optimal performance and security.
+                </p>
+                <div className="space-y-3">
+                  {maintenanceSchedule.map((m, idx) => (
+                    <div key={idx} className="flex items-start justify-between gap-4 p-3 rounded-xl"
+                      style={{ background: "rgba(241,245,249,0.6)" }}>
                       <div>
-                        <p className="font-semibold text-gray-900">{maintenance.date}</p>
-                        <p className="text-sm text-gray-600">{maintenance.time}</p>
+                        <p className="font-bold text-gray-900 text-sm">{m.date}</p>
+                        <p className="text-xs text-gray-400">{m.time}</p>
                       </div>
-                      <p className="text-sm text-gray-700">{maintenance.description}</p>
+                      <p className="text-xs text-gray-600 text-right">{m.description}</p>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* System Components */}
-          <div className="mb-12">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">System Components</h3>
-            {components.length > 0 ? (
-              <div className="grid md:grid-cols-2 gap-6">
-                {components.map((component, idx) => (
-                  <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-gray-900">{component.name}</span>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${component.status === 'operational' ? 'bg-green-600' : component.status === 'degraded' ? 'bg-yellow-600' : 'bg-red-600'}`}></div>
-                        <span className={`text-sm font-semibold ${component.status === 'operational' ? 'text-green-600' : component.status === 'degraded' ? 'text-yellow-600' : 'text-red-600'}`}>
-                          {component.status.charAt(0).toUpperCase() + component.status.slice(1)}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500">Response: {component.responseTime}ms</p>
-                  </div>
-                ))}
+          {/* Support CTA */}
+          <div className="relative rounded-2xl overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.05))",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(99,102,241,0.15)",
+              boxShadow: "0 8px 32px rgba(99,102,241,0.08)",
+            }}>
+            <div className="absolute top-0 inset-x-0 h-0.5"
+              style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }} />
+            <div className="p-6">
+              <h3 className="font-black text-gray-900 mb-2">Having Issues?</h3>
+              <p className="text-gray-500 text-sm mb-4">
+                Contact your system administrator or check the FAQ page for troubleshooting steps.
+              </p>
+              <div className="flex gap-3">
+                <a href="/docs"
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                  style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 12px rgba(99,102,241,0.3)" }}>
+                  Documentation
+                </a>
+                <a href="/faq"
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
+                  style={{ background: "rgba(241,245,249,0.8)", color: "#6366f1", border: "1px solid rgba(99,102,241,0.2)" }}>
+                  View FAQ
+                </a>
               </div>
-            ) : (
-              <div className="bg-gray-50 rounded-lg p-8 text-center">
-                <p className="text-gray-600">Loading system components...</p>
-              </div>
-            )}
-          </div>
-
-          {/* Support Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-8 border border-blue-100">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Having Issues?</h3>
-            <p className="text-gray-700 mb-6">
-              If you are experiencing any issues not listed above, please contact your system administrator or check the FAQ page for troubleshooting steps.
-            </p>
-            <div className="flex gap-4">
-              <a
-                href="/docs"
-                className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                View Documentation
-              </a>
-              <a
-                href="/faq"
-                className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg border border-blue-600 hover:bg-blue-50 transition-colors"
-              >
-                View FAQ
-              </a>
             </div>
           </div>
+
         </div>
       </div>
     </AppLayout>
