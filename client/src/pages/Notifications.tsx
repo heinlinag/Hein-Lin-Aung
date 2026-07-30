@@ -9,14 +9,12 @@ import AppLayout from "@/components/AppLayout";
 import {
   Bell, Package, CheckCircle2, XCircle, Loader2, Trash2,
   AlertTriangle, ShoppingCart, LogIn, Info, CheckCheck,
-  MessageCircle, ExternalLink, Clock, ShieldAlert, ShieldX,
+  MessageCircle, ExternalLink, Clock, ShieldAlert, ShieldX, Sparkles,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 // ── Swipeable Notification Item ───────────────────────────────────────────────
-const SWIPE_THRESHOLD = 72; // px to trigger delete reveal
+const SWIPE_THRESHOLD = 72;
 
-/** Detect if a notification is a force-logout security alert */
 function isForceLogoutAlert(notif: Notif): boolean {
   return notif.type === "system" && notif.title === "Session Force-Logged Out";
 }
@@ -26,14 +24,13 @@ function SwipeableNotifItem({
 }: {
   notif: Notif;
   isRead: boolean;
-  cfg: { icon: React.ReactNode; color: string; bgLight: string; label: string };
+  cfg: { icon: React.ReactNode; color: string; bgLight: string; label: string; gradient: string };
   onDelete: (id: number) => void;
   onClick: (notif: Notif) => void;
   isDeleting: boolean;
 }) {
   const [offsetX, setOffsetX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  // Animation phases: idle → sliding → collapsing → gone
   const [phase, setPhase] = useState<"idle" | "sliding" | "collapsing" | "gone">("idle");
   const itemRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
@@ -50,58 +47,63 @@ function SwipeableNotifItem({
   const handleTouchMove = (e: React.TouchEvent) => {
     const dx = e.touches[0].clientX - startX.current;
     const dy = e.touches[0].clientY - startY.current;
-    // Determine direction on first significant move
     if (!isHorizontal.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
       isHorizontal.current = Math.abs(dx) > Math.abs(dy);
     }
     if (!isHorizontal.current) return;
     e.preventDefault();
-    // Only allow left swipe (negative dx)
     const clamped = Math.max(-120, Math.min(0, dx));
     setOffsetX(clamped);
   };
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    if (offsetX < -SWIPE_THRESHOLD) {
-      // Snap to reveal delete button
-      setOffsetX(-80);
-    } else {
-      setOffsetX(0);
-    }
+    if (offsetX < -SWIPE_THRESHOLD) setOffsetX(-80);
+    else setOffsetX(0);
   };
 
   const handleDelete = () => {
-    // Phase 1: slide fully off-screen (fade + translate)
     setPhase("sliding");
     setOffsetX(-400);
-    // Phase 2: collapse height after slide completes
     setTimeout(() => setPhase("collapsing"), 280);
-    // Phase 3: gone — call parent
-    setTimeout(() => {
-      setPhase("gone");
-      onDelete(notif.id);
-    }, 580);
+    setTimeout(() => { setPhase("gone"); onDelete(notif.id); }, 580);
   };
 
   const handleItemClick = () => {
-    if (offsetX < -10) {
-      // Close swipe on click if swiped
-      setOffsetX(0);
-      return;
-    }
+    if (offsetX < -10) { setOffsetX(0); return; }
     onClick(notif);
   };
 
   if (phase === "gone") return null;
 
+  const forceLogout = isForceLogoutAlert(notif);
+
+  // Glassmorphism card styles
+  const cardBg = forceLogout
+    ? "rgba(254,242,242,0.92)"
+    : isRead
+    ? "rgba(255,255,255,0.65)"
+    : "rgba(255,255,255,0.92)";
+  const cardBorder = forceLogout
+    ? "rgba(252,165,165,0.5)"
+    : isRead
+    ? "rgba(226,232,240,0.5)"
+    : "rgba(255,255,255,0.95)";
+  const accentGradient = forceLogout
+    ? "linear-gradient(90deg, #ef4444, #dc2626)"
+    : cfg.gradient;
+  const iconBg = forceLogout ? "linear-gradient(135deg, #ef4444, #dc2626)" : cfg.gradient;
+  const labelBg = forceLogout ? "rgba(254,226,226,0.8)" : "rgba(241,245,249,0.8)";
+  const labelColor = forceLogout ? "#b91c1c" : "#64748b";
+  const iconEl = forceLogout ? <ShieldX size={15} className="text-white" /> : cfg.icon;
+  const labelText = forceLogout ? "Security Alert" : cfg.label;
+
   return (
     <div
       ref={itemRef}
       style={{
-        // Collapse: animate max-height + opacity + margin to zero
         maxHeight: phase === "collapsing" ? "0px" : "500px",
-        opacity: phase === "collapsing" ? 0 : 1,
+        opacity: phase === "collapsing" ? 0 : isRead ? 0.75 : 1,
         marginBottom: phase === "collapsing" ? "0px" : undefined,
         overflow: "hidden",
         transition: phase === "collapsing"
@@ -109,103 +111,97 @@ function SwipeableNotifItem({
           : "none",
       }}
     >
-    <div className="relative overflow-hidden rounded-xl">
-      {/* Delete background */}
-      <div className="absolute inset-0 flex items-center justify-end bg-red-500 rounded-xl">
-        <button
-          onClick={handleDelete}
-          disabled={isDeleting}
-          className="flex flex-col items-center justify-center w-20 h-full text-white gap-1 hover:bg-red-600 transition-colors rounded-r-xl"
+      <div className="relative overflow-hidden rounded-2xl">
+        {/* Delete background */}
+        <div className="absolute inset-0 flex items-center justify-end rounded-2xl" style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)" }}>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="flex flex-col items-center justify-center w-20 h-full text-white gap-1 hover:bg-red-700/30 transition-colors rounded-r-2xl"
+          >
+            {isDeleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+            <span className="text-[10px] font-semibold">Delete</span>
+          </button>
+        </div>
+
+        {/* Notification card */}
+        <div
+          style={{
+            transform: `translateX(${offsetX}px)`,
+            transition: isDragging ? "none" : "transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)",
+            background: cardBg,
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            border: `1px solid ${cardBorder}`,
+            boxShadow: isRead ? "none" : "0 4px 16px rgba(0,0,0,0.06)",
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={handleItemClick}
+          className="relative flex gap-3 p-3 sm:p-4 rounded-2xl cursor-pointer transition-all hover:shadow-md"
         >
-          {isDeleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
-          <span className="text-[10px] font-semibold">Delete</span>
-        </button>
-      </div>
+          {/* Accent bar */}
+          <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-2xl" style={{ background: accentGradient }} />
 
-      {/* Notification card */}
-      {(() => {
-        const forceLogout = isForceLogoutAlert(notif);
-        const cardClass = forceLogout
-          ? isRead
-            ? "bg-red-50/60 border-red-200 opacity-80 hover:border-red-300"
-            : "bg-red-50 border-red-300 shadow-md shadow-red-100 hover:border-red-400"
-          : isRead
-            ? "bg-white border-gray-100 opacity-70 hover:border-gray-200"
-            : "bg-white border-blue-100 shadow-sm hover:border-gray-200";
-        const iconBg = forceLogout ? "bg-red-100 ring-2 ring-red-200" : cfg.bgLight;
-        const iconColor = forceLogout ? "text-red-600" : cfg.color;
-        const iconEl = forceLogout ? <ShieldX size={16} /> : cfg.icon;
-        const labelBg = forceLogout ? "bg-red-100" : cfg.bgLight;
-        const labelColor = forceLogout ? "text-red-700" : cfg.color;
-        const labelText = forceLogout ? "Security Alert" : cfg.label;
-        const titleColor = forceLogout ? "text-red-900" : "text-gray-900";
-        const msgColor = forceLogout ? "text-red-700" : "text-gray-500";
-        return (
-      <div
-        style={{
-          transform: `translateX(${offsetX}px)`,
-          transition: isDragging ? "none" : "transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)",
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onClick={handleItemClick}
-        className={`relative flex gap-3 p-3 sm:p-4 rounded-xl border transition-colors cursor-pointer hover:shadow-sm ${cardClass}`}
-      >
-        {/* Red left accent bar for force-logout */}
-        {forceLogout && (
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 rounded-l-xl" />
-        )}
-        {/* Icon */}
-        <div className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${iconBg} ${iconColor}`}>
-          {iconEl}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-            <span className={`text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full ${labelBg} ${labelColor}`}>
-              {labelText}
-            </span>
-            <span className="text-[11px] text-gray-400 flex items-center gap-0.5">
-              <Clock size={10} />
-              {timeAgo(notif.createdAt)}
-            </span>
-            {!isRead && <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.5)]" />}
-            {notif.deepLink && <ExternalLink size={10} className="text-gray-300 ml-auto" />}
+          {/* Icon */}
+          <div
+            className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shadow-sm"
+            style={{ background: iconBg }}
+          >
+            {iconEl}
           </div>
-          <p className={`text-sm font-semibold leading-tight mb-0.5 ${titleColor}`}>{notif.title}</p>
-          <p className={`text-xs leading-relaxed line-clamp-2 ${msgColor}`}>{notif.message}</p>
 
-          {/* Context pills */}
-          {(notif.orderID || notif.jobNo || notif.qty) && (
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              {notif.orderID && (
-                <span className="text-[10px] bg-gray-100 border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600 font-mono">
-                  PO: {notif.orderID}
-                </span>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+              <span
+                className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
+                style={{ background: labelBg, color: labelColor }}
+              >
+                {labelText}
+              </span>
+              <span className="text-[11px] text-gray-400 flex items-center gap-0.5">
+                <Clock size={10} />
+                {timeAgo(notif.createdAt)}
+              </span>
+              {!isRead && (
+                <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]" />
               )}
-              {notif.jobNo && (
-                <span className="text-[10px] bg-gray-100 border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600 font-mono">
-                  Job: {notif.jobNo}
-                </span>
-              )}
-              {notif.qty != null && (
-                <span className="text-[10px] bg-gray-100 border border-gray-200 rounded-md px-1.5 py-0.5 text-gray-600">
-                  {notif.qty} pcs
-                </span>
-              )}
+              {notif.deepLink && <ExternalLink size={10} className="text-gray-300 ml-auto" />}
             </div>
-          )}
+            <p className="text-sm font-semibold leading-tight mb-0.5 text-gray-800">{notif.title}</p>
+            <p className="text-xs leading-relaxed line-clamp-2 text-gray-500">{notif.message}</p>
 
-          {notif.workerName && (
-            <div className="mt-1 text-[10px] text-gray-400">by {notif.workerName}</div>
-          )}
+            {/* Context pills */}
+            {(notif.orderID || notif.jobNo || notif.qty) && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {notif.orderID && (
+                  <span className="text-[10px] rounded-md px-1.5 py-0.5 text-gray-600 font-mono"
+                    style={{ background: "rgba(241,245,249,0.9)", border: "1px solid rgba(226,232,240,0.8)" }}>
+                    PO: {notif.orderID}
+                  </span>
+                )}
+                {notif.jobNo && (
+                  <span className="text-[10px] rounded-md px-1.5 py-0.5 text-gray-600 font-mono"
+                    style={{ background: "rgba(241,245,249,0.9)", border: "1px solid rgba(226,232,240,0.8)" }}>
+                    Job: {notif.jobNo}
+                  </span>
+                )}
+                {notif.qty != null && (
+                  <span className="text-[10px] rounded-md px-1.5 py-0.5 text-gray-600"
+                    style={{ background: "rgba(241,245,249,0.9)", border: "1px solid rgba(226,232,240,0.8)" }}>
+                    {notif.qty} pcs
+                  </span>
+                )}
+              </div>
+            )}
+            {notif.workerName && (
+              <div className="mt-1 text-[10px] text-gray-400">by {notif.workerName}</div>
+            )}
+          </div>
         </div>
       </div>
-        );
-      })()}
-    </div>
     </div>
   );
 }
@@ -240,30 +236,30 @@ const ORDER_TYPES: NotifType[] = ["order_request", "order_approved", "order_canc
 const SYSTEM_TYPES: NotifType[] = ["system", "login"];
 const CHAT_TYPES: NotifType[] = ["chat_message"];
 
-// ── Config ────────────────────────────────────────────────────────────────────
 const TYPE_CONFIG: Record<NotifType, {
   icon: React.ReactNode;
   color: string;
   bgLight: string;
   label: string;
+  gradient: string;
 }> = {
-  order_request: { icon: <ShoppingCart size={16} />, color: "text-blue-600", bgLight: "bg-blue-50", label: "Request" },
-  order_approved: { icon: <CheckCircle2 size={16} />, color: "text-emerald-600", bgLight: "bg-emerald-50", label: "Approved" },
-  order_cancelled: { icon: <XCircle size={16} />, color: "text-red-600", bgLight: "bg-red-50", label: "Cancelled" },
-  order_in_process: { icon: <Loader2 size={16} className="animate-spin" />, color: "text-amber-600", bgLight: "bg-amber-50", label: "In Process" },
-  order_deleted: { icon: <Trash2 size={16} />, color: "text-rose-600", bgLight: "bg-rose-50", label: "Deleted" },
-  out_of_stock: { icon: <AlertTriangle size={16} />, color: "text-orange-600", bgLight: "bg-orange-50", label: "Out of Stock" },
-  new_order: { icon: <Package size={16} />, color: "text-indigo-600", bgLight: "bg-indigo-50", label: "New Order" },
-  login: { icon: <LogIn size={16} />, color: "text-slate-600", bgLight: "bg-slate-50", label: "Login" },
-  system: { icon: <Info size={16} />, color: "text-purple-600", bgLight: "bg-purple-50", label: "System" },
-  chat_message: { icon: <MessageCircle size={16} />, color: "text-teal-600", bgLight: "bg-teal-50", label: "Chat" },
+  order_request:  { icon: <ShoppingCart size={15} className="text-white" />, color: "text-blue-600",   bgLight: "bg-blue-50",   label: "Request",    gradient: "linear-gradient(135deg, #3b82f6, #2563eb)" },
+  order_approved: { icon: <CheckCircle2 size={15} className="text-white" />, color: "text-emerald-600",bgLight: "bg-emerald-50",label: "Approved",   gradient: "linear-gradient(135deg, #10b981, #059669)" },
+  order_cancelled:{ icon: <XCircle size={15} className="text-white" />,      color: "text-red-600",    bgLight: "bg-red-50",    label: "Cancelled",  gradient: "linear-gradient(135deg, #ef4444, #dc2626)" },
+  order_in_process:{ icon: <Loader2 size={15} className="text-white animate-spin" />, color: "text-amber-600", bgLight: "bg-amber-50", label: "In Process", gradient: "linear-gradient(135deg, #f59e0b, #d97706)" },
+  order_deleted:  { icon: <Trash2 size={15} className="text-white" />,       color: "text-rose-600",   bgLight: "bg-rose-50",   label: "Deleted",    gradient: "linear-gradient(135deg, #f43f5e, #e11d48)" },
+  out_of_stock:   { icon: <AlertTriangle size={15} className="text-white" />,color: "text-orange-600", bgLight: "bg-orange-50", label: "Out of Stock",gradient: "linear-gradient(135deg, #f97316, #ea580c)" },
+  new_order:      { icon: <Package size={15} className="text-white" />,      color: "text-indigo-600", bgLight: "bg-indigo-50", label: "New Order",  gradient: "linear-gradient(135deg, #6366f1, #4f46e5)" },
+  login:          { icon: <LogIn size={15} className="text-white" />,        color: "text-slate-600",  bgLight: "bg-slate-50",  label: "Login",      gradient: "linear-gradient(135deg, #64748b, #475569)" },
+  system:         { icon: <Info size={15} className="text-white" />,         color: "text-purple-600", bgLight: "bg-purple-50", label: "System",     gradient: "linear-gradient(135deg, #8b5cf6, #7c3aed)" },
+  chat_message:   { icon: <MessageCircle size={15} className="text-white" />,color: "text-teal-600",   bgLight: "bg-teal-50",   label: "Chat",       gradient: "linear-gradient(135deg, #14b8a6, #0d9488)" },
 };
 
-const FILTER_TABS: { key: FilterCategory; label: string; icon: React.ReactNode; color: string; activeBg: string; activeBorder: string; activeText: string }[] = [
-  { key: "all",    label: "All",           icon: <Bell size={14} />,         color: "text-gray-500",   activeBg: "bg-blue-50",   activeBorder: "border-blue-300",   activeText: "text-blue-700" },
-  { key: "orders", label: "Orders",        icon: <Package size={14} />,      color: "text-indigo-500", activeBg: "bg-indigo-50", activeBorder: "border-indigo-300", activeText: "text-indigo-700" },
-  { key: "system", label: "System Alerts", icon: <ShieldAlert size={14} />,  color: "text-purple-500", activeBg: "bg-purple-50", activeBorder: "border-purple-300", activeText: "text-purple-700" },
-  { key: "chat",   label: "Chat",          icon: <MessageCircle size={14} />,color: "text-teal-500",   activeBg: "bg-teal-50",   activeBorder: "border-teal-300",   activeText: "text-teal-700" },
+const FILTER_TABS: { key: FilterCategory; label: string; icon: React.ReactNode; gradient: string }[] = [
+  { key: "all",    label: "All",           icon: <Bell size={13} />,          gradient: "linear-gradient(135deg, #3b82f6, #2563eb)" },
+  { key: "orders", label: "Orders",        icon: <Package size={13} />,       gradient: "linear-gradient(135deg, #6366f1, #4f46e5)" },
+  { key: "system", label: "System Alerts", icon: <ShieldAlert size={13} />,   gradient: "linear-gradient(135deg, #8b5cf6, #7c3aed)" },
+  { key: "chat",   label: "Chat",          icon: <MessageCircle size={13} />, gradient: "linear-gradient(135deg, #14b8a6, #0d9488)" },
 ];
 
 function timeAgo(date: Date): string {
@@ -299,7 +295,6 @@ export default function Notifications() {
 
   const allNotifs = notifications as Notif[];
 
-  // Per-category counts
   const isUnread = (n: Notif) => !n.readBy.split(",").filter(Boolean).includes(workerID);
   const countFor = (types: NotifType[]) => allNotifs.filter(n => types.includes(n.type) && isUnread(n)).length;
   const tabCounts: Record<FilterCategory, number> = {
@@ -309,7 +304,6 @@ export default function Notifications() {
     chat:   countFor(CHAT_TYPES),
   };
 
-  // Filter
   const filteredNotifs = allNotifs.filter(n => {
     if (filter === "all") return true;
     if (filter === "orders") return ORDER_TYPES.includes(n.type);
@@ -318,7 +312,6 @@ export default function Notifications() {
     return true;
   });
 
-  // Group by date
   const groupedNotifs: { label: string; items: Notif[] }[] = [];
   filteredNotifs.forEach(n => {
     const d = new Date(n.createdAt);
@@ -342,7 +335,7 @@ export default function Notifications() {
       .filter(n => !n.readBy.split(",").filter(Boolean).includes(workerID))
       .map(n => n.id);
     if (unreadIds.length > 0) markReadMutation.mutate({ workerID, ids: unreadIds });
-  }, [allNotifs, workerID]);
+  }, [allNotifs, workerID, markReadMutation]);
 
   const handleClick = (notif: Notif) => {
     const isRead = notif.readBy.split(",").filter(Boolean).includes(workerID);
@@ -366,122 +359,180 @@ export default function Notifications() {
 
   return (
     <AppLayout pageTitle="Notifications">
-      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-3 sm:py-5">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3 sm:mb-5 gap-2">
-          <div className="min-w-0">
-            <h1 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-1.5 leading-tight">
-              <Bell size={16} className="text-blue-600 shrink-0" />
-              <span className="truncate">Notification Center</span>
+      <style>{`
+        @keyframes floatOrb {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-10px) scale(1.04); }
+        }
+        .notif-orb { animation: floatOrb 8s ease-in-out infinite; }
+        .notif-orb-slow { animation: floatOrb 11s ease-in-out infinite reverse; }
+        @keyframes scanLine {
+          0% { transform: translateY(-100%); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(500%); opacity: 0; }
+        }
+        .notif-scan { animation: scanLine 4s ease-in-out infinite; }
+      `}</style>
+
+      {/* Hero Banner */}
+      <div className="relative overflow-hidden" style={{
+        background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4338ca 60%, #6366f1 100%)",
+        minHeight: "120px"
+      }}>
+        {/* Grid overlay */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+          backgroundSize: "32px 32px"
+        }} />
+        {/* Floating orbs */}
+        <div className="absolute top-2 right-10 w-24 h-24 rounded-full notif-orb opacity-20"
+          style={{ background: "radial-gradient(circle, #a5b4fc, #6366f1)" }} />
+        <div className="absolute bottom-0 right-32 w-14 h-14 rounded-full notif-orb-slow opacity-15"
+          style={{ background: "radial-gradient(circle, #c7d2fe, #818cf8)" }} />
+        <div className="absolute top-4 left-1/3 w-10 h-10 rounded-full notif-orb opacity-10"
+          style={{ background: "radial-gradient(circle, #e0e7ff, #a5b4fc)" }} />
+        {/* Scan line */}
+        <div className="absolute inset-x-0 h-px notif-scan"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(165,180,252,0.6), transparent)" }} />
+
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-900/40"
+                style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1))", border: "1px solid rgba(255,255,255,0.3)" }}>
+                <Bell size={22} className="text-white" />
+              </div>
               {unreadCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] bg-blue-500 text-white text-[9px] font-bold rounded-full px-1 shadow-sm shrink-0">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
+                <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 flex items-center justify-center shadow-sm px-1">
+                  <span className="text-[9px] font-bold text-white">{unreadCount > 99 ? "99+" : unreadCount}</span>
+                </div>
               )}
-            </h1>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {unreadCount > 0 ? (
-                <span className="text-blue-600 font-medium">{unreadCount} unread</span>
-              ) : (
-                <span className="text-emerald-600 font-medium">All caught up!</span>
-              )}
-              {" "}·{" "}{allNotifs.length} total
-            </p>
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-indigo-300 flex items-center justify-center shadow-sm">
+                <Sparkles size={8} className="text-white" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white tracking-tight">Notification Center</h1>
+              <p className="text-indigo-200 text-xs mt-0.5">
+                {unreadCount > 0
+                  ? <span className="text-indigo-100 font-semibold">{unreadCount} unread</span>
+                  : <span className="text-emerald-300 font-semibold">All caught up!</span>
+                }
+                {" · "}{allNotifs.length} total
+              </p>
+            </div>
           </div>
-          <Button
+
+          {/* Mark all read button */}
+          <button
             onClick={handleMarkAllRead}
             disabled={unreadCount === 0 || markReadMutation.isPending}
-            variant="outline"
-            size="sm"
-            className={`text-[11px] gap-1 shrink-0 h-8 px-2.5 transition-all ${
-              unreadCount > 0
-                ? "border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
-                : "opacity-40 cursor-not-allowed"
-            }`}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-indigo-100 transition-all disabled:opacity-40"
+            style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}
           >
-            {markReadMutation.isPending ? (
-              <Loader2 size={11} className="animate-spin" />
-            ) : (
-              <CheckCheck size={11} />
-            )}
-            Mark all as read
-          </Button>
+            {markReadMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <CheckCheck size={12} />}
+            Mark all read
+          </button>
         </div>
+      </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {FILTER_TABS.map(tab => {
-            const isActive = filter === tab.key;
-            const cnt = tabCounts[tab.key];
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap border-2 ${
-                  isActive
-                    ? `${tab.activeBg} ${tab.activeBorder} ${tab.activeText} shadow-sm`
-                    : `${tab.color} hover:bg-gray-50 border-transparent hover:border-gray-200`
-                }`}
-              >
-                <span className={isActive ? tab.activeText : tab.color}>{tab.icon}</span>
-                {tab.label}
-                {cnt > 0 && (
-                  <span className={`inline-flex items-center justify-center min-w-[16px] h-[16px] rounded-full text-[9px] font-bold px-0.5 ${
-                    isActive
-                      ? `${tab.activeBorder.replace("border-", "bg-").replace("-300", "-500")} text-white`
-                      : "bg-gray-200 text-gray-600"
-                  }`}>
-                    {cnt > 99 ? "99+" : cnt}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      {/* Main content */}
+      <div className="px-3 sm:px-4 lg:px-6 py-4 sm:py-5" style={{ background: "linear-gradient(180deg, rgba(238,242,255,0.5) 0%, rgba(245,247,255,0.2) 100%)" }}>
+        <div className="max-w-3xl mx-auto">
 
-        {/* Notification List */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-16 gap-2 text-gray-400">
-            <Loader2 size={20} className="animate-spin" />
-            <span>Loading notifications...</span>
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+            {FILTER_TABS.map(tab => {
+              const isActive = filter === tab.key;
+              const cnt = tabCounts[tab.key];
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap"
+                  style={isActive
+                    ? { background: tab.gradient, color: "white", boxShadow: "0 3px 10px rgba(0,0,0,0.15)" }
+                    : { background: "rgba(255,255,255,0.8)", color: "#6b7280", border: "1px solid rgba(229,231,235,0.8)" }
+                  }
+                >
+                  <span>{tab.icon}</span>
+                  {tab.label}
+                  {cnt > 0 && (
+                    <span
+                      className="inline-flex items-center justify-center min-w-[16px] h-[16px] rounded-full text-[9px] font-bold px-0.5"
+                      style={isActive
+                        ? { background: "rgba(255,255,255,0.3)", color: "white" }
+                        : { background: "rgba(99,102,241,0.1)", color: "#6366f1" }
+                      }
+                    >
+                      {cnt > 99 ? "99+" : cnt}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            {/* Mobile mark all read */}
+            <button
+              onClick={handleMarkAllRead}
+              disabled={unreadCount === 0 || markReadMutation.isPending}
+              className="sm:hidden flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium text-gray-500 transition-all ml-auto disabled:opacity-40"
+              style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(229,231,235,0.8)" }}
+            >
+              {markReadMutation.isPending ? <Loader2 size={11} className="animate-spin" /> : <CheckCheck size={11} />}
+              Mark all
+            </button>
           </div>
-        ) : filteredNotifs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-3">
-              <Bell size={28} className="opacity-30" />
+
+          {/* Notification List */}
+          {isLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-20 rounded-2xl animate-pulse"
+                  style={{ background: "rgba(255,255,255,0.6)", animationDelay: `${i * 80}ms` }} />
+              ))}
             </div>
-            <p className="text-sm font-medium">No notifications{filter !== "all" ? ` in ${filter}` : ""}</p>
-            <p className="text-xs mt-1">You're all caught up!</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {groupedNotifs.map(({ label, items }) => (
-              <div key={label}>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</span>
-                  <div className="flex-1 h-px bg-gray-100" />
-                </div>
-                <div className="space-y-2">
-                  {items.map(notif => {
-                    const cfg = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.system;
-                    const isRead = notif.readBy.split(",").filter(Boolean).includes(workerID);
-                    return (
-                      <SwipeableNotifItem
-                        key={notif.id}
-                        notif={notif}
-                        isRead={isRead}
-                        cfg={cfg}
-                        onDelete={handleDelete}
-                        onClick={handleClick}
-                        isDeleting={deletingIds.has(notif.id)}
-                      />
-                    );
-                  })}
-                </div>
+          ) : filteredNotifs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm"
+                style={{ background: "rgba(255,255,255,0.85)", border: "1px solid rgba(165,180,252,0.3)" }}>
+                <Bell size={28} className="text-indigo-200" />
               </div>
-            ))}
-          </div>
-        )}
+              <p className="text-sm text-gray-500 font-medium">No notifications{filter !== "all" ? ` in ${filter}` : ""}</p>
+              <p className="text-xs text-gray-400 mt-1">You're all caught up!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {groupedNotifs.map(({ label, items }) => (
+                <div key={label}>
+                  {/* Date group label */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{label}</span>
+                    <div className="flex-1 h-px" style={{ background: "rgba(165,180,252,0.3)" }} />
+                  </div>
+                  <div className="space-y-2">
+                    {items.map(notif => {
+                      const cfg = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.system;
+                      const isRead = notif.readBy.split(",").filter(Boolean).includes(workerID);
+                      return (
+                        <SwipeableNotifItem
+                          key={notif.id}
+                          notif={notif}
+                          isRead={isRead}
+                          cfg={cfg}
+                          onDelete={handleDelete}
+                          onClick={handleClick}
+                          isDeleting={deletingIds.has(notif.id)}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </AppLayout>
   );
