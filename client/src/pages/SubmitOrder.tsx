@@ -35,7 +35,6 @@ export default function SubmitOrder() {
   const [reviewBqComment, setReviewBqComment] = useState("");
   const [debouncedReviewOrderID, setDebouncedReviewOrderID] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const scanLabel = trpc.orders.scanLabel.useMutation();
 
   const SCAN_STEPS = [
     { icon: "🔍", label: "Uploading image to AI...", sub: "Preparing label for analysis" },
@@ -79,43 +78,44 @@ export default function SubmitOrder() {
 
   const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith("image/")) { toast.error("Please select an image file."); return; }
-    if (file.size > 10 * 1024 * 1024) { toast.error("Image must be under 10MB."); return; }
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target?.result as string;
-      setScannedImageUrl(dataUrl);
-      setScanStatusIdx(0);
-      setScannerStep("scanning");
-      const base64 = dataUrl.split(",")[1];
-      const mimeType = file.type;
-      try {
-        const result = await scanLabel.mutateAsync({ imageBase64: base64, mimeType });
-        setScannedData(result as ScannedData);
-        if (!(result as ScannedData).mastercardValid) {
-          setScannerStep("rejected");
-        } else {
-          const d = result as ScannedData;
-          setReviewOrderID(d.productionOrder ?? "");
-          setReviewFluteType(d.fluteType ?? "");
-          setReviewSizeW(d.boardWidth ? String(d.boardWidth) : "");
-          setReviewSizeL(d.boardLength ? String(d.boardLength) : "");
-          setReviewQty(d.qty ? String(d.qty) : "");
-          // Strip fluteType prefix from bqComment (e.g. "BA-LR170..." → "LR170...")
-          const rawBq = d.bqComment ?? "";
-          const flutePrefix = d.fluteType ? d.fluteType + "-" : "";
-          const strippedBq = flutePrefix && rawBq.toUpperCase().startsWith(flutePrefix.toUpperCase())
-            ? rawBq.slice(flutePrefix.length)
-            : rawBq;
-          setReviewBqComment(strippedBq);
-          setScannerStep("review");
-        }
-      } catch (err: unknown) {
-        const e = err as { message?: string };
-        toast.error(e?.message ?? "Failed to scan label.");
-        setScannerStep("upload");
+    if (file.size > 15 * 1024 * 1024) { toast.error("Image must be under 15MB."); return; }
+    // Show preview immediately
+    const previewUrl = URL.createObjectURL(file);
+    setScannedImageUrl(previewUrl);
+    setScanStatusIdx(0);
+    setScannerStep("scanning");
+    try {
+      // Use multipart fetch to /api/scan-label (avoids tRPC batch + cookie issues)
+      const formData = new FormData();
+      formData.append("image", file);
+      const resp = await fetch("/api/scan-label", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      if (!resp.ok) {
+        const errBody = await resp.json().catch(() => ({}));
+        throw new Error(errBody?.error ?? `Server error ${resp.status}`);
       }
-    };
-    reader.readAsDataURL(file);
+      const result: ScannedData = await resp.json();
+      setScannedData(result);
+      if (!result.mastercardValid) {
+        setScannerStep("rejected");
+      } else {
+        setReviewOrderID(result.productionOrder ?? "");
+        setReviewFluteType(result.fluteType ?? "");
+        setReviewSizeW(result.boardWidth ? String(result.boardWidth) : "");
+        setReviewSizeL(result.boardLength ? String(result.boardLength) : "");
+        setReviewQty(result.qty ? String(result.qty) : "");
+        // bqComment already stripped of fluteType prefix by server prompt
+        setReviewBqComment(result.bqComment ?? "");
+        setScannerStep("review");
+      }
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to scan label.");
+      setScannerStep("upload");
+    }
   };
 
   const handleScannerSubmit = async () => {

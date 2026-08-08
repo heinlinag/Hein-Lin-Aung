@@ -11,6 +11,7 @@ import { serveStatic, setupVite } from "./vite";
 import { getDb } from "../db";
 import { systemSettings } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
+import multer from "multer";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -40,6 +41,77 @@ async function startServer() {
 
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+
+  // ─── Label Scanner Route (multipart, bypasses tRPC to avoid cookie/batch issues) ───
+  const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
+  app.post("/api/scan-label", upload.single("image"), async (req, res) => {
+    try {
+      // Authenticate via session cookie (same as protectedProcedure)
+      const { sdk } = await import("./sdk");
+      let authed = false;
+      try {
+        await sdk.authenticateRequest(req as any);
+        authed = true;
+      } catch {
+        authed = false;
+      }
+      if (!authed) {
+        return res.status(401).json({ error: "Please login first", code: 10001 });
+      }
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+      const base64 = req.file.buffer.toString("base64");
+      const mimeType = req.file.mimetype || "image/jpeg";
+      const dataUrl = `data:${mimeType};base64,${base64}`;
+      const { invokeLLM } = await import("./llm");
+      const result = await invokeLLM({
+        model: "gemini-3-flash-preview",
+        messages: [
+          {
+            role: "system",
+            content: `You are a precise OCR assistant for GS Paper & Packaging Sdn Bhd production labels. Extract ONLY these fields and return valid JSON. Rules: 1) Check MASTERCARD field - if NOT "PB" set mastercardValid=false and all other fields null. 2) productionOrder: value after "PRODUCTION ORDER:" (e.g. "BA-181"). 3) boardWidth and boardLength: two numbers from "BOARD Wid x Len" (e.g. 1630 and 1800). 4) qty: UNIT QTY value (fallback to ORDER QTY). 5) bqComment: full string after "Comment:" or "BQ" label, WITHOUT the fluteType prefix (e.g. "LR170MP140MP140MP140LR170" not "BA-LR170..."). 6) fluteType: prefix before first "-" in the BQ comment string (e.g. "BA" from "BA-LR170..."). Return ONLY JSON.`,
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Extract the label fields from this image." },
+              { type: "image_url", image_url: { url: dataUrl, detail: "high" } },
+            ] as Array<{ type: string; text?: string; image_url?: { url: string; detail: string } }>,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "label_extraction",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                mastercardValid: { type: "boolean" },
+                mastercardValue: { type: ["string", "null"] },
+                productionOrder: { type: ["string", "null"] },
+                boardWidth: { type: ["number", "null"] },
+                boardLength: { type: ["number", "null"] },
+                qty: { type: ["number", "null"] },
+                bqComment: { type: ["string", "null"] },
+                fluteType: { type: ["string", "null"] },
+              },
+              required: ["mastercardValid","mastercardValue","productionOrder","boardWidth","boardLength","qty","bqComment","fluteType"],
+              additionalProperties: false,
+            },
+          },
+        },
+      } as Parameters<typeof invokeLLM>[0]);
+      const raw = result.choices[0].message.content;
+      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      return res.json(parsed);
+    } catch (err) {
+      console.error("[scan-label] error:", err);
+      return res.status(500).json({ error: String(err) });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",
