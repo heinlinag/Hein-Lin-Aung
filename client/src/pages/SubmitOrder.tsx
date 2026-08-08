@@ -103,6 +103,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
   const [qty, setQty] = useState("");
   const [bqComment, setBqComment] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showScannerConfirm, setShowScannerConfirm] = useState(false);
   const [successData, setSuccessData] = useState<{ trackingId: string; orderID: string; fluteType: string; sizeW: number; sizeL: number; qty: number; bqComment: string } | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -596,10 +597,12 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                   </div>
 
                   <div className="pt-1 pb-2">
-                    <button onClick={handleScannerSubmit} disabled={submitOrder.isPending || isReviewDuplicate}
+                    <button
+                      onClick={() => { if (!isReviewDuplicate) setShowScannerConfirm(true); }}
+                      disabled={submitOrder.isPending || isReviewDuplicate}
                       className="w-full rounded-2xl py-3.5 text-sm font-bold text-white flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] disabled:opacity-60"
                       style={{ background: isReviewDuplicate ? "linear-gradient(135deg, #9ca3af, #6b7280)" : "linear-gradient(135deg, #4f46e5, #6366f1, #7c3aed)", boxShadow: isReviewDuplicate ? "none" : "0 4px 20px rgba(99,102,241,0.35)" }}>
-                      {submitOrder.isPending ? <><Loader2 size={16} className="animate-spin" /> Submitting...</> : isReviewDuplicate ? <><AlertTriangle size={15} /> Order Already Exists</> : <><Send size={15} /> Confirm &amp; Submit Order <ArrowRight size={14} /></>}
+                      {submitOrder.isPending ? <><Loader2 size={16} className="animate-spin" /> Submitting...</> : isReviewDuplicate ? <><AlertTriangle size={15} /> Order Already Exists</> : <><Send size={15} /> Submit Order <ArrowRight size={14} /></>}
                     </button>
                   </div>
                 </div>
@@ -878,6 +881,61 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
       </div>
 
       {/* Confirmation Dialog */}
+      {/* Scanner Confirm Submission Dialog */}
+      {showScannerConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200" style={{ background: "rgba(15,10,60,0.7)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-md animate-in zoom-in-95 duration-200 rounded-2xl overflow-hidden shadow-2xl" style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(255,255,255,0.9)" }}>
+            <div className="h-1" style={{ background: "linear-gradient(90deg, #f59e0b, #ef4444, #f97316)" }} />
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md" style={{ background: "linear-gradient(135deg, #fef3c7, #fde68a)" }}>
+                  <AlertTriangle size={22} className="text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-lg">Confirm Submission</h3>
+                  <p className="text-xs text-gray-500">Review your order details</p>
+                </div>
+              </div>
+              <div className="rounded-2xl p-4 mb-5 space-y-2.5" style={{ background: "linear-gradient(135deg, rgba(238,242,255,0.8), rgba(224,231,255,0.4))", border: "1px solid rgba(199,210,254,0.5)" }}>
+                {[
+                  { label: "Production Order", value: reviewOrderID.trim(), cls: "font-bold text-indigo-700" },
+                  { label: "Flute Type", value: reviewFluteType, cls: "font-semibold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-lg text-xs" },
+                  { label: "Size", value: `${reviewSizeW} × ${reviewSizeL} mm`, cls: "font-mono text-xs" },
+                  { label: "Qty", value: `${reviewQty} pcs`, cls: "font-bold text-lg text-emerald-700" },
+                ].map(({ label, value, cls }) => (
+                  <div key={label} className="flex justify-between text-sm items-center">
+                    <span className="text-gray-500">{label}</span>
+                    <span className={cls}>{value}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between text-sm items-start">
+                  <span className="text-gray-500">BQ</span>
+                  <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-lg font-mono font-semibold text-[10px] break-words max-w-[60%] text-right">{reviewBqComment}</span>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowScannerConfirm(false)}
+                  className="flex-1 rounded-xl py-3 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
+                  style={{ border: "2px solid rgba(229,231,235,1)" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { setShowScannerConfirm(false); handleScannerSubmit(); }}
+                  disabled={submitOrder.isPending}
+                  className="flex-1 rounded-xl py-3 text-sm font-bold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)", boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}
+                >
+                  {submitOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showConfirm && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200" style={{ background: "rgba(15,10,60,0.7)", backdropFilter: "blur(8px)" }}>
           <div className="w-full max-w-md animate-in zoom-in-95 duration-200 rounded-2xl overflow-hidden shadow-2xl" style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(255,255,255,0.9)" }}>
