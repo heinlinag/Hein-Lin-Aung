@@ -372,19 +372,38 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
               {scannerStep === "upload" && (
                 <div className="glass-card rounded-2xl overflow-hidden">
                   <div className="h-0.5" style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4)" }} />
-                  <div className="p-6 text-center space-y-4">
-                    <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-lg" style={{ background: "linear-gradient(135deg, #e0e7ff, #c7d2fe)" }}>
-                      <ScanLine size={36} className="text-indigo-600" />
+                  <div className="p-5 space-y-5">
+                    {/* Hero icon + title row */}
+                    <div className="flex items-center gap-4">
+                      <div className="relative shrink-0">
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl" style={{ background: "linear-gradient(135deg, #e0e7ff, #c7d2fe)" }}>
+                          <ScanLine size={30} className="text-indigo-600" />
+                        </div>
+                        {/* Pulse ring */}
+                        <div className="absolute inset-0 rounded-2xl animate-ping opacity-20" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }} />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-black text-gray-900 text-base leading-tight">Scan Production Label</h3>
+                        <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">Point camera at the GS Paper &amp; Packaging label — AI extracts all order details automatically.</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-gray-800 text-lg">Scan Production Label</h3>
-                      <p className="text-sm text-gray-500 mt-1">Take a photo or upload an image of the GS Paper &amp; Packaging label. The system will automatically extract the order details.</p>
-                    </div>
-                    <div className="rounded-xl p-3 text-left space-y-1.5" style={{ background: "rgba(238,242,255,0.8)", border: "1px solid rgba(199,210,254,0.5)" }}>
-                      <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wide">What will be extracted:</p>
-                      {["✓ Production Order ID", "✓ Board Size (W × L mm)", "✓ Unit Quantity (pcs)", "✓ BQ Comment & Flute Type", "✓ MASTERCARD PB validation"].map(t => (
-                        <p key={t} className="text-xs text-gray-600">{t}</p>
-                      ))}
+                    {/* Checklist grid */}
+                    <div className="rounded-2xl p-4" style={{ background: "rgba(238,242,255,0.8)", border: "1px solid rgba(199,210,254,0.5)" }}>
+                      <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3">What AI will extract</p>
+                      <div className="grid grid-cols-1 gap-2">
+                        {[
+                          { icon: "🏷️", label: "Production Order ID" },
+                          { icon: "📐", label: "Board Size (W × L mm)" },
+                          { icon: "📦", label: "Unit Quantity (pcs)" },
+                          { icon: "🔤", label: "BQ Comment & Flute Type" },
+                          { icon: "✅", label: "MASTERCARD PB validation" },
+                        ].map(item => (
+                          <div key={item.label} className="flex items-center gap-2.5">
+                            <span className="text-sm leading-none">{item.icon}</span>
+                            <span className="text-xs font-medium text-gray-700">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     {/* Desktop notice — no camera available */}
                     <div className="hidden lg:flex flex-col items-center gap-3 rounded-xl p-4 text-center" style={{ background: "rgba(255,237,213,0.7)", border: "1px solid rgba(251,146,60,0.3)" }}>
