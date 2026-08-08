@@ -504,29 +504,49 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
               {scannerStep === "rejected" && scannedData && (
                 <div className="glass-card rounded-2xl overflow-hidden">
                   <div className="h-0.5" style={{ background: "linear-gradient(90deg, #ef4444, #f97316)" }} />
-                  <div className="p-6 text-center space-y-4">
-                    {scannedImageUrl && <img src={scannedImageUrl} alt="Scanned label" className="w-full max-h-40 object-contain rounded-xl border border-red-100 mx-auto opacity-60" />}
-                    <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "linear-gradient(135deg, #fee2e2, #fecaca)" }}>
-                      <ShieldX size={32} className="text-red-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-red-700 text-lg">Label Rejected</h3>
-                      <p className="text-sm text-gray-600 mt-1">This label is not valid for PP4 Manual Slitter.</p>
-                    </div>
-                    <div className="rounded-xl p-4 text-left space-y-2" style={{ background: "rgba(254,242,242,0.9)", border: "1px solid rgba(252,165,165,0.5)" }}>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">MASTERCARD found</span>
-                        <span className="font-bold text-red-600">{scannedData.mastercardValue ?? "Not found"}</span>
+                  <div className="p-5 space-y-4">
+                    {/* Image preview — dimmed */}
+                    {scannedImageUrl && (
+                      <div className="relative rounded-xl overflow-hidden" style={{ border: "2px solid rgba(239,68,68,0.25)" }}>
+                        <img src={scannedImageUrl} alt="Scanned label" className="w-full max-h-40 object-contain opacity-50" />
+                        <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(254,242,242,0.4)" }}>
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg, #fee2e2, #fecaca)" }}>
+                            <ShieldX size={24} className="text-red-500" />
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Required</span>
-                        <span className="font-bold text-gray-700">PB</span>
+                    )}
+                    {/* Header row */}
+                    <div className="flex items-center gap-3">
+                      {!scannedImageUrl && (
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #fee2e2, #fecaca)" }}>
+                          <ShieldX size={24} className="text-red-500" />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="font-black text-red-700 text-base leading-tight">Label Rejected</h3>
+                        <p className="text-xs text-gray-500 mt-0.5">This label is not valid for PP4 Manual Slitter.</p>
                       </div>
-                      <p className="text-xs text-red-600 mt-2">Only labels with MASTERCARD: <strong>PB</strong> are accepted for this machine.</p>
                     </div>
+                    {/* Validation result section */}
+                    <div className="rounded-xl p-3 space-y-2.5" style={{ background: "rgba(254,242,242,0.7)", border: "1px solid rgba(252,165,165,0.4)" }}>
+                      <p className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-1.5"><span>🔍</span> Validation Result</p>
+                      <div className="flex items-center justify-between py-1.5 border-b" style={{ borderColor: "rgba(252,165,165,0.3)" }}>
+                        <span className="text-xs text-gray-500 font-medium">MASTERCARD found</span>
+                        <span className="text-xs font-bold text-red-600 px-2 py-0.5 rounded-md" style={{ background: "rgba(254,226,226,0.8)" }}>{scannedData.mastercardValue ?? "Not found"}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-1.5">
+                        <span className="text-xs text-gray-500 font-medium">Required value</span>
+                        <span className="text-xs font-bold text-emerald-700 px-2 py-0.5 rounded-md" style={{ background: "rgba(209,250,229,0.8)" }}>PB</span>
+                      </div>
+                      <p className="text-[11px] text-red-600 leading-relaxed pt-1" style={{ borderTop: "1px solid rgba(252,165,165,0.3)" }}>
+                        Only labels with <strong>MASTERCARD: PB</strong> are accepted for this machine.
+                      </p>
+                    </div>
+                    {/* Action button */}
                     <button onClick={() => { setScannerStep("upload"); setScannedImageUrl(null); setScannedData(null); }}
-                      className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white"
-                      style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)" }}>
+                      className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-all active:scale-[0.98]"
+                      style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)", boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}>
                       <RefreshCw size={14} /> Try Another Label
                     </button>
                   </div>
