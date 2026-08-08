@@ -24,6 +24,7 @@ export default function SubmitOrder() {
   const { worker } = useAuth();
   const [mode, setMode] = useState<"manual" | "scanner">("manual");
   const [scannerStep, setScannerStep] = useState<ScannerStep>("upload");
+  const [scanStatusIdx, setScanStatusIdx] = useState(0);
   const [scannedImageUrl, setScannedImageUrl] = useState<string | null>(null);
   const [scannedData, setScannedData] = useState<ScannedData | null>(null);
   const [reviewOrderID, setReviewOrderID] = useState("");
@@ -34,6 +35,25 @@ export default function SubmitOrder() {
   const [reviewBqComment, setReviewBqComment] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scanLabel = trpc.orders.scanLabel.useMutation();
+
+  const SCAN_STEPS = [
+    { icon: "🔍", label: "Uploading image to AI...", sub: "Preparing label for analysis" },
+    { icon: "🔐", label: "Checking MASTERCARD...", sub: "Validating PB requirement" },
+    { icon: "📦", label: "Reading Production Order...", sub: "Extracting order ID from label" },
+    { icon: "📐", label: "Measuring board dimensions...", sub: "Parsing Width × Length values" },
+    { icon: "🔢", label: "Counting unit quantity...", sub: "Reading UNIT QTY field" },
+    { icon: "🧾", label: "Parsing BQ formula...", sub: "Extracting flute type and BQ comment" },
+    { icon: "✅", label: "Finalising extraction...", sub: "Almost done, verifying data" },
+  ];
+
+  useEffect(() => {
+    if (scannerStep !== "scanning") return;
+    setScanStatusIdx(0);
+    const interval = setInterval(() => {
+      setScanStatusIdx(prev => Math.min(prev + 1, SCAN_STEPS.length - 1));
+    }, 1800);
+    return () => clearInterval(interval);
+  }, [scannerStep]);
 
   const [orderID, setOrderID] = useState("");
   const [fluteType, setFluteType] = useState("");
@@ -53,6 +73,7 @@ export default function SubmitOrder() {
     reader.onload = async (e) => {
       const dataUrl = e.target?.result as string;
       setScannedImageUrl(dataUrl);
+      setScanStatusIdx(0);
       setScannerStep("scanning");
       const base64 = dataUrl.split(",")[1];
       const mimeType = file.type;
@@ -332,16 +353,54 @@ export default function SubmitOrder() {
               {scannerStep === "scanning" && (
                 <div className="glass-card rounded-2xl overflow-hidden">
                   <div className="h-0.5 scan-pulse" style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4)" }} />
-                  <div className="p-6 text-center space-y-4">
-                    {scannedImageUrl && <img src={scannedImageUrl} alt="Scanned label" className="w-full max-h-48 object-contain rounded-xl border border-indigo-100 mx-auto" />}
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #e0e7ff, #c7d2fe)" }}>
-                        <Loader2 size={28} className="text-indigo-600 animate-spin" />
+                  <div className="p-5 space-y-4">
+                    {/* Image preview with scan overlay */}
+                    {scannedImageUrl && (
+                      <div className="relative rounded-xl overflow-hidden border border-indigo-100" style={{ maxHeight: 200 }}>
+                        <img src={scannedImageUrl} alt="Scanned label" className="w-full object-contain" style={{ maxHeight: 200 }} />
+                        {/* Animated scan line over image */}
+                        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(99,102,241,0.08) 50%, transparent 100%)" }} />
+                        <div className="absolute inset-x-0 h-0.5 scan-line" style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.8), transparent)" }} />
+                        <div className="absolute inset-0 rounded-xl" style={{ border: "2px solid rgba(99,102,241,0.3)" }} />
+                        <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{ background: "rgba(99,102,241,0.85)" }}>
+                          <Loader2 size={10} className="text-white animate-spin" />
+                          <span className="text-[10px] font-bold text-white">AI Scanning</span>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-gray-800">Analysing Label...</p>
-                        <p className="text-sm text-gray-500 mt-0.5">AI is reading the production label. This takes 5–15 seconds.</p>
-                      </div>
+                    )}
+                    {/* Current status */}
+                    <div className="rounded-xl p-4 text-center" style={{ background: "linear-gradient(135deg, rgba(238,242,255,0.9), rgba(224,231,255,0.6))", border: "1px solid rgba(199,210,254,0.5)" }}>
+                      <div className="text-3xl mb-2">{SCAN_STEPS[scanStatusIdx].icon}</div>
+                      <p className="font-bold text-gray-800 text-sm">{SCAN_STEPS[scanStatusIdx].label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{SCAN_STEPS[scanStatusIdx].sub}</p>
+                    </div>
+                    {/* Progress dots */}
+                    <div className="flex items-center gap-1.5 justify-center">
+                      {SCAN_STEPS.map((_, i) => (
+                        <div key={i} className="rounded-full transition-all duration-500"
+                          style={{
+                            width: i === scanStatusIdx ? 20 : 6,
+                            height: 6,
+                            background: i <= scanStatusIdx ? "linear-gradient(90deg, #6366f1, #8b5cf6)" : "rgba(199,210,254,0.6)"
+                          }} />
+                      ))}
+                    </div>
+                    {/* Step checklist */}
+                    <div className="space-y-1.5">
+                      {SCAN_STEPS.map((step, i) => (
+                        <div key={i} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-300 ${i === scanStatusIdx ? "opacity-100" : i < scanStatusIdx ? "opacity-60" : "opacity-25"}`}
+                          style={{ background: i <= scanStatusIdx ? "rgba(238,242,255,0.7)" : "transparent" }}>
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                            style={{ background: i < scanStatusIdx ? "linear-gradient(135deg, #10b981, #34d399)" : i === scanStatusIdx ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "rgba(199,210,254,0.4)" }}>
+                            {i < scanStatusIdx
+                              ? <CheckCircle2 size={11} className="text-white" />
+                              : i === scanStatusIdx
+                              ? <Loader2 size={10} className="text-white animate-spin" />
+                              : <div className="w-2 h-2 rounded-full bg-white/60" />}
+                          </div>
+                          <span className={`text-xs font-medium ${i === scanStatusIdx ? "text-indigo-700" : i < scanStatusIdx ? "text-emerald-700" : "text-gray-400"}`}>{step.label}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
