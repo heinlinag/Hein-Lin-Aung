@@ -4,7 +4,7 @@ import { saveSubscription, sendPushNotification, getAllSubscriptions, getSubscri
 import { COOKIE_NAME, ADMIN_PASSWORD } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { notifyOwner } from "./_core/notification";
 import { createAuditLog, getAuditLogs } from "./db";
 import {
@@ -522,6 +522,59 @@ export const appRouter = router({
         const { qrScanLog } = await import("../drizzle/schema");
         const { desc } = await import("drizzle-orm");
         return db.select().from(qrScanLog).orderBy(desc(qrScanLog.createdAt)).limit(200);
+      }),
+    scanLabel: protectedProcedure
+      .input(z.object({
+        imageBase64: z.string().min(1),
+        mimeType: z.string().default("image/jpeg"),
+      }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const dataUrl = `data:${input.mimeType};base64,${input.imageBase64}`;
+        const result = await invokeLLM({
+          model: "gemini-3-flash-preview",
+          messages: [
+            {
+              role: "system",
+              content: `You are a precise OCR assistant for GS Paper & Packaging Sdn Bhd production labels. Extract ONLY these fields and return valid JSON. Rules: 1) Check MASTERCARD field - if NOT "PB" set mastercardValid=false and all other fields null. 2) productionOrder: value after "PRODUCTION ORDER:" (e.g. "BA-181"). 3) boardWidth and boardLength: two numbers from "BOARD Wid x Len" (e.g. 1630 and 1800). 4) qty: UNIT QTY value (fallback to ORDER QTY). 5) bqComment: full string after "Comment:" or "BQ" label. 6) fluteType: prefix before first "-" in bqComment (e.g. "BA" from "BA-LR170..."). Return ONLY JSON.`,
+            },
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "Extract the label fields from this image." },
+                { type: "image_url", image_url: { url: dataUrl, detail: "high" } },
+              ] as Array<{ type: string; text?: string; image_url?: { url: string; detail: string } }>,
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "label_extraction",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  mastercardValid: { type: "boolean" },
+                  mastercardValue: { type: ["string", "null"] },
+                  productionOrder: { type: ["string", "null"] },
+                  boardWidth: { type: ["number", "null"] },
+                  boardLength: { type: ["number", "null"] },
+                  qty: { type: ["number", "null"] },
+                  bqComment: { type: ["string", "null"] },
+                  fluteType: { type: ["string", "null"] },
+                },
+                required: ["mastercardValid","mastercardValue","productionOrder","boardWidth","boardLength","qty","bqComment","fluteType"],
+                additionalProperties: false,
+              },
+            },
+          },
+        } as Parameters<typeof invokeLLM>[0]);
+        const raw = result.choices[0].message.content;
+        try {
+          return JSON.parse(typeof raw === "string" ? raw : JSON.stringify(raw));
+        } catch {
+          throw new Error("Failed to parse label extraction result");
+        }
       }),
   }),
   // ─── Pending Requests ──────────────────────────────────────────────────────────────────────────────

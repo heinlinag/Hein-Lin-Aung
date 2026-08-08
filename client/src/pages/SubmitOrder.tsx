@@ -1,16 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { Send, Loader2, AlertTriangle, Package, Layers, Ruler, Hash, FileText, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
+import { Send, Loader2, AlertTriangle, Package, Layers, Ruler, Hash, FileText, CheckCircle2, ArrowRight, Sparkles, Camera, ScanLine, Upload, Edit3, RefreshCw, XCircle, ShieldCheck, ShieldX } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 
 const FLUTE_TYPES = ["BA", "BE", "C", "A", "B", "E", "Manual"] as const;
+type ScannerStep = "upload" | "scanning" | "review" | "rejected";
+interface ScannedData {
+  mastercardValid: boolean;
+  mastercardValue: string | null;
+  productionOrder: string | null;
+  boardWidth: number | null;
+  boardLength: number | null;
+  qty: number | null;
+  bqComment: string | null;
+  fluteType: string | null;
+}
 
 export default function SubmitOrder() {
   const [, navigate] = useLocation();
   const { worker } = useAuth();
+  const [mode, setMode] = useState<"manual" | "scanner">("manual");
+  const [scannerStep, setScannerStep] = useState<ScannerStep>("upload");
+  const [scannedImageUrl, setScannedImageUrl] = useState<string | null>(null);
+  const [scannedData, setScannedData] = useState<ScannedData | null>(null);
+  const [reviewOrderID, setReviewOrderID] = useState("");
+  const [reviewFluteType, setReviewFluteType] = useState("");
+  const [reviewSizeW, setReviewSizeW] = useState("");
+  const [reviewSizeL, setReviewSizeL] = useState("");
+  const [reviewQty, setReviewQty] = useState("");
+  const [reviewBqComment, setReviewBqComment] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const scanLabel = trpc.orders.scanLabel.useMutation();
 
   const [orderID, setOrderID] = useState("");
   const [fluteType, setFluteType] = useState("");
@@ -23,7 +46,73 @@ export default function SubmitOrder() {
   const [successData, setSuccessData] = useState<{ trackingId: string; orderID: string; fluteType: string; sizeW: number; sizeL: number; qty: number; bqComment: string } | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
 
-  const notifyAll = trpc.push.sendToAll.useMutation();
+  const handleFileSelect = async (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image file."); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error("Image must be under 10MB."); return; }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result as string;
+      setScannedImageUrl(dataUrl);
+      setScannerStep("scanning");
+      const base64 = dataUrl.split(",")[1];
+      const mimeType = file.type;
+      try {
+        const result = await scanLabel.mutateAsync({ imageBase64: base64, mimeType });
+        setScannedData(result as ScannedData);
+        if (!(result as ScannedData).mastercardValid) {
+          setScannerStep("rejected");
+        } else {
+          const d = result as ScannedData;
+          setReviewOrderID(d.productionOrder ?? "");
+          setReviewFluteType(d.fluteType ?? "");
+          setReviewSizeW(d.boardWidth ? String(d.boardWidth) : "");
+          setReviewSizeL(d.boardLength ? String(d.boardLength) : "");
+          setReviewQty(d.qty ? String(d.qty) : "");
+          setReviewBqComment(d.bqComment ?? "");
+          setScannerStep("review");
+        }
+      } catch (err: unknown) {
+        const e = err as { message?: string };
+        toast.error(e?.message ?? "Failed to scan label.");
+        setScannerStep("upload");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleScannerSubmit = async () => {
+    if (!worker) { toast.error("Please login first."); return; }
+    if (!reviewOrderID.trim() || !reviewFluteType || !reviewSizeW || !reviewSizeL || !reviewQty || !reviewBqComment.trim()) {
+      toast.error("Please fill in all required fields."); return;
+    }
+    try {
+      const result = await submitOrder.mutateAsync({
+        orderID: reviewOrderID.trim(),
+        fluteType: reviewFluteType,
+        sizeW: parseInt(reviewSizeW),
+        sizeL: parseInt(reviewSizeL),
+        qty: parseInt(reviewQty),
+        bqComment: reviewBqComment.trim(),
+        workerID: worker.workerID,
+      });
+      toast.success("Order submitted successfully!");
+      notifyAll.mutate({ title: "New Order Submitted", body: "Order " + reviewOrderID.trim() + " (" + reviewFluteType + ") submitted by " + (worker?.name ?? "Worker"), tag: "new-order" });
+      setSuccessData({
+        trackingId: result.trackingId,
+        orderID: reviewOrderID.trim(),
+        fluteType: reviewFluteType,
+        sizeW: parseInt(reviewSizeW),
+        sizeL: parseInt(reviewSizeL),
+        qty: parseInt(reviewQty),
+        bqComment: reviewBqComment.trim(),
+      });
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to submit order.");
+    }
+  };
+
+    const notifyAll = trpc.push.sendToAll.useMutation();
   const submitOrder = trpc.orders.submit.useMutation();
 
   const [debouncedOrderID, setDebouncedOrderID] = useState("");
@@ -102,6 +191,11 @@ export default function SubmitOrder() {
   return (
     <AppLayout pageTitle="Submit Order">
       <style>{`
+        @keyframes scanPulse {
+          0%, 100% { opacity: 0.4; transform: scaleX(0.8); }
+          50% { opacity: 1; transform: scaleX(1); }
+        }
+        .scan-pulse { animation: scanPulse 1.5s ease-in-out infinite; }
         @keyframes successPop {
           0% { transform: scale(0); opacity: 0; }
           50% { transform: scale(1.2); }
@@ -165,14 +259,14 @@ export default function SubmitOrder() {
               <p className="text-indigo-200 text-xs mt-0.5">Create a new production order</p>
             </div>
           </div>
-          {worker && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
-              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-white">{worker.name.charAt(0)}</span>
-              </div>
-              <span className="text-xs text-indigo-100 font-medium">{worker.name} · {worker.workerID}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
+            <button onClick={() => setMode("manual")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === "manual" ? "bg-white text-indigo-700 shadow-sm" : "text-white/80 hover:text-white"}`}>
+              <Edit3 size={11} /> Manual
+            </button>
+            <button onClick={() => setMode("scanner")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === "scanner" ? "bg-white text-indigo-700 shadow-sm" : "text-white/80 hover:text-white"}`}>
+              <Camera size={11} /> Scanner
+            </button>
+          </div>
         </div>
       </div>
 
@@ -190,7 +284,192 @@ export default function SubmitOrder() {
       <div className="px-3 sm:px-4 lg:px-6 py-4 sm:py-5" style={{ background: "linear-gradient(180deg, rgba(238,242,255,0.6) 0%, rgba(245,247,255,0.3) 100%)" }}>
         <div className="max-w-2xl mx-auto lg:mx-0">
 
-          {/* Progress Steps */}
+          {/* ─── SCANNER MODE ─────────────────────────────────────────────── */}
+          {mode === "scanner" && (
+            <div className="space-y-4">
+              <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); e.target.value = ""; }} />
+
+              {scannerStep === "upload" && (
+                <div className="glass-card rounded-2xl overflow-hidden">
+                  <div className="h-0.5" style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4)" }} />
+                  <div className="p-6 text-center space-y-4">
+                    <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-lg" style={{ background: "linear-gradient(135deg, #e0e7ff, #c7d2fe)" }}>
+                      <ScanLine size={36} className="text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800 text-lg">Scan Production Label</h3>
+                      <p className="text-sm text-gray-500 mt-1">Take a photo or upload an image of the GS Paper &amp; Packaging label. The system will automatically extract the order details.</p>
+                    </div>
+                    <div className="rounded-xl p-3 text-left space-y-1.5" style={{ background: "rgba(238,242,255,0.8)", border: "1px solid rgba(199,210,254,0.5)" }}>
+                      <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wide">What will be extracted:</p>
+                      {["✓ Production Order ID", "✓ Board Size (W × L mm)", "✓ Unit Quantity (pcs)", "✓ BQ Comment & Flute Type", "✓ MASTERCARD PB validation"].map(t => (
+                        <p key={t} className="text-xs text-gray-600">{t}</p>
+                      ))}
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={() => fileInputRef.current?.click()}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white transition-all active:scale-[0.98]"
+                        style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)", boxShadow: "0 4px 20px rgba(99,102,241,0.35)" }}>
+                        <Camera size={16} /> Take Photo
+                      </button>
+                      <button onClick={() => {
+                        if (fileInputRef.current) {
+                          fileInputRef.current.removeAttribute("capture");
+                          fileInputRef.current.click();
+                          setTimeout(() => fileInputRef.current?.setAttribute("capture", "environment"), 500);
+                        }
+                      }}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all active:scale-[0.98]"
+                        style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(99,102,241,0.3)", color: "#4f46e5" }}>
+                        <Upload size={16} /> Upload Image
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {scannerStep === "scanning" && (
+                <div className="glass-card rounded-2xl overflow-hidden">
+                  <div className="h-0.5 scan-pulse" style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4)" }} />
+                  <div className="p-6 text-center space-y-4">
+                    {scannedImageUrl && <img src={scannedImageUrl} alt="Scanned label" className="w-full max-h-48 object-contain rounded-xl border border-indigo-100 mx-auto" />}
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #e0e7ff, #c7d2fe)" }}>
+                        <Loader2 size={28} className="text-indigo-600 animate-spin" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-800">Analysing Label...</p>
+                        <p className="text-sm text-gray-500 mt-0.5">AI is reading the production label. This takes 5–15 seconds.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {scannerStep === "rejected" && scannedData && (
+                <div className="glass-card rounded-2xl overflow-hidden">
+                  <div className="h-0.5" style={{ background: "linear-gradient(90deg, #ef4444, #f97316)" }} />
+                  <div className="p-6 text-center space-y-4">
+                    {scannedImageUrl && <img src={scannedImageUrl} alt="Scanned label" className="w-full max-h-40 object-contain rounded-xl border border-red-100 mx-auto opacity-60" />}
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: "linear-gradient(135deg, #fee2e2, #fecaca)" }}>
+                      <ShieldX size={32} className="text-red-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-red-700 text-lg">Label Rejected</h3>
+                      <p className="text-sm text-gray-600 mt-1">This label is not valid for PP4 Manual Slitter.</p>
+                    </div>
+                    <div className="rounded-xl p-4 text-left space-y-2" style={{ background: "rgba(254,242,242,0.9)", border: "1px solid rgba(252,165,165,0.5)" }}>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">MASTERCARD found</span>
+                        <span className="font-bold text-red-600">{scannedData.mastercardValue ?? "Not found"}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Required</span>
+                        <span className="font-bold text-gray-700">PB</span>
+                      </div>
+                      <p className="text-xs text-red-600 mt-2">Only labels with MASTERCARD: <strong>PB</strong> are accepted for this machine.</p>
+                    </div>
+                    <button onClick={() => { setScannerStep("upload"); setScannedImageUrl(null); setScannedData(null); }}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white"
+                      style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)" }}>
+                      <RefreshCw size={14} /> Try Another Label
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {scannerStep === "review" && scannedData && (
+                <div className="space-y-3.5">
+                  <div className="glass-card rounded-2xl overflow-hidden">
+                    <div className="h-0.5" style={{ background: "linear-gradient(90deg, #10b981, #34d399)" }} />
+                    <div className="p-4 flex items-center gap-3">
+                      {scannedImageUrl && <img src={scannedImageUrl} alt="Scanned" className="w-16 h-16 object-cover rounded-xl border border-emerald-100 flex-shrink-0" />}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <ShieldCheck size={16} className="text-emerald-600 flex-shrink-0" />
+                          <span className="text-sm font-bold text-emerald-700">MASTERCARD: PB — Verified ✓</span>
+                        </div>
+                        <p className="text-xs text-gray-500">Review extracted data. Edit any field if inaccurate, then confirm to submit.</p>
+                      </div>
+                      <button onClick={() => { setScannerStep("upload"); setScannedImageUrl(null); setScannedData(null); }}
+                        className="flex-shrink-0 p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all">
+                        <XCircle size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="glass-card rounded-2xl overflow-hidden">
+                    <div className="h-0.5" style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }} />
+                    <div className="p-4 sm:p-5 space-y-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shadow-sm" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
+                          <Package size={13} className="text-white" />
+                        </div>
+                        <h3 className="text-sm font-bold text-gray-800">Review Extracted Data</h3>
+                        <span className="ml-auto text-[10px] text-indigo-500 font-medium flex items-center gap-1"><Edit3 size={9} /> Editable</span>
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Production Order <span className="text-red-500">*</span></label>
+                          <input type="text" value={reviewOrderID} onChange={e => setReviewOrderID(e.target.value.toUpperCase())} className={inputStyle} placeholder="e.g. BA-181" />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Flute Type <span className="text-red-500">*</span></label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {(["BA","BE","C","A","B","E"] as const).map(f => (
+                              <button key={f} type="button" onClick={() => setReviewFluteType(f)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${reviewFluteType === f ? "text-white border-indigo-500 shadow-sm" : "bg-white/70 border-indigo-100 text-gray-600 hover:border-indigo-300"}`}
+                                style={reviewFluteType === f ? { background: "linear-gradient(135deg, #6366f1, #8b5cf6)" } : {}}>
+                                {f}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Width (mm) <span className="text-red-500">*</span></label>
+                          <input type="number" value={reviewSizeW} onChange={e => setReviewSizeW(e.target.value)} className={inputStyle} placeholder="1630" />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Length (mm) <span className="text-red-500">*</span></label>
+                          <input type="number" value={reviewSizeL} onChange={e => setReviewSizeL(e.target.value)} className={inputStyle} placeholder="1800" />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Qty (pcs) <span className="text-red-500">*</span></label>
+                          <input type="number" value={reviewQty} onChange={e => setReviewQty(e.target.value)} className={inputStyle} placeholder="102" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">BQ Comment <span className="text-red-500">*</span></label>
+                        <textarea value={reviewBqComment} onChange={e => setReviewBqComment(e.target.value.toUpperCase())} rows={2}
+                          className={`${inputStyle} resize-none font-mono`} placeholder="e.g. LR170MP115MP115MP115LR170" />
+                        {reviewBqComment && (
+                          <div className="mt-2 rounded-xl px-3.5 py-2.5 border" style={{ background: "linear-gradient(135deg, rgba(254,243,199,0.8), rgba(253,230,138,0.4))", border: "1px solid rgba(245,158,11,0.25)" }}>
+                            <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">Preview</p>
+                            <p className="text-xs font-mono font-bold text-amber-800 break-all">{reviewBqComment}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-1 pb-2">
+                    <button onClick={handleScannerSubmit} disabled={submitOrder.isPending}
+                      className="w-full rounded-2xl py-3.5 text-sm font-bold text-white flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] disabled:opacity-60"
+                      style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1, #7c3aed)", boxShadow: "0 4px 20px rgba(99,102,241,0.35)" }}>
+                      {submitOrder.isPending ? <><Loader2 size={16} className="animate-spin" /> Submitting...</> : <><Send size={15} /> Confirm &amp; Submit Order <ArrowRight size={14} /></>}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ─── MANUAL MODE ──────────────────────────────────────────────── */}
+          {mode === "manual" && (<>
+                    {/* Progress Steps */}
           <div className="mb-5 hidden sm:block">
             <div className="glass-card rounded-2xl p-4">
               <div className="flex items-center justify-between relative">
@@ -454,6 +733,7 @@ export default function SubmitOrder() {
               </button>
             </div>
           </form>
+          </>)}
         </div>
       </div>
 
