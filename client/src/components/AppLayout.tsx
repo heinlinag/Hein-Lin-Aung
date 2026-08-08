@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
 
@@ -56,6 +57,8 @@ function levelLabel(level: string) {
 export default function AppLayout({ children, pageTitle, headerActions, fullHeight }: AppLayoutProps) {
   const [location, navigate] = useLocation();
   const { worker, logoutWorker } = useAuth();
+  // Register push notifications on every page load (uses correct VAPID key from server)
+  usePushNotifications(worker?.workerID ?? null);
   const deactivateDevice = trpc.workers.deactivateDevice.useMutation();
   const userLevel = worker?.userLevel ?? "2";
   const lv = levelLabel(userLevel);

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { saveSubscription, sendPushNotification, getAllSubscriptions, getSubscriptionsForWorkers, sendPushToWorkers } from "./push";
+import { saveSubscription, sendPushNotification, getAllSubscriptions, getSubscriptionsForWorkers, sendPushToWorkers, sendPushToAll } from "./push";
 import { COOKIE_NAME, ADMIN_PASSWORD } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -291,6 +291,20 @@ export const appRouter = router({
           status: "current",
           submittedBy: input.workerID,
         });
+        // Push notification to Level 2 admins about new order
+        try {
+          const allWorkers = await (await import("./db")).getAllWorkers();
+          const level2IDs = allWorkers.filter((w: { userLevel: string }) => w.userLevel === "2").map((w: { workerID: string }) => w.workerID);
+          if (level2IDs.length > 0) {
+            await sendPushToWorkers(level2IDs, {
+              title: "📦 New Order Submitted",
+              body: `Order ${input.orderID} — ${input.fluteType} ${input.sizeW}×${input.sizeL} (${input.qty} pcs) by ${worker?.name || input.workerID}`,
+              type: "order",
+              url: "/stock-history",
+              tag: `order-new-${input.orderID}`,
+            });
+          }
+        } catch { /* non-blocking */ }
         return { success: true, trackingId };
       }),
     updateStatus: publicProcedure
@@ -521,6 +535,22 @@ export const appRouter = router({
           workerName: worker.name,
           actionData: input.actionData,
         });
+        // Push notification to Level 2 admins about new pending request
+        try {
+          const allWorkers = await (await import("./db")).getAllWorkers();
+          const level2IDs = allWorkers.filter((w: { userLevel: string }) => w.userLevel === "2").map((w: { workerID: string }) => w.workerID);
+          if (level2IDs.length > 0) {
+            const snapshot = JSON.parse(input.orderSnapshot);
+            await sendPushToWorkers(level2IDs, {
+              title: `🔔 New ${input.type === "delete" ? "Delete" : "Used Update"} Request`,
+              body: `${worker.name} requested ${input.type === "delete" ? "deletion of" : "used update for"} order ${snapshot.orderID || ""}`,
+              type: "approval",
+              url: "/approval-center",
+              tag: `request-new-${insertedId}`,
+              requireInteraction: true,
+            });
+          }
+        } catch { /* non-blocking */ }
         // Level 1.1: auto process-approve immediately after submission (preview only, no stock deduction)
         // Actual stock deduction happens when Level 2 final-approves
         if (worker.userLevel === "1.1" && insertedId) {
@@ -654,6 +684,19 @@ export const appRouter = router({
           }
         }
         await updatePendingRequestStatus(input.id, "approved", reviewerName, { approvedQty: finalApprovedQty });
+        // Push notification to the requester about approval
+        try {
+          if (req.requestedBy) {
+            const snapshot2 = JSON.parse(req.orderSnapshot);
+            await sendPushToWorkers([req.requestedBy], {
+              title: "✅ Request Approved",
+              body: `Your ${req.type === "delete" ? "delete" : "used update"} request for order ${snapshot2.orderID || ""} has been approved by ${reviewerName}`,
+              type: "approval",
+              url: "/approval-center",
+              tag: `request-approved-${input.id}`,
+            });
+          }
+        } catch { /* non-blocking */ }
         // Log the action
         const snapshot = JSON.parse(req.orderSnapshot);
         await createApprovalActionLog({
@@ -697,6 +740,19 @@ export const appRouter = router({
         if (!req) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
         if (req.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Request is no longer pending" });
         await updatePendingRequestStatus(input.id, "cancelled", cancellerName, { cancelReason: input.cancelReason });
+        // Push notification to the requester about cancellation
+        try {
+          if (req.requestedBy && req.requestedBy !== input.reviewerWorkerID) {
+            const snapshot2 = JSON.parse(req.orderSnapshot);
+            await sendPushToWorkers([req.requestedBy], {
+              title: "❌ Request Cancelled",
+              body: `Your ${req.type === "delete" ? "delete" : "used update"} request for order ${snapshot2.orderID || ""} was cancelled by ${cancellerName}. Reason: ${input.cancelReason}`,
+              type: "approval",
+              url: "/approval-center",
+              tag: `request-cancelled-${input.id}`,
+            });
+          }
+        } catch { /* non-blocking */ }
         // Log the action (only for Level 2 cancels — Level 1 cancels their own request)
         const snapshot = JSON.parse(req.orderSnapshot);
         const action = req.actionData ? JSON.parse(req.actionData) : null;
