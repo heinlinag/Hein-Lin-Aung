@@ -131,7 +131,7 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
   const pendingRequestsForOrder = (pendingRequestsQuery.data ?? []).filter((req: any) => req.orderID === order.orderID);
   const pendingRequestCount = pendingRequestsForOrder.length;
-  const availableQty = remaining !== null ? remaining : order.qty;
+  const availableQty = remaining !== null ? remaining : Math.max(0, order.qty - inProcessQty);
 
   const handleJobSubmit = async () => {
     setJobError("");
