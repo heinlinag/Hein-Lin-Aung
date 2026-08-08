@@ -114,6 +114,11 @@ function RequestCard({
   let action: ActionData | null = null;
   try { snapshot = JSON.parse(req.orderSnapshot); } catch { /* ignore */ }
   try { if (req.actionData) action = JSON.parse(req.actionData); } catch { /* ignore */ }
+  const liveQtyQuery = trpc.orders.getLiveQty.useQuery(
+    { orderId: req.orderId },
+    { refetchInterval: 15000, staleTime: 10000 }
+  );
+  const liveQty = liveQtyQuery.data?.qty ?? snapshot?.qty ?? 0;
 
   const isDelete = req.type === "delete";
   const isPending = req.status === "pending";
@@ -203,7 +208,7 @@ function RequestCard({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Current Qty</span>
-            <span className="text-sm font-semibold">{req.processApprovedQty ? `${snapshot.qty - req.processApprovedQty} pcs` : `${snapshot.qty} pcs`}</span>
+            <span className="text-sm font-semibold">{req.processApprovedQty ? `${liveQty - req.processApprovedQty} pcs` : `${liveQty} pcs`}</span>
           </div>
         </div>
       )}
@@ -255,7 +260,7 @@ function RequestCard({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Balance</span>
-            <span className="text-sm font-semibold text-green-700">{req.processApprovedQty ? `${snapshot && snapshot.qty - req.processApprovedQty} pcs` : `${snapshot && snapshot.qty} pcs`}</span>
+            <span className="text-sm font-semibold text-green-700">{req.processApprovedQty ? `${liveQty - req.processApprovedQty} pcs` : `${liveQty} pcs`}</span>
           </div>
         </div>
       )}

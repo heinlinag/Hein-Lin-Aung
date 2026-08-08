@@ -458,6 +458,17 @@ export const appRouter = router({
         if (!order) return { found: false, order: null };
         return { found: true, order };
       }),
+    getLiveQty: publicProcedure
+      .input(z.object({ orderId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return { qty: null, status: null };
+        const { orders: ordersTable } = await import("../drizzle/schema");
+        const result = await db.select({ qty: ordersTable.qty, status: ordersTable.status })
+          .from(ordersTable).where(eq(ordersTable.id, input.orderId)).limit(1);
+        if (!result[0]) return { qty: null, status: null };
+        return { qty: result[0].qty, status: result[0].status };
+      }),
     qrUpdateBalance: publicProcedure
       .input(z.object({
         orderId: z.number().int().positive(),
