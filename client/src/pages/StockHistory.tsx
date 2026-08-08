@@ -248,7 +248,6 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
               <p className="text-white/60 text-[9px] uppercase">BQ</p>
               <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
             </div>
-            <p className="text-[9px] text-white/50 mt-1.5">(Stock: {order.qty} − In Process: {inProcessQty} = Available: {availableQty}) | Pending: {pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</p>
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
@@ -595,7 +594,6 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
               <p className="text-white/60 text-[9px] uppercase">BQ</p>
               <p className="font-mono font-bold text-[10px] break-all">{order.bqComment}</p>
             </div>
-            <p className="text-[9px] text-white/50 mt-1.5">(Stock: {order.qty} − In Process: {inProcessQty} = Available: {availableQty}) | Pending: {pendingRequestCount > 0 ? `${pendingRequestCount} job${pendingRequestCount > 1 ? "s" : ""}` : "N/A"}</p>
           </div>
         </div>
         <div className="p-4 overflow-y-auto flex-1">
