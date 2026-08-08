@@ -522,7 +522,7 @@ export default function Home() {
                       {stat.icon}
                     </div>
                     {stat.label === "Pending Approvals" && pendingCount > 0 && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-amber-700"
+                      <span className="hidden lg:inline text-[10px] font-bold px-2 py-0.5 rounded-full text-amber-700"
                         style={{ background: "rgba(245,158,11,0.12)" }}>
                         Action needed
                       </span>
