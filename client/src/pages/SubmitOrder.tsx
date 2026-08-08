@@ -447,53 +447,52 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                   <div className="p-5 space-y-4">
                     {/* Image preview with scan overlay */}
                     {scannedImageUrl && (
-                      <div className="relative rounded-xl overflow-hidden border border-indigo-100" style={{ maxHeight: 200 }}>
-                        <img src={scannedImageUrl} alt="Scanned label" className="w-full object-contain" style={{ maxHeight: 200 }} />
-                        {/* Animated scan line over image */}
-                        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(99,102,241,0.08) 50%, transparent 100%)" }} />
+                      <div className="relative rounded-xl overflow-hidden" style={{ maxHeight: 180, border: "2px solid rgba(99,102,241,0.25)" }}>
+                        <img src={scannedImageUrl} alt="Scanned label" className="w-full object-contain" style={{ maxHeight: 180 }} />
                         <div className="absolute inset-x-0 h-0.5 scan-line" style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.8), transparent)" }} />
-                        <div className="absolute inset-0 rounded-xl" style={{ border: "2px solid rgba(99,102,241,0.3)" }} />
-                        <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{ background: "rgba(99,102,241,0.85)" }}>
+                        <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{ background: "rgba(99,102,241,0.9)", backdropFilter: "blur(4px)" }}>
                           <Loader2 size={10} className="text-white animate-spin" />
-                          <span className="text-[10px] font-bold text-white">AI Scanning</span>
+                          <span className="text-[10px] font-bold text-white tracking-wide">AI Scanning</span>
                         </div>
                       </div>
                     )}
-                    {/* Current status */}
-                    <div className="rounded-xl p-4 text-center" style={{ background: "linear-gradient(135deg, rgba(238,242,255,0.9), rgba(224,231,255,0.6))", border: "1px solid rgba(199,210,254,0.5)" }}>
-                      <div className="text-3xl mb-2">{SCAN_STEPS[scanStatusIdx].icon}</div>
-                      <p className="font-bold text-gray-800 text-sm">{SCAN_STEPS[scanStatusIdx].label}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{SCAN_STEPS[scanStatusIdx].sub}</p>
+                    {/* Current status section */}
+                    <div className="rounded-xl p-3" style={{ background: "rgba(238,242,255,0.6)", border: "1px solid rgba(199,210,254,0.5)" }}>
+                      <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
+                        <Loader2 size={10} className="animate-spin" /> Processing
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl leading-none">{SCAN_STEPS[scanStatusIdx].icon}</div>
+                        <div>
+                          <p className="font-bold text-gray-800 text-sm leading-tight">{SCAN_STEPS[scanStatusIdx].label}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{SCAN_STEPS[scanStatusIdx].sub}</p>
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(199,210,254,0.4)" }}>
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${((scanStatusIdx + 1) / SCAN_STEPS.length) * 100}%`, background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }} />
+                      </div>
+                      <p className="text-[10px] text-indigo-400 mt-1 text-right">{scanStatusIdx + 1} / {SCAN_STEPS.length}</p>
                     </div>
-                    {/* Progress dots */}
-                    <div className="flex items-center gap-1.5 justify-center">
-                      {SCAN_STEPS.map((_, i) => (
-                        <div key={i} className="rounded-full transition-all duration-500"
-                          style={{
-                            width: i === scanStatusIdx ? 20 : 6,
-                            height: 6,
-                            background: i <= scanStatusIdx ? "linear-gradient(90deg, #6366f1, #8b5cf6)" : "rgba(199,210,254,0.6)"
-                          }} />
-                      ))}
-                    </div>
-                    {/* Step checklist */}
-                    <div className="space-y-1.5">
+                    {/* Step checklist section */}
+                    <div className="rounded-xl p-3 space-y-1.5" style={{ background: "rgba(240,253,244,0.5)", border: "1px solid rgba(134,239,172,0.3)" }}>
+                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">✅ Completed Steps</p>
                       {SCAN_STEPS.map((step, i) => (
                         i > scanStatusIdx ? null : (
                           <div key={i}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg"
+                            className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg"
                             style={{
-                              background: i <= scanStatusIdx ? "rgba(238,242,255,0.7)" : "transparent",
+                              background: i < scanStatusIdx ? "rgba(240,253,244,0.8)" : "rgba(238,242,255,0.8)",
                               animation: "slideInStep 0.35s cubic-bezier(0.34,1.56,0.64,1) both",
-                              opacity: i < scanStatusIdx ? 0.65 : 1,
                             }}>
-                            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm"
                               style={{ background: i < scanStatusIdx ? "linear-gradient(135deg, #10b981, #34d399)" : "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
                               {i < scanStatusIdx
                                 ? <CheckCircle2 size={11} className="text-white" />
                                 : <Loader2 size={10} className="text-white animate-spin" />}
                             </div>
-                            <span className={`text-xs font-medium ${i === scanStatusIdx ? "text-indigo-700" : "text-emerald-700"}`}>{step.label}</span>
+                            <span className="text-xs font-medium" style={{ color: i < scanStatusIdx ? "#059669" : "#4f46e5" }}>{step.label}</span>
                           </div>
                         )
                       ))}
