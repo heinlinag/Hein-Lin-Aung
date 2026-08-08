@@ -100,7 +100,13 @@ export default function SubmitOrder() {
           setReviewSizeW(d.boardWidth ? String(d.boardWidth) : "");
           setReviewSizeL(d.boardLength ? String(d.boardLength) : "");
           setReviewQty(d.qty ? String(d.qty) : "");
-          setReviewBqComment(d.bqComment ?? "");
+          // Strip fluteType prefix from bqComment (e.g. "BA-LR170..." → "LR170...")
+          const rawBq = d.bqComment ?? "";
+          const flutePrefix = d.fluteType ? d.fluteType + "-" : "";
+          const strippedBq = flutePrefix && rawBq.toUpperCase().startsWith(flutePrefix.toUpperCase())
+            ? rawBq.slice(flutePrefix.length)
+            : rawBq;
+          setReviewBqComment(strippedBq);
           setScannerStep("review");
         }
       } catch (err: unknown) {
