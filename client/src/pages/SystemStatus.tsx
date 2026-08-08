@@ -47,8 +47,38 @@ export default function SystemStatus() {
     {
       date: 'Jul 13, 2026',
       title: 'Version Updated to v6.2.5',
-      description: 'System stabilized at checkpoint b7f2f3fb. All core features intact: Stock History, Approval Center, NPRM Modify Order workflow, Auto-Delete for Out-of-Stock orders, QR Scan History, Chat, Announcements, and Geo-IP access restriction.',
+      description: 'Major release: AI Scanner mode added to Add Stock NPRM — take a photo or upload a label image to auto-extract Production Order, Board Size, Qty, Flute Type, and BQ Formula using Gemini AI vision. MASTERCARD PB validation enforced. Full dark glassmorphism redesign across Admin Panel, User Profile, and all dialogs. Admin Panel tabs now have individual URL routes (/admin/workers, /admin/orders, etc.). Mobile sticky bottom nav added to Admin Panel. Security Audit Log tab added for tracking Employee ID and profile changes. User Profile page with 30-day Employee ID cooldown and 7-day Display Name cooldown. Browser push notifications fixed (VAPID key sync). Link Production Order feature added to copy shareable check.qr URLs.',
       type: 'update',
+    },
+    {
+      date: 'Aug 8, 2026',
+      title: 'AI Label Scanner — Add Stock NPRM',
+      description: 'New Scanner mode on Add Stock NPRM page: take a photo or upload an image of the GS Paper & Packaging production label. Gemini AI vision extracts Production Order ID, Board Size (W×L mm), Unit Quantity, BQ Formula, and Flute Type automatically. MASTERCARD PB validation rejects non-PP4 labels. Review & Verify screen lets workers correct any misread field before submitting. Client-side image compression reduces upload size from 8-12MB to ~1MB. Direct URL: /submit-order/ai-scanner.',
+      type: 'update',
+    },
+    {
+      date: 'Aug 8, 2026',
+      title: 'Admin Panel — URL Routing & Mobile Navigation',
+      description: 'Each Admin Panel tab now has its own URL (/admin/workers, /admin/orders, /admin/requests, /admin/messages, /admin/announcements, /admin/audit-log, etc.) for direct linking and browser back/forward support. Mobile sticky bottom navigation bar added with primary tabs (Workers, Orders, Requests, Messages) and a More drawer for secondary tabs. Swipe-to-reveal Edit/Delete gestures added to Workers mobile cards.',
+      type: 'update',
+    },
+    {
+      date: 'Aug 8, 2026',
+      title: 'User Profile Page & Security Audit Log',
+      description: 'New /user-profile page: upload profile picture (S3 storage), edit Display Name (7-day cooldown), edit Employee ID (30-day cooldown with Admin security notification). Profile picture shown in sidebar, Home greeting card, and profile dropdown. Security Audit Log tab added to Admin Panel recording all Employee ID changes, Display Name changes, and profile picture updates with timestamps.',
+      type: 'update',
+    },
+    {
+      date: 'Aug 8, 2026',
+      title: 'Dark Glassmorphism UI Redesign — Full App',
+      description: 'Complete dark glassmorphism redesign across all pages: Login, Home Dashboard, Stock History, Approval Center, Add Stock NPRM, Customer Sample, Notifications, Chat, QR Scanner, AppLayout sidebar, Documentation, FAQ, Help Center, System Status, Admin Panel (all tabs, dialogs, mobile cards), and User Profile. Consistent deep navy-indigo gradients, backdrop-blur, frosted-glass cards, and gradient accent bars throughout.',
+      type: 'update',
+    },
+    {
+      date: 'Aug 8, 2026',
+      title: 'Push Notifications Fixed & Enhanced',
+      description: 'Fixed VAPID key mismatch that prevented browser push notifications from delivering. Push notifications now trigger on: new order submitted (notifies Level 2 admins), new pending request (notifies Level 2 admins), request approved (notifies requester), request cancelled (notifies requester). Notification permission banner added to prompt users who blocked or skipped the permission request.',
+      type: 'resolved',
     },
     {
       date: 'May 28, 2026',
