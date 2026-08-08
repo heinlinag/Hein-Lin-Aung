@@ -5,7 +5,7 @@ import { Loader2, ShieldCheck, Eye, EyeOff, Lock, ShieldAlert, Shield } from "lu
 import { trpc } from "@/lib/trpc";
 
 const GSPP_LOGO = "/manus-storage/gspp_logo_new_2db75f16.png";
-const APP_VERSION = "Web App Version 3.2.0";
+const APP_VERSION = "Web App Version 6.2.5";
 
 const ANIM_STYLES = `
 @keyframes alFadeUp {

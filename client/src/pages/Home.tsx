@@ -29,7 +29,7 @@ if (typeof document !== "undefined") {
 }
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
-const APP_VERSION = "Web App Version 3.2.0";
+const APP_VERSION = "Web App Version 6.2.5";
 
 // ─── Keyframe Animations ─────────────────────────────────────────────────────
 const ANIM_STYLES = `

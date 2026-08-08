@@ -6,7 +6,7 @@ import {
   Eye, Users, Settings, Zap, ArrowRight, Sparkles, ExternalLink,
 } from "lucide-react";
 
-const EMPLOYEE_GUIDE_URL = "/manus-storage/StockDash_User_Guide_v3.2.0_2cd09f3e.pdf";
+const EMPLOYEE_GUIDE_URL = "/manus-storage/StockDash_User_Guide_v6.2.5_2cd09f3e.pdf";
 const ADMIN_GUIDE_URL = "/manus-storage/Admin_Documentation_v3.1.0_4b46e34e.pdf";
 
 const ANIM_STYLES = `
@@ -141,7 +141,7 @@ export default function Documentation() {
   const guideContent = isEmployee ? employeeGuideContent : adminGuideContent;
   const guideURL = isEmployee ? EMPLOYEE_GUIDE_URL : ADMIN_GUIDE_URL;
   const guideTitle = isEmployee ? "Employee User Guide" : "Admin Documentation";
-  const guideFile = isEmployee ? "StockDash_User_Guide_v3.2.0.pdf" : "Admin_Documentation_v3.1.0.pdf";
+  const guideFile = isEmployee ? "StockDash_User_Guide_v6.2.5.pdf" : "Admin_Documentation_v3.1.0.pdf";
   const accentGradient = isEmployee
     ? "linear-gradient(135deg, #6366f1, #4f46e5)"
     : "linear-gradient(135deg, #ef4444, #dc2626)";
@@ -174,7 +174,7 @@ export default function Documentation() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-indigo-200"
                     style={{ background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.3)" }}>
-                    v3.2.0
+                    v6.2.5
                   </span>
                   <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-emerald-200"
                     style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.3)" }}>
@@ -262,7 +262,7 @@ export default function Documentation() {
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-[11px] font-bold px-2 py-0.5 rounded-full text-gray-500"
                         style={{ background: "rgba(241,245,249,0.8)" }}>
-                        PDF · {isEmployee ? "v3.2.0" : "v3.1.0"}
+                        PDF · {isEmployee ? "v6.2.5" : "v3.1.0"}
                       </span>
                     </div>
                   </div>

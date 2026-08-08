@@ -46,7 +46,7 @@ export default function SystemStatus() {
   const recentUpdates: StatusUpdate[] = [
     {
       date: 'Jul 13, 2026',
-      title: 'Version Updated to v3.2.0',
+      title: 'Version Updated to v6.2.5',
       description: 'System stabilized at checkpoint b7f2f3fb. All core features intact: Stock History, Approval Center, NPRM Modify Order workflow, Auto-Delete for Out-of-Stock orders, QR Scan History, Chat, Announcements, and Geo-IP access restriction.',
       type: 'update',
     },
@@ -246,7 +246,7 @@ export default function SystemStatus() {
               {[
                 { label: "Uptime", value: systemInfo.uptime },
                 { label: "Response", value: `${systemInfo.responseTime}ms` },
-                { label: "Version", value: "3.2.0" },
+                { label: "Version", value: "6.2.5" },
               ].map((stat) => (
                 <div key={stat.label} className="rounded-2xl p-3 text-center"
                   style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.12)" }}>
