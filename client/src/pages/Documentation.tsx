@@ -52,7 +52,7 @@ const employeeGuideContent = [
     title: "Core Features",
     sections: [
       "Home Dashboard & Animated Stats",
-      "Submit Order — Flute Type, Size, Qty, BQ",
+      "Add Stock NPRM — Flute Type, Size, Qty, BQ",
       "Stock History — Low-Stock Alerts & Filters",
       "NPRM Modify Order — Pending / In Process / Approved",
       "Process Approve Workflow (Level 1.1)",
@@ -343,7 +343,7 @@ export default function Documentation() {
                 { label: "FAQ", href: "/faq", color: "#8b5cf6" },
                 { label: "Help Center", href: "/help", color: "#0891b2" },
                 { label: "System Status", href: "/status", color: "#10b981" },
-                { label: "Submit Order", href: "/submit-order", color: "#6366f1" },
+                { label: "Add Stock NPRM", href: "/submit-order", color: "#6366f1" },
                 { label: "Stock History", href: "/stock-history", color: "#f59e0b" },
               ].map(link => (
                 <button key={link.href} onClick={() => navigate(link.href)}

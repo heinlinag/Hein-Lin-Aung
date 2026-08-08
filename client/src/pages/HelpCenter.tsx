@@ -9,7 +9,7 @@ type TabType = "faq" | "guides" | "troubleshooting" | "contact";
 const FAQData = [
   {
     question: "How do I submit a new order?",
-    answer: "Go to the Submit Order page, fill in the Flute Type, Size (Width x Length), Quantity, and BQ comment. Click Submit to create the order. You'll receive a confirmation with the Tracking ID."
+    answer: "Go to the Add Stock NPRM page, fill in the Flute Type, Size (Width x Length), Quantity, and BQ comment. Click Submit to create the order. You'll receive a confirmation with the Tracking ID."
   },
   {
     question: "What is a Tracking ID?",
@@ -47,14 +47,14 @@ const GuidesData = [
     steps: [
       "Log in with your Employee ID",
       "Review the available features on the Home page",
-      "Start with Submit Order to create your first order",
+      "Start with Add Stock NPRM to create your first order",
       "Check Stock History to view your orders"
     ]
   },
   {
     title: "Submitting an Order",
     steps: [
-      "Navigate to Submit Order page",
+      "Navigate to Add Stock NPRM page",
       "Select Flute Type (Single, Double, Triple, etc.)",
       "Enter Size: Width (W) and Length (L) in mm",
       "Enter Quantity in pieces",

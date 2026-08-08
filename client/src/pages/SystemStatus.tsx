@@ -53,7 +53,7 @@ export default function SystemStatus() {
     {
       date: 'May 28, 2026',
       title: 'Version Updated to v3.1.0 — UI/UX Next Level Upgrade',
-      description: 'Submit Order page, Purchase Order modals in Stock History, and A4 Label component upgraded to next-level premium design. Submit Order is now fully compact and responsive across Mobile, Tablet, Laptop, and Desktop. Documentation, FAQ, and System Status pages updated to reflect all current features.',
+      description: 'Add Stock NPRM page, Purchase Order modals in Stock History, and A4 Label component upgraded to next-level premium design. Add Stock NPRM is now fully compact and responsive across Mobile, Tablet, Laptop, and Desktop. Documentation, FAQ, and System Status pages updated to reflect all current features.',
       type: 'update',
     },
     {
@@ -64,8 +64,8 @@ export default function SystemStatus() {
     },
     {
       date: 'May 28, 2026',
-      title: 'Submit Order — Compact Responsive Layout',
-      description: 'Submit Order page redesigned to be compact across all device sizes. Width and Length inputs now stack vertically on mobile. Spacing, padding, and gaps reduced for a cleaner, more efficient form experience.',
+      title: 'Add Stock NPRM — Compact Responsive Layout',
+      description: 'Add Stock NPRM page redesigned to be compact across all device sizes. Width and Length inputs now stack vertically on mobile. Spacing, padding, and gaps reduced for a cleaner, more efficient form experience.',
       type: 'update',
     },
     {

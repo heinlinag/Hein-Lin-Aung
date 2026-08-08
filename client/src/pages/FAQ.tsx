@@ -35,7 +35,7 @@ const faqData = [
       },
       {
         question: 'What is the difference between Employee login and Admin login?',
-        answer: 'Employee login uses your Employee ID and grants access to Stock History, Submit Order, Usage History, NPRM Modify Order, and QR Scanner based on your user level (1, 1.1, or 2). Admin login uses a separate password and grants access to the Admin Panel for managing employees, orders, deleted logs, and pending requests.',
+        answer: 'Employee login uses your Employee ID and grants access to Stock History, Add Stock NPRM, Usage History, NPRM Modify Order, and QR Scanner based on your user level (1, 1.1, or 2). Admin login uses a separate password and grants access to the Admin Panel for managing employees, orders, deleted logs, and pending requests.',
       },
       {
         question: 'I forgot my Employee ID. What should I do?',

@@ -186,12 +186,12 @@ const baseFeatures = [
   },
   {
     icon: <ClipboardList size={26} className="text-white" />,
-    title: "Submit Order",
-    description: "Submit a new Manual Slitter order with Flute Type, Size, and Qty.",
+    title: "Add Stock NPRM",
+    description: "Submit a new Manual Slitter Stock NPRM",
     href: "/submit-order",
     gradient: "linear-gradient(135deg, #6366f1, #3b82f6)",
     glowColor: "rgba(99,102,241,0.3)",
-    btnLabel: "Submit Order",
+    btnLabel: "Add Stock NPRM",
     accentRgb: "99,102,241",
   },
   {

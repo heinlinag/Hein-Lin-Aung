@@ -268,7 +268,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
   const inputError = `${inputBase} bg-red-50/80 border border-red-300 focus:ring-2 focus:ring-red-200 shadow-sm`;
 
   return (
-    <AppLayout pageTitle="Submit Order">
+    <AppLayout pageTitle="Add Stock NPRM">
       <style>{`
         @keyframes scanPulse {
           0%, 100% { opacity: 0.4; transform: scaleX(0.8); }
@@ -334,7 +334,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
               </div>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">Submit Order</h1>
+              <h1 className="text-xl font-bold text-white tracking-tight">Add Stock NPRM</h1>
               <p className="text-indigo-200 text-xs mt-0.5">Create a new production order</p>
             </div>
           </div>
@@ -603,7 +603,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                       disabled={submitOrder.isPending || isReviewDuplicate}
                       className="w-full rounded-2xl py-3.5 text-sm font-bold text-white flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] disabled:opacity-60"
                       style={{ background: isReviewDuplicate ? "linear-gradient(135deg, #9ca3af, #6b7280)" : "linear-gradient(135deg, #4f46e5, #6366f1, #7c3aed)", boxShadow: isReviewDuplicate ? "none" : "0 4px 20px rgba(99,102,241,0.35)" }}>
-                      {submitOrder.isPending ? <><Loader2 size={16} className="animate-spin" /> Submitting...</> : isReviewDuplicate ? <><AlertTriangle size={15} /> Order Already Exists</> : <><Send size={15} /> Submit Order <ArrowRight size={14} /></>}
+                      {submitOrder.isPending ? <><Loader2 size={16} className="animate-spin" /> Submitting...</> : isReviewDuplicate ? <><AlertTriangle size={15} /> Order Already Exists</> : <><Send size={15} /> Add Stock NPRM <ArrowRight size={14} /></>}
                     </button>
                   </div>
                 </div>
@@ -872,7 +872,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                 {submitOrder.isPending ? (
                   <><Loader2 size={16} className="animate-spin" /> Submitting...</>
                 ) : (
-                  <><Send size={15} /> Submit Order <ArrowRight size={14} /></>
+                  <><Send size={15} /> Add Stock NPRM <ArrowRight size={14} /></>
                 )}
               </button>
             </div>

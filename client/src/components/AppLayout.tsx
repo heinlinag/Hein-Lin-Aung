@@ -24,7 +24,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/",               label: "Home",             icon: <Home size={16} /> },
-  { href: "/submit-order",   label: "Submit Order",     icon: <ClipboardList size={16} /> },
+  { href: "/submit-order",   label: "Add Stock NPRM",     icon: <ClipboardList size={16} /> },
   { href: "/stock-history",  label: "Stock History",    icon: <Package size={16} /> },
   { href: "/approval-center",label: "NPRM Modify Order",icon: <CheckCircle2 size={16} /> },
   { href: "/customer-sample",label: "Customer Sample",  icon: <FlaskConical size={16} /> },

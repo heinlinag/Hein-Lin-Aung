@@ -19,7 +19,7 @@ import NotificationBell from './NotificationBell';
 import { useAuth } from '@/contexts/AuthContext';
 
 const menuItems = [
-  { icon: ClipboardList, label: "Submit Order", path: "/submit-order" },
+  { icon: ClipboardList, label: "Add Stock NPRM", path: "/submit-order" },
   { icon: History, label: "Stock History", path: "/stock-history" },
   { icon: FlaskConical, label: "Customer Sample", path: "/customer-sample" },
   { icon: Settings2, label: "Admin", path: "/admin" },
