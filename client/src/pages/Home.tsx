@@ -498,7 +498,7 @@ export default function Home() {
       {/* ── Stats Row ────────────────────────────────────────────────────── */}
       <div className="px-4 lg:px-8 pt-6 pb-2">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
             {stats.map((stat, i) => (
               <div key={stat.label}
                 onClick={() => {
@@ -515,9 +515,9 @@ export default function Home() {
                 }}>
                 {/* Top accent */}
                 <div className="absolute top-0 inset-x-0 h-0.5 rounded-t-2xl" style={{ background: stat.gradient }} />
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md"
+                <div className="p-3 lg:p-4">
+                  <div className="flex items-start justify-between mb-2 lg:mb-3">
+                    <div className="w-7 h-7 lg:w-9 lg:h-9 rounded-lg lg:rounded-xl flex items-center justify-center shadow-md [&>svg]:w-3.5 [&>svg]:h-3.5 lg:[&>svg]:w-4 lg:[&>svg]:h-4"
                       style={{ background: stat.gradient, boxShadow: `0 4px 12px ${stat.glow}` }}>
                       {stat.icon}
                     </div>
@@ -529,10 +529,10 @@ export default function Home() {
                     )}
                   </div>
                   <div className="home-count-up" style={{ animationDelay: `${0.2 + i * 0.08}s` }}>
-                    <div className="text-2xl lg:text-3xl font-black text-gray-900 leading-none">
+                    <div className="text-xl lg:text-3xl font-black text-gray-900 leading-none">
                       <AnimatedNumber value={stat.value} duration={700 + i * 100} />
                     </div>
-                    <p className="text-xs text-gray-500 font-medium mt-1 leading-tight">{stat.label}</p>
+                    <p className="text-[10px] lg:text-xs text-gray-500 font-medium mt-0.5 lg:mt-1 leading-tight">{stat.label}</p>
                   </div>
                 </div>
               </div>
