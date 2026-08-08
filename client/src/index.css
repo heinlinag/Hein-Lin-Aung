@@ -407,3 +407,9 @@
   animation: marquee-loop linear infinite;
   will-change: transform;
 }
+
+/* ── Scanner step slide-in animation ── */
+@keyframes slideInStep {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}

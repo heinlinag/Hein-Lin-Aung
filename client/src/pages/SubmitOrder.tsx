@@ -444,18 +444,23 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                     {/* Step checklist */}
                     <div className="space-y-1.5">
                       {SCAN_STEPS.map((step, i) => (
-                        <div key={i} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-300 ${i === scanStatusIdx ? "opacity-100" : i < scanStatusIdx ? "opacity-60" : "opacity-25"}`}
-                          style={{ background: i <= scanStatusIdx ? "rgba(238,242,255,0.7)" : "transparent" }}>
-                          <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                            style={{ background: i < scanStatusIdx ? "linear-gradient(135deg, #10b981, #34d399)" : i === scanStatusIdx ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "rgba(199,210,254,0.4)" }}>
-                            {i < scanStatusIdx
-                              ? <CheckCircle2 size={11} className="text-white" />
-                              : i === scanStatusIdx
-                              ? <Loader2 size={10} className="text-white animate-spin" />
-                              : <div className="w-2 h-2 rounded-full bg-white/60" />}
+                        i > scanStatusIdx ? null : (
+                          <div key={i}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg"
+                            style={{
+                              background: i <= scanStatusIdx ? "rgba(238,242,255,0.7)" : "transparent",
+                              animation: "slideInStep 0.35s cubic-bezier(0.34,1.56,0.64,1) both",
+                              opacity: i < scanStatusIdx ? 0.65 : 1,
+                            }}>
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                              style={{ background: i < scanStatusIdx ? "linear-gradient(135deg, #10b981, #34d399)" : "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
+                              {i < scanStatusIdx
+                                ? <CheckCircle2 size={11} className="text-white" />
+                                : <Loader2 size={10} className="text-white animate-spin" />}
+                            </div>
+                            <span className={`text-xs font-medium ${i === scanStatusIdx ? "text-indigo-700" : "text-emerald-700"}`}>{step.label}</span>
                           </div>
-                          <span className={`text-xs font-medium ${i === scanStatusIdx ? "text-indigo-700" : i < scanStatusIdx ? "text-emerald-700" : "text-gray-400"}`}>{step.label}</span>
-                        </div>
+                        )
                       ))}
                     </div>
                   </div>
