@@ -172,6 +172,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
         qty: parseInt(reviewQty),
         bqComment: reviewBqComment.trim(),
         workerID: worker.workerID,
+        submittedVia: "scanner",
       });
       toast.success("Order submitted successfully!");
       notifyAll.mutate({ title: "New Order Submitted", body: "Order " + reviewOrderID.trim() + " (" + reviewFluteType + ") submitted by " + (worker?.name ?? "Worker"), tag: "new-order" });

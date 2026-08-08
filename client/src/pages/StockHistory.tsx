@@ -1395,6 +1395,9 @@ export default function StockHistory() {
                         <div className="flex items-center gap-1.5">
                           {isLowStock && <AlertTriangle size={13} className="text-orange-500 flex-shrink-0" />}
                           {order.orderID}
+                          {(order as any).submittedVia === "scanner" && (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(99,102,241,0.12)", color: "#6366f1", border: "1px solid rgba(99,102,241,0.2)" }}>📷 Scanned</span>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 pr-4">
@@ -1490,6 +1493,9 @@ export default function StockHistory() {
                         <p className="text-base font-bold text-primary">{order.orderID}</p>
                       </div>
                       {isLowStock && <p className="text-xs text-orange-600 font-semibold mt-0.5">⚠ Low Stock</p>}
+                      {(order as any).submittedVia === "scanner" && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full mt-0.5" style={{ background: "rgba(99,102,241,0.12)", color: "#6366f1", border: "1px solid rgba(99,102,241,0.2)" }}>📷 AI Scanned</span>
+                      )}
                     </div>
                     <button onClick={() => {
                       if (userLevel === "1") {

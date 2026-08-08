@@ -52,6 +52,7 @@ export const orders = mysqlTable("orders", {
   outOfStockAt: timestamp("outOfStockAt"), // set when status changes to out_of_stock
   submittedBy: varchar("submittedBy", { length: 64 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  submittedVia: mysqlEnum("submittedVia", ["manual", "scanner"]).default("manual").notNull(),
 });
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;

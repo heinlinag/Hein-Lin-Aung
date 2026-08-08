@@ -274,6 +274,7 @@ export const appRouter = router({
         qty: z.number().int().positive(),
         bqComment: z.string().min(1),
         workerID: z.string().min(1),
+        submittedVia: z.enum(["manual", "scanner"]).default("manual"),
       }))
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
@@ -290,6 +291,7 @@ export const appRouter = router({
           bqComment: input.bqComment,
           status: "current",
           submittedBy: input.workerID,
+          submittedVia: input.submittedVia,
         });
         // Push notification to Level 2 admins about new order
         try {
