@@ -565,7 +565,7 @@ export default function Home() {
           </div>
 
           {/* Feature cards grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
             {baseFeatures.map((f, i) => {
               const badge = f.showBadge ? pendingCount
                 : (f as { showSampleBadge?: boolean }).showSampleBadge ? sampleCount
@@ -603,11 +603,11 @@ export default function Home() {
                     </span>
                   )}
 
-                  <div className="p-5">
+                  <div className="p-3 sm:p-5">
                     {/* Icon */}
-                    <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-lg transition-transform duration-300 group-hover:scale-110"
+                    <div className="relative w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-4 shadow-lg transition-transform duration-300 group-hover:scale-110"
                       style={{ background: f.gradient, boxShadow: `0 8px 24px ${f.glowColor}` }}>
-                      {f.icon}
+                      <span className="[&>svg]:w-[18px] [&>svg]:h-[18px] sm:[&>svg]:w-[26px] sm:[&>svg]:h-[26px]">{f.icon}</span>
                       {/* Shimmer on hover */}
                       <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.2), transparent)" }} />
@@ -615,7 +615,7 @@ export default function Home() {
 
                     {/* Content */}
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="font-black text-gray-900 text-sm leading-tight group-hover:text-gray-800">
+                      <h3 className="font-black text-gray-900 text-[11px] sm:text-sm leading-tight group-hover:text-gray-800 line-clamp-2">
                         {f.title}
                       </h3>
                       {(f as { isNPRM?: boolean }).isNPRM && (
@@ -632,10 +632,10 @@ export default function Home() {
                         </Tooltip>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">{f.description}</p>
+                    <p className="hidden sm:block text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">{f.description}</p>
 
                     {/* CTA */}
-                    <div className="flex items-center gap-1.5 text-xs font-bold transition-all duration-200"
+                    <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold transition-all duration-200"
                       style={{ color: `rgb(${f.accentRgb})` }}>
                       <span>{f.btnLabel}</span>
                       <ArrowRight size={12} className="transition-transform group-hover:translate-x-1" />
