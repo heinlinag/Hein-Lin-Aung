@@ -49,10 +49,10 @@ interface ScannedData {
   fluteType: string | null;
 }
 
-export default function SubmitOrder() {
+export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | "scanner" }) {
   const [, navigate] = useLocation();
   const { worker } = useAuth();
-  const [mode, setMode] = useState<"manual" | "scanner">("manual");
+  const [mode, setMode] = useState<"manual" | "scanner">(defaultMode ?? "manual");
   const [scannerStep, setScannerStep] = useState<ScannerStep>("upload");
   const [scanStatusIdx, setScanStatusIdx] = useState(0);
   const [scannedImageUrl, setScannedImageUrl] = useState<string | null>(null);

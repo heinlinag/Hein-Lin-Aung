@@ -87,6 +87,11 @@ function GeoRestrictedRouter() {
                   <SubmitOrder />
                 </LoginGate>
               </Route>
+              <Route path="/submit-order/ai-scanner">
+                <LoginGate>
+                  <SubmitOrder defaultMode="scanner" />
+                </LoginGate>
+              </Route>
               <Route path="/stock-history">
                 <LoginGate>
                   <StockHistory />
