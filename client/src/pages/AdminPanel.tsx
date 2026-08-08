@@ -3,7 +3,7 @@ import { ContactMessagesTab } from "@/components/ContactMessagesTab";
 import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar, Bell, Send, BellRing, Sun, Moon, Monitor, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -1753,7 +1753,43 @@ function SecurityAuditLogTab({ isDark }: { isDark: boolean }) {
 // ─── Main Admin Panel ──────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { logoutAdmin, getAdminPassword } = useAuth();
-  const [activeTab, setActiveTab] = useState<"workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings" | "notifications" | "audit_log">("workers");
+  const [, navigate] = useLocation();
+  const params = useParams<{ tab?: string }>();
+
+  type TabId = "workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings" | "notifications" | "audit_log";
+
+  // Map URL slug → tab id
+  const SLUG_TO_TAB: Record<string, TabId> = {
+    workers: "workers",
+    orders: "orders",
+    "deleted-logs": "deleted_logs",
+    requests: "pending_requests",
+    messages: "contact_messages",
+    announcements: "announcements",
+    notifications: "notifications",
+    "audit-log": "audit_log",
+    maintenance: "maintenance",
+    settings: "settings",
+  };
+  // Map tab id → URL slug
+  const TAB_TO_SLUG: Record<TabId, string> = {
+    workers: "workers",
+    orders: "orders",
+    deleted_logs: "deleted-logs",
+    pending_requests: "requests",
+    contact_messages: "messages",
+    announcements: "announcements",
+    notifications: "notifications",
+    audit_log: "audit-log",
+    maintenance: "maintenance",
+    settings: "settings",
+  };
+
+  const activeTab: TabId = (params.tab && SLUG_TO_TAB[params.tab]) ? SLUG_TO_TAB[params.tab] : "workers";
+
+  const setActiveTab = (tab: TabId) => {
+    navigate(`/admin/${TAB_TO_SLUG[tab]}`);
+  };
   const maintenanceQuery = trpc.system.getMaintenanceStatus.useQuery(undefined, { refetchInterval: 10000 });
   const scheduleQuery = trpc.system.getScheduledMaintenance.useQuery(undefined, { refetchInterval: 15000 });
   const setMaintenanceMutation = trpc.system.setMaintenanceMode.useMutation({
@@ -1814,8 +1850,6 @@ export default function AdminPanel() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   // "system" = follow OS, "dark" = forced dark, "light" = forced light
   // Theme locked to dark glassmorphism permanently
-  const [, navigate] = useLocation();
-
   const statsQuery = trpc.orders.adminStats.useQuery(undefined, { refetchInterval: 30000 });
   const stats = statsQuery.data;
 

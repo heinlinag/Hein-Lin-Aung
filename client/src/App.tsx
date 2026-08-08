@@ -37,6 +37,13 @@ function AdminRoute() {
   return <AdminPanel />;
 }
 
+/** Admin sub-route: /admin/:tab — also protected by AdminRoute auth */
+function AdminTabRoute() {
+  const { isAdminAuthenticated } = useAuth();
+  if (!isAdminAuthenticated) return <AdminLogin />;
+  return <AdminPanel />;
+}
+
 /** Maintenance guard — shows maintenance page when mode is ON, except for admins */
 function MaintenanceGuard({ children }: { children: React.ReactNode }) {
   const { isAdminAuthenticated, worker } = useAuth();
@@ -159,10 +166,14 @@ function App() {
               {/* Public worldwide: Order Card by Tracking ID — no login, no geo restriction */}
               <Route path="/check.qr/:trackingId" component={PublicOrderCard} />
               {/* Admin Panel: worldwide access, bypasses GeoGuard and MaintenanceGuard */}
-              {/* Shows AdminLogin password screen when not authenticated, AdminPanel when authenticated */}
-              <Route path="/admin">
-                <AdminRoute />
-              </Route>
+            {/* Shows AdminLogin password screen when not authenticated, AdminPanel when authenticated */}
+            <Route path="/admin">
+              <AdminRoute />
+            </Route>
+            {/* Admin sub-routes: /admin/workers, /admin/orders, etc. */}
+            <Route path="/admin/:tab">
+              <AdminTabRoute />
+            </Route>
               {/* Everything else: geo-restricted to MY/MM */}
               <Route>
                 <GeoRestrictedRouter />
