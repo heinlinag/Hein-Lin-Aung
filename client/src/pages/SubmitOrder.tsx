@@ -33,6 +33,7 @@ export default function SubmitOrder() {
   const [reviewSizeL, setReviewSizeL] = useState("");
   const [reviewQty, setReviewQty] = useState("");
   const [reviewBqComment, setReviewBqComment] = useState("");
+  const [debouncedReviewOrderID, setDebouncedReviewOrderID] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scanLabel = trpc.orders.scanLabel.useMutation();
 
@@ -45,6 +46,16 @@ export default function SubmitOrder() {
     { icon: "🧾", label: "Parsing BQ formula...", sub: "Extracting flute type and BQ comment" },
     { icon: "✅", label: "Finalising extraction...", sub: "Almost done, verifying data" },
   ];
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedReviewOrderID(reviewOrderID.trim()), 500);
+    return () => clearTimeout(t);
+  }, [reviewOrderID]);
+  const reviewDuplicateCheck = trpc.orders.checkOrderId.useQuery(
+    { orderID: debouncedReviewOrderID },
+    { enabled: debouncedReviewOrderID.length > 0 }
+  );
+  const isReviewDuplicate = reviewDuplicateCheck.data?.exists === true;
 
   useEffect(() => {
     if (scannerStep !== "scanning") return;
@@ -105,6 +116,10 @@ export default function SubmitOrder() {
     if (!worker) { toast.error("Please login first."); return; }
     if (!reviewOrderID.trim() || !reviewFluteType || !reviewSizeW || !reviewSizeL || !reviewQty || !reviewBqComment.trim()) {
       toast.error("Please fill in all required fields."); return;
+    }
+    if (isReviewDuplicate) {
+      toast.error(`Production Order "${reviewOrderID.trim()}" already exists in the system.`);
+      return;
     }
     try {
       const result = await submitOrder.mutateAsync({
@@ -471,7 +486,27 @@ export default function SubmitOrder() {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Production Order <span className="text-red-500">*</span></label>
-                          <input type="text" value={reviewOrderID} onChange={e => setReviewOrderID(e.target.value.toUpperCase())} className={inputStyle} placeholder="e.g. BA-181" />
+                          <div className="relative">
+                            <input type="text" value={reviewOrderID} onChange={e => setReviewOrderID(e.target.value.toUpperCase())}
+                              className={isReviewDuplicate ? inputError : inputStyle} placeholder="e.g. BA-181" />
+                            {!isReviewDuplicate && debouncedReviewOrderID && reviewDuplicateCheck.data && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <CheckCircle2 size={16} className="text-emerald-500" />
+                              </div>
+                            )}
+                          </div>
+                          {isReviewDuplicate && (
+                            <div className="mt-1.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(254,242,242,0.9)", border: "1px solid rgba(252,165,165,0.5)" }}>
+                              <AlertTriangle size={12} className="text-red-500 flex-shrink-0" />
+                              <span className="text-xs text-red-600 font-medium">"{reviewOrderID.trim()}" already exists in the system</span>
+                            </div>
+                          )}
+                          {!isReviewDuplicate && debouncedReviewOrderID && reviewDuplicateCheck.data && (
+                            <div className="mt-1.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(240,253,244,0.9)", border: "1px solid rgba(134,239,172,0.5)" }}>
+                              <CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" />
+                              <span className="text-xs text-emerald-700 font-medium">Available — not yet in system</span>
+                            </div>
+                          )}
                         </div>
                         <div>
                           <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Flute Type <span className="text-red-500">*</span></label>
@@ -515,10 +550,10 @@ export default function SubmitOrder() {
                   </div>
 
                   <div className="pt-1 pb-2">
-                    <button onClick={handleScannerSubmit} disabled={submitOrder.isPending}
+                    <button onClick={handleScannerSubmit} disabled={submitOrder.isPending || isReviewDuplicate}
                       className="w-full rounded-2xl py-3.5 text-sm font-bold text-white flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] disabled:opacity-60"
-                      style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1, #7c3aed)", boxShadow: "0 4px 20px rgba(99,102,241,0.35)" }}>
-                      {submitOrder.isPending ? <><Loader2 size={16} className="animate-spin" /> Submitting...</> : <><Send size={15} /> Confirm &amp; Submit Order <ArrowRight size={14} /></>}
+                      style={{ background: isReviewDuplicate ? "linear-gradient(135deg, #9ca3af, #6b7280)" : "linear-gradient(135deg, #4f46e5, #6366f1, #7c3aed)", boxShadow: isReviewDuplicate ? "none" : "0 4px 20px rgba(99,102,241,0.35)" }}>
+                      {submitOrder.isPending ? <><Loader2 size={16} className="animate-spin" /> Submitting...</> : isReviewDuplicate ? <><AlertTriangle size={15} /> Order Already Exists</> : <><Send size={15} /> Confirm &amp; Submit Order <ArrowRight size={14} /></>}
                     </button>
                   </div>
                 </div>
