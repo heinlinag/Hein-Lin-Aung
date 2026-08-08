@@ -7,6 +7,36 @@ import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 
 const FLUTE_TYPES = ["BA", "BE", "C", "A", "B", "E", "Manual"] as const;
+
+/** Compress an image File using Canvas API. Target: max 1600px on longest side, JPEG quality 0.82. */
+async function compressImage(file: File, maxPx = 1600, quality = 0.82): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxPx || height > maxPx) {
+        if (width >= height) { height = Math.round((height / width) * maxPx); width = maxPx; }
+        else { width = Math.round((width / height) * maxPx); height = maxPx; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { resolve(file); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        if (!blob) { resolve(file); return; }
+        const compressed = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" });
+        resolve(compressed);
+      }, "image/jpeg", quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Failed to load image")); };
+    img.src = url;
+  });
+}
+
 type ScannerStep = "upload" | "scanning" | "review" | "rejected";
 interface ScannedData {
   mastercardValid: boolean;
@@ -87,7 +117,9 @@ export default function SubmitOrder() {
     try {
       // Use multipart fetch to /api/scan-label (avoids tRPC batch + cookie issues)
       const formData = new FormData();
-      formData.append("image", file);
+      // Compress before upload: reduces 8-12MB camera photos to ~0.5-1.5MB
+      const compressed = await compressImage(file);
+      formData.append("image", compressed);
       const resp = await fetch("/api/scan-label", {
         method: "POST",
         credentials: "include",
