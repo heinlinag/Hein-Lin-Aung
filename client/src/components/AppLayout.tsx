@@ -58,7 +58,15 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const [location, navigate] = useLocation();
   const { worker, logoutWorker } = useAuth();
   // Register push notifications on every page load (uses correct VAPID key from server)
-  usePushNotifications(worker?.workerID ?? null);
+  const { permissionState, requestPermission } = usePushNotifications(worker?.workerID ?? null);
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    try { return sessionStorage.getItem("notif-banner-dismissed") === "1"; } catch { return false; }
+  });
+  const showBanner = !bannerDismissed && (permissionState === "default" || permissionState === "denied");
+  const handleDismiss = () => {
+    setBannerDismissed(true);
+    try { sessionStorage.setItem("notif-banner-dismissed", "1"); } catch { /* ignore */ }
+  };
   const deactivateDevice = trpc.workers.deactivateDevice.useMutation();
   const userLevel = worker?.userLevel ?? "2";
   const lv = levelLabel(userLevel);
@@ -505,6 +513,14 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
         )}
 
         {/* Page content */}
+        {/* Notification permission banner */}
+        {showBanner && worker && (
+          <NotificationPermissionBanner
+            permissionState={permissionState}
+            onEnable={async () => { await requestPermission(); if (Notification.permission === "granted") handleDismiss(); }}
+            onDismiss={handleDismiss}
+          />
+        )}
         <main className={`flex-1 min-h-0 ${fullHeight ? "overflow-hidden pb-[64px] lg:pb-0" : "overflow-y-auto pb-[64px] lg:pb-0"}`}>
           {children}
         </main>
@@ -556,3 +572,4 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     </div>
   );
 }
+import { NotificationPermissionBanner } from "@/components/NotificationPermissionBanner";

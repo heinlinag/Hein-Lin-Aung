@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -16,99 +16,119 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(String.fromCharCode(...Array.from(new Uint8Array(buffer))));
 }
 
+export type PushPermissionState = "default" | "granted" | "denied" | "unsupported";
+
 /**
  * Hook to register push notifications.
- * Fetches the VAPID public key from the server (push.getVapidKey) to avoid key mismatch.
- * Subscribes the browser and sends the subscription to the server.
+ * Returns permissionState and a requestPermission function for the UI banner.
  */
-export function usePushNotifications(workerID: string | null) {
+export function usePushNotifications(workerID: string | null): {
+  permissionState: PushPermissionState;
+  requestPermission: () => Promise<void>;
+} {
   const subscribeMut = trpc.push.subscribe.useMutation();
   const vapidQuery = trpc.push.getVapidKey.useQuery(undefined, { enabled: !!workerID });
   const subscribedRef = useRef(false);
   const attemptedRef = useRef(false);
 
+  // Initialise from browser state
+  const getInitialPermission = (): PushPermissionState => {
+    if (typeof window === "undefined" || !("Notification" in window)) return "unsupported";
+    return Notification.permission as PushPermissionState;
+  };
+  const [permissionState, setPermissionState] = useState<PushPermissionState>(getInitialPermission);
+
+  const doSubscribe = useCallback(async (vapidPublicKey: string) => {
+    if (!workerID) return;
+    try {
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      await navigator.serviceWorker.ready;
+
+      const permission = await Notification.requestPermission();
+      setPermissionState(permission as PushPermissionState);
+      if (permission !== "granted") return;
+
+      let subscription = await registration.pushManager.getSubscription();
+
+      if (subscription) {
+        try {
+          const p256dhBuf = subscription.getKey("p256dh");
+          const authBuf = subscription.getKey("auth");
+          if (p256dhBuf && authBuf) {
+            await subscribeMut.mutateAsync({
+              workerID,
+              subscription: {
+                endpoint: subscription.endpoint,
+                keys: {
+                  p256dh: arrayBufferToBase64(p256dhBuf),
+                  auth: arrayBufferToBase64(authBuf),
+                },
+              },
+            });
+            subscribedRef.current = true;
+            return;
+          }
+        } catch {
+          await subscription.unsubscribe();
+          subscription = null;
+        }
+      }
+
+      const newSubscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      });
+
+      const p256dhBuf = newSubscription.getKey("p256dh");
+      const authBuf = newSubscription.getKey("auth");
+      if (!p256dhBuf || !authBuf) return;
+
+      await subscribeMut.mutateAsync({
+        workerID,
+        subscription: {
+          endpoint: newSubscription.endpoint,
+          keys: {
+            p256dh: arrayBufferToBase64(p256dhBuf),
+            auth: arrayBufferToBase64(authBuf),
+          },
+        },
+      });
+      subscribedRef.current = true;
+    } catch (err) {
+      console.warn("[Push] Setup failed:", err);
+    }
+  }, [workerID]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-subscribe when VAPID key is ready and permission is default
   useEffect(() => {
     if (!workerID || subscribedRef.current || attemptedRef.current) return;
-    if (!vapidQuery.data?.publicKey) return; // wait for VAPID key from server
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-
-    attemptedRef.current = true;
-    const vapidPublicKey = vapidQuery.data.publicKey;
-
-    const register = async () => {
-      try {
-        // Register service worker
-        const registration = await navigator.serviceWorker.register("/sw.js");
-        await navigator.serviceWorker.ready;
-
-        // Request notification permission
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") {
-          console.warn("[Push] Permission denied");
-          return;
-        }
-
-        // Check for existing subscription
-        let subscription = await registration.pushManager.getSubscription();
-
-        // If existing subscription uses a different key, unsubscribe first
-        if (subscription) {
-          try {
-            // Verify the subscription is still valid by checking its endpoint
-            const p256dhBuf = subscription.getKey("p256dh");
-            const authBuf = subscription.getKey("auth");
-            if (p256dhBuf && authBuf) {
-              await subscribeMut.mutateAsync({
-                workerID,
-                subscription: {
-                  endpoint: subscription.endpoint,
-                  keys: {
-                    p256dh: arrayBufferToBase64(p256dhBuf),
-                    auth: arrayBufferToBase64(authBuf),
-                  },
-                },
-              });
-              subscribedRef.current = true;
-              console.log("[Push] Re-registered existing subscription");
-              return;
-            }
-          } catch {
-            // If re-registration fails, unsubscribe and create fresh
-            await subscription.unsubscribe();
-            subscription = null;
-          }
-        }
-
-        // Create new subscription with the correct VAPID key from server
-        const newSubscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-        });
-
-        const p256dhBuf = newSubscription.getKey("p256dh");
-        const authBuf = newSubscription.getKey("auth");
-        if (!p256dhBuf || !authBuf) {
-          console.error("[Push] Missing keys from subscription");
-          return;
-        }
-
-        await subscribeMut.mutateAsync({
-          workerID,
-          subscription: {
-            endpoint: newSubscription.endpoint,
-            keys: {
-              p256dh: arrayBufferToBase64(p256dhBuf),
-              auth: arrayBufferToBase64(authBuf),
-            },
-          },
-        });
-        subscribedRef.current = true;
-        console.log("[Push] New subscription registered successfully");
-      } catch (err) {
-        console.warn("[Push] Setup failed:", err);
+    if (!vapidQuery.data?.publicKey) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setPermissionState("unsupported");
+      return;
+    }
+    // Only auto-prompt if permission is "default" (not yet asked)
+    if (Notification.permission !== "default") {
+      setPermissionState(Notification.permission as PushPermissionState);
+      if (Notification.permission === "granted") {
+        attemptedRef.current = true;
+        doSubscribe(vapidQuery.data.publicKey);
       }
-    };
+      return;
+    }
+    attemptedRef.current = true;
+    doSubscribe(vapidQuery.data.publicKey);
+  }, [workerID, vapidQuery.data?.publicKey, doSubscribe]);
 
-    register();
-  }, [workerID, vapidQuery.data?.publicKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Manual re-request (called from UI banner)
+  const requestPermission = useCallback(async () => {
+    if (!vapidQuery.data?.publicKey) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    subscribedRef.current = false;
+    attemptedRef.current = false;
+    await doSubscribe(vapidQuery.data.publicKey);
+  }, [vapidQuery.data?.publicKey, doSubscribe]);
+
+  return { permissionState, requestPermission };
 }
+
