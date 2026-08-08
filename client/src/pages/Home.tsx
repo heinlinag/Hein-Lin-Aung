@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import {
-  ClipboardList, Package, CheckCircle2, Bell, X, ScanLine, ArrowRight,
+  ClipboardList, Camera, Package, CheckCircle2, Bell, X, ScanLine, ArrowRight,
   Activity, MessageCircle, FlaskConical, Info, Zap, TrendingUp,
   Users, BarChart3, Clock, Sparkles, User, BookOpen, LifeBuoy, CircleHelp,
 } from "lucide-react";
@@ -185,7 +185,7 @@ const baseFeatures = [
     accentRgb: "20,184,166",
   },
   {
-    icon: <ClipboardList size={26} className="text-white" />,
+    icon: <Camera size={26} className="text-white" />,
     title: "Add Stock NPRM",
     description: "Submit a new Manual Slitter Stock NPRM",
     href: "/submit-order",
