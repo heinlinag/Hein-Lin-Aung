@@ -52,7 +52,7 @@ interface ScannedData {
 export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | "scanner" }) {
   const [, navigate] = useLocation();
   const { worker } = useAuth();
-  const [mode, setMode] = useState<"manual" | "scanner">(defaultMode ?? "manual");
+  const [mode, setMode] = useState<"manual" | "scanner">(defaultMode ?? "scanner");
   const [scannerStep, setScannerStep] = useState<ScannerStep>("upload");
   const [scanStatusIdx, setScanStatusIdx] = useState(0);
   const [scannedImageUrl, setScannedImageUrl] = useState<string | null>(null);
@@ -338,11 +338,11 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
             </div>
           </div>
           <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
-            <button onClick={() => setMode("manual")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === "manual" ? "bg-white text-indigo-700 shadow-sm" : "text-white/80 hover:text-white"}`}>
-              <Edit3 size={11} /> Manual
-            </button>
             <button onClick={() => setMode("scanner")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === "scanner" ? "bg-white text-indigo-700 shadow-sm" : "text-white/80 hover:text-white"}`}>
               <Camera size={11} /> Scanner
+            </button>
+            <button onClick={() => setMode("manual")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === "manual" ? "bg-white text-indigo-700 shadow-sm" : "text-white/80 hover:text-white"}`}>
+              <Edit3 size={11} /> Manual
             </button>
           </div>
         </div>
