@@ -621,7 +621,7 @@ export default function Home() {
                       {(f as { isNPRM?: boolean }).isNPRM && (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-colors"
+                            <button className="hidden sm:flex flex-shrink-0 w-5 h-5 rounded-full items-center justify-center transition-colors"
                               style={{ background: "rgba(245,158,11,0.12)", color: "#d97706" }}>
                               <Info size={11} />
                             </button>
