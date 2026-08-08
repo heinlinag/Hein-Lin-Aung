@@ -386,7 +386,21 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                         <p key={t} className="text-xs text-gray-600">{t}</p>
                       ))}
                     </div>
-                    <div className="flex gap-3">
+                    {/* Desktop notice — no camera available */}
+                    <div className="hidden lg:flex flex-col items-center gap-3 rounded-xl p-4 text-center" style={{ background: "rgba(255,237,213,0.7)", border: "1px solid rgba(251,146,60,0.3)" }}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-amber-500 text-lg">📷</span>
+                        <p className="text-sm font-bold text-amber-700">Camera not available on Desktop</p>
+                      </div>
+                      <p className="text-xs text-amber-600 leading-relaxed">Scanner mode is designed for mobile devices with a camera. On Desktop / Laptop / Computer, please use <strong>Manual mode</strong> to enter order details directly.</p>
+                      <button onClick={() => setMode("manual")}
+                        className="mt-1 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                        style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", boxShadow: "0 4px 16px rgba(245,158,11,0.3)" }}>
+                        Switch to Manual Mode →
+                      </button>
+                    </div>
+                    {/* Mobile buttons — camera available */}
+                    <div className="flex lg:hidden gap-3">
                       <button onClick={() => fileInputRef.current?.click()}
                         className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white transition-all active:scale-[0.98]"
                         style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)", boxShadow: "0 4px 20px rgba(99,102,241,0.35)" }}>
