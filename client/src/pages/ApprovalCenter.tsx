@@ -208,7 +208,7 @@ function RequestCard({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Current Qty</span>
-            <span className="text-sm font-semibold">{req.processApprovedQty ? `${liveQty - req.processApprovedQty} pcs` : `${liveQty} pcs`}</span>
+            <span className="text-sm font-semibold">{`${liveQty} pcs`}</span>
           </div>
         </div>
       )}
