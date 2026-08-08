@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock, FlaskConical, Truck, ChevronDown } from "lucide-react";
+import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock, FlaskConical, Truck, ChevronDown, Copy, Link } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -264,6 +264,25 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
                 <button onClick={() => setStep("old_stock")} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-red-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50/50 transition-all text-left group shadow-sm">
                   <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform"><Package size={16} className="text-white" /></div>
                   <div><p className="text-sm font-bold text-foreground">Old Stock</p><p className="text-xs text-muted-foreground">Clear entire order (move to Out of Stock)</p></div>
+                </button>
+                <button
+                  onClick={() => {
+                    const trackingId = order.trackingId || order.orderID;
+                    const link = `https://stockdash.click/check.qr/${trackingId}`;
+                    navigator.clipboard.writeText(link).then(() => {
+                      toast.success("Link copied!", { description: link });
+                    }).catch(() => {
+                      toast.error("Could not copy. Link: " + link);
+                    });
+                  }}
+                  className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-violet-400 hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50/50 transition-all text-left group shadow-sm"
+                >
+                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:scale-105 transition-transform"><Link size={16} className="text-white" /></div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Link Production Order</p>
+                    <p className="text-xs text-muted-foreground">Copy shareable link to this order</p>
+                  </div>
+                  <Copy size={14} className="ml-auto text-muted-foreground group-hover:text-violet-500 transition-colors shrink-0" />
                 </button>
               </div>
             </div>
@@ -602,6 +621,25 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                 }} className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-red-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50/50 transition-all text-left group shadow-sm">
                   <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform"><Package size={16} className="text-white" /></div>
                   <div><p className="text-sm font-bold text-foreground">Old Stock</p><p className="text-xs text-muted-foreground">Clear entire order (move to Out of Stock)</p></div>
+                </button>
+                <button
+                  onClick={() => {
+                    const trackingId = order.trackingId || order.orderID;
+                    const link = `https://stockdash.click/check.qr/${trackingId}`;
+                    navigator.clipboard.writeText(link).then(() => {
+                      toast.success("Link copied!", { description: link });
+                    }).catch(() => {
+                      toast.error("Could not copy. Link: " + link);
+                    });
+                  }}
+                  className="w-full flex items-center gap-3 p-3.5 border-2 border-gray-100 rounded-xl hover:border-violet-400 hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50/50 transition-all text-left group shadow-sm"
+                >
+                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:scale-105 transition-transform"><Link size={16} className="text-white" /></div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Link Production Order</p>
+                    <p className="text-xs text-muted-foreground">Copy shareable link to this order</p>
+                  </div>
+                  <Copy size={14} className="ml-auto text-muted-foreground group-hover:text-violet-500 transition-colors shrink-0" />
                 </button>
               </div>
             </div>
