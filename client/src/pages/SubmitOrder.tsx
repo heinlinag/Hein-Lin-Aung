@@ -564,64 +564,73 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                         <h3 className="text-sm font-bold text-gray-800">Review Extracted Data</h3>
                         <span className="ml-auto text-[10px] text-indigo-500 font-medium flex items-center gap-1"><Edit3 size={9} /> Editable</span>
                       </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Production Order <span className="text-red-500">*</span></label>
-                          <div className="relative">
-                            <input type="text" value={reviewOrderID} onChange={e => setReviewOrderID(e.target.value.toUpperCase())}
-                              className={isReviewDuplicate ? inputError : inputStyle} placeholder="e.g. BA-181" />
+                      {/* Section: Order Identity */}
+                      <div className="rounded-xl p-3 space-y-3" style={{ background: "rgba(238,242,255,0.5)", border: "1px solid rgba(199,210,254,0.4)" }}>
+                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-1.5"><span>🏷️</span> Order Identity</p>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Production Order <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                              <input type="text" value={reviewOrderID} onChange={e => setReviewOrderID(e.target.value.toUpperCase())}
+                                className={isReviewDuplicate ? inputError : inputStyle} placeholder="e.g. BA-181" />
+                              {!isReviewDuplicate && debouncedReviewOrderID && reviewDuplicateCheck.data && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                  <CheckCircle2 size={16} className="text-emerald-500" />
+                                </div>
+                              )}
+                            </div>
+                            {isReviewDuplicate && (
+                              <div className="mt-1.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(254,242,242,0.9)", border: "1px solid rgba(252,165,165,0.5)" }}>
+                                <AlertTriangle size={12} className="text-red-500 flex-shrink-0" />
+                                <span className="text-xs text-red-600 font-medium">"{reviewOrderID.trim()}" already exists in the system</span>
+                              </div>
+                            )}
                             {!isReviewDuplicate && debouncedReviewOrderID && reviewDuplicateCheck.data && (
-                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                <CheckCircle2 size={16} className="text-emerald-500" />
+                              <div className="mt-1.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(240,253,244,0.9)", border: "1px solid rgba(134,239,172,0.5)" }}>
+                                <CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" />
+                                <span className="text-xs text-emerald-700 font-medium">Available — not yet in system</span>
                               </div>
                             )}
                           </div>
-                          {isReviewDuplicate && (
-                            <div className="mt-1.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(254,242,242,0.9)", border: "1px solid rgba(252,165,165,0.5)" }}>
-                              <AlertTriangle size={12} className="text-red-500 flex-shrink-0" />
-                              <span className="text-xs text-red-600 font-medium">"{reviewOrderID.trim()}" already exists in the system</span>
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Flute Type <span className="text-red-500">*</span></label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {(["BA","BE","C","A","B","E"] as const).map(f => (
+                                <button key={f} type="button" onClick={() => setReviewFluteType(f)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${reviewFluteType === f ? "text-white border-indigo-500 shadow-sm" : "bg-white/70 border-indigo-100 text-gray-600 hover:border-indigo-300"}`}
+                                  style={reviewFluteType === f ? { background: "linear-gradient(135deg, #6366f1, #8b5cf6)" } : {}}>
+                                  {f}
+                                </button>
+                              ))}
                             </div>
-                          )}
-                          {!isReviewDuplicate && debouncedReviewOrderID && reviewDuplicateCheck.data && (
-                            <div className="mt-1.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "rgba(240,253,244,0.9)", border: "1px solid rgba(134,239,172,0.5)" }}>
-                              <CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" />
-                              <span className="text-xs text-emerald-700 font-medium">Available — not yet in system</span>
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Flute Type <span className="text-red-500">*</span></label>
-                          <div className="flex flex-wrap gap-1.5">
-                            {(["BA","BE","C","A","B","E"] as const).map(f => (
-                              <button key={f} type="button" onClick={() => setReviewFluteType(f)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${reviewFluteType === f ? "text-white border-indigo-500 shadow-sm" : "bg-white/70 border-indigo-100 text-gray-600 hover:border-indigo-300"}`}
-                                style={reviewFluteType === f ? { background: "linear-gradient(135deg, #6366f1, #8b5cf6)" } : {}}>
-                                {f}
-                              </button>
-                            ))}
                           </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Width (mm) <span className="text-red-500">*</span></label>
-                          <input type="number" value={reviewSizeW} onChange={e => setReviewSizeW(e.target.value)} className={inputStyle} placeholder="1630" />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Length (mm) <span className="text-red-500">*</span></label>
-                          <input type="number" value={reviewSizeL} onChange={e => setReviewSizeL(e.target.value)} className={inputStyle} placeholder="1800" />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Qty (pcs) <span className="text-red-500">*</span></label>
-                          <input type="number" value={reviewQty} onChange={e => setReviewQty(e.target.value)} className={inputStyle} placeholder="102" />
+                      {/* Section: Dimensions & Qty */}
+                      <div className="rounded-xl p-3 space-y-3" style={{ background: "rgba(240,253,244,0.5)", border: "1px solid rgba(134,239,172,0.3)" }}>
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1.5"><span>📐</span> Dimensions & Quantity</p>
+                        <div className="grid grid-cols-3 gap-2.5">
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Width (mm) <span className="text-red-500">*</span></label>
+                            <input type="number" value={reviewSizeW} onChange={e => setReviewSizeW(e.target.value)} className={inputStyle} placeholder="1630" />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Length (mm) <span className="text-red-500">*</span></label>
+                            <input type="number" value={reviewSizeL} onChange={e => setReviewSizeL(e.target.value)} className={inputStyle} placeholder="1800" />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Qty (pcs) <span className="text-red-500">*</span></label>
+                            <input type="number" value={reviewQty} onChange={e => setReviewQty(e.target.value)} className={inputStyle} placeholder="102" />
+                          </div>
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">BQ Comment <span className="text-red-500">*</span></label>
+                      {/* Section: BQ Formula */}
+                      <div className="rounded-xl p-3 space-y-2" style={{ background: "rgba(254,243,199,0.4)", border: "1px solid rgba(245,158,11,0.2)" }}>
+                        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1.5"><span>🔤</span> BQ Formula</p>
                         <textarea value={reviewBqComment} onChange={e => setReviewBqComment(e.target.value.toUpperCase())} rows={2}
                           className={`${inputStyle} resize-none font-mono`} placeholder="e.g. LR170MP115MP115MP115LR170" />
                         {reviewBqComment && (
-                          <div className="mt-2 rounded-xl px-3.5 py-2.5 border" style={{ background: "linear-gradient(135deg, rgba(254,243,199,0.8), rgba(253,230,138,0.4))", border: "1px solid rgba(245,158,11,0.25)" }}>
+                          <div className="rounded-xl px-3.5 py-2.5" style={{ background: "linear-gradient(135deg, rgba(254,243,199,0.8), rgba(253,230,138,0.4))", border: "1px solid rgba(245,158,11,0.25)" }}>
                             <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">Preview</p>
                             <p className="text-xs font-mono font-bold text-amber-800 break-all">{reviewBqComment}</p>
                           </div>
