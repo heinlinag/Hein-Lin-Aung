@@ -1,83 +1,111 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
-import { Loader2, ShieldCheck, Eye, EyeOff, Lock, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldCheck, Eye, EyeOff, Lock, ShieldAlert, Shield } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 const GSPP_LOGO = "/manus-storage/gspp_logo_new_2db75f16.png";
 const APP_VERSION = "Web App Version 3.2.0";
 
 const ANIM_STYLES = `
-@keyframes adminFadeIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+@keyframes alFadeUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-@keyframes adminSuccessPop {
-  0%   { transform: scale(0.5); opacity: 0; }
-  60%  { transform: scale(1.15); opacity: 1; }
-  80%  { transform: scale(0.95); }
-  100% { transform: scale(1); }
+@keyframes alFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-14px) scale(1.04); }
 }
-@keyframes adminSuccessRing {
-  0%   { transform: scale(0.6); opacity: 0; }
-  50%  { transform: scale(1.3); opacity: 0.4; }
-  100% { transform: scale(1.8); opacity: 0; }
+@keyframes alScanLine {
+  0%   { top: -2px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
 }
-@keyframes adminSuccessFadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+@keyframes alPulseRing {
+  0%   { transform: scale(0.95); opacity: 0.6; }
+  70%  { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.15); opacity: 0; }
 }
-@keyframes adminSuccessBg {
+@keyframes alShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes alSuccessBg {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-@keyframes adminGradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes alSuccessPop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.18); opacity: 1; }
+  80%  { transform: scale(0.94); }
+  100% { transform: scale(1); }
 }
-@keyframes adminFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
-  50% { transform: translateY(-20px) rotate(180deg); opacity: 0.7; }
+@keyframes alSuccessRing {
+  0%   { transform: scale(0.6); opacity: 0; }
+  50%  { transform: scale(1.4); opacity: 0.35; }
+  100% { transform: scale(2); opacity: 0; }
 }
-.admin-fade-in   { animation: adminFadeIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
-.admin-success-bg   { animation: adminSuccessBg 0.4s ease both; }
-.admin-success-pop  { animation: adminSuccessPop 0.6s cubic-bezier(.36,.07,.19,.97) both; }
-.admin-success-ring { animation: adminSuccessRing 1s ease-out infinite; }
-.admin-success-text { animation: adminSuccessFadeUp 0.5s ease 0.4s both; }
-.admin-gradient { background: linear-gradient(135deg, #1a7fd4 0%, #1db87e 100%); background-size: 200% 200%; animation: adminGradientShift 8s ease infinite; }
+@keyframes alSuccessText {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes alInputGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+  50%       { box-shadow: 0 0 0 3px rgba(99,102,241,0.18); }
+}
+.al-fade-up       { animation: alFadeUp 0.55s cubic-bezier(0.22,0.61,0.36,1) both; }
+.al-success-bg    { animation: alSuccessBg 0.4s ease both; }
+.al-success-pop   { animation: alSuccessPop 0.65s cubic-bezier(.36,.07,.19,.97) both; }
+.al-success-ring  { animation: alSuccessRing 1.1s ease-out infinite; }
+.al-success-text  { animation: alSuccessText 0.5s ease 0.45s both; }
+.al-input-focus:focus { animation: alInputGlow 2s ease infinite; }
 `;
 
 function SuccessOverlay() {
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-gradient-to-br from-emerald-600 via-green-500 to-teal-600 admin-success-bg">
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center al-success-bg"
+      style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)" }}>
+      {/* Particle field */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 rounded-full bg-white/20"
+        {[...Array(16)].map((_, i) => (
+          <div key={i} className="absolute rounded-full"
             style={{
-              left: `${(i * 37 + 5) % 100}%`,
-              top: `${(i * 53 + 10) % 100}%`,
-              animation: `adminFloat ${2 + (i % 3)}s ease-in-out ${(i % 4) * 0.5}s infinite`,
+              width: `${4 + (i % 4) * 3}px`,
+              height: `${4 + (i % 4) * 3}px`,
+              left: `${(i * 41 + 7) % 100}%`,
+              top: `${(i * 53 + 11) % 100}%`,
+              background: i % 3 === 0 ? "rgba(99,102,241,0.5)" : i % 3 === 1 ? "rgba(139,92,246,0.4)" : "rgba(59,130,246,0.3)",
+              animation: `alFloat ${2.5 + (i % 3) * 0.8}s ease-in-out ${(i % 5) * 0.4}s infinite`,
             }}
           />
         ))}
+        {/* Grid overlay */}
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: "linear-gradient(rgba(99,102,241,1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }} />
       </div>
+      {/* Success icon */}
       <div className="relative flex items-center justify-center mb-8">
-        <div className="absolute w-36 h-36 rounded-full bg-green-300 opacity-20 admin-success-ring" />
-        <div className="absolute w-28 h-28 rounded-full bg-green-300 opacity-15"
-          style={{ animation: "adminSuccessRing 1s ease-out 0.3s infinite" }} />
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-2xl admin-success-pop">
-          <Lock size={40} className="text-white drop-shadow-lg" />
+        <div className="absolute w-40 h-40 rounded-full al-success-ring"
+          style={{ background: "rgba(99,102,241,0.2)" }} />
+        <div className="absolute w-32 h-32 rounded-full"
+          style={{ background: "rgba(139,92,246,0.15)", animation: "alSuccessRing 1.1s ease-out 0.3s infinite" }} />
+        <div className="w-24 h-24 rounded-full flex items-center justify-center shadow-2xl al-success-pop"
+          style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)", boxShadow: "0 0 60px rgba(99,102,241,0.6)" }}>
+          <ShieldCheck size={44} className="text-white drop-shadow-lg" />
         </div>
       </div>
-      <div className="text-center px-8 admin-success-text">
-        <p className="text-white/70 text-xs font-semibold mb-2 uppercase tracking-[0.2em]">Administrator Access Granted</p>
-        <h2 className="text-white text-3xl font-bold mb-2" style={{ fontFamily: "Lora, serif" }}>Welcome, Admin</h2>
-        <p className="text-white/60 text-sm">Redirecting to Admin Panel...</p>
-        <div className="mt-8 w-56 mx-auto h-1.5 bg-white/20 rounded-full overflow-hidden">
-          <div className="h-full bg-white/90 rounded-full" style={{ animation: "adminFadeIn 1.5s ease forwards", width: "100%" }} />
+      <div className="text-center px-8 al-success-text">
+        <p className="text-indigo-300 text-xs font-bold mb-2 uppercase tracking-[0.25em]">Administrator Access Granted</p>
+        <h2 className="text-white text-3xl font-black mb-2" style={{ fontFamily: "Lora, serif" }}>Welcome, Admin</h2>
+        <p className="text-slate-400 text-sm">Redirecting to Admin Panel...</p>
+        <div className="mt-8 w-56 mx-auto h-1 rounded-full overflow-hidden"
+          style={{ background: "rgba(255,255,255,0.1)" }}>
+          <div className="h-full rounded-full"
+            style={{ background: "linear-gradient(90deg, #6366f1, #7c3aed, #6366f1)", backgroundSize: "200%", animation: "alShimmer 1.5s ease forwards" }} />
         </div>
       </div>
     </div>
@@ -90,9 +118,11 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [focused, setFocused] = useState(false);
   const { loginAdmin } = useAuth();
   const [, navigate] = useLocation();
   const styleInjected = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const verifyMutation = trpc.system.verifyAdminPassword.useMutation();
 
   useEffect(() => {
@@ -117,7 +147,7 @@ export default function AdminLogin() {
       }
       loginAdmin(password);
       setSuccess(true);
-      setTimeout(() => { navigate("/admin"); }, 1600);
+      setTimeout(() => { navigate("/admin"); }, 1800);
     } catch {
       setError("Verification failed. Please try again.");
       setLoading(false);
@@ -125,117 +155,202 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #0c1a3a 100%)" }}>
       {success && <SuccessOverlay />}
 
-      {/* Background decorative elements */}
+      {/* Background orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-green-200/20 to-teal-200/20 rounded-full blur-3xl" />
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-12"
+          style={{ background: "radial-gradient(circle, #6366f1, transparent)", animation: "alFloat 12s ease-in-out infinite" }} />
+        <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, #3b82f6, transparent)", animation: "alFloat 16s ease-in-out 3s infinite" }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5"
+          style={{ background: "radial-gradient(circle, #7c3aed, transparent)" }} />
+        {/* Grid overlay */}
+        <div className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: "linear-gradient(rgba(99,102,241,1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }} />
+        {/* Scan line */}
+        <div className="absolute inset-x-0 h-px"
+          style={{
+            background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)",
+            animation: "alScanLine 7s ease-in-out infinite",
+          }} />
       </div>
 
       {/* Header */}
-      <header className="relative z-10 bg-white/80 backdrop-blur-xl border-b border-white/50 px-4 py-3 flex items-center gap-3 shadow-sm">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 flex items-center justify-center border border-blue-100/50">
+      <header className="relative z-10 px-4 py-3 flex items-center gap-3"
+        style={{
+          background: "rgba(15,23,42,0.7)",
+          backdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(255,255,255,0.07)",
+        }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
+          style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
           <img src={GSPP_LOGO} alt="GSPP" className="h-7 w-7 object-contain" />
         </div>
         <div className="flex-1">
-          <div className="font-bold text-gray-900 text-sm leading-tight">PP4 Manual Slitter</div>
-          <div className="text-[10px] text-gray-500 font-medium">Stock Management System</div>
+          <div className="font-bold text-white text-sm leading-tight">PP4 Manual Slitter</div>
+          <div className="text-[10px] text-slate-400 font-medium">Stock Management System</div>
         </div>
-        <div className="flex items-center gap-1.5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/50 rounded-full px-2.5 py-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-          <span className="text-[10px] font-semibold text-green-700">Online</span>
+        <div className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+          style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="text-[10px] font-semibold text-emerald-300">Online</span>
         </div>
       </header>
 
-      {/* Hero */}
-      <div className="relative z-10 admin-gradient px-6 py-12 text-center text-white overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-4 left-8 w-16 h-16 border border-white/10 rounded-full" style={{ animation: "adminFloat 4s ease-in-out infinite" }} />
-          <div className="absolute bottom-4 right-12 w-10 h-10 border border-white/10 rounded-lg rotate-45" style={{ animation: "adminFloat 5s ease-in-out 1s infinite" }} />
-        </div>
-        <div className="relative">
-          <div className="w-20 h-20 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/20 shadow-xl">
-            <ShieldAlert size={36} className="text-white drop-shadow-lg" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-1.5" style={{ fontFamily: "Lora, serif" }}>Login Access</h1>
-          <p className="text-white/75 text-sm font-semibold tracking-wide">Admin Panel</p>
-        </div>
-      </div>
+      {/* Main content */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-10">
 
-      {/* Login Card */}
-      <div className="relative z-10 flex-1 px-4 py-8 max-w-md mx-auto w-full admin-fade-in">
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50 shadow-xl shadow-green-500/5 p-6">
-          {/* Card header */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/25">
-              <ShieldCheck size={22} className="text-white" />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900 text-base">Administrator Password</h3>
-              <p className="text-xs text-gray-500">Restricted to authorized personnel only</p>
+        {/* Hero icon + title */}
+        <div className="text-center mb-8 al-fade-up">
+          <div className="relative inline-flex items-center justify-center mb-5">
+            {/* Pulse ring */}
+            <div className="absolute inset-0 rounded-2xl"
+              style={{ border: "2px solid rgba(99,102,241,0.4)", animation: "alPulseRing 2.5s ease-out infinite" }} />
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl"
+              style={{
+                background: "linear-gradient(135deg, rgba(99,102,241,0.3), rgba(124,58,237,0.3))",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(99,102,241,0.4)",
+                boxShadow: "0 0 40px rgba(99,102,241,0.3)",
+              }}>
+              <ShieldAlert size={36} className="text-indigo-300 drop-shadow-lg" />
             </div>
           </div>
+          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-3"
+            style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
+            <Shield size={11} className="text-indigo-400" />
+            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Restricted Access</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 leading-tight" style={{ fontFamily: "Lora, serif" }}>
+            Admin Panel
+          </h1>
+          <p className="text-slate-400 text-sm">Enter your administrator password to continue</p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
-                Administrator Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter administrator password"
-                  className="w-full px-4 py-3.5 pr-12 rounded-xl border-2 border-gray-100 text-sm font-medium focus:outline-none focus:ring-0 focus:border-green-400 bg-gray-50/50 hover:bg-white transition-all placeholder:text-gray-300"
-                  autoFocus
-                />
+        {/* Login card */}
+        <div className="w-full max-w-sm al-fade-up" style={{ animationDelay: "0.1s" }}>
+          <div className="relative rounded-2xl overflow-hidden"
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              backdropFilter: "blur(24px)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.1)",
+            }}>
+            {/* Top accent bar */}
+            <div className="h-1 w-full"
+              style={{ background: "linear-gradient(90deg, #6366f1, #7c3aed, #3b82f6)" }} />
+
+            <div className="p-6">
+              {/* Card header */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg"
+                  style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)", boxShadow: "0 4px 16px rgba(99,102,241,0.4)" }}>
+                  <ShieldCheck size={22} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">Administrator Password</h3>
+                  <p className="text-xs text-slate-400">Restricted to authorized personnel only</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-widest">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      ref={inputRef}
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onFocus={() => setFocused(true)}
+                      onBlur={() => setFocused(false)}
+                      placeholder="Enter administrator password"
+                      className="w-full px-4 py-3.5 pr-12 rounded-xl text-sm font-medium text-white placeholder-slate-600 focus:outline-none transition-all"
+                      style={{
+                        background: "rgba(255,255,255,0.06)",
+                        border: focused
+                          ? "1px solid rgba(99,102,241,0.7)"
+                          : "1px solid rgba(255,255,255,0.1)",
+                        boxShadow: focused
+                          ? "0 0 0 3px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.05)"
+                          : "inset 0 1px 0 rgba(255,255,255,0.03)",
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors"
+                      style={{ color: "rgba(148,163,184,0.7)" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.9)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,184,0.7)")}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="rounded-xl px-4 py-3 text-sm font-medium al-fade-up flex items-start gap-2"
+                    style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#fca5a5" }}>
+                    <span className="mt-0.5 shrink-0">⚠</span>
+                    {error}
+                  </div>
+                )}
+
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                  style={{
+                    background: "linear-gradient(135deg, #6366f1, #7c3aed)",
+                    boxShadow: "0 4px 20px rgba(99,102,241,0.4)",
+                  }}
+                  onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.opacity = "0.9"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {loading ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
+                  {loading ? "Verifying..." : "Access Admin Panel"}
                 </button>
+              </form>
+
+              {/* Security notice */}
+              <div className="mt-5 rounded-xl p-3.5"
+                style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
+                <div className="flex items-start gap-2.5">
+                  <ShieldCheck size={14} className="text-amber-400 mt-0.5 shrink-0" />
+                  <p className="text-xs text-amber-300/80 leading-relaxed">
+                    Admin access is logged and monitored. Re-authentication is required for each session.
+                  </p>
+                </div>
               </div>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-600 font-medium admin-fade-in flex items-start gap-2">
-                <span className="text-red-400 mt-0.5">!</span>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold text-sm hover:from-green-700 hover:to-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/25 border border-green-500/20 disabled:opacity-60"
-            >
-              {loading ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
-              {loading ? "Verifying..." : "Access Admin Panel"}
-            </button>
-          </form>
-
-          {/* Security notice */}
-          <div className="mt-5 rounded-xl border border-amber-100 bg-gradient-to-br from-amber-50/80 to-yellow-50/80 p-3.5">
-            <div className="flex items-start gap-2.5">
-              <ShieldCheck size={14} className="text-amber-600 mt-0.5 shrink-0" />
-              <p className="text-xs text-amber-700 leading-relaxed">
-                Admin access is logged and monitored. Re-authentication is required for each session.
-              </p>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Version Footer */}
-      <div className="relative z-10 pb-6 pt-2 text-center">
-        <div className="inline-flex items-center gap-2.5 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-full px-4 py-2 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-          <span className="text-xs font-mono font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{APP_VERSION}</span>
+        {/* Version footer */}
+        <div className="mt-8 al-fade-up" style={{ animationDelay: "0.2s" }}>
+          <div className="inline-flex items-center gap-2.5 rounded-full px-4 py-2"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-xs font-mono font-bold"
+              style={{
+                background: "linear-gradient(90deg, #6366f1, #7c3aed)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}>
+              {APP_VERSION}
+            </span>
+          </div>
         </div>
       </div>
     </div>

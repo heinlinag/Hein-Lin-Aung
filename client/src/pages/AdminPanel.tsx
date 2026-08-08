@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ContactMessagesTab } from "@/components/ContactMessagesTab";
 import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar, Bell, Send, BellRing, Sun, Moon, Monitor } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar, Bell, Send, BellRing, Sun, Moon, Monitor, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -48,106 +48,114 @@ function SettingsTab() {
     <div className="max-w-lg mx-auto py-8 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-slate-600 to-gray-700 flex items-center justify-center shadow-md">
+        <div className="h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)", boxShadow: "0 4px 20px rgba(99,102,241,0.4)" }}>
           <KeyRound size={26} className="text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Admin Settings</h2>
-          <p className="text-sm text-gray-500">Manage administrator credentials</p>
+          <h2 className="text-xl font-black text-white" style={{ fontFamily: "Lora, serif" }}>Admin Settings</h2>
+          <p className="text-sm text-slate-400">Manage administrator credentials</p>
         </div>
       </div>
 
       {/* Password Change Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-        <h3 className="text-base font-bold text-gray-800 mb-1 flex items-center gap-2">
-          <Settings2 size={16} className="text-slate-600" /> Change Administrator Password
-        </h3>
-        <p className="text-xs text-gray-500 mb-5">Enter your current password and choose a new one. The new password will take effect immediately.</p>
+      <div className="relative rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", backdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}>
+        {/* Top accent bar */}
+        <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, #6366f1, #7c3aed, #3b82f6)" }} />
+        <div className="p-6">
+          <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+            <Settings2 size={16} className="text-indigo-400" /> Change Administrator Password
+          </h3>
+          <p className="text-xs text-slate-400 mb-5">Enter your current password and choose a new one. The new password will take effect immediately.</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Current Password */}
-          <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">Current Password</label>
-            <div className="relative">
-              <input
-                type={showCurrent ? "text" : "password"}
-                value={currentPw}
-                onChange={e => { setCurrentPw(e.target.value); setError(""); setSuccess(""); }}
-                placeholder="Enter current password"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-              />
-              <button type="button" onClick={() => setShowCurrent(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Current Password */}
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest block mb-1.5">Current Password</label>
+              <div className="relative">
+                <input
+                  type={showCurrent ? "text" : "password"}
+                  value={currentPw}
+                  onChange={e => { setCurrentPw(e.target.value); setError(""); setSuccess(""); }}
+                  placeholder="Enter current password"
+                  className="w-full rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                />
+                <button type="button" onClick={() => setShowCurrent(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors">
+                  {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* New Password */}
-          <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">New Password</label>
-            <div className="relative">
-              <input
-                type={showNew ? "text" : "password"}
-                value={newPw}
-                onChange={e => { setNewPw(e.target.value); setError(""); setSuccess(""); }}
-                placeholder="At least 8 characters"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-              />
-              <button type="button" onClick={() => setShowNew(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+            {/* New Password */}
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest block mb-1.5">New Password</label>
+              <div className="relative">
+                <input
+                  type={showNew ? "text" : "password"}
+                  value={newPw}
+                  onChange={e => { setNewPw(e.target.value); setError(""); setSuccess(""); }}
+                  placeholder="At least 8 characters"
+                  className="w-full rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                />
+                <button type="button" onClick={() => setShowNew(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors">
+                  {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Confirm New Password */}
-          <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">Confirm New Password</label>
-            <div className="relative">
-              <input
-                type={showConfirm ? "text" : "password"}
-                value={confirmPw}
-                onChange={e => { setConfirmPw(e.target.value); setError(""); setSuccess(""); }}
-                placeholder="Re-enter new password"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-              />
-              <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+            {/* Confirm New Password */}
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest block mb-1.5">Confirm New Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  value={confirmPw}
+                  onChange={e => { setConfirmPw(e.target.value); setError(""); setSuccess(""); }}
+                  placeholder="Re-enter new password"
+                  className="w-full rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                />
+                <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors">
+                  {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Error / Success */}
-          {error && (
-            <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
-              <AlertTriangle size={15} className="text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-red-700">{error}</p>
-            </div>
-          )}
-          {success && (
-            <div className="flex items-start gap-2 bg-green-50 border border-green-200 rounded-xl p-3">
-              <CheckCircle2 size={15} className="text-green-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-green-700">{success}</p>
-            </div>
-          )}
+            {/* Error / Success */}
+            {error && (
+              <div className="flex items-start gap-2 rounded-xl p-3" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)" }}>
+                <AlertTriangle size={15} className="text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-red-300">{error}</p>
+              </div>
+            )}
+            {success && (
+              <div className="flex items-start gap-2 rounded-xl p-3" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)" }}>
+                <CheckCircle2 size={15} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-emerald-300">{success}</p>
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={changePassword.isPending}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-slate-600 to-gray-700 text-white shadow-md hover:from-slate-700 hover:to-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {changePassword.isPending ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
-            Change Password
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={changePassword.isPending}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)", boxShadow: "0 4px 16px rgba(99,102,241,0.35)" }}
+            >
+              {changePassword.isPending ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
+              Change Password
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Security Note */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+      <div className="rounded-2xl p-4" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
         <div className="flex items-start gap-2">
-          <AlertTriangle size={15} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <AlertTriangle size={15} className="text-amber-400 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-semibold text-amber-800 mb-1">Security Note</p>
-            <p className="text-xs text-amber-700">After changing the password, you will need to use the new password the next time you log in to the Admin Panel. Make sure to remember it — there is no password recovery option.</p>
+            <p className="text-xs font-semibold text-amber-300 mb-1">Security Note</p>
+            <p className="text-xs text-amber-300/70">After changing the password, you will need to use the new password the next time you log in to the Admin Panel. Make sure to remember it — there is no password recovery option.</p>
           </div>
         </div>
       </div>
@@ -1795,51 +1803,17 @@ export default function AdminPanel() {
     if (scheduleQuery.data?.message && !maintenanceMsg) setMaintenanceMsg(scheduleQuery.data.message);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scheduleQuery.data]);
+  const styleInjected = useRef(false);
+  useEffect(() => {
+    if (styleInjected.current) return;
+    styleInjected.current = true;
+    const el = document.createElement("style");
+    el.textContent = ADMIN_ANIM_STYLES;
+    document.head.appendChild(el);
+  }, []);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   // "system" = follow OS, "dark" = forced dark, "light" = forced light
-  const [themeMode, setThemeMode] = useState<"system" | "dark" | "light">(() => {
-    try {
-      const saved = localStorage.getItem("adminPanelTheme");
-      if (saved === "dark" || saved === "light" || saved === "system") return saved;
-    } catch { /* ignore */ }
-    return "system";
-  });
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem("adminPanelTheme");
-      if (saved === "dark") return true;
-      if (saved === "light") return false;
-    } catch { /* ignore */ }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
-  // Listen for OS theme changes when in system mode
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e: MediaQueryListEvent) => {
-      if (themeMode === "system") setIsDark(e.matches);
-    };
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, [themeMode]);
-  // Sync isDark when themeMode changes
-  useEffect(() => {
-    if (themeMode === "system") {
-      setIsDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
-    } else {
-      setIsDark(themeMode === "dark");
-    }
-  }, [themeMode]);
-  const toggleTheme = () => {
-    const next = themeMode === "system"
-      ? (isDark ? "light" : "dark")  // from system: flip to explicit
-      : themeMode === "dark" ? "light" : "dark";  // explicit: flip
-    setThemeMode(next);
-    try { localStorage.setItem("adminPanelTheme", next); } catch { /* ignore */ }
-  };
-  const resetToSystem = () => {
-    setThemeMode("system");
-    try { localStorage.setItem("adminPanelTheme", "system"); } catch { /* ignore */ }
-  };
+  // Theme locked to dark glassmorphism permanently
   const [, navigate] = useLocation();
 
   const statsQuery = trpc.orders.adminStats.useQuery(undefined, { refetchInterval: 30000 });
@@ -1859,37 +1833,38 @@ export default function AdminPanel() {
   ];
 
   // Theme-derived style helpers
-  const bg = isDark
-    ? { background: "radial-gradient(ellipse at 50% 0%, #1e1040 0%, #0d1117 50%, #080c14 100%)" }
-    : { background: "linear-gradient(135deg, #f0f4ff 0%, #e8eeff 50%, #f5f0ff 100%)" };
-  const headerBg = isDark ? "rgba(13,17,23,0.85)" : "rgba(255,255,255,0.90)";
-  const headerBorder = isDark ? "border-white/8" : "border-gray-200/60";
-  const cardBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)";
-  const cardBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const tabBarBg = isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.80)";
-  const tabBarBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const contentBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)";
-  const contentBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const titleColor = isDark ? "text-white" : "text-gray-900";
-  const subtitleColor = isDark ? "text-slate-500" : "text-gray-500";
-  const statLabelColor = isDark ? "text-slate-400" : "text-gray-500";
-  const statValueColor = isDark ? "text-white" : "text-gray-900";
-  const tabInactive = isDark ? "text-slate-400 hover:text-white hover:bg-white/8" : "text-gray-500 hover:text-gray-800 hover:bg-gray-100";
-  const backBtnClass = isDark ? "text-slate-400 hover:text-white hover:bg-white/8" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100";
-  const activeBadgeBg = isDark ? "bg-emerald-500/10 border-emerald-500/25" : "bg-emerald-50 border-emerald-200";
-  const activeBadgeText = isDark ? "text-emerald-300" : "text-emerald-700";
-  const activeBadgeDot = isDark ? "bg-emerald-400" : "bg-emerald-500";
-  const logoutBtnClass = isDark
-    ? "bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 hover:text-red-300"
-    : "bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:text-red-700";
-  const themeBtnClass = isDark
-    ? "bg-white/8 border border-white/12 text-yellow-300 hover:bg-white/15"
-    : "bg-gray-100 border border-gray-200 text-indigo-600 hover:bg-gray-200";
+  // ── Permanent dark glassmorphism style tokens ──────────────────────────────
+  const bg = { background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #0c1a3a 100%)" };
+  const headerBg = "rgba(13,17,23,0.85)";
+  const headerBorder = "border-white/8";
+  const cardBg = "rgba(255,255,255,0.05)";
+  const cardBorder = "rgba(255,255,255,0.1)";
+  const tabBarBg = "rgba(255,255,255,0.04)";
+  const tabBarBorder = "rgba(255,255,255,0.1)";
+  const contentBg = "rgba(255,255,255,0.04)";
+  const contentBorder = "rgba(255,255,255,0.1)";
+  const titleColor = "text-white";
+  const subtitleColor = "text-slate-400";
+  const statLabelColor = "text-slate-400";
+  const statValueColor = "text-white";
+  const tabInactive = "text-slate-400 hover:text-white hover:bg-white/8";
+  const backBtnClass = "text-slate-400 hover:text-white hover:bg-white/8";
+  const activeBadgeBg = "bg-emerald-500/10 border-emerald-500/25";
+  const activeBadgeText = "text-emerald-300";
+  const activeBadgeDot = "bg-emerald-400";
+  const logoutBtnClass = "bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 hover:text-red-300";
+  // keep isDark always true so any remaining isDark-conditional JSX still renders the dark variant
+  const isDark = true;
 
   return (
-    <div className="min-h-screen transition-colors duration-300" style={bg}>
-      {/* Background grid */}
-      {isDark && <div className="fixed inset-0 opacity-[0.035] pointer-events-none" style={{ backgroundImage: "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)", backgroundSize: "40px 40px" }} />}
+    <div className="min-h-screen" style={bg}>
+      {/* Fixed dark background grid overlay */}
+      <div className="fixed inset-0 opacity-[0.035] pointer-events-none" style={{ backgroundImage: "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+      {/* Fixed floating orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-8" style={{ background: "radial-gradient(circle, #6366f1, transparent)", animation: "adminPanelFloat 14s ease-in-out infinite" }} />
+        <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full opacity-6" style={{ background: "radial-gradient(circle, #3b82f6, transparent)", animation: "adminPanelFloat 18s ease-in-out 4s infinite" }} />
+      </div>
       {/* Header */}
       <header className={`sticky top-0 z-20 border-b ${headerBorder}`} style={{ background: headerBg, backdropFilter: "blur(20px)" }}>
         <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-3 flex items-center gap-3">
@@ -1901,46 +1876,10 @@ export default function AdminPanel() {
             <p className={`text-[10px] lg:text-xs font-medium ${subtitleColor}`}>System Management & Configuration</p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Theme Toggle Group */}
-            <div className={`flex items-center rounded-xl border overflow-hidden ${isDark ? "border-white/12" : "border-gray-200"}`}>
-              {/* Sun - Light */}
-              <button
-                onClick={() => { setThemeMode("light"); try { localStorage.setItem("adminPanelTheme", "light"); } catch { /* */ } }}
-                title="Light Mode"
-                className={`p-2 transition-all ${
-                  themeMode === "light"
-                    ? "bg-amber-400/20 text-amber-400"
-                    : isDark ? "text-slate-500 hover:text-slate-300 hover:bg-white/8" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                <Sun size={15} />
-              </button>
-              {/* Monitor - System */}
-              <button
-                onClick={resetToSystem}
-                title="System Default"
-                className={`p-2 transition-all border-x ${
-                  isDark ? "border-white/12" : "border-gray-200"
-                } ${
-                  themeMode === "system"
-                    ? isDark ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-50 text-indigo-600"
-                    : isDark ? "text-slate-500 hover:text-slate-300 hover:bg-white/8" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                <Monitor size={15} />
-              </button>
-              {/* Moon - Dark */}
-              <button
-                onClick={() => { setThemeMode("dark"); try { localStorage.setItem("adminPanelTheme", "dark"); } catch { /* */ } }}
-                title="Dark Mode"
-                className={`p-2 transition-all ${
-                  themeMode === "dark"
-                    ? "bg-violet-500/20 text-violet-400"
-                    : isDark ? "text-slate-500 hover:text-slate-300 hover:bg-white/8" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                <Moon size={15} />
-              </button>
+            {/* Dark mode badge */}
+            <div className="hidden md:flex items-center gap-1.5 rounded-xl px-2.5 py-1.5" style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)" }}>
+              <Moon size={13} className="text-indigo-400" />
+              <span className="text-xs font-semibold text-indigo-300">Dark Mode</span>
             </div>
             <div className={`hidden md:flex items-center gap-2 border rounded-xl px-3 py-1.5 ${activeBadgeBg}`}>
               <span className={`w-2 h-2 rounded-full animate-pulse ${activeBadgeDot}`}></span>
@@ -1955,6 +1894,33 @@ export default function AdminPanel() {
           </div>
         </div>
       </header>
+
+      {/* ── Hero Banner ─────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0c1a3a 100%)" }}>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-12" style={{ background: "radial-gradient(circle, #6366f1, transparent)", animation: "adminPanelFloat 10s ease-in-out infinite" }} />
+          <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full opacity-8" style={{ background: "radial-gradient(circle, #3b82f6, transparent)", animation: "adminPanelFloat 14s ease-in-out 2s infinite" }} />
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+          <div className="absolute inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)", animation: "adminPanelScan 6s ease-in-out infinite" }} />
+        </div>
+        <div className="relative max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-6 lg:py-8">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center shadow-2xl" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                <Shield size={28} className="text-indigo-300" />
+              </div>
+              <div className="absolute inset-0 rounded-2xl" style={{ border: "2px solid rgba(99,102,241,0.35)", animation: "adminPanelPulse 2.5s ease-out infinite" }} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-indigo-200" style={{ background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.3)" }}>Administrator</span>
+              </div>
+              <h1 className="text-2xl lg:text-3xl font-black text-white leading-tight" style={{ fontFamily: "Lora, serif" }}>Admin Panel</h1>
+              <p className="text-slate-400 text-sm mt-0.5">Full system management &amp; configuration</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Maintenance Mode Warning Banner */}
       {maintenanceQuery.data?.maintenanceMode && (
@@ -2011,7 +1977,7 @@ export default function AdminPanel() {
             </div>
           </div>
           {/* Pending */}
-          <div onClick={() => setActiveTab("pending_requests")} className="rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.pendingRequests ?? 0) > 0 ? (isDark ? "rgba(249,115,22,0.08)" : "rgba(249,115,22,0.06)") : cardBg, backdropFilter: "blur(12px)", borderColor: (stats?.pendingRequests ?? 0) > 0 ? "rgba(249,115,22,0.3)" : cardBorder }}>
+          <div onClick={() => setActiveTab("pending_requests")} className="rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.pendingRequests ?? 0) > 0 ? "rgba(249,115,22,0.08)" : cardBg, backdropFilter: "blur(12px)", borderColor: (stats?.pendingRequests ?? 0) > 0 ? "rgba(249,115,22,0.3)" : cardBorder }}>
             <div className="flex items-center gap-3">
               <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.pendingRequests ?? 0) > 0 ? "bg-gradient-to-br from-orange-500 to-amber-600 shadow-orange-500/30" : "bg-gradient-to-br from-slate-600 to-slate-700 shadow-slate-500/10"}`}>
                 <ClipboardList size={18} className="text-white" />
@@ -2025,7 +1991,7 @@ export default function AdminPanel() {
             </div>
           </div>
           {/* Low Stock */}
-          <div onClick={() => setActiveTab("orders")} className="rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.lowStockCount ?? 0) > 0 ? (isDark ? "rgba(245,158,11,0.08)" : "rgba(245,158,11,0.06)") : cardBg, backdropFilter: "blur(12px)", borderColor: (stats?.lowStockCount ?? 0) > 0 ? "rgba(245,158,11,0.3)" : cardBorder }}>
+          <div onClick={() => setActiveTab("orders")} className="rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.lowStockCount ?? 0) > 0 ? "rgba(245,158,11,0.08)" : cardBg, backdropFilter: "blur(12px)", borderColor: (stats?.lowStockCount ?? 0) > 0 ? "rgba(245,158,11,0.3)" : cardBorder }}>
             <div className="flex items-center gap-3">
               <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.lowStockCount ?? 0) > 0 ? "bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/30" : "bg-gradient-to-br from-slate-600 to-slate-700 shadow-slate-500/10"}`}>
                 <AlertTriangle size={18} className="text-white" />
@@ -2088,8 +2054,8 @@ export default function AdminPanel() {
               {/* Status card */}
               <div className={`rounded-2xl border-2 p-6 transition-all ${
                 maintenanceQuery.data?.maintenanceMode
-                  ? isDark ? "border-red-500/40 bg-red-500/10" : "border-red-300 bg-red-50"
-                  : isDark ? "border-emerald-500/40 bg-emerald-500/10" : "border-emerald-300 bg-emerald-50"
+                  ? "border-red-500/40 bg-red-500/10"
+                  : "border-emerald-500/40 bg-emerald-500/10"
               }`}>
                 <div className="flex items-center gap-4">
                   <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shadow-md ${
@@ -2105,8 +2071,8 @@ export default function AdminPanel() {
                     <h2 className={`text-lg font-bold ${titleColor}`}>Maintenance Mode</h2>
                     <p className={`text-sm font-semibold mt-0.5 ${
                       maintenanceQuery.data?.maintenanceMode
-                        ? isDark ? "text-red-400" : "text-red-600"
-                        : isDark ? "text-emerald-400" : "text-emerald-600"
+                        ? "text-red-400"
+                        : "text-emerald-400"
                     }`}>
                       {maintenanceQuery.data?.maintenanceMode ? "🔴 Currently ON — App is under maintenance" : "🟢 Currently OFF — App is live"}
                     </p>
@@ -2115,16 +2081,16 @@ export default function AdminPanel() {
               </div>
 
               {/* Custom message */}
-              <div className="rounded-2xl border p-5 space-y-3" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.9)", borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)" }}>
-                <label className={`text-sm font-semibold block ${isDark ? "text-slate-200" : "text-gray-700"}`}>Custom Maintenance Message (optional)</label>
+              <div className="rounded-2xl border p-5 space-y-3" style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.10)" }}>
+                <label className={`text-sm font-semibold block ${"text-slate-200"}`}>Custom Maintenance Message (optional)</label>
                 <textarea
-                  className={`w-full border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? "border-white/10 bg-white/5 text-white placeholder-slate-500" : "border-gray-200 bg-white text-gray-800 placeholder-gray-400"}`}
+                  className={`w-full border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 ${"border-white/10 bg-white/5 text-white placeholder-slate-500"}`}
                   rows={3}
                   placeholder="e.g. Estimated downtime: 01/07/2026 08:15 AM — system will be back to normal."
                   value={maintenanceMsg}
                   onChange={e => setMaintenanceMsg(e.target.value)}
                 />
-                <p className={`text-xs ${isDark ? "text-slate-500" : "text-gray-400"}`}>Leave empty to show the default message. End Time is auto-filled when you set the schedule.</p>
+                <p className={`text-xs ${"text-slate-500"}`}>Leave empty to show the default message. End Time is auto-filled when you set the schedule.</p>
               </div>
 
               {/* Manual toggle buttons */}
@@ -2148,14 +2114,14 @@ export default function AdminPanel() {
               </div>
 
               {/* Scheduled Maintenance Window */}
-              <div className="rounded-2xl border p-5 space-y-4" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.9)", borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)" }}>
+              <div className="rounded-2xl border p-5 space-y-4" style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.10)" }}>
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                     <CalendarClock size={16} className="text-white" />
                   </div>
                   <div>
                     <h3 className={`text-sm font-bold ${titleColor}`}>Schedule Maintenance Window</h3>
-                    <p className={`text-xs ${isDark ? "text-slate-400" : "text-gray-500"}`}>System will auto-enable and auto-disable maintenance at the set times</p>
+                    <p className={`text-xs ${"text-slate-400"}`}>System will auto-enable and auto-disable maintenance at the set times</p>
                   </div>
                 </div>
 
@@ -2186,19 +2152,19 @@ export default function AdminPanel() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className={`text-xs font-semibold ${isDark ? "text-slate-300" : "text-gray-600"}`}>Start Time (Maintenance ON)</label>
+                    <label className={`text-xs font-semibold ${"text-slate-300"}`}>Start Time (Maintenance ON)</label>
                     <input
                       type="datetime-local"
-                      className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? "border-white/10 bg-white/5 text-white" : "border-gray-200 bg-white text-gray-800"}`}
+                      className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${"border-white/10 bg-white/5 text-white"}`}
                       value={scheduleStart}
                       onChange={e => setScheduleStart(e.target.value)}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className={`text-xs font-semibold ${isDark ? "text-slate-300" : "text-gray-600"}`}>End Time (Maintenance OFF)</label>
+                    <label className={`text-xs font-semibold ${"text-slate-300"}`}>End Time (Maintenance OFF)</label>
                     <input
                       type="datetime-local"
-                      className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? "border-white/10 bg-white/5 text-white" : "border-gray-200 bg-white text-gray-800"}`}
+                      className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${"border-white/10 bg-white/5 text-white"}`}
                       value={scheduleEnd}
                       onChange={e => {
                         setScheduleEnd(e.target.value);
@@ -2248,10 +2214,10 @@ export default function AdminPanel() {
                   {scheduleMaintenanceMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <CalendarClock size={16} />}
                   Schedule Maintenance Window
                 </button>
-                <p className={`text-xs text-center ${isDark ? "text-slate-500" : "text-gray-400"}`}>Times are in your local timezone. System will auto-trigger at the scheduled times after deployment.</p>
+                <p className={`text-xs text-center ${"text-slate-500"}`}>Times are in your local timezone. System will auto-trigger at the scheduled times after deployment.</p>
               </div>
 
-              <p className={`text-xs text-center ${isDark ? "text-slate-500" : "text-gray-400"}`}>
+              <p className={`text-xs text-center ${"text-slate-500"}`}>
                 Admin users can still access the app while maintenance mode is ON.
               </p>
             </div>
@@ -2262,21 +2228,21 @@ export default function AdminPanel() {
       {/* Logout Confirmation */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="rounded-2xl border shadow-2xl w-full max-w-md p-6 space-y-4" style={{ background: isDark ? "rgba(13,17,23,0.95)" : "rgba(255,255,255,0.98)", backdropFilter: "blur(20px)", borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)" }}>
+          <div className="rounded-2xl border shadow-2xl w-full max-w-md p-6 space-y-4" style={{ background: "rgba(13,17,23,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/30">
                 <LogOut size={24} className="text-white" />
               </div>
               <div>
                 <h3 className={`font-bold text-lg ${titleColor}`}>Confirm Logout</h3>
-                <p className={`text-xs ${isDark ? "text-slate-400" : "text-gray-500"}`}>Admin Session</p>
+                <p className={`text-xs ${"text-slate-400"}`}>Admin Session</p>
               </div>
             </div>
-            <p className={`text-sm ${isDark ? "text-slate-300" : "text-gray-600"}`}>Are you sure you want to logout from the Admin Panel? Your admin session will be terminated.</p>
+            <p className={`text-sm ${"text-slate-300"}`}>Are you sure you want to logout from the Admin Panel? Your admin session will be terminated.</p>
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className={`flex-1 border rounded-xl py-2.5 text-sm font-semibold transition-colors ${isDark ? "border-white/10 text-slate-300 hover:bg-white/8" : "border-gray-200 text-gray-700 hover:bg-gray-50"}`}
+                className={`flex-1 border rounded-xl py-2.5 text-sm font-semibold transition-colors ${"border-white/10 text-slate-300 hover:bg-white/8"}`}
               >
                 Cancel
               </button>
@@ -2298,3 +2264,25 @@ export default function AdminPanel() {
     </div>
   );
 }
+const ADMIN_ANIM_STYLES = `
+@keyframes adminPanelFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-14px) scale(1.04); }
+}
+@keyframes adminPanelScan {
+  0%   { top: -2px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+@keyframes adminPanelPulse {
+  0%   { transform: scale(0.95); opacity: 0.6; }
+  70%  { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+@keyframes adminCardIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.admin-card-in { animation: adminCardIn 0.45s cubic-bezier(0.22,0.61,0.36,1) both; }
+`;
