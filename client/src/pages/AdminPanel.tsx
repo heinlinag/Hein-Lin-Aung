@@ -1847,6 +1847,7 @@ export default function AdminPanel() {
     el.textContent = ADMIN_ANIM_STYLES;
     document.head.appendChild(el);
   }, []);
+  const [showMoreDrawer, setShowMoreDrawer] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   // "system" = follow OS, "dark" = forced dark, "light" = forced light
   // Theme locked to dark glassmorphism permanently
@@ -2042,7 +2043,7 @@ export default function AdminPanel() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10">
+      <div className="hidden sm:block max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10">
         <div className="flex gap-1 rounded-2xl border p-1.5 overflow-x-auto" style={{ background: tabBarBg, backdropFilter: "blur(12px)", borderColor: tabBarBorder }}>
           {tabs.map((t) => {
             const isActive = activeTab === t.id;
@@ -2072,7 +2073,7 @@ export default function AdminPanel() {
       </div>
 
       {/* Content */}
-      <main className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-5 md:py-6">
+      <main className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-5 md:py-6 pb-[80px] sm:pb-6">
         <div className="rounded-2xl border p-4 lg:p-6" style={{ background: contentBg, backdropFilter: "blur(12px)", borderColor: contentBorder }}>
           {activeTab === "workers" && <WorkersTab />}
           {activeTab === "orders" && <OrdersTab />}
@@ -2258,6 +2259,92 @@ export default function AdminPanel() {
           )}
         </div>
       </main>
+
+      {/* ── Mobile Bottom Navigation (sm and below only) ─────────────────── */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40" style={{ background: "rgba(10,14,26,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        {/* More Drawer — slides up from bottom */}
+        {showMoreDrawer && (
+          <div className="absolute bottom-full left-0 right-0 rounded-t-2xl overflow-hidden" style={{ background: "rgba(15,20,40,0.98)", backdropFilter: "blur(24px)", border: "1px solid rgba(255,255,255,0.1)", borderBottom: "none" }}>
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-10 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }} />
+            </div>
+            <div className="px-4 pb-4 grid grid-cols-3 gap-2">
+              {[
+                { id: "deleted_logs" as const, label: "Deleted Logs", icon: <History size={20} />, grad: "from-red-500 to-rose-600" },
+                { id: "announcements" as const, label: "Announcements", icon: <Megaphone size={20} />, grad: "from-indigo-500 to-violet-600" },
+                { id: "notifications" as const, label: "Notifications", icon: <Bell size={20} />, grad: "from-amber-500 to-yellow-600" },
+                { id: "audit_log" as const, label: "Audit Log", icon: <ShieldAlert size={20} />, grad: "from-teal-500 to-cyan-600" },
+                { id: "maintenance" as const, label: "Maintenance", icon: <Wrench size={20} />, grad: "from-red-600 to-rose-700" },
+                { id: "settings" as const, label: "Settings", icon: <Settings2 size={20} />, grad: "from-slate-500 to-slate-700" },
+              ].map((t) => {
+                const isActive = activeTab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => { setActiveTab(t.id); setShowMoreDrawer(false); }}
+                    className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl transition-all"
+                    style={isActive ? { background: "rgba(99,102,241,0.18)", border: "1px solid rgba(99,102,241,0.35)" } : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${t.grad}`}>
+                      <span className="text-white">{t.icon}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold leading-tight text-center" style={{ color: isActive ? "#a5b4fc" : "rgba(148,163,184,0.8)" }}>{t.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* Backdrop tap to close */}
+            <button className="absolute inset-0 -z-10" onClick={() => setShowMoreDrawer(false)} />
+          </div>
+        )}
+        {/* Backdrop for drawer */}
+        {showMoreDrawer && (
+          <div className="fixed inset-0 -z-10 bg-black/50" onClick={() => setShowMoreDrawer(false)} />
+        )}
+        {/* Primary 5-tab bar */}
+        <div className="flex items-stretch h-[64px]">
+          {([
+            { id: "workers" as const, label: "Workers", icon: <Users size={22} /> },
+            { id: "orders" as const, label: "Orders", icon: <Package size={22} /> },
+            { id: "pending_requests" as const, label: "Requests", icon: <ClipboardList size={22} />, badge: (stats?.pendingRequests ?? 0) > 0 ? stats?.pendingRequests : undefined },
+            { id: "contact_messages" as const, label: "Messages", icon: <Inbox size={22} /> },
+          ] as const).map((t) => {
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => { setActiveTab(t.id); setShowMoreDrawer(false); }}
+                className="flex-1 flex flex-col items-center justify-center gap-1 relative transition-all"
+              >
+                {isActive && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-400" />}
+                <div className="relative">
+                  <span style={{ color: isActive ? "#818cf8" : "rgba(148,163,184,0.7)" }}>{t.icon}</span>
+                  {"badge" in t && t.badge !== undefined && (
+                    <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 rounded-full text-[9px] font-bold flex items-center justify-center px-1" style={{ background: "#f97316", color: "white" }}>
+                      {t.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] font-semibold" style={{ color: isActive ? "#818cf8" : "rgba(148,163,184,0.7)" }}>{t.label}</span>
+              </button>
+            );
+          })}
+          {/* More button */}
+          <button
+            onClick={() => setShowMoreDrawer(v => !v)}
+            className="flex-1 flex flex-col items-center justify-center gap-1 relative transition-all"
+          >
+            {showMoreDrawer && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-400" />}
+            <span style={{ color: showMoreDrawer ? "#818cf8" : "rgba(148,163,184,0.7)" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+              </svg>
+            </span>
+            <span className="text-[10px] font-semibold" style={{ color: showMoreDrawer ? "#818cf8" : "rgba(148,163,184,0.7)" }}>More</span>
+          </button>
+        </div>
+      </div>
 
       {/* Logout Confirmation */}
       {showLogoutConfirm && (
