@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ContactMessagesTab } from "@/components/ContactMessagesTab";
 import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
@@ -182,6 +182,169 @@ function RefreshButton({ onRefresh, size = 15 }: { onRefresh: () => void | Promi
   );
 }
 
+// ─── Swipeable Worker Card (mobile) ───────────────────────────────────────────
+function SwipeableWorkerCard({
+  w,
+  onEdit,
+  onDelete,
+}: {
+  w: Worker;
+  onEdit: (w: Worker) => void;
+  onDelete: (w: Worker) => void;
+}) {
+  const REVEAL_WIDTH = 130; // px — total width of both action buttons
+  const SWIPE_THRESHOLD = 40; // px — minimum drag to trigger reveal
+
+  const [offsetX, setOffsetX] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const isDragging = useRef(false);
+  const isHorizontal = useRef<boolean | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside tap
+  useEffect(() => {
+    if (!revealed) return;
+    const handler = (e: TouchEvent | MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setRevealed(false);
+        setOffsetX(0);
+      }
+    };
+    document.addEventListener("touchstart", handler, { passive: true });
+    document.addEventListener("mousedown", handler);
+    return () => {
+      document.removeEventListener("touchstart", handler);
+      document.removeEventListener("mousedown", handler);
+    };
+  }, [revealed]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
+    isDragging.current = true;
+    isHorizontal.current = null;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.touches[0].clientX - startX.current;
+    const dy = e.touches[0].clientY - startY.current;
+
+    // Determine scroll vs swipe on first significant movement
+    if (isHorizontal.current === null && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      isHorizontal.current = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!isHorizontal.current) return; // let vertical scroll pass through
+
+    e.preventDefault(); // prevent page scroll during horizontal swipe
+    const base = revealed ? -REVEAL_WIDTH : 0;
+    const newOffset = Math.max(-REVEAL_WIDTH, Math.min(0, base + dx));
+    setOffsetX(newOffset);
+  }, [revealed]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isHorizontal.current) { isDragging.current = false; return; }
+    const base = revealed ? -REVEAL_WIDTH : 0;
+    const dx = offsetX - base;
+    if (!revealed && dx < -SWIPE_THRESHOLD) {
+      setOffsetX(-REVEAL_WIDTH);
+      setRevealed(true);
+    } else if (revealed && dx > SWIPE_THRESHOLD) {
+      setOffsetX(0);
+      setRevealed(false);
+    } else {
+      setOffsetX(revealed ? -REVEAL_WIDTH : 0);
+    }
+    isDragging.current = false;
+  }, [revealed, offsetX]);
+
+  return (
+    <div ref={cardRef} className="relative overflow-hidden rounded-xl" style={{ touchAction: "pan-y" }}>
+      {/* Action buttons (revealed behind the card) */}
+      <div className="absolute inset-y-0 right-0 flex items-stretch" style={{ width: REVEAL_WIDTH }}>
+        <button
+          onClick={() => { onEdit(w); setRevealed(false); setOffsetX(0); }}
+          className="flex-1 flex flex-col items-center justify-center gap-1 text-white font-bold text-xs transition-all active:opacity-80"
+          style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}
+        >
+          <Pencil size={18} />
+          <span>Edit</span>
+        </button>
+        <button
+          onClick={() => { onDelete(w); setRevealed(false); setOffsetX(0); }}
+          className="flex-1 flex flex-col items-center justify-center gap-1 text-white font-bold text-xs transition-all active:opacity-80"
+          style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)" }}
+        >
+          <Trash2 size={18} />
+          <span>Delete</span>
+        </button>
+      </div>
+
+      {/* Swipeable card face */}
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          transform: `translateX(${offsetX}px)`,
+          transition: isDragging.current ? "none" : "transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)",
+          background: "rgba(30,41,59,0.85)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(255,255,255,0.10)",
+          borderRadius: "0.75rem",
+          position: "relative",
+          zIndex: 1,
+        }}
+        className="p-4"
+      >
+        {/* Swipe hint arrow (only when not revealed) */}
+        {!revealed && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-25 pointer-events-none">
+            <span className="text-slate-400 text-[10px]">←</span>
+          </div>
+        )}
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <p className="text-xs text-slate-400">Employee ID</p>
+            <p className="text-sm font-bold text-indigo-300">{w.workerID}</p>
+          </div>
+          <div className="flex items-center gap-1">
+            {/* Desktop fallback buttons (hidden on touch devices via pointer:coarse) */}
+            <button
+              onClick={() => onEdit(w)}
+              className="hidden md:flex text-slate-400 hover:text-indigo-300 p-1 transition-colors"
+              title="Edit"
+            >
+              <Pencil size={15} />
+            </button>
+            <button
+              onClick={() => onDelete(w)}
+              className="hidden md:flex text-slate-400 hover:text-red-400 p-1 transition-colors"
+              title="Delete"
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-slate-400 text-xs">Name</span>
+          <span className="text-white font-medium">{w.name}</span>
+        </div>
+        <div className="flex justify-between items-center mt-1">
+          <span className="text-slate-400 text-xs">Department</span>
+          <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
+        </div>
+        <div className="flex justify-between items-center mt-1">
+          <span className="text-slate-400 text-xs">User Level</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${w.userLevel === "1" ? "bg-orange-500/20 text-orange-300 border-orange-500/30" : w.userLevel === "1.1" ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-green-500/20 text-green-300 border-green-500/30"}`}>Level {w.userLevel}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Workers Tab ───────────────────────────────────────────────────────────────
 function WorkersTab() {
   const { getAdminPassword } = useAuth();
@@ -358,34 +521,12 @@ function WorkersTab() {
           {/* Mobile cards */}
           <div className="md:hidden space-y-2">
             {workers.map(w => (
-              <div key={w.id} className="p-4 rounded-xl border" style={{ background: "rgba(30,41,59,0.75)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.10)" }}>
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <p className="text-xs text-slate-400">Employee ID</p>
-                    <p className="text-sm font-bold text-indigo-300">{w.workerID}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => openEdit(w)} className="text-slate-400 hover:text-indigo-300 p-1 transition-colors" title="Edit">
-                      <Pencil size={15} />
-                    </button>
-                    <button onClick={() => setDeleteTarget(w)} className="text-slate-400 hover:text-red-400 p-1 transition-colors" title="Delete">
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400 text-xs">Name</span>
-                  <span className="text-white font-medium">{w.name}</span>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-slate-400 text-xs">Department</span>
-                  <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-slate-400 text-xs">User Level</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${w.userLevel === "1" ? "bg-orange-500/20 text-orange-300 border-orange-500/30" : w.userLevel === "1.1" ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-green-500/20 text-green-300 border-green-500/30"}`}>Level {w.userLevel}</span>
-                </div>
-              </div>
+              <SwipeableWorkerCard
+                key={w.id}
+                w={w}
+                onEdit={openEdit}
+                onDelete={setDeleteTarget}
+              />
             ))}
           </div>
         </>
