@@ -532,7 +532,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
           <div className="flex items-stretch h-16">
             {[
               { href: "/",              icon: <Home size={20} />,          label: "Home" },
-              { href: "/submit-order",  icon: <ClipboardList size={20} />, label: "Orders" },
+              { href: "/submit-order",  icon: <ClipboardList size={20} />, label: "Add" },
               { href: "/chat",          icon: <MessageCircle size={20} />, label: "Chat",   badge: unreadMsgCount },
               { href: "/notifications", icon: <Bell size={20} />,          label: "Alerts", badge: unreadNotifCount },
               { href: "/stock-history", icon: <Package size={20} />,       label: "Stock" },
