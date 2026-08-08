@@ -630,11 +630,11 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1.5"><span>📐</span> Dimensions & Quantity</p>
                         <div className="grid grid-cols-3 gap-2.5">
                           <div>
-                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Width (mm) <span className="text-red-500">*</span></label>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">W (mm) <span className="text-red-500">*</span></label>
                             <input type="number" value={reviewSizeW} onChange={e => setReviewSizeW(e.target.value)} className={inputStyle} placeholder="1630" />
                           </div>
                           <div>
-                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Length (mm) <span className="text-red-500">*</span></label>
+                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">L (mm) <span className="text-red-500">*</span></label>
                             <input type="number" value={reviewSizeL} onChange={e => setReviewSizeL(e.target.value)} className={inputStyle} placeholder="1800" />
                           </div>
                           <div>
@@ -648,12 +648,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                         <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1.5"><span>🔤</span> BQ Formula</p>
                         <textarea value={reviewBqComment} onChange={e => setReviewBqComment(e.target.value.toUpperCase())} rows={2}
                           className={`${inputStyle} resize-none font-mono`} placeholder="e.g. LR170MP115MP115MP115LR170" />
-                        {reviewBqComment && (
-                          <div className="rounded-xl px-3.5 py-2.5" style={{ background: "linear-gradient(135deg, rgba(254,243,199,0.8), rgba(253,230,138,0.4))", border: "1px solid rgba(245,158,11,0.25)" }}>
-                            <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">Preview</p>
-                            <p className="text-xs font-mono font-bold text-amber-800 break-all">{reviewBqComment}</p>
-                          </div>
-                        )}
+
                       </div>
                     </div>
                   </div>
