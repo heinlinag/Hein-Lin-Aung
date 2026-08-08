@@ -120,6 +120,9 @@ export default function SubmitOrder() {
       // Compress before upload: reduces 8-12MB camera photos to ~0.5-1.5MB
       const compressed = await compressImage(file);
       formData.append("image", compressed);
+      // Pass worker auth (localStorage-based, not cookie-based)
+      if (worker?.workerID) formData.append("workerID", worker.workerID);
+      if (worker?.deviceToken) formData.append("deviceToken", worker.deviceToken);
       const resp = await fetch("/api/scan-label", {
         method: "POST",
         credentials: "include",

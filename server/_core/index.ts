@@ -46,16 +46,15 @@ async function startServer() {
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
   app.post("/api/scan-label", upload.single("image"), async (req, res) => {
     try {
-      // Authenticate via session cookie (same as protectedProcedure)
-      const { sdk } = await import("./sdk");
-      let authed = false;
-      try {
-        await sdk.authenticateRequest(req as any);
-        authed = true;
-      } catch {
-        authed = false;
+      // Authenticate via workerID + deviceToken (worker sessions use localStorage, not cookies)
+      const workerID = (req.body as Record<string, string>)?.workerID ?? "";
+      const deviceToken = (req.body as Record<string, string>)?.deviceToken ?? "";
+      if (!workerID || !deviceToken) {
+        return res.status(401).json({ error: "Please login first", code: 10001 });
       }
-      if (!authed) {
+      const { getWorkerByWorkerID } = await import("../db");
+      const worker = await getWorkerByWorkerID(workerID);
+      if (!worker || worker.activeDeviceToken !== deviceToken) {
         return res.status(401).json({ error: "Please login first", code: 10001 });
       }
       if (!req.file) {
