@@ -6,7 +6,7 @@ import {
   Eye, Users, Settings, Zap, ArrowRight, Sparkles, ExternalLink,
 } from "lucide-react";
 
-const EMPLOYEE_GUIDE_URL = "/manus-storage/StockDash_User_Guide_v6.2.5_2cd09f3e.pdf";
+const EMPLOYEE_GUIDE_URL = "/manus-storage/StockDash_Employee_Guide_v6.2.5_a77c18c3.pdf";
 const ADMIN_GUIDE_URL = "/manus-storage/Admin_Documentation_v3.1.0_4b46e34e.pdf";
 
 const ANIM_STYLES = `
@@ -52,7 +52,8 @@ const employeeGuideContent = [
     title: "Core Features",
     sections: [
       "Home Dashboard & Animated Stats",
-      "Add Stock NPRM — Flute Type, Size, Qty, BQ",
+      "Add Stock NPRM — AI Label Scanner & Manual Entry",
+      "Scanner Review — MASTERCARD PB Validation & Duplicate Protection",
       "Stock History — Low-Stock Alerts & Filters",
       "NPRM Modify Order — Pending / In Process / Approved",
       "Process Approve Workflow (Level 1.1)",
@@ -256,7 +257,7 @@ export default function Documentation() {
                     <h2 className="text-xl font-black text-gray-900">{guideTitle}</h2>
                     <p className="text-sm text-gray-500 mt-0.5">
                       {isEmployee
-                        ? "Complete guide for employees — Login, Stock, Orders, QR Scanner & more"
+                        ? "Complete v6.2.5 guide — AI Label Scanner, Manual Entry, Stock, Requests, QR Scanner & more"
                         : "Complete guide for administrators — Management, Roles, Audit & Operations"}
                     </p>
                     <div className="flex items-center gap-2 mt-2">

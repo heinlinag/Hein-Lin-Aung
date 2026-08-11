@@ -1371,3 +1371,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## v6.2.5 Documentation & Skill Context
 - [x] Update project documentation with verified v6.2.5 features and maintenance reference
 - [x] Update and validate stockdash-webdev reusable skill with AI Scanner architecture and v6.2.5 pitfalls
+
+## v6.2.5 Employee Guide PDF
+- [x] Write and generate a downloadable Employee Guide PDF covering the Scanner workflow
+- [x] Upload the guide to project storage and update the Documentation download link
