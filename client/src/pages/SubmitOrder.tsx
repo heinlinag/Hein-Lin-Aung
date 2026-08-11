@@ -65,6 +65,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
   const [reviewBqComment, setReviewBqComment] = useState("");
   const [debouncedReviewOrderID, setDebouncedReviewOrderID] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cameraPermission, setCameraPermission] = useState<"prompt" | "granted" | "denied" | "unsupported">("prompt");
 
   const SCAN_STEPS = [
     { icon: "🔍", label: "Uploading image to AI...", sub: "Preparing label for analysis" },
@@ -95,6 +96,19 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
     return () => clearInterval(interval);
   }, [scannerStep]);
 
+  useEffect(() => {
+    if (mode !== "scanner") return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraPermission("unsupported");
+      return;
+    }
+    if (!navigator.permissions?.query) return;
+
+    void navigator.permissions.query({ name: "camera" as PermissionName })
+      .then(status => setCameraPermission(status.state === "granted" ? "granted" : status.state === "denied" ? "denied" : "prompt"))
+      .catch(() => setCameraPermission("prompt"));
+  }, [mode]);
+
   const [orderID, setOrderID] = useState("");
   const [fluteType, setFluteType] = useState("");
   const [manualFlute, setManualFlute] = useState("");
@@ -106,6 +120,37 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
   const [showScannerConfirm, setShowScannerConfirm] = useState(false);
   const [successData, setSuccessData] = useState<{ trackingId: string; orderID: string; fluteType: string; sizeW: number; sizeL: number; qty: number; bqComment: string } | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
+
+  const openCameraPicker = () => {
+    fileInputRef.current?.setAttribute("capture", "environment");
+    fileInputRef.current?.click();
+  };
+
+  const requestCameraPermission = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraPermission("unsupported");
+      toast.error("Camera access is not supported on this device. Please upload an image or use Manual mode.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      stream.getTracks().forEach(track => track.stop());
+      setCameraPermission("granted");
+      openCameraPicker();
+    } catch {
+      setCameraPermission("denied");
+      toast.error("Camera permission is blocked. Enable it in browser settings or use Upload Image.");
+    }
+  };
+
+  const handleTakePhoto = () => {
+    if (cameraPermission === "granted") {
+      openCameraPicker();
+      return;
+    }
+    void requestCameraPermission();
+  };
 
   const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith("image/")) { toast.error("Please select an image file."); return; }
@@ -405,6 +450,46 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                         ))}
                       </div>
                     </div>
+                    {/* Mobile first-use camera permission guide */}
+                    <div className="lg:hidden rounded-2xl p-4" style={{ background: cameraPermission === "denied" ? "rgba(254,242,242,0.9)" : "rgba(238,242,255,0.7)", border: `1px solid ${cameraPermission === "denied" ? "rgba(248,113,113,0.35)" : "rgba(199,210,254,0.55)"}` }}>
+                      {cameraPermission === "denied" ? (
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-2.5">
+                            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-500" />
+                            <div>
+                              <p className="text-xs font-black text-red-700">Camera permission is blocked</p>
+                              <p className="mt-0.5 text-[11px] leading-relaxed text-red-600">Open your browser site settings, allow <strong>Camera</strong> for StockDash, then refresh this page.</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => setMode("manual")}
+                              className="flex-1 rounded-xl bg-white px-3 py-2.5 text-xs font-bold text-red-700 shadow-sm ring-1 ring-red-200">
+                              Use Manual Mode
+                            </button>
+                            <button onClick={() => void requestCameraPermission()}
+                              className="flex-1 rounded-xl bg-red-500 px-3 py-2.5 text-xs font-bold text-white shadow-sm">
+                              Try Again
+                            </button>
+                          </div>
+                        </div>
+                      ) : cameraPermission === "unsupported" ? (
+                        <div className="flex items-start gap-2.5">
+                          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-500" />
+                          <div>
+                            <p className="text-xs font-black text-amber-700">Camera is not available on this device</p>
+                            <p className="mt-0.5 text-[11px] leading-relaxed text-amber-600">Use <strong>Upload Image</strong> to scan an existing label photo, or switch to Manual mode.</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-start gap-2.5">
+                          <ShieldCheck size={18} className="mt-0.5 shrink-0 text-indigo-500" />
+                          <div>
+                            <p className="text-xs font-black text-indigo-700">First time using the camera?</p>
+                            <p className="mt-0.5 text-[11px] leading-relaxed text-indigo-600">Tap <strong>{cameraPermission === "granted" ? "Take Photo" : "Enable Camera"}</strong>, then choose <strong>Allow</strong> when your browser asks for camera permission. Your camera is used only to capture the production label.</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     {/* Desktop notice — no camera available */}
                     <div className="hidden lg:flex flex-col items-center gap-3 rounded-xl p-4 text-center" style={{ background: "rgba(255,237,213,0.7)", border: "1px solid rgba(251,146,60,0.3)" }}>
                       <div className="flex items-center gap-2">
@@ -420,10 +505,10 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                     </div>
                     {/* Mobile buttons — camera available */}
                     <div className="flex lg:hidden gap-3">
-                      <button onClick={() => fileInputRef.current?.click()}
+                      <button onClick={handleTakePhoto}
                         className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white transition-all active:scale-[0.98]"
                         style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)", boxShadow: "0 4px 20px rgba(99,102,241,0.35)" }}>
-                        <Camera size={16} /> Take Photo
+                        <Camera size={16} /> {cameraPermission === "denied" ? "Camera Blocked" : cameraPermission === "prompt" ? "Enable Camera" : "Take Photo"}
                       </button>
                       <button onClick={() => {
                         if (fileInputRef.current) {
