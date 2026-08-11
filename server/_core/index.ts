@@ -8,7 +8,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { getDb } from "../db";
+import { getDb, getWorkerByWorkerID } from "../db";
 import { systemSettings } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import multer from "multer";
@@ -42,6 +42,30 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
 
+  const verifyScannerWorkerSession = async (workerID: string, deviceToken: string) => {
+    if (!workerID || !deviceToken) {
+      return { ok: false as const, error: "Scanner session missing. Please sign out and sign in again.", code: 10001 };
+    }
+    const worker = await getWorkerByWorkerID(workerID);
+    if (!worker || worker.activeDeviceToken !== deviceToken) {
+      return { ok: false as const, error: "Scanner session expired. Please sign out and sign in again.", code: 10001 };
+    }
+    return { ok: true as const };
+  };
+
+  // ─── Scanner Session Health Check ──────────────────────────────────────────
+  app.post("/api/scanner-session", async (req, res) => {
+    try {
+      const workerID = (req.body as Record<string, string>)?.workerID ?? "";
+      const deviceToken = (req.body as Record<string, string>)?.deviceToken ?? "";
+      const session = await verifyScannerWorkerSession(workerID, deviceToken);
+      return res.status(session.ok ? 200 : 401).json(session);
+    } catch (err) {
+      console.error("[scanner-session] error:", err);
+      return res.status(500).json({ ok: false, error: "Unable to verify scanner session. Please try again." });
+    }
+  });
+
   // ─── Label Scanner Route (multipart, bypasses tRPC to avoid cookie/batch issues) ───
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
   app.post("/api/scan-label", upload.single("image"), async (req, res) => {
@@ -49,14 +73,8 @@ async function startServer() {
       // Authenticate via workerID + deviceToken (worker sessions use localStorage, not cookies)
       const workerID = (req.body as Record<string, string>)?.workerID ?? "";
       const deviceToken = (req.body as Record<string, string>)?.deviceToken ?? "";
-      if (!workerID || !deviceToken) {
-        return res.status(401).json({ error: "Scanner session missing. Please sign out and sign in again.", code: 10001 });
-      }
-      const { getWorkerByWorkerID } = await import("../db");
-      const worker = await getWorkerByWorkerID(workerID);
-      if (!worker || worker.activeDeviceToken !== deviceToken) {
-        return res.status(401).json({ error: "Scanner session expired. Please sign out and sign in again.", code: 10001 });
-      }
+      const session = await verifyScannerWorkerSession(workerID, deviceToken);
+      if (!session.ok) return res.status(401).json(session);
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
       }

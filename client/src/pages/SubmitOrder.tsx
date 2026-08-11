@@ -64,6 +64,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
   const [reviewQty, setReviewQty] = useState("");
   const [reviewBqComment, setReviewBqComment] = useState("");
   const [debouncedReviewOrderID, setDebouncedReviewOrderID] = useState("");
+  const [isCheckingScannerSession, setIsCheckingScannerSession] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const SCAN_STEPS = [
@@ -114,6 +115,25 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
     if (!worker?.workerID || !scannerDeviceToken) {
       toast.error("Scanner session needs refreshing. Please sign out and sign in again.");
       return;
+    }
+    setIsCheckingScannerSession(true);
+    try {
+      const healthResponse = await fetch("/api/scanner-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ workerID: worker.workerID, deviceToken: scannerDeviceToken }),
+      });
+      const health = await healthResponse.json().catch(() => ({}));
+      if (!healthResponse.ok || !health.ok) {
+        throw new Error(health?.error ?? "Scanner session check failed. Please sign out and sign in again.");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Scanner session check failed. Please sign out and sign in again.";
+      toast.error(message);
+      return;
+    } finally {
+      setIsCheckingScannerSession(false);
     }
     // Show preview immediately
     const previewUrl = URL.createObjectURL(file);
@@ -425,21 +445,21 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                     </div>
                     {/* Mobile buttons — camera available */}
                     <div className="flex lg:hidden gap-3">
-                      <button onClick={() => fileInputRef.current?.click()}
-                        className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white transition-all active:scale-[0.98]"
+                      <button onClick={() => fileInputRef.current?.click()} disabled={isCheckingScannerSession}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white transition-all active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
                         style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)", boxShadow: "0 4px 20px rgba(99,102,241,0.35)" }}>
                         <Camera size={16} /> Take Photo
                       </button>
-                      <button onClick={() => {
+                      <button disabled={isCheckingScannerSession} onClick={() => {
                         if (fileInputRef.current) {
                           fileInputRef.current.removeAttribute("capture");
                           fileInputRef.current.click();
                           setTimeout(() => fileInputRef.current?.setAttribute("capture", "environment"), 500);
                         }
                       }}
-                        className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all active:scale-[0.98]"
+                        className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
                         style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(99,102,241,0.3)", color: "#4f46e5" }}>
-                        <Upload size={16} /> Upload Image
+                        <Upload size={16} /> {isCheckingScannerSession ? "Checking session..." : "Upload Image"}
                       </button>
                     </div>
                   </div>
