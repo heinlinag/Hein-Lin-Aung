@@ -189,6 +189,7 @@ const baseFeatures = [
     title: "Add Stock NPRM",
     description: "Submit a new Manual Slitter Stock NPRM",
     href: "/submit-order",
+    mobileHidden: true,
     gradient: "linear-gradient(135deg, #6366f1, #3b82f6)",
     glowColor: "rgba(99,102,241,0.3)",
     btnLabel: "Add Stock NPRM",
@@ -575,7 +576,7 @@ export default function Home() {
               const card = (
                 <div key={f.href}
                   onClick={() => navigate(f.href)}
-                  className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 home-card-in"
+                  className={`${(f as { mobileHidden?: boolean }).mobileHidden ? "hidden sm:block " : ""}group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 home-card-in`}
                   style={{
                     animationDelay: `${0.1 + i * 0.07}s`,
                     background: "rgba(255,255,255,0.85)",

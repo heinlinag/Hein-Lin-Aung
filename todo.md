@@ -1382,3 +1382,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Mobile Home Dashboard
 - [x] Hide the Home hero and welcome banner below the sm breakpoint while keeping mobile stats visible
+
+## Mobile Add Navigation
+- [x] Hide the Add Stock NPRM Quick Actions card below the sm breakpoint
+- [x] Route the mobile Add tab directly to /submit-order/ai-scanner

@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, CheckCircle2, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell, FlaskConical, FileText, LifeBuoy, CircleHelp,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell, FlaskConical, FileText, LifeBuoy, CircleHelp, Camera,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -532,7 +532,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
           <div className="flex items-stretch h-16">
             {[
               { href: "/",              icon: <Home size={20} />,          label: "Home" },
-              { href: "/submit-order",  icon: <ClipboardList size={20} />, label: "Add" },
+              { href: "/submit-order/ai-scanner", icon: <Camera size={20} />, label: "Add" },
               { href: "/chat",          icon: <MessageCircle size={20} />, label: "Chat",   badge: unreadMsgCount },
               { href: "/notifications", icon: <Bell size={20} />,          label: "Alerts", badge: unreadNotifCount },
               { href: "/stock-history", icon: <Package size={20} />,       label: "Stock" },
