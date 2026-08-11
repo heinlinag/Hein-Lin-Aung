@@ -442,7 +442,11 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-black text-red-700">Scanner session check failed</p>
                             <p className="mt-0.5 text-[11px] leading-relaxed text-red-600">{scannerSessionError}</p>
-                            <button onClick={() => { logoutWorker(); navigate("/login"); }}
+                            <button onClick={() => {
+                              sessionStorage.setItem("gspp_post_login_return", "/submit-order/ai-scanner");
+                              logoutWorker();
+                              navigate("/login");
+                            }}
                               className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-red-500 px-3.5 py-2.5 text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98]">
                               Go to Login <ArrowRight size={13} />
                             </button>

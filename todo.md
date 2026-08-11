@@ -1398,3 +1398,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## AI Scanner Session Recovery
 - [x] Add a Go to Login action when the scanner preflight session check fails
+
+## AI Scanner Post-Login Return
+- [x] Preserve the AI Scanner destination when session recovery sends a user to Login
+- [x] Redirect a successfully authenticated worker back to the preserved Scanner destination
+- [x] Add regression coverage for the Scanner post-login return flow

@@ -287,7 +287,9 @@ export default function Login() {
       const greeting = getGreeting();
       const pendingMsg = pendingCount > 0 ? `You have ${pendingCount} pending ${pendingCount === 1 ? "job" : "jobs"} in the Approval Center.` : "No pending jobs.";
       toast.success(`${greeting}, ${worker.name}! ${pendingMsg}`, { duration: 5000, icon: "👋" });
-      navigate("/");
+      const returnTo = sessionStorage.getItem("gspp_post_login_return");
+      sessionStorage.removeItem("gspp_post_login_return");
+      navigate(returnTo === "/submit-order/ai-scanner" ? returnTo : "/");
     }, 1800);
   };
 
