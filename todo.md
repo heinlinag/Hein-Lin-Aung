@@ -1376,3 +1376,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Write and generate a downloadable Employee Guide PDF covering the Scanner workflow
 - [x] Upload the guide to project storage and update the Documentation download link
 - [x] Add an in-page Employee Guide PDF preview modal before download
+
+## Mobile Header Logo
+- [x] Replace the blue logo background with a clean white container in the mobile AppLayout header
