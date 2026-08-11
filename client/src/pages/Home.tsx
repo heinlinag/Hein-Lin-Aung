@@ -390,7 +390,7 @@ export default function Home() {
   return (
     <AppLayout>
       {/* ── Hero Banner ─────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden"
+      <div className="relative hidden overflow-hidden sm:block"
         style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #1e3a5f 100%)" }}>
         {/* Animated background orbs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
