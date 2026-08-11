@@ -1375,3 +1375,4 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## v6.2.5 Employee Guide PDF
 - [x] Write and generate a downloadable Employee Guide PDF covering the Scanner workflow
 - [x] Upload the guide to project storage and update the Documentation download link
+- [x] Add an in-page Employee Guide PDF preview modal before download

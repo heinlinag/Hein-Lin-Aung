@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import AppLayout from "@/components/AppLayout";
 import {
   FileText, Download, BookOpen, Shield, HelpCircle, ChevronRight,
-  Eye, Users, Settings, Zap, ArrowRight, Sparkles, ExternalLink,
+  Eye, Users, Settings, Zap, ArrowRight, Sparkles, ExternalLink, X,
 } from "lucide-react";
 
 const EMPLOYEE_GUIDE_URL = "/manus-storage/StockDash_Employee_Guide_v6.2.5_a77c18c3.pdf";
@@ -127,6 +127,7 @@ const adminGuideContent = [
 
 export default function Documentation() {
   const [activeTab, setActiveTab] = useState<Tab>("employee");
+  const [showEmployeeGuidePreview, setShowEmployeeGuidePreview] = useState(false);
   const [, navigate] = useLocation();
 
   const styleInjected = useRef(false);
@@ -269,13 +270,22 @@ export default function Documentation() {
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2.5 shrink-0">
-                  <a href={guideURL} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-90"
-                    style={{ background: "rgba(241,245,249,0.8)", color: "#475569", border: "1px solid rgba(226,232,240,0.8)" }}>
-                    <Eye size={16} />
-                    View PDF
-                    <ExternalLink size={13} />
-                  </a>
+                  {isEmployee ? (
+                    <button onClick={() => setShowEmployeeGuidePreview(true)}
+                      className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-90"
+                      style={{ background: "rgba(241,245,249,0.8)", color: "#475569", border: "1px solid rgba(226,232,240,0.8)" }}>
+                      <Eye size={16} />
+                      Preview PDF
+                    </button>
+                  ) : (
+                    <a href={guideURL} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-90"
+                      style={{ background: "rgba(241,245,249,0.8)", color: "#475569", border: "1px solid rgba(226,232,240,0.8)" }}>
+                      <Eye size={16} />
+                      View PDF
+                      <ExternalLink size={13} />
+                    </a>
+                  )}
                   <a href={guideURL} download={guideFile} target="_blank" rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
                     style={{ background: accentGradient, boxShadow: `0 4px 16px ${accentGlow}` }}>
@@ -359,6 +369,47 @@ export default function Documentation() {
 
         </div>
       </div>
+
+      {showEmployeeGuidePreview && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-6"
+          onClick={() => setShowEmployeeGuidePreview(false)}>
+          <div role="dialog" aria-modal="true" aria-label="Employee Guide PDF preview"
+            className="relative flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-slate-900 shadow-2xl"
+            onClick={event => event.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-5"
+              style={{ background: "linear-gradient(135deg, rgba(30,41,59,0.98), rgba(49,46,129,0.94))" }}>
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+                  <FileText size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-black text-white">Employee Guide · v6.2.5</p>
+                  <p className="truncate text-[11px] text-indigo-200">Read the AI Scanner guide before downloading</p>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <a href={EMPLOYEE_GUIDE_URL} download="StockDash_Employee_Guide_v6.2.5.pdf" target="_blank" rel="noopener noreferrer"
+                  className="hidden items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold text-indigo-700 transition-opacity hover:opacity-90 sm:flex">
+                  <Download size={14} /> Download
+                </a>
+                <button onClick={() => setShowEmployeeGuidePreview(false)} aria-label="Close Employee Guide preview"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-white transition-colors hover:bg-white/15">
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            <iframe src={`${EMPLOYEE_GUIDE_URL}#view=FitH`} title="StockDash v6.2.5 Employee Guide PDF"
+              className="min-h-0 w-full flex-1 bg-slate-100" />
+            <div className="flex items-center justify-between gap-3 border-t border-white/10 bg-slate-900 px-4 py-2.5 sm:hidden">
+              <span className="text-[11px] text-slate-400">Ready to save a copy?</span>
+              <a href={EMPLOYEE_GUIDE_URL} download="StockDash_Employee_Guide_v6.2.5.pdf" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-2 text-xs font-bold text-white">
+                <Download size={14} /> Download
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
