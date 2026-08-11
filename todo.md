@@ -1367,3 +1367,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Wire createAuditLog into uploadPicture mutation
 - [x] Build SecurityAuditLogTab component with dark glassmorphism design
 - [x] Add "Audit Log" tab to AdminPanel tab list
+
+## v6.2.5 Documentation & Skill Context
+- [x] Update project documentation with verified v6.2.5 features and maintenance reference
+- [x] Update and validate stockdash-webdev reusable skill with AI Scanner architecture and v6.2.5 pitfalls
