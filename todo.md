@@ -1386,7 +1386,3 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Mobile Add Navigation
 - [x] Hide the Add Stock NPRM Quick Actions card below the sm breakpoint
 - [x] Route the mobile Add tab directly to /submit-order/ai-scanner
-
-## AI Scanner Camera Permission Guide
-- [x] Add a first-use mobile camera permission explanation to the AI Scanner upload step
-- [x] Add blocked-permission guidance with a Manual mode fallback
