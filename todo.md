@@ -1386,3 +1386,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Mobile Add Navigation
 - [x] Hide the Add Stock NPRM Quick Actions card below the sm breakpoint
 - [x] Route the mobile Add tab directly to /submit-order/ai-scanner
+
+## AI Scanner Authentication
+- [x] Diagnose and fix “Please login first” during AI Scanner image upload
+- [x] Add regression coverage for workerID and deviceToken scanner authentication

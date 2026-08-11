@@ -110,6 +110,11 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
   const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith("image/")) { toast.error("Please select an image file."); return; }
     if (file.size > 15 * 1024 * 1024) { toast.error("Image must be under 15MB."); return; }
+    const scannerDeviceToken = worker?.deviceToken ?? localStorage.getItem("gspp_device_token") ?? "";
+    if (!worker?.workerID || !scannerDeviceToken) {
+      toast.error("Scanner session needs refreshing. Please sign out and sign in again.");
+      return;
+    }
     // Show preview immediately
     const previewUrl = URL.createObjectURL(file);
     setScannedImageUrl(previewUrl);
@@ -122,8 +127,8 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
       const compressed = await compressImage(file);
       formData.append("image", compressed);
       // Pass worker auth (localStorage-based, not cookie-based)
-      if (worker?.workerID) formData.append("workerID", worker.workerID);
-      if (worker?.deviceToken) formData.append("deviceToken", worker.deviceToken);
+      formData.append("workerID", worker.workerID);
+      formData.append("deviceToken", scannerDeviceToken);
       const resp = await fetch("/api/scan-label", {
         method: "POST",
         credentials: "include",
@@ -149,7 +154,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
       }
     } catch (err: unknown) {
       const e = err as { message?: string };
-      toast.error(e?.message ?? "Failed to scan label.");
+      toast.error(e?.message === "Please login first" ? "Scanner session needs refreshing. Please sign out and sign in again." : e?.message ?? "Failed to scan label.");
       setScannerStep("upload");
     }
   };

@@ -50,12 +50,12 @@ async function startServer() {
       const workerID = (req.body as Record<string, string>)?.workerID ?? "";
       const deviceToken = (req.body as Record<string, string>)?.deviceToken ?? "";
       if (!workerID || !deviceToken) {
-        return res.status(401).json({ error: "Please login first", code: 10001 });
+        return res.status(401).json({ error: "Scanner session missing. Please sign out and sign in again.", code: 10001 });
       }
       const { getWorkerByWorkerID } = await import("../db");
       const worker = await getWorkerByWorkerID(workerID);
       if (!worker || worker.activeDeviceToken !== deviceToken) {
-        return res.status(401).json({ error: "Please login first", code: 10001 });
+        return res.status(401).json({ error: "Scanner session expired. Please sign out and sign in again.", code: 10001 });
       }
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
