@@ -1395,3 +1395,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add a lightweight worker session health endpoint for scanner preflight checks
 - [x] Validate the session before AI Scanner image compression and upload
 - [x] Add regression coverage for scanner preflight session validation
+
+## AI Scanner Session Recovery
+- [x] Add a Go to Login action when the scanner preflight session check fails

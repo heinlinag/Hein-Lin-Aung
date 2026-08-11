@@ -51,7 +51,7 @@ interface ScannedData {
 
 export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | "scanner" }) {
   const [, navigate] = useLocation();
-  const { worker } = useAuth();
+  const { worker, logoutWorker } = useAuth();
   const [mode, setMode] = useState<"manual" | "scanner">(defaultMode ?? "scanner");
   const [scannerStep, setScannerStep] = useState<ScannerStep>("upload");
   const [scanStatusIdx, setScanStatusIdx] = useState(0);
@@ -65,6 +65,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
   const [reviewBqComment, setReviewBqComment] = useState("");
   const [debouncedReviewOrderID, setDebouncedReviewOrderID] = useState("");
   const [isCheckingScannerSession, setIsCheckingScannerSession] = useState(false);
+  const [scannerSessionError, setScannerSessionError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const SCAN_STEPS = [
@@ -113,9 +114,12 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
     if (file.size > 15 * 1024 * 1024) { toast.error("Image must be under 15MB."); return; }
     const scannerDeviceToken = worker?.deviceToken ?? localStorage.getItem("gspp_device_token") ?? "";
     if (!worker?.workerID || !scannerDeviceToken) {
-      toast.error("Scanner session needs refreshing. Please sign out and sign in again.");
+      const message = "Scanner session needs refreshing. Please sign out and sign in again.";
+      setScannerSessionError(message);
+      toast.error(message);
       return;
     }
+    setScannerSessionError(null);
     setIsCheckingScannerSession(true);
     try {
       const healthResponse = await fetch("/api/scanner-session", {
@@ -130,6 +134,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Scanner session check failed. Please sign out and sign in again.";
+      setScannerSessionError(message);
       toast.error(message);
       return;
     } finally {
@@ -430,6 +435,21 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                         ))}
                       </div>
                     </div>
+                    {scannerSessionError && (
+                      <div role="alert" className="rounded-2xl p-4" style={{ background: "rgba(254,242,242,0.9)", border: "1px solid rgba(248,113,113,0.35)" }}>
+                        <div className="flex items-start gap-2.5">
+                          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-500" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-black text-red-700">Scanner session check failed</p>
+                            <p className="mt-0.5 text-[11px] leading-relaxed text-red-600">{scannerSessionError}</p>
+                            <button onClick={() => { logoutWorker(); navigate("/login"); }}
+                              className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-red-500 px-3.5 py-2.5 text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98]">
+                              Go to Login <ArrowRight size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {/* Desktop notice — no camera available */}
                     <div className="hidden lg:flex flex-col items-center gap-3 rounded-xl p-4 text-center" style={{ background: "rgba(255,237,213,0.7)", border: "1px solid rgba(251,146,60,0.3)" }}>
                       <div className="flex items-center gap-2">
