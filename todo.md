@@ -1486,3 +1486,11 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Messages Typing Indicator
 - [x] Show an expiring real-time typing animation on user avatars in direct and group Messages
+
+## Admin Panel Light-Mode Rebuild
+- [x] Audit all Admin Panel tabs, routes, actions, and responsive behavior before visual rebuild
+- [x] Establish a cohesive white-theme Admin Panel shell, navigation, typography, and component system
+- [x] Redesign Workers, Orders, Deleted Logs, Requests, Messages, Announcements, Notifications, Audit Log, Maintenance, and Settings
+- [x] Refresh all Admin Panel forms, dialogs, tables, mobile cards, empty states, and loading states in the light theme
+- [x] Update the mobile Admin navigation for the redesigned light-mode experience
+- [x] Add regression coverage for the complete Admin Panel light-mode visual system

@@ -13,7 +13,7 @@ describe("Mobile notification controls", () => {
     expect(appLayoutSource).toContain('aria-label="Notifications"');
   });
 
-  it("keeps the mobile bottom Alerts navigation entry", () => {
-    expect(appLayoutSource).toMatch(/href:\s*"\/notifications",\s*icon:\s*<Bell size=\{20\}\s*\/>\s*,\s*label:\s*"Alerts"/);
+  it("keeps Alerts available from the mobile More drawer", () => {
+    expect(appLayoutSource).toContain('{ href: "/notifications", label: "Alerts",        icon: <Bell size={19} /> }');
   });
 });

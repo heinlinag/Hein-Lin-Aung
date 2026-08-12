@@ -62,6 +62,20 @@ const ANIM_STYLES = `
 .al-input-focus:focus { animation: alInputGlow 2s ease infinite; }
 `;
 
+const ADMIN_LOGIN_LIGHT_STYLES = `
+.admin-login-light { color:#0f172a; }
+.admin-login-light .text-white { color:#0f172a !important; }
+.admin-login-light .bg-gradient-to-br.text-white,.admin-login-light .bg-gradient-to-br .text-white,
+.admin-login-light button[style*="gradient"].text-white,.admin-login-light button[style*="gradient"] .text-white { color:#fff !important; }
+.admin-login-light [style*="rgba(15,23,42"],.admin-login-light [style*="rgba(255,255,255,0.0"] {
+  background:#fff !important; border-color:#e2e8f0 !important; box-shadow:0 18px 42px rgba(15,23,42,.08) !important;
+}
+.admin-login-light input { background:#fff !important; color:#0f172a !important; border-color:#cbd5e1 !important; }
+.admin-login-light input::placeholder { color:#94a3b8 !important; }
+.admin-login-light .text-slate-400 { color:#64748b !important; }
+.admin-login-light [class*="border-white"] { border-color:#e2e8f0 !important; }
+`;
+
 function SuccessOverlay() {
   return (
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center al-success-bg"
@@ -129,7 +143,7 @@ export default function AdminLogin() {
     if (styleInjected.current) return;
     styleInjected.current = true;
     const el = document.createElement("style");
-    el.textContent = ANIM_STYLES;
+    el.textContent = ANIM_STYLES + ADMIN_LOGIN_LIGHT_STYLES;
     document.head.appendChild(el);
   }, []);
 
@@ -155,8 +169,8 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #0c1a3a 100%)" }}>
+    <div className="admin-login-light min-h-screen flex flex-col relative overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #f8fbff 0%, #eef4ff 48%, #ffffff 100%)" }}>
       {success && <SuccessOverlay />}
 
       {/* Background orbs */}

@@ -15,7 +15,9 @@ describe("AI Scanner session recovery", () => {
   });
 
   it("clears the stale worker session and redirects to Login", () => {
-    expect(submitOrderSource).toContain('logoutWorker(); navigate("/login")');
+    expect(submitOrderSource).toContain('sessionStorage.setItem("gspp_post_login_return", "/submit-order/ai-scanner")');
+    expect(submitOrderSource).toContain("logoutWorker();");
+    expect(submitOrderSource).toContain('navigate("/login")');
     expect(submitOrderSource).toContain("Go to Login");
   });
 });

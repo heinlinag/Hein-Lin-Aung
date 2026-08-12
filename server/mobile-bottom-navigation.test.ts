@@ -8,9 +8,10 @@ const appLayoutSource = readFileSync(
 );
 
 describe("Mobile bottom navigation", () => {
-  it("places Stock before Alerts and Chat on mobile while retaining the wider-screen order", () => {
+  it("places Stock before Messages on mobile and retains the shared More control", () => {
     expect(appLayoutSource).toContain('href: "/stock-history",          icon: <Package size={22} />,       label: "Stock",  order: "order-3 sm:order-5"');
-    expect(appLayoutSource).toContain('href: "/chat",                   icon: <MessageCircle size={22} />, label: "Chat",   order: "order-5 sm:order-3"');
+    expect(appLayoutSource).toContain('href: "/chat",                   icon: <MessageCircle size={22} />, label: "Messages", order: "order-4"');
+    expect(appLayoutSource).toContain('href: "#more",                   icon: <MoreHorizontal size={23} />, label: "More"');
   });
 
   it("uses mobile-friendly tab height, active icon treatment, and positioned badges", () => {

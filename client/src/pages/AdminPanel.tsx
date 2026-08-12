@@ -2049,7 +2049,7 @@ export default function AdminPanel() {
     if (styleInjected.current) return;
     styleInjected.current = true;
     const el = document.createElement("style");
-    el.textContent = ADMIN_ANIM_STYLES;
+    el.textContent = ADMIN_ANIM_STYLES + ADMIN_LIGHT_STYLES;
     document.head.appendChild(el);
   }, []);
   const [showMoreDrawer, setShowMoreDrawer] = useState(false);
@@ -2071,39 +2071,49 @@ export default function AdminPanel() {
     { id: "maintenance" as const, label: "Maintenance", icon: <Wrench size={16} />, color: "red" },
     { id: "settings" as const, label: "Settings", icon: <Settings2 size={16} />, color: "slate" },
   ];
+  const tabDescriptions: Record<TabId, string> = {
+    workers: "Manage team members, access levels, and active device sessions.",
+    orders: "Review live stock records, quantities, and submitted production orders.",
+    deleted_logs: "Inspect archived records and approved deletions for accountability.",
+    pending_requests: "Approve, reject, and monitor stock workflow requests.",
+    contact_messages: "Handle incoming support conversations and follow-up messages.",
+    announcements: "Publish operational updates and system-wide communications.",
+    notifications: "Review delivery history and manage administrator notifications.",
+    audit_log: "Track protected profile and account changes across the system.",
+    maintenance: "Control maintenance mode and schedule service windows.",
+    settings: "Manage administrator credentials and platform preferences.",
+  };
+  const activeTabInfo = tabs.find(tab => tab.id === activeTab) ?? tabs[0];
 
-  // Theme-derived style helpers
-  // ── Permanent dark glassmorphism style tokens ──────────────────────────────
-  const bg = { background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #0c1a3a 100%)" };
-  const headerBg = "rgba(13,17,23,0.85)";
-  const headerBorder = "border-white/8";
-  const cardBg = "rgba(255,255,255,0.05)";
-  const cardBorder = "rgba(255,255,255,0.1)";
-  const tabBarBg = "rgba(255,255,255,0.04)";
-  const tabBarBorder = "rgba(255,255,255,0.1)";
-  const contentBg = "rgba(255,255,255,0.04)";
-  const contentBorder = "rgba(255,255,255,0.1)";
-  const titleColor = "text-white";
-  const subtitleColor = "text-slate-400";
-  const statLabelColor = "text-slate-400";
-  const statValueColor = "text-white";
-  const tabInactive = "text-slate-400 hover:text-white hover:bg-white/8";
-  const backBtnClass = "text-slate-400 hover:text-white hover:bg-white/8";
-  const activeBadgeBg = "bg-emerald-500/10 border-emerald-500/25";
-  const activeBadgeText = "text-emerald-300";
-  const activeBadgeDot = "bg-emerald-400";
-  const logoutBtnClass = "bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 hover:text-red-300";
-  // keep isDark always true so any remaining isDark-conditional JSX still renders the dark variant
-  const isDark = true;
+  // ── Dedicated Admin light-mode design tokens ───────────────────────────────
+  const bg = { background: "linear-gradient(145deg, #f8fbff 0%, #eef4ff 48%, #fdfdff 100%)" };
+  const headerBg = "rgba(255,255,255,0.92)";
+  const headerBorder = "border-slate-200/90";
+  const cardBg = "rgba(255,255,255,0.88)";
+  const cardBorder = "rgba(203,213,225,0.78)";
+  const tabBarBg = "rgba(255,255,255,0.92)";
+  const tabBarBorder = "rgba(203,213,225,0.82)";
+  const contentBg = "rgba(255,255,255,0.94)";
+  const contentBorder = "rgba(203,213,225,0.78)";
+  const titleColor = "text-slate-950";
+  const subtitleColor = "text-slate-500";
+  const statLabelColor = "text-slate-500";
+  const statValueColor = "text-slate-950";
+  const tabInactive = "text-slate-600 hover:text-indigo-700 hover:bg-indigo-50";
+  const backBtnClass = "text-slate-500 hover:text-indigo-700 hover:bg-indigo-50";
+  const activeBadgeBg = "bg-emerald-50 border-emerald-200";
+  const activeBadgeText = "text-emerald-700";
+  const activeBadgeDot = "bg-emerald-500";
+  const logoutBtnClass = "bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:text-red-700";
+  const isDark = false;
 
   return (
-    <div className="min-h-screen" style={bg}>
-      {/* Fixed dark background grid overlay */}
-      <div className="fixed inset-0 opacity-[0.035] pointer-events-none" style={{ backgroundImage: "linear-gradient(#6366f1 1px, transparent 1px), linear-gradient(90deg, #6366f1 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-      {/* Fixed floating orbs */}
+    <div className="admin-light min-h-screen" style={bg}>
+      <div className="fixed inset-0 opacity-[0.055] pointer-events-none" style={{ backgroundImage: "linear-gradient(#94a3b8 1px, transparent 1px), linear-gradient(90deg, #94a3b8 1px, transparent 1px)", backgroundSize: "44px 44px" }} />
+      {/* Fixed light ambient accents */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-8" style={{ background: "radial-gradient(circle, #6366f1, transparent)", animation: "adminPanelFloat 14s ease-in-out infinite" }} />
-        <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full opacity-6" style={{ background: "radial-gradient(circle, #3b82f6, transparent)", animation: "adminPanelFloat 18s ease-in-out 4s infinite" }} />
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-20" style={{ background: "radial-gradient(circle, #c7d2fe, transparent 68%)", animation: "adminPanelFloat 14s ease-in-out infinite" }} />
+        <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full opacity-25" style={{ background: "radial-gradient(circle, #bfdbfe, transparent 68%)", animation: "adminPanelFloat 18s ease-in-out 4s infinite" }} />
       </div>
       {/* Header */}
       <header className={`sticky top-0 z-20 border-b ${headerBorder}`} style={{ background: headerBg, backdropFilter: "blur(20px)" }}>
@@ -2116,10 +2126,9 @@ export default function AdminPanel() {
             <p className={`text-[10px] lg:text-xs font-medium ${subtitleColor}`}>System Management & Configuration</p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Dark mode badge */}
-            <div className="hidden md:flex items-center gap-1.5 rounded-xl px-2.5 py-1.5" style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)" }}>
-              <Moon size={13} className="text-indigo-400" />
-              <span className="text-xs font-semibold text-indigo-300">Dark Mode</span>
+            <div className="hidden md:flex items-center gap-1.5 rounded-xl px-2.5 py-1.5" style={{ background: "#eef2ff", border: "1px solid #c7d2fe" }}>
+              <Sun size={13} className="text-indigo-600" />
+              <span className="text-xs font-semibold text-indigo-700">Light Mode</span>
             </div>
             <div className={`hidden md:flex items-center gap-2 border rounded-xl px-3 py-1.5 ${activeBadgeBg}`}>
               <span className={`w-2 h-2 rounded-full animate-pulse ${activeBadgeDot}`}></span>
@@ -2136,27 +2145,27 @@ export default function AdminPanel() {
       </header>
 
       {/* ── Hero Banner ─────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0c1a3a 100%)" }}>
+      <div className="relative overflow-hidden border-b border-slate-200" style={{ background: "linear-gradient(135deg, #ffffff 0%, #eef4ff 54%, #f7fbff 100%)" }}>
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-12" style={{ background: "radial-gradient(circle, #6366f1, transparent)", animation: "adminPanelFloat 10s ease-in-out infinite" }} />
-          <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full opacity-8" style={{ background: "radial-gradient(circle, #3b82f6, transparent)", animation: "adminPanelFloat 14s ease-in-out 2s infinite" }} />
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-50" style={{ background: "radial-gradient(circle, #c7d2fe, transparent 70%)", animation: "adminPanelFloat 10s ease-in-out infinite" }} />
+          <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full opacity-45" style={{ background: "radial-gradient(circle, #bfdbfe, transparent 70%)", animation: "adminPanelFloat 14s ease-in-out 2s infinite" }} />
+          <div className="absolute inset-0 opacity-[0.045]" style={{ backgroundImage: "linear-gradient(rgba(99,102,241,.55) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.55) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
           <div className="absolute inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)", animation: "adminPanelScan 6s ease-in-out infinite" }} />
         </div>
         <div className="relative max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-6 lg:py-8">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center shadow-2xl" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                <Shield size={28} className="text-indigo-300" />
+              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center shadow-xl" style={{ background: "#ffffff", border: "1px solid #c7d2fe" }}>
+                <Shield size={28} className="text-indigo-600" />
               </div>
               <div className="absolute inset-0 rounded-2xl" style={{ border: "2px solid rgba(99,102,241,0.35)", animation: "adminPanelPulse 2.5s ease-out infinite" }} />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-indigo-200" style={{ background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.3)" }}>Administrator</span>
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-indigo-700" style={{ background: "#eef2ff", border: "1px solid #c7d2fe" }}>Administrator workspace</span>
               </div>
-              <h1 className="text-2xl lg:text-3xl font-black text-white leading-tight" style={{ fontFamily: "Lora, serif" }}>Admin Panel</h1>
-              <p className="text-slate-400 text-sm mt-0.5">Full system management &amp; configuration</p>
+              <h1 className="text-2xl lg:text-3xl font-black text-slate-950 leading-tight" style={{ fontFamily: "Lora, serif" }}>Admin Control Center</h1>
+              <p className="text-slate-600 text-sm mt-0.5">People, stock, approvals and system operations in one workspace</p>
             </div>
           </div>
         </div>
@@ -2189,7 +2198,7 @@ export default function AdminPanel() {
       <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-5 md:py-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
           {/* Current Stock */}
-          <div className="rounded-2xl border p-4 lg:p-5 transition-all group" style={{ background: cardBg, backdropFilter: "blur(12px)", borderColor: cardBorder }}>
+          <div className="admin-light-surface rounded-2xl border p-4 lg:p-5 transition-all group" style={{ background: cardBg, backdropFilter: "blur(12px)", borderColor: cardBorder }}>
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform">
                 <Package size={18} className="text-white" />
@@ -2203,7 +2212,7 @@ export default function AdminPanel() {
             </div>
           </div>
           {/* Out of Stock */}
-          <div className="rounded-2xl border p-4 lg:p-5 transition-all group" style={{ background: cardBg, backdropFilter: "blur(12px)", borderColor: cardBorder }}>
+          <div className="admin-light-surface rounded-2xl border p-4 lg:p-5 transition-all group" style={{ background: cardBg, backdropFilter: "blur(12px)", borderColor: cardBorder }}>
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-xl bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center shadow-md shadow-slate-500/20 group-hover:scale-105 transition-transform">
                 <Inbox size={18} className="text-white" />
@@ -2217,7 +2226,7 @@ export default function AdminPanel() {
             </div>
           </div>
           {/* Pending */}
-          <div onClick={() => setActiveTab("pending_requests")} className="rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.pendingRequests ?? 0) > 0 ? "rgba(249,115,22,0.08)" : cardBg, backdropFilter: "blur(12px)", borderColor: (stats?.pendingRequests ?? 0) > 0 ? "rgba(249,115,22,0.3)" : cardBorder }}>
+          <div onClick={() => setActiveTab("pending_requests")} className="admin-light-surface rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.pendingRequests ?? 0) > 0 ? "#fff7ed" : cardBg, backdropFilter: "blur(12px)", borderColor: (stats?.pendingRequests ?? 0) > 0 ? "#fdba74" : cardBorder }}>
             <div className="flex items-center gap-3">
               <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.pendingRequests ?? 0) > 0 ? "bg-gradient-to-br from-orange-500 to-amber-600 shadow-orange-500/30" : "bg-gradient-to-br from-slate-600 to-slate-700 shadow-slate-500/10"}`}>
                 <ClipboardList size={18} className="text-white" />
@@ -2231,7 +2240,7 @@ export default function AdminPanel() {
             </div>
           </div>
           {/* Low Stock */}
-          <div onClick={() => setActiveTab("orders")} className="rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.lowStockCount ?? 0) > 0 ? "rgba(245,158,11,0.08)" : cardBg, backdropFilter: "blur(12px)", borderColor: (stats?.lowStockCount ?? 0) > 0 ? "rgba(245,158,11,0.3)" : cardBorder }}>
+          <div onClick={() => setActiveTab("orders")} className="admin-light-surface rounded-2xl border p-4 lg:p-5 transition-all group cursor-pointer" style={{ background: (stats?.lowStockCount ?? 0) > 0 ? "#fffbeb" : cardBg, backdropFilter: "blur(12px)", borderColor: (stats?.lowStockCount ?? 0) > 0 ? "#fcd34d" : cardBorder }}>
             <div className="flex items-center gap-3">
               <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform ${(stats?.lowStockCount ?? 0) > 0 ? "bg-gradient-to-br from-amber-500 to-yellow-600 shadow-amber-500/30" : "bg-gradient-to-br from-slate-600 to-slate-700 shadow-slate-500/10"}`}>
                 <AlertTriangle size={18} className="text-white" />
@@ -2249,7 +2258,7 @@ export default function AdminPanel() {
 
       {/* Tab Navigation */}
       <div className="hidden sm:block max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10">
-        <div className="flex gap-1 rounded-2xl border p-1.5 overflow-x-auto" style={{ background: tabBarBg, backdropFilter: "blur(12px)", borderColor: tabBarBorder }}>
+        <div className="admin-light-surface flex gap-1 rounded-2xl border p-1.5 overflow-x-auto" style={{ background: tabBarBg, backdropFilter: "blur(12px)", borderColor: tabBarBorder }}>
           {tabs.map((t) => {
             const isActive = activeTab === t.id;
             const colorMap: Record<string, string> = {
@@ -2279,7 +2288,22 @@ export default function AdminPanel() {
 
       {/* Content */}
       <main className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-5 md:py-6 pb-[80px] sm:pb-6">
-        <div className="rounded-2xl border p-4 lg:p-6" style={{ background: contentBg, backdropFilter: "blur(12px)", borderColor: contentBorder }}>
+        <div className="admin-light-surface rounded-2xl border p-4 lg:p-6" style={{ background: contentBg, backdropFilter: "blur(12px)", borderColor: contentBorder }}>
+          <div className="mb-5 flex flex-col gap-3 border-b border-slate-100 pb-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 shadow-sm ring-1 ring-indigo-100">
+                {activeTabInfo.icon}
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-500">Admin workspace</p>
+                <h2 className="text-lg font-extrabold text-slate-950">{activeTabInfo.label}</h2>
+                <p className="mt-0.5 text-xs text-slate-500">{tabDescriptions[activeTab]}</p>
+              </div>
+            </div>
+            <div className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 sm:flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live management
+            </div>
+          </div>
           {activeTab === "workers" && <WorkersTab />}
           {activeTab === "orders" && <OrdersTab />}
           {activeTab === "deleted_logs" && <DeletedLogsTab />}
@@ -2466,13 +2490,26 @@ export default function AdminPanel() {
       </main>
 
       {/* ── Mobile Bottom Navigation (sm and below only) ─────────────────── */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40" style={{ background: "rgba(10,14,26,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="admin-light-mobile-nav sm:hidden fixed bottom-0 left-0 right-0 z-40" style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid #e2e8f0" }}>
         {/* More Drawer — slides up from bottom */}
         {showMoreDrawer && (
-          <div className="absolute bottom-full left-0 right-0 rounded-t-2xl overflow-hidden" style={{ background: "rgba(15,20,40,0.98)", backdropFilter: "blur(24px)", border: "1px solid rgba(255,255,255,0.1)", borderBottom: "none" }}>
+          <div className="admin-light-drawer absolute bottom-full left-0 right-0 rounded-t-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.98)", backdropFilter: "blur(24px)", border: "1px solid #e2e8f0", borderBottom: "none" }}>
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-2">
-              <div className="w-10 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }} />
+              <div className="w-10 h-1 rounded-full" style={{ background: "#cbd5e1" }} />
+            </div>
+            <div className="flex items-start justify-between gap-3 px-4 pb-3">
+              <div>
+                <p className="text-sm font-extrabold text-slate-900">More admin tools</p>
+                <p className="mt-0.5 text-[11px] font-medium text-slate-500">System controls and management settings</p>
+              </div>
+              <button
+                onClick={() => setShowMoreDrawer(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+                aria-label="Close more admin tools"
+              >
+                <X size={16} />
+              </button>
             </div>
             <div className="px-4 pb-4 grid grid-cols-3 gap-2">
               {[
@@ -2489,12 +2526,12 @@ export default function AdminPanel() {
                     key={t.id}
                     onClick={() => { setActiveTab(t.id); setShowMoreDrawer(false); }}
                     className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl transition-all"
-                    style={isActive ? { background: "rgba(99,102,241,0.18)", border: "1px solid rgba(99,102,241,0.35)" } : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                    style={isActive ? { background: "#eef2ff", border: "1px solid #c7d2fe" } : { background: "#ffffff", border: "1px solid #e2e8f0" }}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${t.grad}`}>
                       <span className="text-white">{t.icon}</span>
                     </div>
-                    <span className="text-[10px] font-semibold leading-tight text-center" style={{ color: isActive ? "#a5b4fc" : "rgba(148,163,184,0.8)" }}>{t.label}</span>
+                    <span className="text-[10px] font-semibold leading-tight text-center" style={{ color: isActive ? "#4338ca" : "#64748b" }}>{t.label}</span>
                   </button>
                 );
               })}
@@ -2505,10 +2542,10 @@ export default function AdminPanel() {
         )}
         {/* Backdrop for drawer */}
         {showMoreDrawer && (
-          <div className="fixed inset-0 -z-10 bg-black/50" onClick={() => setShowMoreDrawer(false)} />
+          <div className="fixed inset-0 -z-10 bg-slate-950/20" onClick={() => setShowMoreDrawer(false)} />
         )}
         {/* Primary 5-tab bar */}
-        <div className="flex items-stretch h-[64px]">
+        <div className="flex items-stretch h-[68px] pb-[env(safe-area-inset-bottom)]">
           {([
             { id: "workers" as const, label: "Workers", icon: <Users size={22} /> },
             { id: "orders" as const, label: "Orders", icon: <Package size={22} /> },
@@ -2522,16 +2559,16 @@ export default function AdminPanel() {
                 onClick={() => { setActiveTab(t.id); setShowMoreDrawer(false); }}
                 className="flex-1 flex flex-col items-center justify-center gap-1 relative transition-all"
               >
-                {isActive && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-400" />}
+                {isActive && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-600" />}
                 <div className="relative">
-                  <span style={{ color: isActive ? "#818cf8" : "rgba(148,163,184,0.7)" }}>{t.icon}</span>
+                  <span style={{ color: isActive ? "#4f46e5" : "#64748b" }}>{t.icon}</span>
                   {"badge" in t && t.badge !== undefined && (
                     <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 rounded-full text-[9px] font-bold flex items-center justify-center px-1" style={{ background: "#f97316", color: "white" }}>
                       {t.badge}
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] font-semibold" style={{ color: isActive ? "#818cf8" : "rgba(148,163,184,0.7)" }}>{t.label}</span>
+                <span className="text-[10px] font-semibold" style={{ color: isActive ? "#4f46e5" : "#64748b" }}>{t.label}</span>
               </button>
             );
           })}
@@ -2540,8 +2577,8 @@ export default function AdminPanel() {
             onClick={() => setShowMoreDrawer(v => !v)}
             className="flex-1 flex flex-col items-center justify-center gap-1 relative transition-all"
           >
-            {showMoreDrawer && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-400" />}
-            <span style={{ color: showMoreDrawer ? "#818cf8" : "rgba(148,163,184,0.7)" }}>
+            {showMoreDrawer && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-600" />}
+            <span style={{ color: showMoreDrawer ? "#4f46e5" : "#64748b" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
               </svg>
@@ -2611,4 +2648,70 @@ const ADMIN_ANIM_STYLES = `
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 .admin-card-in { animation: adminCardIn 0.45s cubic-bezier(0.22,0.61,0.36,1) both; }
+`;
+
+const ADMIN_LIGHT_STYLES = `
+/* White-theme Admin Control Center */
+.admin-light { color:#0f172a; }
+.admin-light ::selection { background:#c7d2fe; color:#312e81; }
+.admin-light .text-slate-100,.admin-light .text-slate-200,.admin-light .text-slate-300 { color:#334155 !important; }
+.admin-light .text-slate-400,.admin-light .text-slate-500 { color:#64748b !important; }
+.admin-light .text-indigo-300,.admin-light .text-indigo-400 { color:#4f46e5 !important; }
+.admin-light .text-purple-300,.admin-light .text-purple-400 { color:#7e22ce !important; }
+.admin-light .text-blue-300,.admin-light .text-blue-400 { color:#2563eb !important; }
+.admin-light .text-emerald-300,.admin-light .text-emerald-400 { color:#047857 !important; }
+.admin-light .text-green-300,.admin-light .text-green-400 { color:#15803d !important; }
+.admin-light .text-amber-300,.admin-light .text-amber-400 { color:#b45309 !important; }
+.admin-light .text-orange-300,.admin-light .text-orange-400 { color:#c2410c !important; }
+.admin-light .text-red-300,.admin-light .text-red-400 { color:#dc2626 !important; }
+.admin-light .text-white { color:#0f172a !important; }
+.admin-light .bg-gradient-to-br.text-white,.admin-light .bg-gradient-to-r.text-white,
+.admin-light .bg-gradient-to-br .text-white,.admin-light .bg-gradient-to-r .text-white,
+.admin-light button[style*="gradient"] .text-white,.admin-light button[style*="gradient"].text-white { color:#fff !important; }
+.admin-light input,.admin-light textarea,.admin-light select {
+  background:#fff !important; color:#0f172a !important; border-color:#cbd5e1 !important;
+  box-shadow:0 1px 2px rgba(15,23,42,.04) !important;
+}
+.admin-light input::placeholder,.admin-light textarea::placeholder { color:#94a3b8 !important; }
+.admin-light input:focus,.admin-light textarea:focus,.admin-light select:focus {
+  border-color:#818cf8 !important; box-shadow:0 0 0 3px rgba(99,102,241,.13) !important;
+}
+.admin-light [class*="bg-slate-9"],.admin-light [class*="bg-slate-8"],.admin-light [class*="bg-slate-7"],
+.admin-light [class*="bg-white/"] { background-color:#fff !important; }
+.admin-light [class*="border-white"] { border-color:#e2e8f0 !important; }
+.admin-light [class*="hover:text-white"]:hover { color:#4338ca !important; }
+.admin-light [class*="hover:bg-white"]:hover { background-color:#f8fafc !important; }
+.admin-light [style*="rgba(255,255,255,0.0"],.admin-light [style*="rgba(15,23,42"],
+.admin-light [style*="rgba(13,17,23"],.admin-light [style*="rgba(10,14,26"],.admin-light [style*="rgba(15,20,40"] {
+  background:#fff !important; border-color:#e2e8f0 !important; box-shadow:0 10px 28px rgba(15,23,42,.06) !important;
+}
+.admin-light [style*="255, 255, 255, 0.0"],.admin-light [style*="15, 23, 42"],
+.admin-light [style*="13, 17, 23"],.admin-light [style*="10, 14, 26"],.admin-light [style*="15, 20, 40"] {
+  background:#fff !important; border-color:#e2e8f0 !important; box-shadow:0 10px 28px rgba(15,23,42,.06) !important;
+}
+.admin-light [style*="rgba(30,41,59"],.admin-light [style*="rgba(51,65,85"],.admin-light [style*="rgba(2,6,23"] {
+  background:#fff !important; border-color:#e2e8f0 !important; box-shadow:0 10px 28px rgba(15,23,42,.06) !important;
+}
+.admin-light [style*="30, 41, 59"],.admin-light [style*="51, 65, 85"],.admin-light [style*="2, 6, 23"] {
+  background:#fff !important; border-color:#e2e8f0 !important; box-shadow:0 10px 28px rgba(15,23,42,.06) !important;
+}
+.admin-light [style*="rgba(255,255,255,0.0"] .text-white,
+.admin-light [style*="rgba(15,23,42"] .text-white,
+.admin-light [style*="rgba(13,17,23"] .text-white,
+.admin-light [style*="rgba(10,14,26"] .text-white,
+.admin-light [style*="rgba(15,20,40"] .text-white { color:#0f172a !important; }
+.admin-light table { background:#fff; color:#334155; border-collapse:separate; border-spacing:0; }
+.admin-light thead { background:#f8fafc !important; }
+.admin-light th { color:#475569 !important; font-size:11px; letter-spacing:.06em; text-transform:uppercase; }
+.admin-light tr { border-color:#e2e8f0 !important; }
+.admin-light tbody tr:hover { background:#f8fafc !important; }
+.admin-light [role="dialog"] { color:#0f172a; }
+.admin-light [role="dialog"] input,.admin-light [role="dialog"] textarea,.admin-light [role="dialog"] select { background:#fff !important; }
+.admin-light [role="dialog"] [class*="bg-slate"],.admin-light [role="dialog"] [class*="bg-white/"] { background:#fff !important; }
+.admin-light .admin-light-surface { background:#fff; border:1px solid #e2e8f0; box-shadow:0 12px 32px rgba(15,23,42,.07); }
+.admin-light .admin-light-surface:hover { border-color:#c7d2fe; box-shadow:0 18px 36px rgba(79,70,229,.10); transform:translateY(-1px); }
+.admin-light .admin-light-tab-active { background:linear-gradient(135deg,#4f46e5,#6366f1); color:#fff !important; box-shadow:0 8px 18px rgba(79,70,229,.22); }
+.admin-light .admin-light-mobile-nav { background:rgba(255,255,255,.96) !important; border-top:1px solid #e2e8f0 !important; box-shadow:0 -8px 26px rgba(15,23,42,.08); }
+.admin-light .admin-light-drawer { background:#fff !important; border-color:#e2e8f0 !important; box-shadow:0 -18px 44px rgba(15,23,42,.14) !important; }
+@media (prefers-reduced-motion: reduce) { .admin-light * { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
 `;

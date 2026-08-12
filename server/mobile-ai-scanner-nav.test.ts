@@ -20,7 +20,7 @@ describe("Mobile AI Scanner Add navigation", () => {
 
   it("routes the mobile Add tab directly to the AI Scanner", () => {
     expect(appLayoutSource).toContain('href: "/submit-order/ai-scanner"');
-    expect(appLayoutSource).toContain('icon: <Camera size={20} />');
+    expect(appLayoutSource).toContain('icon: <Camera size={22} />');
     expect(appLayoutSource).toContain('label: "Add"');
   });
 });
