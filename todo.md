@@ -1535,3 +1535,4 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Enable secure Admin Panel reactivation and record suspension/reactivation activity
 - [x] Run the selected daily automatic inactivity evaluation and add regression coverage for the full policy
 - [x] Show a dashboard warning during the final 7 days before automatic inactivity suspension
+- [x] Add elevated dashboard reminder states at 3 days and 1 day before automatic suspension

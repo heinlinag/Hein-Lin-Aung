@@ -186,38 +186,97 @@ function InactivityWarningBanner({
   const timeLabel = isToday
     ? "today"
     : `in ${daysUntilSuspension} ${daysUntilSuspension === 1 ? "day" : "days"}`;
+  const reminderLevel = daysUntilSuspension <= 1 ? "critical" : daysUntilSuspension <= 3 ? "urgent" : "standard";
+  const reminderConfig = reminderLevel === "critical"
+    ? {
+        title: isToday ? "Action required: suspension scheduled today" : "Final account activity reminder",
+        message: isToday
+          ? "Your Employee ID is scheduled for automatic suspension today because no recent successful sign-in was recorded."
+          : "Your Employee ID will be automatically suspended tomorrow because no recent successful sign-in was recorded.",
+        badge: isToday ? "TODAY" : "1 DAY LEFT",
+        background: "rgba(254,242,242,0.94)",
+        border: "1px solid rgba(239,68,68,0.3)",
+        shadow: "0 4px 24px rgba(239,68,68,0.14)",
+        gradient: "linear-gradient(180deg, #ef4444, #b91c1c)",
+        iconGradient: "linear-gradient(135deg, #ef4444, #b91c1c)",
+        iconShadow: "0 4px 12px rgba(239,68,68,0.28)",
+        titleClass: "text-red-950",
+        messageClass: "text-red-800",
+        badgeClass: "bg-red-100 text-red-700",
+        buttonGradient: "linear-gradient(135deg, #dc2626, #b91c1c)",
+        buttonShadow: "0 4px 12px rgba(220,38,38,0.22)",
+        dismissClass: "text-red-600 hover:bg-red-100 hover:text-red-800",
+      }
+    : reminderLevel === "urgent"
+      ? {
+          title: "Urgent account activity reminder",
+          message: "Your Employee ID is scheduled for automatic suspension in 3 days because no recent successful sign-in was recorded.",
+          badge: "3 DAYS LEFT",
+          background: "rgba(255,247,237,0.94)",
+          border: "1px solid rgba(234,88,12,0.3)",
+          shadow: "0 4px 24px rgba(234,88,12,0.14)",
+          gradient: "linear-gradient(180deg, #f97316, #c2410c)",
+          iconGradient: "linear-gradient(135deg, #f97316, #c2410c)",
+          iconShadow: "0 4px 12px rgba(249,115,22,0.28)",
+          titleClass: "text-orange-950",
+          messageClass: "text-orange-800",
+          badgeClass: "bg-orange-100 text-orange-700",
+          buttonGradient: "linear-gradient(135deg, #ea580c, #c2410c)",
+          buttonShadow: "0 4px 12px rgba(234,88,12,0.22)",
+          dismissClass: "text-orange-600 hover:bg-orange-100 hover:text-orange-800",
+        }
+      : {
+          title: "Account activity reminder",
+          message: `Your Employee ID is scheduled for automatic suspension ${timeLabel} because no successful sign-in has been recorded recently.`,
+          badge: `${daysUntilSuspension} DAYS LEFT`,
+          background: "rgba(255,251,235,0.92)",
+          border: "1px solid rgba(245,158,11,0.28)",
+          shadow: "0 4px 24px rgba(245,158,11,0.12)",
+          gradient: "linear-gradient(180deg, #f59e0b, #ea580c)",
+          iconGradient: "linear-gradient(135deg, #f59e0b, #ea580c)",
+          iconShadow: "0 4px 12px rgba(245,158,11,0.28)",
+          titleClass: "text-amber-950",
+          messageClass: "text-amber-800",
+          badgeClass: "bg-amber-100 text-amber-700",
+          buttonGradient: "linear-gradient(135deg, #d97706, #ea580c)",
+          buttonShadow: "0 4px 12px rgba(234,88,12,0.22)",
+          dismissClass: "text-amber-600 hover:bg-amber-100 hover:text-amber-800",
+        };
 
   return (
     <div className="mx-4 lg:mx-8 mt-4 mb-0 max-w-6xl xl:mx-auto home-fade-in" role="status" aria-live="polite">
       <div className="relative overflow-hidden rounded-2xl"
         style={{
-          background: "rgba(255,251,235,0.92)",
+          background: reminderConfig.background,
           backdropFilter: "blur(16px)",
-          border: "1px solid rgba(245,158,11,0.28)",
-          boxShadow: "0 4px 24px rgba(245,158,11,0.12)",
+          border: reminderConfig.border,
+          boxShadow: reminderConfig.shadow,
         }}>
         <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
-          style={{ background: "linear-gradient(180deg, #f59e0b, #ea580c)" }} />
+          style={{ background: reminderConfig.gradient }} />
         <div className="flex items-start gap-3 px-4 py-3.5 sm:items-center sm:px-5">
           <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:mt-0"
-            style={{ background: "linear-gradient(135deg, #f59e0b, #ea580c)", boxShadow: "0 4px 12px rgba(245,158,11,0.28)" }}>
+            style={{ background: reminderConfig.iconGradient, boxShadow: reminderConfig.iconShadow }}>
             <TriangleAlert size={17} className="text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-black leading-tight text-amber-950">Account activity reminder</p>
-            <p className="mt-0.5 text-xs font-medium leading-relaxed text-amber-800">
-              Your Employee ID is scheduled for automatic suspension {timeLabel} because no successful sign-in has been recorded recently.
+            <div className="flex flex-wrap items-center gap-2">
+              <p className={`text-sm font-black leading-tight ${reminderConfig.titleClass}`}>{reminderConfig.title}</p>
+              <span className={`rounded-full px-2 py-0.5 text-[9px] font-black tracking-wide ${reminderConfig.badgeClass}`}>{reminderConfig.badge}</span>
+            </div>
+            <p className={`mt-0.5 text-xs font-medium leading-relaxed ${reminderConfig.messageClass}`}>
+              {reminderConfig.message}
               <span className="font-bold"> Sign out and sign in again to keep your account active.</span>
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button onClick={onSignInAgain}
               className="rounded-xl px-3 py-2 text-xs font-black text-white transition-all active:scale-[0.97]"
-              style={{ background: "linear-gradient(135deg, #d97706, #ea580c)", boxShadow: "0 4px 12px rgba(234,88,12,0.22)" }}>
+              style={{ background: reminderConfig.buttonGradient, boxShadow: reminderConfig.buttonShadow }}>
               Sign in again
             </button>
             <button onClick={onDismiss} aria-label="Dismiss account activity reminder"
-              className="rounded-xl p-2 text-amber-600 transition-colors hover:bg-amber-100 hover:text-amber-800">
+              className={`rounded-xl p-2 transition-colors ${reminderConfig.dismissClass}`}>
               <X size={14} />
             </button>
           </div>

@@ -51,6 +51,10 @@ describe("daily inactive worker suspension", () => {
     expect(routers).toContain("worker.activeDeviceToken !== input.deviceToken");
     expect(home).toContain("InactivityWarningBanner");
     expect(home).toContain("daysUntilSuspension <= 7");
+    expect(home).toContain('daysUntilSuspension <= 3 ? "urgent"');
+    expect(home).toContain('daysUntilSuspension <= 1 ? "critical"');
+    expect(home).toContain("3 DAYS LEFT");
+    expect(home).toContain("1 DAY LEFT");
     expect(home).toContain("Sign out and sign in again to keep your account active.");
   });
 });
