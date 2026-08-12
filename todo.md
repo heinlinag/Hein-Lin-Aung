@@ -1504,3 +1504,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Route Workers, Orders, Requests, Messages, Announcements, Notifications, Audit Log, Maintenance, and Settings to singular Admin pages
 - [x] Map /admin/worker to the Worker Session and Management page
 - [x] Update Admin desktop and mobile navigation for the new page-based structure
+
+## Admin Hero Simplification
+- [x] Remove the duplicate Administrator workspace hero section from the dashboard and all dedicated Admin pages

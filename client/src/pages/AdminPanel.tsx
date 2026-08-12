@@ -2210,33 +2210,6 @@ export default function AdminPanel() {
         </div>
       </header>
 
-      {/* ── Hero Banner ─────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden border-b border-slate-200" style={{ background: "linear-gradient(135deg, #ffffff 0%, #eef4ff 54%, #f7fbff 100%)" }}>
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-50" style={{ background: "radial-gradient(circle, #c7d2fe, transparent 70%)", animation: "adminPanelFloat 10s ease-in-out infinite" }} />
-          <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full opacity-45" style={{ background: "radial-gradient(circle, #bfdbfe, transparent 70%)", animation: "adminPanelFloat 14s ease-in-out 2s infinite" }} />
-          <div className="absolute inset-0 opacity-[0.045]" style={{ backgroundImage: "linear-gradient(rgba(99,102,241,.55) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.55) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
-          <div className="absolute inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)", animation: "adminPanelScan 6s ease-in-out infinite" }} />
-        </div>
-        <div className="relative max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-6 lg:py-8">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center shadow-xl" style={{ background: "#ffffff", border: "1px solid #c7d2fe" }}>
-                <Shield size={28} className="text-indigo-600" />
-              </div>
-              <div className="absolute inset-0 rounded-2xl" style={{ border: "2px solid rgba(99,102,241,0.35)", animation: "adminPanelPulse 2.5s ease-out infinite" }} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-indigo-700" style={{ background: "#eef2ff", border: "1px solid #c7d2fe" }}>Administrator workspace</span>
-              </div>
-              <h1 className="text-2xl lg:text-3xl font-black text-slate-950 leading-tight" style={{ fontFamily: "Lora, serif" }}>{activeTab === "dashboard" ? "Admin Control Center" : activeTabInfo.label}</h1>
-              <p className="text-slate-600 text-sm mt-0.5">{activeTab === "dashboard" ? "People, stock, approvals and system operations in one workspace" : tabDescriptions[activeTab]}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Maintenance Mode Warning Banner */}
       {maintenanceQuery.data?.maintenanceMode && (
         <div className="bg-red-500/15 border-b border-red-500/30">

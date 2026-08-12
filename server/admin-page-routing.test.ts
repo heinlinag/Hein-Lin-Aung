@@ -39,6 +39,7 @@ describe("Admin Control Center page structure", () => {
     expect(adminPanelSource).toContain('{activeTab !== "dashboard" && <main');
     expect(adminPanelSource).toContain('Role-Based Quick Actions');
     expect(adminPanelSource).toContain('Control Center');
+    expect(adminPanelSource).not.toContain('Administrator workspace');
   });
 
   it("exposes Home and the remaining management pages on mobile navigation", () => {
