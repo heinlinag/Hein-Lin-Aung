@@ -156,12 +156,42 @@ export const appRouter = router({
         return { success: true, wasForced };
       }),
 
-    /** Logout: clear active device session */
+    /** Standard worker logout: clear the active device session */
     deactivateDevice: publicProcedure
       .input(z.object({ workerID: z.string().min(1) }))
       .mutation(async ({ input }) => {
         await clearWorkerActiveDevice(input.workerID);
         return { success: true };
+      }),
+
+    /** Administrator action: securely revoke a worker's active device session */
+    revokeDevice: publicProcedure
+      .input(z.object({ workerID: z.string().min(1), adminPassword: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        const effectivePw = await getEffectiveAdminPassword(db);
+        if (input.adminPassword !== effectivePw) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
+        }
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
+        }
+        const deviceName = worker.activeDeviceName ?? "Unknown device";
+        const deviceIP = worker.activeDeviceIP ?? "Unknown IP";
+        const hadActiveSession = !!worker.activeDeviceToken;
+        await clearWorkerActiveDevice(input.workerID);
+        if (hadActiveSession) {
+          const { createAppNotification } = await import("./db");
+          await createAppNotification({
+            workerID: input.workerID,
+            title: "Session Revoked By Administrator",
+            message: `Your active session on ${deviceName} (IP: ${deviceIP}) was revoked by an Administrator. Please sign in again to continue.`,
+            type: "system",
+            deepLink: "/login",
+          });
+        }
+        return { success: true, hadActiveSession };
       }),
 
     verify: publicProcedure

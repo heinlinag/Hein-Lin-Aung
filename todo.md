@@ -1507,3 +1507,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Admin Hero Simplification
 - [x] Remove the duplicate Administrator workspace hero section from the dashboard and all dedicated Admin pages
+
+## Worker Session Device Details
+- [x] Display active device identifiers, session status, and last activity in the Worker Session view
+- [x] Provide secure Admin controls to revoke a worker's active device session

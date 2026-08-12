@@ -163,7 +163,21 @@ function SettingsTab() {
   );
 }
 
-type Worker = { id: number; workerID: string; name: string; displayName: string | null; profilePicture: string | null; department: string; userLevel: "1" | "1.1" | "2"; createdAt: Date };
+type Worker = {
+  id: number;
+  workerID: string;
+  name: string;
+  displayName: string | null;
+  profilePicture: string | null;
+  department: string;
+  userLevel: "1" | "1.1" | "2";
+  activeDeviceToken: string | null;
+  activeDeviceName: string | null;
+  activeDeviceIP: string | null;
+  activeLoginAt: Date | null;
+  lastSeenAt: Date | null;
+  createdAt: Date;
+};
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
@@ -187,10 +201,12 @@ function SwipeableWorkerCard({
   w,
   onEdit,
   onDelete,
+  onRevokeDevice,
 }: {
   w: Worker;
   onEdit: (w: Worker) => void;
   onDelete: (w: Worker) => void;
+  onRevokeDevice: (w: Worker) => void;
 }) {
   const REVEAL_WIDTH = 130; // px — total width of both action buttons
   const SWIPE_THRESHOLD = 40; // px — minimum drag to trigger reveal
@@ -340,6 +356,26 @@ function SwipeableWorkerCard({
           <span className="text-slate-400 text-xs">User Level</span>
           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${w.userLevel === "1" ? "bg-orange-500/20 text-orange-300 border-orange-500/30" : w.userLevel === "1.1" ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-green-500/20 text-green-300 border-green-500/30"}`}>Level {w.userLevel}</span>
         </div>
+        <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Active device</span>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${w.activeDeviceToken ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${w.activeDeviceToken ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
+              {w.activeDeviceToken ? "Active" : "Offline"}
+            </span>
+          </div>
+          {w.activeDeviceToken ? (
+            <>
+              <p className="mt-1 truncate text-xs font-semibold text-slate-800">{w.activeDeviceName || "Unknown device"}</p>
+              <p className="mt-0.5 truncate text-[10px] text-slate-500">{w.activeDeviceIP || "Unknown IP"} · {w.lastSeenAt ? `Last active ${new Date(w.lastSeenAt).toLocaleString()}` : "Session active"}</p>
+              <button type="button" onClick={() => onRevokeDevice(w)} className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-red-600 hover:text-red-700">
+                <Ban size={12} /> Revoke session
+              </button>
+            </>
+          ) : (
+            <p className="mt-1 text-[10px] text-slate-500">No active worker device session.</p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -361,6 +397,7 @@ function WorkersTab() {
   const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
   const [deleteVerifyPassword, setDeleteVerifyPassword] = useState("");
   const [profilePreview, setProfilePreview] = useState<Worker | null>(null);
+  const [revokeDeviceTarget, setRevokeDeviceTarget] = useState<Worker | null>(null);
 
   // Edit state
   const [editTarget, setEditTarget] = useState<Worker | null>(null);
@@ -375,6 +412,7 @@ function WorkersTab() {
   const addWorker = trpc.workers.add.useMutation();
   const deleteWorker = trpc.workers.delete.useMutation();
   const updateWorker = trpc.workers.update.useMutation();
+  const revokeDevice = trpc.workers.revokeDevice.useMutation();
 
   const openEdit = (w: Worker) => {
     setEditTarget(w);
@@ -458,6 +496,22 @@ function WorkersTab() {
     }
   };
 
+  const handleRevokeDevice = async () => {
+    if (!revokeDeviceTarget) return;
+    try {
+      const result = await revokeDevice.mutateAsync({
+        workerID: revokeDeviceTarget.workerID,
+        adminPassword: getAdminPassword(),
+      });
+      toast.success(result.hadActiveSession ? `Session revoked for ${revokeDeviceTarget.displayName || revokeDeviceTarget.name}.` : "No active session to revoke.");
+      utils.workers.list.invalidate();
+      setRevokeDeviceTarget(null);
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to revoke worker session.");
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -490,6 +544,8 @@ function WorkersTab() {
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Name</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Department</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Level</th>
+                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Active Device</th>
+                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Last Activity</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3">Action</th>
                 </tr>
               </thead>
@@ -528,8 +584,30 @@ function WorkersTab() {
                     <td className="py-3 pr-4">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : w.userLevel === "1.1" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>Lv.{w.userLevel}</span>
                     </td>
+                    <td className="py-3 pr-4">
+                      {w.activeDeviceToken ? (
+                        <div className="min-w-[160px]">
+                          <div className="flex items-center gap-1.5">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="truncate text-xs font-semibold text-slate-800">{w.activeDeviceName || "Unknown device"}</span>
+                          </div>
+                          <p className="mt-0.5 truncate text-[10px] text-slate-500">{w.activeDeviceIP || "Unknown IP"}</p>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400"><span className="h-2 w-2 rounded-full bg-slate-300" /> Offline</span>
+                      )}
+                    </td>
+                    <td className="py-3 pr-4">
+                      <p className="text-xs font-medium text-slate-700">{w.lastSeenAt ? new Date(w.lastSeenAt).toLocaleString() : "—"}</p>
+                      {w.activeLoginAt && <p className="mt-0.5 text-[10px] text-slate-500">Signed in {new Date(w.activeLoginAt).toLocaleString()}</p>}
+                    </td>
                     <td className="py-3">
                       <div className="flex items-center gap-2">
+                        {w.activeDeviceToken && (
+                          <button onClick={() => setRevokeDeviceTarget(w)} className="text-muted-foreground hover:text-red-600 transition-colors" title="Revoke active device session">
+                            <Ban size={14} />
+                          </button>
+                        )}
                         <button onClick={() => openEdit(w)} className="text-muted-foreground hover:text-primary transition-colors" title="Edit worker">
                           <Pencil size={14} />
                         </button>
@@ -551,6 +629,7 @@ function WorkersTab() {
                 w={w}
                 onEdit={openEdit}
                 onDelete={setDeleteTarget}
+                onRevokeDevice={setRevokeDeviceTarget}
               />
             ))}
           </div>
@@ -591,6 +670,34 @@ function WorkersTab() {
                 alt={`${profilePreview.displayName || profilePreview.name} profile picture full size`}
                 className="max-h-[70vh] w-auto max-w-full object-contain"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active device session revocation confirmation */}
+      {revokeDeviceTarget && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                <Ban size={21} />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-950">Revoke active session?</h3>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">This will immediately sign out the worker's active device. They must sign in again to continue.</p>
+              </div>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="text-sm font-bold text-slate-800">{revokeDeviceTarget.displayName || revokeDeviceTarget.name} · {revokeDeviceTarget.workerID}</p>
+              <p className="mt-1 text-xs text-slate-500">{revokeDeviceTarget.activeDeviceName || "Unknown device"} · {revokeDeviceTarget.activeDeviceIP || "Unknown IP"}</p>
+              <p className="mt-1 text-xs text-slate-500">Last activity: {revokeDeviceTarget.lastSeenAt ? new Date(revokeDeviceTarget.lastSeenAt).toLocaleString() : "Unavailable"}</p>
+            </div>
+            <div className="mt-5 flex gap-3">
+              <button type="button" onClick={() => setRevokeDeviceTarget(null)} className="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50">Cancel</button>
+              <button type="button" disabled={revokeDevice.isPending} onClick={handleRevokeDevice} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-60">
+                {revokeDevice.isPending ? <Loader2 size={15} className="animate-spin" /> : <Ban size={15} />} Revoke session
+              </button>
             </div>
           </div>
         </div>
