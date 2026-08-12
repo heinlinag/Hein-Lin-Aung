@@ -26,4 +26,13 @@ describe("My Profile account summary", () => {
     expect(profileSource).toContain("Member Days");
     expect(profileSource).toContain("grid-cols-2 gap-2.5 sm:grid-cols-4");
   });
+
+  it("shows profile completion progress with actionable prompts for missing details", () => {
+    expect(profileSource).toContain("const completionItems = [");
+    expect(profileSource).toContain("Profile Completion");
+    expect(profileSource).toContain('role="progressbar"');
+    expect(profileSource).toContain("aria-label=\"Profile completion\"");
+    expect(profileSource).toContain("Complete now");
+    expect(profileSource).toContain("Contact Admin to update");
+  });
 });

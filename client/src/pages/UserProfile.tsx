@@ -184,6 +184,20 @@ export default function UserProfile() {
       { label: "Member Days", value: memberDays, icon: <CalendarDays size={16} />, color: "#fb7185", glow: "rgba(244,63,94,0.15)" },
     ];
   }, [profile?.createdAt, profile?.workerID, requestsQuery.data, samplesQuery.data, submittedOrdersQuery.data, worker.workerID]);
+  const completionItems = [
+    { label: "Profile photo", complete: Boolean(avatarUrl), action: "photo" as const },
+    { label: "Display name", complete: Boolean(displayedName.trim()), action: "name" as const },
+    { label: "Employee ID", complete: Boolean((profile?.workerID ?? worker.workerID).trim()), action: "id" as const },
+    { label: "Department", complete: Boolean((profile?.department ?? worker.department).trim()), action: "department" as const },
+  ];
+  const missingCompletionItems = completionItems.filter(item => !item.complete);
+  const profileCompletion = Math.round(((completionItems.length - missingCompletionItems.length) / completionItems.length) * 100);
+  const handleCompletionAction = () => {
+    const action = missingCompletionItems[0]?.action;
+    if (action === "photo") handleAvatarClick();
+    if (action === "name") startEditName();
+    if (action === "id") startEditId();
+  };
 
   return (
     <AppLayout pageTitle="My Profile">
@@ -293,6 +307,57 @@ export default function UserProfile() {
               <span className="rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(52,211,153,0.22)", color: "#6ee7b7" }}>
                 Active Account
               </span>
+            </div>
+            <div
+              className="relative mb-4 rounded-xl p-3"
+              style={{ background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold" style={{ color: "#e2e8f0" }}>Profile Completion</p>
+                  <p className="mt-0.5 text-[10px]" style={{ color: "rgba(148,163,184,0.9)" }}>
+                    {profileCompletion === 100 ? "Your core account details are complete." : `Add ${missingCompletionItems.map(item => item.label).join(", ")} to complete your profile.`}
+                  </p>
+                </div>
+                <span className="shrink-0 text-lg font-black" style={{ color: profileCompletion === 100 ? "#6ee7b7" : "#a5b4fc" }}>
+                  {profileCompletion}%
+                </span>
+              </div>
+              <div
+                className="mt-3 h-2 overflow-hidden rounded-full"
+                role="progressbar"
+                aria-label="Profile completion"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={profileCompletion}
+                style={{ background: "rgba(255,255,255,0.08)" }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${profileCompletion}%`,
+                    background: profileCompletion === 100 ? "linear-gradient(90deg, #10b981, #2dd4bf)" : "linear-gradient(90deg, #6366f1, #8b5cf6)",
+                    boxShadow: profileCompletion === 100 ? "0 0 12px rgba(45,212,191,0.5)" : "0 0 12px rgba(129,140,248,0.5)",
+                  }}
+                />
+              </div>
+              {missingCompletionItems.length > 0 && (
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-[10px] font-semibold" style={{ color: "#c4b5fd" }}>Next: {missingCompletionItems[0].label}</span>
+                  {missingCompletionItems[0].action === "department" ? (
+                    <span className="text-[10px] font-semibold" style={{ color: "rgba(148,163,184,0.85)" }}>Contact Admin to update</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleCompletionAction}
+                      className="rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-white transition-transform hover:scale-[1.02]"
+                      style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 12px rgba(99,102,241,0.28)" }}
+                    >
+                      Complete now
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
             <div className="relative grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               {accountStats.map(stat => (

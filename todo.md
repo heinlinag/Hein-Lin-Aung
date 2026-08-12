@@ -1453,3 +1453,4 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## My Profile Account Summary
 - [x] Display key user account and activity statistics in a responsive account summary card
+- [x] Display profile completion progress and prompts for missing account details
