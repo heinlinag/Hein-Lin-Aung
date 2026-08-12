@@ -1430,3 +1430,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add a confirmation dialog before logging out from the More drawer
 - [x] Add a live online/offline indicator to System Status in the More drawer
 - [x] Add swipe-down gesture support to dismiss the More drawer
+
+## Personalized Logout Confirmation
+- [x] Display the current worker profile image and name in the mobile logout confirmation dialog

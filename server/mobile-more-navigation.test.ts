@@ -46,4 +46,10 @@ describe("Mobile More navigation", () => {
     expect(appLayoutSource).toContain("onTouchStart={handleMoreTouchStart}");
     expect(appLayoutSource).toContain("moreDragOffset > 88");
   });
+
+  it("personalizes the logout confirmation with the worker profile image and name", () => {
+    expect(appLayoutSource).toContain('alt={`${displayName} profile`}');
+    expect(appLayoutSource).toContain("Signed in as");
+    expect(appLayoutSource).toContain("Your active device session for {displayName || worker.name}");
+  });
 });

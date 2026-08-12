@@ -650,9 +650,19 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       {worker && logoutConfirmOpen && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/40 p-3 backdrop-blur-sm lg:hidden" role="dialog" aria-modal="true" aria-label="Confirm logout">
           <div className="w-full max-w-sm rounded-3xl border border-white/80 bg-white p-5 shadow-2xl home-card-in">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-600"><LogOut size={20} /></div>
-            <h2 className="mt-3 text-base font-black text-slate-900">Log out of StockDash?</h2>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">Your active device session will be safely closed. You can sign in again anytime.</p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100 text-sm font-black text-indigo-600 shadow-sm">
+                {profilePic ? <img src={profilePic} alt={`${displayName} profile`} className="h-full w-full object-cover" /> : (displayName || worker.name || "U").slice(0, 1).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">Signed in as</p>
+                <p className="truncate text-sm font-black text-slate-900">{displayName || worker.name}</p>
+                <p className="truncate text-[11px] font-medium text-slate-500">{worker.workerID}</p>
+              </div>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600"><LogOut size={18} /></div>
+            </div>
+            <h2 className="mt-4 text-base font-black text-slate-900">Log out of StockDash?</h2>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500">Your active device session for {displayName || worker.name} will be safely closed. You can sign in again anytime.</p>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <button onClick={() => setLogoutConfirmOpen(false)} className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-600">Cancel</button>
               <button onClick={() => { setLogoutConfirmOpen(false); closeMore(); handleLogout(); }} className="rounded-xl bg-rose-600 px-3 py-2.5 text-xs font-black text-white shadow-[0_6px_14px_rgba(225,29,72,0.25)]">Log out</button>
