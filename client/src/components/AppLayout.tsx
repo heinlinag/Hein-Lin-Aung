@@ -470,7 +470,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                 {headerActions && <div className="shrink-0">{headerActions}</div>}
                 <button
                   onClick={() => navigate("/notifications")}
-                  className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                  className="relative hidden p-2 rounded-xl transition-colors hover:bg-gray-100 sm:block"
                   aria-label="Notifications"
                 >
                   <Bell size={18} className="text-gray-600" />

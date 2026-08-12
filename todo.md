@@ -1403,3 +1403,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Preserve the AI Scanner destination when session recovery sends a user to Login
 - [x] Redirect a successfully authenticated worker back to the preserved Scanner destination
 - [x] Add regression coverage for the Scanner post-login return flow
+
+## Mobile Notification Controls
+- [x] Hide the duplicate mobile header notification bell and retain the bottom Alerts tab
