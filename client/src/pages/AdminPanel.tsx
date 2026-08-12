@@ -163,7 +163,7 @@ function SettingsTab() {
   );
 }
 
-type Worker = { id: number; workerID: string; name: string; department: string; userLevel: "1" | "1.1" | "2"; createdAt: Date };
+type Worker = { id: number; workerID: string; name: string; displayName: string | null; profilePicture: string | null; department: string; userLevel: "1" | "1.1" | "2"; createdAt: Date };
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock"; submittedBy: string | null; createdAt: Date;
@@ -496,7 +496,23 @@ function WorkersTab() {
                 {workers.map(w => (
                   <tr key={w.id} className="border-b border-border hover:bg-gray-50 transition-colors">
                     <td className="py-3 pr-4 text-sm font-semibold text-primary">{w.workerID}</td>
-                    <td className="py-3 pr-4 text-sm text-foreground">{w.name}</td>
+                    <td className="py-3 pr-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-black text-white shadow-sm ring-1 ring-white/10">
+                          {w.profilePicture ? (
+                            <img src={w.profilePicture} alt={`${w.displayName || w.name} profile`} className="h-full w-full object-cover" />
+                          ) : (
+                            (w.displayName || w.name || "U").slice(0, 1).toUpperCase()
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-foreground">{w.displayName || w.name}</p>
+                          {w.displayName && w.displayName !== w.name && (
+                            <p className="truncate text-[11px] text-muted-foreground">{w.name}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                     <td className="py-3 pr-4">
                       <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{w.department}</span>
                     </td>

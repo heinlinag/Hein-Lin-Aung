@@ -1433,3 +1433,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Personalized Logout Confirmation
 - [x] Display the current worker profile image and name in the mobile logout confirmation dialog
+
+## Admin Workers Desktop Identity
+- [x] Display each worker's profile picture or fallback avatar in the desktop Admin Workers table
