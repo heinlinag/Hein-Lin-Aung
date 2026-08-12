@@ -513,12 +513,12 @@ export default function QRScanner() {
 
       {/* ── UPDATE BALANCE DIALOG ── */}
       {showUpdateDialog && order && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
-          <div className="relative w-full max-w-md rounded-2xl overflow-hidden border border-white/10 bg-slate-900/90 backdrop-blur-xl shadow-2xl">
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-xl">
             {/* Accent bar */}
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500" />
 
-            <div className="p-5 border-b border-white/10">
+            <div className="shrink-0 border-b border-white/10 p-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-white">Update Balance</h3>
                 <button onClick={() => setShowUpdateDialog(false)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
@@ -528,7 +528,7 @@ export default function QRScanner() {
               <p className="text-sm text-slate-400 mt-1">Order: <strong className="text-slate-200">{order.orderID}</strong> · Current: <strong className="text-cyan-400">{order.qty} pcs</strong></p>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 overscroll-contain">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                   New Balance (pcs) <span className="text-red-400">*</span>
@@ -577,7 +577,7 @@ export default function QRScanner() {
               </div>
             </div>
 
-            <div className="p-5 pt-0 flex gap-3">
+            <div className="shrink-0 border-t border-white/10 bg-slate-900/95 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:p-5 sm:pb-5 flex gap-3">
               <button
                 onClick={() => setShowUpdateDialog(false)}
                 className="flex-1 border border-white/20 bg-white/5 hover:bg-white/10 text-slate-300 py-2.5 rounded-xl font-medium text-sm transition-all duration-200"
