@@ -1446,3 +1446,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Stock History Order Details
 - [x] Open a complete production-order detail dialog when a Stock History row is selected
+
+## Direct Profile Navigation
+- [x] Remove the desktop and mobile profile quick panel
+- [x] Open My Profile directly when the profile control is selected

@@ -80,14 +80,12 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const userLevel = worker?.userLevel ?? "2";
   const lv = levelLabel(userLevel);
 
-  const [profileOpen, setProfileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [moreMotion, setMoreMotion] = useState<"opening" | "open" | "closing">("opening");
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [moreDragOffset, setMoreDragOffset] = useState(0);
   const [isDrawerDragging, setIsDrawerDragging] = useState(false);
   const [isOnline, setIsOnline] = useState(() => typeof navigator === "undefined" ? true : navigator.onLine);
-  const profileRef = useRef<HTMLDivElement>(null);
   const moreCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moreTouchStartY = useRef<number | null>(null);
 
@@ -98,24 +96,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   );
   const profilePic = profileQuery.data?.profilePicture ?? null;
   const displayName = profileQuery.data?.displayName ?? worker?.name ?? "";
-
-  useEffect(() => {
-    if (!profileOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setProfileOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [profileOpen]);
-
-  useEffect(() => {
-    if (!profileOpen) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setProfileOpen(false); };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [profileOpen]);
 
   useEffect(() => () => {
     if (moreCloseTimer.current) clearTimeout(moreCloseTimer.current);
@@ -190,7 +170,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   };
 
   const isActive = (href: string) => location === href;
-  const goTo = (href: string) => { setProfileOpen(false); navigate(href); };
+  const goTo = (href: string) => navigate(href);
   const isMoreActive = MOBILE_MORE_ITEMS.some(item => location === item.href);
   const openMore = () => {
     if (moreCloseTimer.current) clearTimeout(moreCloseTimer.current);
@@ -223,83 +203,6 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     setMoreDragOffset(0);
     if (shouldClose) closeMore();
   };
-
-  /* ── Profile Dropdown (light style for readability) ─────────────── */
-  const ProfileDropdown = () => (
-    <div
-      className="absolute top-full mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden lg:left-0 right-0 lg:right-auto"
-      style={{ pointerEvents: "auto" }}
-    >
-      {/* Header */}
-      <div className={`px-5 py-4 ${lv.bg} flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-full overflow-hidden bg-white/70 shadow-sm shrink-0">
-            {profilePic ? (
-              <img src={profilePic} alt="avatar" className="w-full h-full object-cover" />
-            ) : (
-              <div className={`w-full h-full flex items-center justify-center`}>
-                <User size={20} className={lv.fg} />
-              </div>
-            )}
-          </div>
-          <div>
-            <p className={`font-bold text-sm ${lv.fg}`}>{displayName || worker?.name}</p>
-            <p className="text-xs text-gray-500">{worker?.workerID}</p>
-          </div>
-        </div>
-        <button onClick={() => setProfileOpen(false)} className="p-1 rounded-lg hover:bg-black/10 transition-colors">
-          <X size={14} className="text-gray-500" />
-        </button>
-      </div>
-
-      {/* Info rows */}
-      <div className="px-5 py-3 space-y-2 border-b border-slate-100">
-        <div className="flex items-center gap-2.5 text-xs text-slate-500">
-          <IdCard size={13} className="shrink-0 text-slate-400" />
-          <span className="font-medium text-slate-700">Employee ID</span>
-          <span className="ml-auto font-mono font-semibold text-slate-900">{worker?.workerID}</span>
-        </div>
-        <div className="flex items-center gap-2.5 text-xs text-slate-500">
-          <Building2 size={13} className="shrink-0 text-slate-400" />
-          <span className="font-medium text-slate-700">Department</span>
-          <span className="ml-auto text-slate-900">{worker?.department || "—"}</span>
-        </div>
-        <div className="flex items-center gap-2.5 text-xs text-slate-500">
-          <Shield size={13} className="shrink-0 text-slate-400" />
-          <span className="font-medium text-slate-700">Access Level</span>
-          <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${lv.badgeLight}`}>{lv.text}</span>
-        </div>
-      </div>
-
-      {/* Quick links - System Status only */}
-      <div className="px-3 py-2 border-b border-slate-100">
-        <button
-          onClick={() => goTo("/status")}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-            <Activity size={15} className="text-green-600" />
-          </div>
-          <span className="flex-1 text-left">System Status</span>
-          <span className="w-2 h-2 rounded-full bg-green-500 mr-1" />
-          <ChevronRight size={13} className="text-slate-400" />
-        </button>
-      </div>
-
-      {/* Logout */}
-      <div className="px-3 py-2">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-            <LogOut size={15} className="text-red-500" />
-          </div>
-          <span className="flex-1 text-left">Logout</span>
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -347,15 +250,16 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
         {/* Worker info card */}
         {worker && (
           <div className="relative mx-3 mt-4 mb-3">
-            <div
+            <button
+              type="button"
+              aria-label="Open My Profile"
               className="px-3 py-3 rounded-xl cursor-pointer transition-all duration-300 group"
               style={{
                 background: "rgba(99,102,241,0.12)",
                 border: "1px solid rgba(99,102,241,0.25)",
                 backdropFilter: "blur(8px)",
               }}
-              onClick={() => setProfileOpen(v => !v)}
-              ref={profileRef}
+              onClick={() => navigate("/user-profile")}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.2)")}
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(99,102,241,0.12)")}
             >
@@ -375,8 +279,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                 </div>
                 <span className={`shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-md ${lv.badge}`}>Lv{userLevel}</span>
               </div>
-            </div>
-            {profileOpen && <ProfileDropdown />}
+            </button>
           </div>
         )}
 
@@ -543,24 +446,23 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                     </span>
                   )}
                 </button>
-                <div className="relative" ref={profileRef}>
-                  <button
-                    onClick={() => setProfileOpen(v => !v)}
-                    className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 rounded-full pl-0.5 pr-2.5 py-0.5 text-[10px] font-semibold hover:bg-indigo-100 transition-colors border border-indigo-100"
-                  >
-                    <div className="w-6 h-6 rounded-full overflow-hidden shrink-0">
-                      {profilePic ? (
-                        <img src={profilePic} alt="avatar" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-indigo-200 flex items-center justify-center">
-                          <User size={10} className="text-indigo-600" />
-                        </div>
-                      )}
-                    </div>
-                    <span>{displayName?.split(" ")[0] || worker?.name?.split(" ")[0] || "Profile"}</span>
-                  </button>
-                  {profileOpen && <ProfileDropdown />}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/user-profile")}
+                  aria-label="Open My Profile"
+                  className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 rounded-full pl-0.5 pr-2.5 py-0.5 text-[10px] font-semibold hover:bg-indigo-100 transition-colors border border-indigo-100"
+                >
+                  <div className="w-6 h-6 rounded-full overflow-hidden shrink-0">
+                    {profilePic ? (
+                      <img src={profilePic} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-indigo-200 flex items-center justify-center">
+                        <User size={10} className="text-indigo-600" />
+                      </div>
+                    )}
+                  </div>
+                  <span>{displayName?.split(" ")[0] || worker?.name?.split(" ")[0] || "Profile"}</span>
+                </button>
               </div>
             )}
           </div>
