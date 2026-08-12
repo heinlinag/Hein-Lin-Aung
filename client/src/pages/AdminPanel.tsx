@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { ContactMessagesTab } from "@/components/ContactMessagesTab";
 import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
@@ -8,6 +9,20 @@ import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, Hist
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
+
+/** Keeps critical Admin dialogs outside mobile layout/compositing layers. */
+function StableAdminModalLayer({ children }: { children: ReactNode }) {
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div
+      className="admin-light fixed inset-0 z-[500] flex min-h-[100dvh] items-center justify-center overflow-y-auto bg-slate-950/55 p-4 pb-[max(5rem,calc(4rem+env(safe-area-inset-bottom)))]"
+      style={{ isolation: "isolate", WebkitTransform: "translateZ(0)", transform: "translateZ(0)" }}
+    >
+      {children}
+    </div>,
+    document.body,
+  );
+}
 
 // ─── Settings Tab ─────────────────────────────────────────────────────────────
 function SettingsTab() {
@@ -777,8 +792,8 @@ function WorkersTab() {
 
       {/* Edit Worker Dialog */}
       {editTarget && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="rounded-2xl border shadow-2xl w-full max-w-sm p-6" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+        <StableAdminModalLayer>
+          <div role="dialog" aria-modal="true" aria-label="Edit Worker" className="relative my-auto max-h-[calc(100dvh-8rem)] w-full max-w-sm overflow-y-auto rounded-2xl border p-6 shadow-2xl" style={{ background: "#fff", borderColor: "#e2e8f0" }}>
             {/* Accent bar */}
             <div className="h-1 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
             {editStep === "form" ? (
@@ -844,7 +859,7 @@ function WorkersTab() {
               </>
             )}
           </div>
-        </div>
+        </StableAdminModalLayer>
       )}
 
       {/* Delete Confirm */}
@@ -1227,8 +1242,8 @@ function OrdersTab() {
 
       {/* Used Update Dialog */}
       {usedUpdateTarget && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="rounded-2xl border shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+        <StableAdminModalLayer>
+          <div role="dialog" aria-modal="true" aria-label="Used Update" className="relative my-auto max-h-[calc(100dvh-8rem)] w-full max-w-md overflow-y-auto rounded-2xl border p-6 shadow-2xl" style={{ background: "#fff", borderColor: "#e2e8f0" }}>
             <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
             <h3 className="font-bold text-white mb-4 flex items-center gap-2"><Zap size={15} className="text-blue-400" /> Used Update — <span className="text-blue-300">{usedUpdateTarget.orderID}</span></h3>
 
@@ -1394,7 +1409,7 @@ function OrdersTab() {
               </div>
             )}
           </div>
-        </div>
+        </StableAdminModalLayer>
       )}
     </div>
   );
@@ -2940,5 +2955,13 @@ const ADMIN_LIGHT_STYLES = `
 .admin-light .admin-light-tab-active { background:linear-gradient(135deg,#4f46e5,#6366f1); color:#fff !important; box-shadow:0 8px 18px rgba(79,70,229,.22); }
 .admin-light .admin-light-mobile-nav { background:rgba(255,255,255,.96) !important; border-top:1px solid #e2e8f0 !important; box-shadow:0 -8px 26px rgba(15,23,42,.08); }
 .admin-light .admin-light-drawer { background:#fff !important; border-color:#e2e8f0 !important; box-shadow:0 -18px 44px rgba(15,23,42,.14) !important; }
+.admin-light .fixed.inset-0.backdrop-blur-sm {
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  background-color:rgba(15,23,42,.55) !important;
+  isolation:isolate; -webkit-backface-visibility:hidden; backface-visibility:hidden;
+}
+.admin-light [style*="backdrop-filter"],.admin-light [style*="backdropFilter"] {
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
 @media (prefers-reduced-motion: reduce) { .admin-light * { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
 `;

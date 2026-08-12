@@ -1515,3 +1515,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Worker Session Sign-In Location
 - [x] Resolve and store IP-based geographical sign-in details for active worker device sessions
 - [x] Display detected country, region/city, and source IP in the Worker Session view
+
+## Recorded Error Investigation
+- [x] Identify and fix the error shown in the supplied screen recording
+- [x] Audit related routes, dialogs, navigation, and session flows for the same failure pattern
+- [x] Add regression coverage for the fixed error path

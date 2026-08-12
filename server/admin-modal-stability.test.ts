@@ -1,0 +1,29 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const source = readFileSync(resolve(process.cwd(), "client/src/pages/AdminPanel.tsx"), "utf8");
+
+describe("Admin mobile modal stability", () => {
+  it("moves the recorded Worker Edit and Used Update dialogs into a document-level stable portal", () => {
+    expect(source).toContain('function StableAdminModalLayer');
+    expect(source).toContain('createPortal(');
+    expect(source).toContain('aria-label="Edit Worker"');
+    expect(source).toContain('aria-label="Used Update"');
+    expect(source).toMatch(/\{editTarget && \(\s*<StableAdminModalLayer>/);
+    expect(source).toMatch(/\{usedUpdateTarget && \(\s*<StableAdminModalLayer>/);
+  });
+
+  it("uses mobile-safe viewport sizing and a high-priority modal layer", () => {
+    expect(source).toContain('z-[500]');
+    expect(source).toContain('min-h-[100dvh]');
+    expect(source).toContain('max-h-[calc(100dvh-8rem)]');
+    expect(source).toContain('translateZ(0)');
+  });
+
+  it("removes backdrop-filter compositing from all remaining Admin modal overlays", () => {
+    expect(source).toContain('.admin-light .fixed.inset-0.backdrop-blur-sm');
+    expect(source).toContain('backdrop-filter:none !important');
+    expect(source).toContain('[style*="backdrop-filter"],.admin-light [style*="backdropFilter"]');
+  });
+});
