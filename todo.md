@@ -1450,3 +1450,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Direct Profile Navigation
 - [x] Remove the desktop and mobile profile quick panel
 - [x] Open My Profile directly when the profile control is selected
+
+## My Profile Account Summary
+- [x] Display key user account and activity statistics in a responsive account summary card

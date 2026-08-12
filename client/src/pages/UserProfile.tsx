@@ -9,10 +9,11 @@
  * - Employee ID edit (30-day cooldown)
  * - Read-only: Department, Access Level, Member Since
  */
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import {
   Camera, User, IdCard, Building2, Shield, Calendar,
   Edit2, Check, X, Clock, AlertTriangle, Loader2, ChevronLeft,
+  PackagePlus, ClipboardCheck, FlaskConical, CalendarDays,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -63,6 +64,19 @@ export default function UserProfile() {
   const uploadPicMut  = trpc.profile.uploadPicture.useMutation();
   const updateNameMut = trpc.profile.updateDisplayName.useMutation();
   const updateIdMut   = trpc.profile.updateEmployeeId.useMutation();
+  const listInput = useMemo(() => ({}), []);
+  const submittedOrdersQuery = trpc.orders.list.useQuery(listInput, {
+    enabled: !!worker?.workerID,
+    staleTime: 60_000,
+  });
+  const requestsQuery = trpc.pendingRequests.list.useQuery(listInput, {
+    enabled: !!worker?.workerID,
+    staleTime: 60_000,
+  });
+  const samplesQuery = trpc.customerSamples.list.useQuery(listInput, {
+    enabled: !!worker?.workerID,
+    staleTime: 60_000,
+  });
 
   const [editingName, setEditingName] = useState(false);
   const [editingId,   setEditingId]   = useState(false);
@@ -153,6 +167,23 @@ export default function UserProfile() {
   const displayedName = profile?.displayName ?? profile?.name ?? worker.name;
   const nameRemaining = daysLeft(profile?.displayNameChangedAt, 7);
   const idRemaining   = daysLeft(profile?.employeeIdChangedAt, 30);
+  const accountSummaryLoading = submittedOrdersQuery.isLoading || requestsQuery.isLoading || samplesQuery.isLoading;
+  const accountStats = useMemo(() => {
+    const workerID = profile?.workerID ?? worker.workerID;
+    const ordersAdded = (submittedOrdersQuery.data ?? []).filter(order => order.submittedBy === workerID).length;
+    const openRequests = (requestsQuery.data ?? []).filter(request => request.requestedBy === workerID && request.status === "pending").length;
+    const sampleRequests = (samplesQuery.data ?? []).filter(sample => sample.requestedBy === workerID).length;
+    const memberDays = profile?.createdAt
+      ? Math.max(0, Math.floor((Date.now() - new Date(profile.createdAt).getTime()) / DAYS_MS))
+      : null;
+
+    return [
+      { label: "Stock Added", value: ordersAdded, icon: <PackagePlus size={16} />, color: "#818cf8", glow: "rgba(99,102,241,0.18)" },
+      { label: "Open NPRM", value: openRequests, icon: <ClipboardCheck size={16} />, color: "#fbbf24", glow: "rgba(245,158,11,0.16)" },
+      { label: "Samples", value: sampleRequests, icon: <FlaskConical size={16} />, color: "#2dd4bf", glow: "rgba(20,184,166,0.16)" },
+      { label: "Member Days", value: memberDays, icon: <CalendarDays size={16} />, color: "#fb7185", glow: "rgba(244,63,94,0.15)" },
+    ];
+  }, [profile?.createdAt, profile?.workerID, requestsQuery.data, samplesQuery.data, submittedOrdersQuery.data, worker.workerID]);
 
   return (
     <AppLayout pageTitle="My Profile">
@@ -242,6 +273,45 @@ export default function UserProfile() {
               </span>
             </div>
           </div>
+
+          {/* ── Account summary ─────────────────────────────────────── */}
+          <section
+            className="relative overflow-hidden rounded-2xl p-4"
+            style={{
+              background: "rgba(15,23,42,0.72)",
+              border: "1px solid rgba(129,140,248,0.22)",
+              backdropFilter: "blur(16px)",
+              boxShadow: "0 16px 40px rgba(15,23,42,0.22)",
+            }}
+          >
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(circle at 100% 0%, rgba(99,102,241,0.15), transparent 43%)" }} />
+            <div className="relative flex items-start justify-between gap-3 mb-4">
+              <div>
+                <p className="text-sm font-bold" style={{ color: "#ffffff" }}>Account Summary</p>
+                <p className="text-[11px] mt-0.5" style={{ color: "rgba(148,163,184,0.9)" }}>Your stock-management activity at a glance</p>
+              </div>
+              <span className="rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(52,211,153,0.22)", color: "#6ee7b7" }}>
+                Active Account
+              </span>
+            </div>
+            <div className="relative grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              {accountStats.map(stat => (
+                <div
+                  key={stat.label}
+                  className="rounded-xl p-3"
+                  style={{ background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.08)" }}
+                >
+                  <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: stat.glow, color: stat.color }}>
+                    {stat.icon}
+                  </div>
+                  <p className="text-lg font-black leading-none" style={{ color: "#ffffff" }}>
+                    {accountSummaryLoading || stat.value === null ? "—" : stat.value}
+                  </p>
+                  <p className="mt-1 text-[10px] font-semibold" style={{ color: "rgba(148,163,184,0.92)" }}>{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {/* ── Profile fields ──────────────────────────────────────── */}
           {isLoading ? (
