@@ -1457,3 +1457,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## QR Scanner Mobile Dialog Layout
 - [x] Keep Update Balance dialog actions visible above the mobile bottom navigation
+
+## QR Scanner Adjustment Receipt
+- [x] Show a transaction-detail success receipt after a balance adjustment completes

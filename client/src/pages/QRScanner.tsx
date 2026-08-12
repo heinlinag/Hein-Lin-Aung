@@ -25,6 +25,16 @@ interface VerifiedOrder {
   status: string;
 }
 
+interface BalanceAdjustmentReceipt {
+  orderID: string;
+  previousQty: number;
+  updatedQty: number;
+  adjustmentMethod: "scan" | "manual";
+  note: string | null;
+  verifiedBy: string;
+  completedAt: Date;
+}
+
 type TabType = "scanner" | "history";
 
 export default function QRScanner() {
@@ -42,6 +52,7 @@ export default function QRScanner() {
   const [employeeId, setEmployeeId] = useState("");
   const [updateNote, setUpdateNote] = useState("");
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [adjustmentReceipt, setAdjustmentReceipt] = useState<BalanceAdjustmentReceipt | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerDivRef = useRef<HTMLDivElement>(null);
@@ -67,8 +78,17 @@ export default function QRScanner() {
   const logScanMutation = trpc.orders.logQrScan.useMutation();
 
   const updateBalanceMutation = trpc.orders.qrUpdateBalance.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       toast.success(`Balance updated successfully. Verified by ${data.workerName}.`);
+      setAdjustmentReceipt({
+        orderID: variables.orderStringId,
+        previousQty: variables.oldQty,
+        updatedQty: variables.newQty,
+        adjustmentMethod: variables.adjustmentMethod ?? "scan",
+        note: variables.note ?? null,
+        verifiedBy: data.workerName,
+        completedAt: new Date(),
+      });
       setShowUpdateDialog(false);
       setNewQty("");
       setEmployeeId("");
@@ -177,6 +197,7 @@ export default function QRScanner() {
     setVerifyTrackingId("");
     setManualInput(false);
     setShowUpdateDialog(false);
+    setAdjustmentReceipt(null);
     hasLoggedScan.current = null;
   };
 
@@ -597,6 +618,79 @@ export default function QRScanner() {
         </div>
       )}
 
+      {/* ── BALANCE ADJUSTMENT SUCCESS RECEIPT ─────────────────────── */}
+      {adjustmentReceipt && (() => {
+        const difference = adjustmentReceipt.updatedQty - adjustmentReceipt.previousQty;
+        const directionLabel = difference > 0 ? "Increase" : difference < 0 ? "Decrease" : "No quantity change";
+        const methodLabel = adjustmentReceipt.adjustmentMethod === "manual" ? "Manual Input" : "QR / Barcode Scan";
+        return (
+          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Balance adjustment receipt">
+            <div className="w-full max-w-md overflow-hidden rounded-2xl border border-emerald-400/25 bg-slate-900/95 shadow-2xl shadow-emerald-950/40 backdrop-blur-xl">
+              <div className="h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400" />
+              <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/15 text-emerald-300 ring-1 ring-emerald-300/20">
+                    <CheckCircle size={23} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-lg font-black text-white">Balance Updated</p>
+                    <p className="mt-0.5 text-xs text-slate-400">Transaction receipt · {adjustmentReceipt.completedAt.toLocaleString()}</p>
+                  </div>
+                  <button onClick={() => setAdjustmentReceipt(null)} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white" aria-label="Close receipt">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.045] p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Production Order</p>
+                  <p className="mt-1 text-xl font-black text-white">{adjustmentReceipt.orderID}</p>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.035] p-3">
+                    <p className="text-[10px] font-semibold text-slate-500">Previous Balance</p>
+                    <p className="mt-1 text-lg font-black text-slate-200">{adjustmentReceipt.previousQty} <span className="text-xs text-slate-500">pcs</span></p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/[0.08] p-3">
+                    <p className="text-[10px] font-semibold text-emerald-200/70">Updated Balance</p>
+                    <p className="mt-1 text-lg font-black text-emerald-300">{adjustmentReceipt.updatedQty} <span className="text-xs text-emerald-200/70">pcs</span></p>
+                  </div>
+                </div>
+
+                <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.035] px-3.5 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-semibold text-slate-400">Adjustment</span>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-black ${difference > 0 ? "bg-emerald-400/15 text-emerald-300" : difference < 0 ? "bg-rose-400/15 text-rose-300" : "bg-slate-400/15 text-slate-300"}`}>
+                      {difference > 0 ? "+" : ""}{difference} pcs · {directionLabel}
+                    </span>
+                  </div>
+                  <div className="mt-3 space-y-2 border-t border-white/10 pt-3 text-xs">
+                    <ReceiptRow label="Method" value={methodLabel} />
+                    <ReceiptRow label="Verified by" value={adjustmentReceipt.verifiedBy} />
+                    <ReceiptRow label="Reason / Note" value={adjustmentReceipt.note || "Not provided"} valueClassName={adjustmentReceipt.note ? "text-slate-200" : "italic text-slate-500"} />
+                  </div>
+                </div>
+
+                <div className="mt-5 flex gap-3">
+                  <button
+                    onClick={() => { setAdjustmentReceipt(null); setActiveTab("history"); refetchHistory(); }}
+                    className="flex-1 rounded-xl border border-white/15 bg-white/[0.06] py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-white/[0.1]"
+                  >
+                    View History
+                  </button>
+                  <button
+                    onClick={() => setAdjustmentReceipt(null)}
+                    className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/30 transition-all hover:from-emerald-500 hover:to-teal-500"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       <style>{`
         @keyframes scanline {
           0% { transform: translateY(-100px); opacity: 0; }
@@ -606,5 +700,14 @@ export default function QRScanner() {
         }
       `}</style>
     </AppLayout>
+  );
+}
+
+function ReceiptRow({ label, value, valueClassName = "text-slate-200" }: { label: string; value: string; valueClassName?: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <span className="shrink-0 text-slate-500">{label}</span>
+      <span className={`text-right font-semibold ${valueClassName}`}>{value}</span>
+    </div>
   );
 }

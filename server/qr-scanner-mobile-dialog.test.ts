@@ -20,4 +20,14 @@ describe("QR Scanner mobile Update Balance dialog", () => {
     expect(scannerSource).toContain("shrink-0 border-t border-white/10");
     expect(scannerSource).toContain("Confirm & Verify");
   });
+
+  it("shows a detailed success receipt after a balance adjustment completes", () => {
+    expect(scannerSource).toContain("setAdjustmentReceipt({");
+    expect(scannerSource).toContain("Balance Updated");
+    expect(scannerSource).toContain("Transaction receipt");
+    expect(scannerSource).toContain("Previous Balance");
+    expect(scannerSource).toContain("Updated Balance");
+    expect(scannerSource).toContain("Reason / Note");
+    expect(scannerSource).toContain("View History");
+  });
 });
