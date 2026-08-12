@@ -34,6 +34,18 @@ describe("Admin Panel light-mode rebuild", () => {
     expect(adminPanelSource).toContain('pb-[env(safe-area-inset-bottom)]');
   });
 
+  it("provides role-based quick actions for the full administrator workflow", () => {
+    expect(adminPanelSource).toContain("const roleQuickActions: Array<{");
+    expect(adminPanelSource).toContain('role: "Workforce Admin"');
+    expect(adminPanelSource).toContain('role: "Stock Controller"');
+    expect(adminPanelSource).toContain('role: "Approval Lead"');
+    expect(adminPanelSource).toContain('role: "Communications Lead"');
+    expect(adminPanelSource).toContain('role: "System Administrator"');
+    expect(adminPanelSource).toContain("Role-based quick actions");
+    expect(adminPanelSource).toContain("badge: stats?.pendingRequests ?? 0");
+    expect(adminPanelSource).toContain("onClick={() => setActiveTab(item.tab)}");
+  });
+
   it("matches the Administrator login entry screen to the white-theme control center", () => {
     expect(adminLoginSource).toContain('admin-login-light min-h-screen');
     expect(adminLoginSource).toContain('const ADMIN_LOGIN_LIGHT_STYLES');

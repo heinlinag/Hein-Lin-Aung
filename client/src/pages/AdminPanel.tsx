@@ -2084,6 +2084,59 @@ export default function AdminPanel() {
     settings: "Manage administrator credentials and platform preferences.",
   };
   const activeTabInfo = tabs.find(tab => tab.id === activeTab) ?? tabs[0];
+  const roleQuickActions: Array<{
+    role: string;
+    action: string;
+    description: string;
+    tab: TabId;
+    icon: React.ReactNode;
+    tone: "indigo" | "blue" | "orange" | "violet" | "rose";
+    badge?: number;
+  }> = [
+    {
+      role: "Workforce Admin",
+      action: "Manage workers",
+      description: "Add, edit and secure worker access.",
+      tab: "workers",
+      icon: <Users size={19} />,
+      tone: "indigo",
+    },
+    {
+      role: "Stock Controller",
+      action: "Review stock",
+      description: "Check live stock and low-quantity records.",
+      tab: "orders",
+      icon: <Package size={19} />,
+      tone: "blue",
+      badge: stats?.lowStockCount ?? 0,
+    },
+    {
+      role: "Approval Lead",
+      action: "Process requests",
+      description: "Resolve pending workflow approvals.",
+      tab: "pending_requests",
+      icon: <ClipboardList size={19} />,
+      tone: "orange",
+      badge: stats?.pendingRequests ?? 0,
+    },
+    {
+      role: "Communications Lead",
+      action: "Publish update",
+      description: "Create operational announcements.",
+      tab: "announcements",
+      icon: <Megaphone size={19} />,
+      tone: "violet",
+    },
+    {
+      role: "System Administrator",
+      action: "System control",
+      description: "Review maintenance and platform settings.",
+      tab: "maintenance",
+      icon: <Wrench size={19} />,
+      tone: "rose",
+      badge: maintenanceQuery.data?.maintenanceMode ? 1 : 0,
+    },
+  ];
 
   // ── Dedicated Admin light-mode design tokens ───────────────────────────────
   const bg = { background: "linear-gradient(145deg, #f8fbff 0%, #eef4ff 48%, #fdfdff 100%)" };
@@ -2255,6 +2308,63 @@ export default function AdminPanel() {
           </div>
         </div>
       </div>
+
+      {/* Role-Based Quick Actions */}
+      <section className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 pb-5 md:pb-6">
+        <div className="admin-light-surface rounded-2xl border p-4 lg:p-5">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <Zap size={15} />
+                </div>
+                <p className="text-sm font-extrabold text-slate-950">Role-based quick actions</p>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">Jump directly to the management workflow assigned to each administrator role.</p>
+            </div>
+            <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-indigo-700">
+              <Shield size={12} /> Full admin access
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
+            {roleQuickActions.map((item) => {
+              const toneClasses = {
+                indigo: "bg-indigo-50 text-indigo-600 ring-indigo-100 hover:border-indigo-200 hover:bg-indigo-50/70",
+                blue: "bg-blue-50 text-blue-600 ring-blue-100 hover:border-blue-200 hover:bg-blue-50/70",
+                orange: "bg-orange-50 text-orange-600 ring-orange-100 hover:border-orange-200 hover:bg-orange-50/70",
+                violet: "bg-violet-50 text-violet-600 ring-violet-100 hover:border-violet-200 hover:bg-violet-50/70",
+                rose: "bg-rose-50 text-rose-600 ring-rose-100 hover:border-rose-200 hover:bg-rose-50/70",
+              }[item.tone];
+              const isCurrent = activeTab === item.tab;
+              return (
+                <button
+                  type="button"
+                  key={item.role}
+                  onClick={() => setActiveTab(item.tab)}
+                  className={`group relative flex min-h-[116px] flex-col items-start rounded-2xl border border-slate-200 bg-white p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/70 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${isCurrent ? "border-indigo-300 shadow-md shadow-indigo-100" : ""}`}
+                  aria-label={`${item.action}: ${item.description}`}
+                >
+                  <div className="mb-3 flex w-full items-center justify-between">
+                    <span className={`flex h-9 w-9 items-center justify-center rounded-xl ring-1 ${toneClasses}`}>
+                      {item.icon}
+                    </span>
+                    {item.badge && item.badge > 0 ? (
+                      <span className="min-w-5 rounded-full bg-rose-500 px-1.5 py-0.5 text-center text-[10px] font-black text-white shadow-sm">
+                        {item.badge > 99 ? "99+" : item.badge}
+                      </span>
+                    ) : isCurrent ? (
+                      <span className="rounded-full bg-indigo-50 px-1.5 py-0.5 text-[9px] font-bold text-indigo-700">OPEN</span>
+                    ) : null}
+                  </div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">{item.role}</p>
+                  <p className="mt-0.5 text-sm font-extrabold text-slate-900">{item.action}</p>
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-500">{item.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* Tab Navigation */}
       <div className="hidden sm:block max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10">

@@ -1494,3 +1494,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Refresh all Admin Panel forms, dialogs, tables, mobile cards, empty states, and loading states in the light theme
 - [x] Update the mobile Admin navigation for the redesigned light-mode experience
 - [x] Add regression coverage for the complete Admin Panel light-mode visual system
+
+## Admin Role-Based Quick Actions
+- [x] Add role-grouped quick action buttons for workforce, stock operations, communications, and system control
+- [x] Preserve current Admin routes and surface relevant pending-work counts in quick actions
