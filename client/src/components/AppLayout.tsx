@@ -81,7 +81,9 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [moreMotion, setMoreMotion] = useState<"opening" | "open" | "closing">("opening");
   const profileRef = useRef<HTMLDivElement>(null);
+  const moreCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch profile picture & display name
   const profileQuery = trpc.profile.get.useQuery(
@@ -108,6 +110,10 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [profileOpen]);
+
+  useEffect(() => () => {
+    if (moreCloseTimer.current) clearTimeout(moreCloseTimer.current);
+  }, []);
 
   const heartbeatMutation = trpc.chat.heartbeat.useMutation({
     onSuccess: (data) => {
@@ -170,6 +176,20 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const isActive = (href: string) => location === href;
   const goTo = (href: string) => { setProfileOpen(false); navigate(href); };
   const isMoreActive = MOBILE_MORE_ITEMS.some(item => location === item.href);
+  const openMore = () => {
+    if (moreCloseTimer.current) clearTimeout(moreCloseTimer.current);
+    setMoreOpen(true);
+    setMoreMotion("opening");
+    requestAnimationFrame(() => setMoreMotion("open"));
+  };
+  const closeMore = () => {
+    if (!moreOpen || moreMotion === "closing") return;
+    setMoreMotion("closing");
+    moreCloseTimer.current = setTimeout(() => {
+      setMoreOpen(false);
+      moreCloseTimer.current = null;
+    }, 280);
+  };
 
   /* ── Profile Dropdown (light style for readability) ─────────────── */
   const ProfileDropdown = () => (
@@ -541,26 +561,27 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
         <>
           <button
             aria-label="Close more navigation"
-            onClick={() => setMoreOpen(false)}
-            className="fixed inset-0 z-30 bg-slate-950/25 backdrop-blur-[1px] lg:hidden"
+            onClick={closeMore}
+            className={`fixed inset-0 z-30 bg-slate-950/25 backdrop-blur-[1px] transition-opacity duration-300 ease-out lg:hidden ${moreMotion === "open" ? "opacity-100" : "opacity-0"}`}
           />
-          <section className="fixed inset-x-3 bottom-[72px] z-40 overflow-hidden rounded-3xl border border-white/80 bg-white/96 p-3 shadow-[0_14px_44px_rgba(15,23,42,0.2)] backdrop-blur-xl lg:hidden">
+          <section className={`fixed inset-x-3 bottom-[72px] z-40 overflow-hidden rounded-3xl border border-white/80 bg-white/96 p-3 shadow-[0_14px_44px_rgba(15,23,42,0.2)] backdrop-blur-xl transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden ${moreMotion === "open" ? "translate-y-0 scale-100 opacity-100" : "translate-y-5 scale-[0.97] opacity-0"}`}>
             <div className="flex items-center justify-between px-1.5 pb-2.5">
               <div>
                 <p className="text-sm font-black text-slate-800">More</p>
                 <p className="text-[10px] font-medium text-slate-400">Quick access to your account and support</p>
               </div>
-              <button onClick={() => setMoreOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500" aria-label="Close more navigation">
+              <button onClick={closeMore} className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-transform active:scale-90" aria-label="Close more navigation">
                 <X size={16} />
               </button>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {MOBILE_MORE_ITEMS.map(item => {
+              {MOBILE_MORE_ITEMS.map((item, index) => {
                 const active = location === item.href;
                 const badge = item.href === "/chat" ? unreadMsgCount : 0;
                 return (
-                  <button key={item.href} onClick={() => { setMoreOpen(false); navigate(item.href); }}
-                    className={`relative flex min-h-[74px] flex-col items-center justify-center gap-1 rounded-2xl border px-1.5 py-2 text-center transition-all active:scale-[0.98] ${
+                  <button key={item.href} onClick={() => { closeMore(); navigate(item.href); }}
+                    style={{ transitionDelay: moreMotion === "open" ? `${70 + index * 35}ms` : "0ms" }}
+                    className={`relative flex min-h-[74px] flex-col items-center justify-center gap-1 rounded-2xl border px-1.5 py-2 text-center transition-[opacity,transform,background-color,border-color] duration-300 active:scale-[0.98] ${moreMotion === "open" ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"} ${
                       active ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-slate-100 bg-slate-50 text-slate-600"
                     }`}>
                     <span className={`relative flex h-8 w-8 items-center justify-center rounded-xl ${active ? "bg-indigo-100" : "bg-white shadow-sm"}`}>
@@ -591,7 +612,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               return (
                 <button
                   key={item.href}
-                  onClick={() => item.isMore ? setMoreOpen(v => !v) : (setMoreOpen(false), navigate(item.href))}
+                  onClick={() => item.isMore ? (moreOpen ? closeMore() : openMore()) : (closeMore(), navigate(item.href))}
                   className={`${item.order} relative flex flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ${
                     active ? "text-indigo-600" : "text-slate-400 hover:text-slate-600"
                   }`}

@@ -27,4 +27,12 @@ describe("Mobile More navigation", () => {
     }
     expect(homeSource).toContain('mobileHidden ? "hidden sm:block " : ""');
   });
+
+  it("uses motion state with backdrop fade, spring panel slide, and staggered item entry", () => {
+    expect(appLayoutSource).toContain('useState<"opening" | "open" | "closing">');
+    expect(appLayoutSource).toContain("requestAnimationFrame(() => setMoreMotion(\"open\"))");
+    expect(appLayoutSource).toContain("transition-[opacity,transform]");
+    expect(appLayoutSource).toContain("cubic-bezier(0.22,1,0.36,1)");
+    expect(appLayoutSource).toContain("transitionDelay: moreMotion === \"open\"");
+  });
 });

@@ -1418,3 +1418,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Mobile More Navigation
 - [x] Hide Messages, My Profile, Documentation, Help Center, and FAQ Quick Actions below the sm breakpoint
 - [x] Replace the mobile Chat tab with a More drawer containing Messages, My Profile, Documentation, Help Center, and FAQ
+
+## Mobile More Drawer Motion
+- [x] Add smooth backdrop fade and spring slide transitions for the mobile More drawer
