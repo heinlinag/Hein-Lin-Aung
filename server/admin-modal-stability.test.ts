@@ -26,4 +26,15 @@ describe("Admin mobile modal stability", () => {
     expect(source).toContain('backdrop-filter:none !important');
     expect(source).toContain('[style*="backdrop-filter"],.admin-light [style*="backdropFilter"]');
   });
+
+  it("settles the Worker swipe card before opening Edit or Delete modal state", () => {
+    expect(source).toContain("const completeSwipeAction");
+    expect(source).toContain("setRevealed(false)");
+    expect(source).toContain("setOffsetX(0)");
+    expect(source).toContain("window.setTimeout(() => {");
+    expect(source).toContain("}, 280)");
+    expect(source).toContain("completeSwipeAction(onEdit)");
+    expect(source).toContain("completeSwipeAction(onDelete)");
+    expect(source).toContain('background: "#ffffff"');
+  });
 });

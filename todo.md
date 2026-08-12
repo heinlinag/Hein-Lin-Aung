@@ -1520,3 +1520,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Identify and fix the error shown in the supplied screen recording
 - [x] Audit related routes, dialogs, navigation, and session flows for the same failure pattern
 - [x] Add regression coverage for the fixed error path
+
+## Persistent Worker Edit Modal Flicker
+- [x] Trace and fix the Worker swipe gesture and Edit modal interaction on mobile
+- [x] Add regression coverage for a stable Worker Edit modal after swipe actions

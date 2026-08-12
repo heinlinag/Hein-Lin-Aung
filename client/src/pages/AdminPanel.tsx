@@ -236,6 +236,25 @@ function SwipeableWorkerCard({
   const isDragging = useRef(false);
   const isHorizontal = useRef<boolean | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const actionTimer = useRef<number | null>(null);
+
+  const completeSwipeAction = useCallback((action: (worker: Worker) => void) => {
+    // Let the translated card return to its resting position before mounting a fixed dialog.
+    // On mobile Chromium, opening the portal during a swipe transform causes visible flicker.
+    isDragging.current = false;
+    isHorizontal.current = null;
+    setRevealed(false);
+    setOffsetX(0);
+    if (actionTimer.current !== null) window.clearTimeout(actionTimer.current);
+    actionTimer.current = window.setTimeout(() => {
+      action(w);
+      actionTimer.current = null;
+    }, 280);
+  }, [w]);
+
+  useEffect(() => () => {
+    if (actionTimer.current !== null) window.clearTimeout(actionTimer.current);
+  }, []);
 
   // Close on outside tap
   useEffect(() => {
@@ -299,7 +318,8 @@ function SwipeableWorkerCard({
       {/* Action buttons (revealed behind the card) */}
       <div className="absolute inset-y-0 right-0 flex items-stretch" style={{ width: REVEAL_WIDTH }}>
         <button
-          onClick={() => { onEdit(w); setRevealed(false); setOffsetX(0); }}
+          onClick={(event) => { event.preventDefault(); event.stopPropagation(); completeSwipeAction(onEdit); }}
+          aria-label={`Edit ${w.name}`}
           className="flex-1 flex flex-col items-center justify-center gap-1 text-white font-bold text-xs transition-all active:opacity-80"
           style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}
         >
@@ -307,7 +327,8 @@ function SwipeableWorkerCard({
           <span>Edit</span>
         </button>
         <button
-          onClick={() => { onDelete(w); setRevealed(false); setOffsetX(0); }}
+          onClick={(event) => { event.preventDefault(); event.stopPropagation(); completeSwipeAction(onDelete); }}
+          aria-label={`Delete ${w.name}`}
           className="flex-1 flex flex-col items-center justify-center gap-1 text-white font-bold text-xs transition-all active:opacity-80"
           style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)" }}
         >
@@ -324,9 +345,8 @@ function SwipeableWorkerCard({
         style={{
           transform: `translateX(${offsetX}px)`,
           transition: isDragging.current ? "none" : "transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)",
-          background: "rgba(30,41,59,0.85)",
-          backdropFilter: "blur(12px)",
-          border: "1px solid rgba(255,255,255,0.10)",
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
           borderRadius: "0.75rem",
           position: "relative",
           zIndex: 1,
