@@ -37,4 +37,13 @@ describe("Mobile More navigation", () => {
     expect(appLayoutSource).toContain("cubic-bezier(0.22,1,0.36,1)");
     expect(appLayoutSource).toContain("transitionDelay: moreMotion === \"open\"");
   });
+
+  it("confirms logout, reports browser online state, and supports swipe-down dismissal", () => {
+    expect(appLayoutSource).toContain("setLogoutConfirmOpen(true)");
+    expect(appLayoutSource).toContain("Log out of StockDash?");
+    expect(appLayoutSource).toContain("window.addEventListener(\"online\"");
+    expect(appLayoutSource).toContain("System online");
+    expect(appLayoutSource).toContain("onTouchStart={handleMoreTouchStart}");
+    expect(appLayoutSource).toContain("moreDragOffset > 88");
+  });
 });

@@ -83,8 +83,13 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const [profileOpen, setProfileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [moreMotion, setMoreMotion] = useState<"opening" | "open" | "closing">("opening");
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [moreDragOffset, setMoreDragOffset] = useState(0);
+  const [isDrawerDragging, setIsDrawerDragging] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => typeof navigator === "undefined" ? true : navigator.onLine);
   const profileRef = useRef<HTMLDivElement>(null);
   const moreCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const moreTouchStartY = useRef<number | null>(null);
 
   // Fetch profile picture & display name
   const profileQuery = trpc.profile.get.useQuery(
@@ -114,6 +119,16 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
   useEffect(() => () => {
     if (moreCloseTimer.current) clearTimeout(moreCloseTimer.current);
+  }, []);
+
+  useEffect(() => {
+    const updateOnlineState = () => setIsOnline(navigator.onLine);
+    window.addEventListener("online", updateOnlineState);
+    window.addEventListener("offline", updateOnlineState);
+    return () => {
+      window.removeEventListener("online", updateOnlineState);
+      window.removeEventListener("offline", updateOnlineState);
+    };
   }, []);
 
   const heartbeatMutation = trpc.chat.heartbeat.useMutation({
@@ -179,6 +194,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const isMoreActive = MOBILE_MORE_ITEMS.some(item => location === item.href);
   const openMore = () => {
     if (moreCloseTimer.current) clearTimeout(moreCloseTimer.current);
+    setMoreDragOffset(0);
     setMoreOpen(true);
     setMoreMotion("opening");
     requestAnimationFrame(() => setMoreMotion("open"));
@@ -190,6 +206,22 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       setMoreOpen(false);
       moreCloseTimer.current = null;
     }, 280);
+  };
+  const handleMoreTouchStart = (event: React.TouchEvent<HTMLElement>) => {
+    moreTouchStartY.current = event.touches[0]?.clientY ?? null;
+    setIsDrawerDragging(true);
+  };
+  const handleMoreTouchMove = (event: React.TouchEvent<HTMLElement>) => {
+    if (moreTouchStartY.current === null) return;
+    const distance = (event.touches[0]?.clientY ?? moreTouchStartY.current) - moreTouchStartY.current;
+    if (distance > 0) setMoreDragOffset(Math.min(distance, 160));
+  };
+  const handleMoreTouchEnd = () => {
+    const shouldClose = moreDragOffset > 88;
+    moreTouchStartY.current = null;
+    setIsDrawerDragging(false);
+    setMoreDragOffset(0);
+    if (shouldClose) closeMore();
   };
 
   /* ── Profile Dropdown (light style for readability) ─────────────── */
@@ -565,7 +597,14 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
             onClick={closeMore}
             className={`fixed inset-0 z-30 bg-slate-950/25 backdrop-blur-[1px] transition-opacity duration-300 ease-out lg:hidden ${moreMotion === "open" ? "opacity-100" : "opacity-0"}`}
           />
-          <section className={`fixed inset-x-3 bottom-[72px] z-40 overflow-hidden rounded-3xl border border-white/80 bg-white/96 p-3 shadow-[0_14px_44px_rgba(15,23,42,0.2)] backdrop-blur-xl transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden ${moreMotion === "open" ? "translate-y-0 scale-100 opacity-100" : "translate-y-5 scale-[0.97] opacity-0"}`}>
+          <section
+            onTouchStart={handleMoreTouchStart}
+            onTouchMove={handleMoreTouchMove}
+            onTouchEnd={handleMoreTouchEnd}
+            style={{ transform: `translateY(${moreDragOffset}px) ${moreMotion === "open" ? "scale(1)" : "scale(0.97)"}` }}
+            className={`fixed inset-x-3 bottom-[72px] z-40 overflow-hidden rounded-3xl border border-white/80 bg-white/96 p-3 shadow-[0_14px_44px_rgba(15,23,42,0.2)] backdrop-blur-xl transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden ${isDrawerDragging ? "!transition-none" : ""} ${moreMotion === "open" ? "opacity-100" : "opacity-0"}`}
+          >
+            <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-slate-200" aria-hidden="true" />
             <div className="flex items-center justify-between px-1.5 pb-2.5">
               <div>
                 <p className="text-sm font-black text-slate-800">More</p>
@@ -579,6 +618,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               {MOBILE_MORE_ITEMS.map((item, index) => {
                 const active = location === item.href;
                 const badge = item.href === "/chat" ? unreadMsgCount : 0;
+                const isSystemStatus = item.href === "/status";
                 return (
                   <button key={item.href} onClick={() => { closeMore(); navigate(item.href); }}
                     style={{ transitionDelay: moreMotion === "open" ? `${70 + index * 35}ms` : "0ms" }}
@@ -588,14 +628,16 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                     <span className={`relative flex h-8 w-8 items-center justify-center rounded-xl ${active ? "bg-indigo-100" : "bg-white shadow-sm"}`}>
                       {item.icon}
                       {badge > 0 && <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white shadow-sm">{badge > 99 ? "99+" : badge}</span>}
+                      {isSystemStatus && <span className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-white ${isOnline ? "bg-emerald-500" : "bg-rose-500"}`} aria-label={isOnline ? "System online" : "System offline"} />}
                     </span>
                     <span className="line-clamp-2 text-[10px] font-bold leading-tight">{item.label}</span>
+                    {isSystemStatus && <span className={`text-[8px] font-bold ${isOnline ? "text-emerald-600" : "text-rose-600"}`}>{isOnline ? "Online" : "Offline"}</span>}
                   </button>
                 );
               })}
             </div>
             <button
-              onClick={() => { closeMore(); handleLogout(); }}
+              onClick={() => setLogoutConfirmOpen(true)}
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-2.5 text-xs font-black text-rose-600 transition-all hover:bg-rose-100 active:scale-[0.99]"
             >
               <LogOut size={15} />
@@ -603,6 +645,20 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
             </button>
           </section>
         </>
+      )}
+
+      {worker && logoutConfirmOpen && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/40 p-3 backdrop-blur-sm lg:hidden" role="dialog" aria-modal="true" aria-label="Confirm logout">
+          <div className="w-full max-w-sm rounded-3xl border border-white/80 bg-white p-5 shadow-2xl home-card-in">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-600"><LogOut size={20} /></div>
+            <h2 className="mt-3 text-base font-black text-slate-900">Log out of StockDash?</h2>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500">Your active device session will be safely closed. You can sign in again anytime.</p>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button onClick={() => setLogoutConfirmOpen(false)} className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-600">Cancel</button>
+              <button onClick={() => { setLogoutConfirmOpen(false); closeMore(); handleLogout(); }} className="rounded-xl bg-rose-600 px-3 py-2.5 text-xs font-black text-white shadow-[0_6px_14px_rgba(225,29,72,0.25)]">Log out</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Mobile Bottom Navigation Bar ──────────────────────────── */}

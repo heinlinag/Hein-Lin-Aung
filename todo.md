@@ -1425,3 +1425,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Mobile More Drawer Utilities
 - [x] Add System Status to the mobile More drawer
 - [x] Add a secure Logout shortcut at the bottom of the mobile More drawer
+
+## Mobile More Drawer Usability
+- [x] Add a confirmation dialog before logging out from the More drawer
+- [x] Add a live online/offline indicator to System Status in the More drawer
+- [x] Add swipe-down gesture support to dismiss the More drawer
