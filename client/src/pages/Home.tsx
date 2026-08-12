@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import {
   ClipboardList, Camera, Package, CheckCircle2, Bell, X, ScanLine, ArrowRight,
-  Activity, MessageCircle, FlaskConical, Info, Zap, TrendingUp, ArrowDownLeft, ArrowUpRight,
+  Activity, MessageCircle, FlaskConical, Info, Zap, TrendingUp, ArrowDownLeft, ArrowUpRight, RefreshCw,
   Users, BarChart3, Clock, Sparkles, User, BookOpen, LifeBuoy, CircleHelp,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -310,6 +310,7 @@ export default function Home() {
   const stockOutQuery = trpc.orders.list.useQuery({ status: "out_of_stock" }, { refetchInterval: 60000 });
   const stockActivityOrdersQuery = trpc.orders.list.useQuery({}, { refetchInterval: 30000 });
   const stockActivityUsageQuery = trpc.orders.getUsage.useQuery(undefined, { refetchInterval: 30000 });
+  const stockAdjustmentQuery = trpc.orders.getQrScanHistory.useQuery(undefined, { refetchInterval: 30000 });
   const stockCurrentCount = stockCurrentQuery.data?.length ?? 0;
   const stockOutCount = stockOutQuery.data?.length ?? 0;
 
@@ -319,6 +320,7 @@ export default function Home() {
       type: "input" as const,
       orderID: order.orderID,
       qty: order.qty,
+      quantityDelta: order.qty,
       details: `${order.fluteType} · ${order.sizeW}×${order.sizeL} mm`,
       createdAt: order.createdAt,
     })),
@@ -327,9 +329,29 @@ export default function Home() {
       type: "output" as const,
       orderID: entry.orderID,
       qty: entry.usedQty,
+      quantityDelta: -entry.usedQty,
       details: entry.purpose === "job" ? `Job ${entry.jobNo ?? "N/A"}` : "Old Stock",
       createdAt: entry.createdAt,
     })),
+    ...(stockAdjustmentQuery.data ?? [])
+      .filter(log => log.action === "balance_update" && log.oldQty !== null && log.newQty !== null)
+      .map(log => {
+        const quantityDelta = (log.newQty ?? 0) - (log.oldQty ?? 0);
+        const source = log.adjustmentMethod === "scan"
+          ? "QR / Barcode Scan"
+          : log.adjustmentMethod === "manual"
+            ? "Manual Input"
+            : "Balance Adjustment";
+        return {
+          id: `adjustment-${log.id}`,
+          type: "adjustment" as const,
+          orderID: log.orderId,
+          qty: Math.abs(quantityDelta),
+          quantityDelta,
+          details: `${source} · ${log.scannedByName}`,
+          createdAt: log.createdAt,
+        };
+      }),
   ]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 10);
@@ -723,7 +745,7 @@ export default function Home() {
             </button>
           </div>
 
-          {stockActivityOrdersQuery.isLoading || stockActivityUsageQuery.isLoading ? (
+          {stockActivityOrdersQuery.isLoading || stockActivityUsageQuery.isLoading || stockAdjustmentQuery.isLoading ? (
             <div className="space-y-3 px-4 py-4">
               {[0, 1, 2].map(index => <div key={index} className="h-10 animate-pulse rounded-xl bg-slate-100" />)}
             </div>
@@ -731,7 +753,11 @@ export default function Home() {
             <div className="divide-y divide-slate-100">
               {recentStockActivity.map(activity => {
                 const isInput = activity.type === "input";
-                const accent = isInput ? "#0f9f8e" : "#f43f5e";
+                const isAdjustment = activity.type === "adjustment";
+                const isIncrease = activity.quantityDelta > 0;
+                const accent = isInput || (isAdjustment && isIncrease) ? "#0f9f8e" : isAdjustment && activity.quantityDelta === 0 ? "#6366f1" : "#f43f5e";
+                const activityLabel = isInput ? "Input" : isAdjustment ? "Adjustment" : "Output";
+                const quantityPrefix = activity.quantityDelta > 0 ? "+" : activity.quantityDelta < 0 ? "−" : "";
                 return (
                   <button
                     type="button"
@@ -743,7 +769,7 @@ export default function Home() {
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
                       style={{ background: isInput ? "rgba(16,185,129,0.12)" : "rgba(244,63,94,0.12)", color: accent }}
                     >
-                      {isInput ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
+                      {isInput ? <ArrowDownLeft size={16} /> : isAdjustment ? <RefreshCw size={15} /> : <ArrowUpRight size={16} />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -752,13 +778,13 @@ export default function Home() {
                           className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide"
                           style={{ background: isInput ? "rgba(16,185,129,0.10)" : "rgba(244,63,94,0.10)", color: accent }}
                         >
-                          {isInput ? "Input" : "Output"}
+                          {activityLabel}
                         </span>
                       </div>
                       <p className="mt-0.5 truncate text-[10px] font-medium text-slate-400">{activity.details}</p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-xs font-black" style={{ color: accent }}>{isInput ? "+" : "−"}{activity.qty} pcs</p>
+                      <p className="text-xs font-black" style={{ color: accent }}>{quantityPrefix}{activity.qty} pcs</p>
                       <p className="mt-0.5 text-[9px] font-medium text-slate-400">{formatActivityTime(activity.createdAt)}</p>
                     </div>
                   </button>

@@ -167,6 +167,7 @@ export default function QRScanner() {
       oldQty: currentOrder.qty,
       employeeId: employeeId.trim().toUpperCase(),
       note: updateNote.trim() || undefined,
+      adjustmentMethod: manualInput ? "manual" : "scan",
     }, { onSettled: () => setUpdateLoading(false) });
   };
 

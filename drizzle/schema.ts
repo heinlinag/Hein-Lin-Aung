@@ -164,6 +164,7 @@ export const qrScanLog = mysqlTable("qrScanLog", {
   scannedBy: varchar("scannedBy", { length: 64 }).notNull(),     // workerID
   scannedByName: varchar("scannedByName", { length: 128 }).notNull(), // worker name
   action: mysqlEnum("action", ["scan", "balance_update"]).default("scan").notNull(),
+  adjustmentMethod: mysqlEnum("adjustmentMethod", ["scan", "manual"]), // balance-update source only
   oldQty: int("oldQty"),     // populated for balance_update
   newQty: int("newQty"),     // populated for balance_update
   createdAt: timestamp("createdAt").defaultNow().notNull(),

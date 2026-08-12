@@ -479,6 +479,7 @@ export const appRouter = router({
         oldQty: z.number().int().min(0),
         employeeId: z.string().min(1),
         note: z.string().optional(),
+        adjustmentMethod: z.enum(["scan", "manual"]).optional(),
       }))
       .mutation(async ({ input }) => {
         const worker = await getWorkerByWorkerID(input.employeeId.trim().toUpperCase());
@@ -494,6 +495,7 @@ export const appRouter = router({
           scannedBy: worker.workerID,
           scannedByName: worker.name,
           action: "balance_update",
+          adjustmentMethod: input.adjustmentMethod ?? null,
           oldQty: input.oldQty,
           newQty: input.newQty,
         });
