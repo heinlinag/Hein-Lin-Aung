@@ -42,7 +42,6 @@ const RESOURCE_NAV_ITEMS: NavItem[] = [
 ];
 
 const MOBILE_MORE_ITEMS: NavItem[] = [
-  { href: "/notifications", label: "Alerts",        icon: <Bell size={19} /> },
   { href: "/user-profile", label: "My Profile",    icon: <User size={19} /> },
   { href: "/docs",         label: "Documentation", icon: <BookOpen size={19} /> },
   { href: "/help",         label: "Help Center",   icon: <LifeBuoy size={19} /> },
@@ -78,6 +77,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     try { sessionStorage.setItem("notif-banner-dismissed", "1"); } catch { /* ignore */ }
   };
   const deactivateDevice = trpc.workers.deactivateDevice.useMutation();
+  const utils = trpc.useUtils();
   const userLevel = worker?.userLevel ?? "2";
   const lv = levelLabel(userLevel);
 
@@ -86,9 +86,15 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [moreDragOffset, setMoreDragOffset] = useState(0);
   const [isDrawerDragging, setIsDrawerDragging] = useState(false);
+  const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(false);
+  const [notificationsPanelMotion, setNotificationsPanelMotion] = useState<"opening" | "open" | "closing">("opening");
+  const [notificationsPanelDragOffset, setNotificationsPanelDragOffset] = useState(0);
+  const [isNotificationsPanelDragging, setIsNotificationsPanelDragging] = useState(false);
   const [isOnline, setIsOnline] = useState(() => typeof navigator === "undefined" ? true : navigator.onLine);
   const moreCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notificationsPanelCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moreTouchStartY = useRef<number | null>(null);
+  const notificationsPanelTouchStartX = useRef<number | null>(null);
 
   // Fetch profile picture & display name
   const profileQuery = trpc.profile.get.useQuery(
@@ -100,6 +106,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
   useEffect(() => () => {
     if (moreCloseTimer.current) clearTimeout(moreCloseTimer.current);
+    if (notificationsPanelCloseTimer.current) clearTimeout(notificationsPanelCloseTimer.current);
   }, []);
 
   useEffect(() => {
@@ -161,6 +168,11 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     { refetchInterval: 10000, enabled: !!worker?.workerID }
   );
   const unreadNotifCount = unreadNotifQuery.data?.count ?? 0;
+  const notificationsPanelQuery = trpc.notifications.list.useQuery(undefined, {
+    enabled: notificationsPanelOpen && !!worker?.workerID,
+    refetchInterval: notificationsPanelOpen ? 5000 : false,
+  });
+  const notificationsMarkRead = trpc.notifications.markRead.useMutation();
 
   const handleLogout = () => {
     if (worker?.workerID) {
@@ -174,6 +186,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const goTo = (href: string) => navigate(href);
   const isMoreActive = MOBILE_MORE_ITEMS.some(item => location === item.href);
   const openMore = () => {
+    closeNotificationsPanel();
     if (moreCloseTimer.current) clearTimeout(moreCloseTimer.current);
     setMoreDragOffset(0);
     setMoreOpen(true);
@@ -203,6 +216,56 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
     setIsDrawerDragging(false);
     setMoreDragOffset(0);
     if (shouldClose) closeMore();
+  };
+  const openNotificationsPanel = () => {
+    closeMore();
+    if (notificationsPanelCloseTimer.current) clearTimeout(notificationsPanelCloseTimer.current);
+    setNotificationsPanelDragOffset(0);
+    setNotificationsPanelOpen(true);
+    setNotificationsPanelMotion("opening");
+    requestAnimationFrame(() => setNotificationsPanelMotion("open"));
+  };
+  const closeNotificationsPanel = () => {
+    if (!notificationsPanelOpen || notificationsPanelMotion === "closing") return;
+    setNotificationsPanelMotion("closing");
+    notificationsPanelCloseTimer.current = setTimeout(() => {
+      setNotificationsPanelOpen(false);
+      notificationsPanelCloseTimer.current = null;
+    }, 260);
+  };
+  const handleNotificationsPanelTouchStart = (event: React.TouchEvent<HTMLElement>) => {
+    notificationsPanelTouchStartX.current = event.touches[0]?.clientX ?? null;
+    setIsNotificationsPanelDragging(true);
+  };
+  const handleNotificationsPanelTouchMove = (event: React.TouchEvent<HTMLElement>) => {
+    if (notificationsPanelTouchStartX.current === null) return;
+    const distance = (event.touches[0]?.clientX ?? notificationsPanelTouchStartX.current) - notificationsPanelTouchStartX.current;
+    if (distance > 0) setNotificationsPanelDragOffset(Math.min(distance, 260));
+  };
+  const handleNotificationsPanelTouchEnd = () => {
+    const shouldClose = notificationsPanelDragOffset > 104;
+    notificationsPanelTouchStartX.current = null;
+    setIsNotificationsPanelDragging(false);
+    setNotificationsPanelDragOffset(0);
+    if (shouldClose) closeNotificationsPanel();
+  };
+  const panelNotifications = notificationsPanelQuery.data ?? [];
+  const isPanelNotificationUnread = (notification: { readBy: string }) => !notification.readBy.split(",").filter(Boolean).includes(worker?.workerID ?? "");
+  const handlePanelNotificationClick = (notification: { id: number; readBy: string; deepLink?: string | null }) => {
+    const workerID = worker?.workerID;
+    if (!workerID) return;
+    if (isPanelNotificationUnread(notification)) {
+      notificationsMarkRead.mutate({ workerID, ids: [notification.id] }, {
+        onSuccess: () => {
+          utils.notifications.list.invalidate();
+          utils.notifications.unreadCount.invalidate();
+        },
+      });
+    }
+    if (notification.deepLink) {
+      closeNotificationsPanel();
+      navigate(notification.deepLink);
+    }
   };
 
   return (
@@ -491,6 +554,72 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
           {children}
         </main>
       </div>
+
+      {/* ── Mobile Swipe-in Notifications Panel ───────────────────── */}
+      {worker && notificationsPanelOpen && (
+        <>
+          <button
+            aria-label="Close notifications panel"
+            onClick={closeNotificationsPanel}
+            className={`fixed inset-0 z-[70] bg-slate-950/45 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden ${notificationsPanelMotion === "open" ? "opacity-100" : "opacity-0"}`}
+          />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="Notifications"
+            onTouchStart={handleNotificationsPanelTouchStart}
+            onTouchMove={handleNotificationsPanelTouchMove}
+            onTouchEnd={handleNotificationsPanelTouchEnd}
+            style={{ transform: `translateX(${notificationsPanelMotion === "open" ? notificationsPanelDragOffset : 110}%)` }}
+            className={`fixed inset-y-0 right-0 z-[80] flex w-[min(100%,24rem)] flex-col overflow-hidden border-l border-white/10 bg-slate-950 shadow-[-18px_0_44px_rgba(2,6,23,0.45)] transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden ${isNotificationsPanelDragging ? "!transition-none" : ""} ${notificationsPanelMotion === "open" ? "opacity-100" : "opacity-0"}`}
+          >
+            <div className="relative overflow-hidden border-b border-white/10 bg-gradient-to-br from-indigo-950 via-slate-950 to-cyan-950 px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
+              <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+              <div className="relative mx-auto mb-3 h-1 w-10 rounded-full bg-white/25" aria-hidden="true" />
+              <div className="relative flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-indigo-300/20 bg-indigo-400/15 text-indigo-100 shadow-inner"><Bell size={19} />
+                    {unreadNotifCount > 0 && <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-black text-white shadow-sm">{unreadNotifCount > 99 ? "99+" : unreadNotifCount}</span>}
+                  </div>
+                  <div className="min-w-0"><p className="text-sm font-black text-white">Alerts</p><p className="truncate text-[10px] font-medium text-indigo-200/70">{unreadNotifCount > 0 ? `${unreadNotifCount} unread notification${unreadNotifCount === 1 ? "" : "s"}` : "You are all caught up"}</p></div>
+                </div>
+                <button onClick={closeNotificationsPanel} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-slate-300 transition-colors hover:bg-white/15" aria-label="Close notifications"><X size={17} /></button>
+              </div>
+              {panelNotifications.some(isPanelNotificationUnread) && (
+                <button onClick={() => notificationsMarkRead.mutate({ workerID: worker.workerID, ids: panelNotifications.filter(isPanelNotificationUnread).map(notification => notification.id) }, { onSuccess: () => { utils.notifications.list.invalidate(); utils.notifications.unreadCount.invalidate(); } })}
+                  disabled={notificationsMarkRead.isPending} className="relative mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-indigo-300/20 bg-white/10 px-3 py-2 text-[11px] font-bold text-indigo-100 transition-colors hover:bg-white/15 disabled:opacity-50">
+                  <CheckCircle2 size={13} /> {notificationsMarkRead.isPending ? "Marking read..." : "Mark all as read"}
+                </button>
+              )}
+            </div>
+            <div className="flex-1 overflow-y-auto px-3 py-3 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+              {notificationsPanelQuery.isLoading ? (
+                <div className="space-y-2">{[1, 2, 3, 4].map(item => <div key={item} className="h-20 animate-pulse rounded-2xl border border-white/5 bg-white/[0.06]" />)}</div>
+              ) : panelNotifications.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center px-8 text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-indigo-300"><Bell size={24} /></div><p className="text-sm font-bold text-slate-200">No notifications</p><p className="mt-1 text-xs leading-relaxed text-slate-500">New stock and request updates will appear here.</p></div>
+              ) : (
+                <div className="space-y-2">
+                  {panelNotifications.slice(0, 20).map(notification => {
+                    const unread = isPanelNotificationUnread(notification);
+                    return <button key={notification.id} onClick={() => handlePanelNotificationClick(notification)} className={`w-full rounded-2xl border p-3 text-left transition-all ${unread ? "border-indigo-300/20 bg-indigo-400/[0.10] shadow-[0_6px_16px_rgba(15,23,42,0.18)]" : "border-white/[0.07] bg-white/[0.045] opacity-80"}`}>
+                      <div className="flex items-start gap-2.5"><div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${unread ? "bg-indigo-400/20 text-indigo-200" : "bg-white/10 text-slate-400"}`}><Bell size={15} /></div><div className="min-w-0 flex-1"><div className="flex items-start gap-2"><p className="line-clamp-1 flex-1 text-xs font-black text-slate-100">{notification.title}</p>{unread && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-indigo-400" />}</div><p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-400">{notification.message}</p><p className="mt-1.5 text-[10px] font-medium text-slate-500">{new Date(notification.createdAt).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p></div></div>
+                    </button>;
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="border-t border-white/10 bg-slate-950/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"><button onClick={() => { closeNotificationsPanel(); navigate("/notifications"); }} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500/15 px-3 py-2.5 text-xs font-black text-indigo-200 transition-colors hover:bg-indigo-500/25">View all notifications <ChevronRight size={14} /></button></div>
+          </section>
+        </>
+      )}
+
+      {worker && !notificationsPanelOpen && (
+        <button onClick={openNotificationsPanel} aria-label={`Open alerts${unreadNotifCount ? `, ${unreadNotifCount} unread` : ""}`}
+          className="fixed right-0 top-[46%] z-40 flex h-12 w-10 items-center justify-center rounded-l-2xl border border-r-0 border-indigo-300/25 bg-slate-950/90 text-indigo-100 shadow-[-7px_8px_20px_rgba(15,23,42,0.25)] backdrop-blur-xl transition-transform duration-200 hover:w-11 active:scale-95 lg:hidden">
+          <Bell size={19} />
+          {unreadNotifCount > 0 && <span className="absolute -left-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-black text-white shadow-sm">{unreadNotifCount > 99 ? "99+" : unreadNotifCount}</span>}
+        </button>
+      )}
 
       {/* ── Mobile More Drawer ───────────────────────────────────── */}
       {worker && moreOpen && (

@@ -12,15 +12,18 @@ const homeSource = readFileSync(
 );
 
 describe("Mobile More navigation", () => {
-  it("keeps Alerts in More while exposing Messages directly in the mobile bottom navigation", () => {
+  it("exposes Messages directly while opening Alerts in a dedicated swipe-in panel", () => {
     expect(appLayoutSource).toContain('href: "#more"');
     expect(appLayoutSource).toContain('label: "More"');
     expect(appLayoutSource).toContain("MOBILE_MORE_ITEMS");
-    for (const href of ["/notifications", "/user-profile", "/docs", "/help", "/faq", "/status"]) {
+    for (const href of ["/user-profile", "/docs", "/help", "/faq", "/status"]) {
       expect(appLayoutSource).toContain(`href: "${href}"`);
     }
+    expect(appLayoutSource).not.toMatch(/MOBILE_MORE_ITEMS[\s\S]*?href: "\/notifications"/);
     expect(appLayoutSource).toContain('href: "/chat",                   icon: <MessageCircle size={22} />, label: "Messages", order: "order-4", badge: unreadMsgCount');
-    expect(appLayoutSource).toContain('const badge = item.href === "/notifications" ? unreadNotifCount : 0;');
+    expect(appLayoutSource).toContain("openNotificationsPanel");
+    expect(appLayoutSource).toContain("notificationsPanelOpen");
+    expect(appLayoutSource).toContain('aria-label="Notifications"');
     expect(appLayoutSource).toContain("System Status");
     expect(appLayoutSource).toContain("closeMore(); handleLogout();");
   });
