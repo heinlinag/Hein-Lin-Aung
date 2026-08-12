@@ -1268,8 +1268,8 @@ export const appRouter = router({
       .input(z.object({ workerID: z.string() }))
       .query(async ({ input }) => {
         const { getDb } = await import("./db");
-        const { conversations, chatMessages, workers } = await import("../drizzle/schema");
-        const { eq, or, desc, and, ne } = await import("drizzle-orm");
+        const { conversations, chatMessages, chatTypingStates, workers } = await import("../drizzle/schema");
+        const { eq, or, desc, and, ne, gt } = await import("drizzle-orm");
         const db = await getDb();
         if (!db) return [];
         const convs = await db.select().from(conversations)
@@ -1297,7 +1297,14 @@ export const appRouter = router({
           const unreadCount = await db.select().from(chatMessages)
             .where(and(eq(chatMessages.conversationID, conv.id), ne(chatMessages.senderID, input.workerID)))
             .then(rows => rows.filter(r => !r.readAt).length);
-          return { ...conv, otherWorker: other || null, lastMessage: lastMsg || null, unreadCount };
+          const typingWorkerIDs = await db.select({ workerID: chatTypingStates.workerID }).from(chatTypingStates)
+            .where(and(
+              eq(chatTypingStates.channelType, "dm"),
+              eq(chatTypingStates.channelID, conv.id),
+              ne(chatTypingStates.workerID, input.workerID),
+              gt(chatTypingStates.expiresAt, new Date()),
+            )).then(rows => rows.map(row => row.workerID));
+          return { ...conv, otherWorker: other || null, lastMessage: lastMsg || null, unreadCount, typingWorkerIDs };
         }));
         return enriched;
       }),
@@ -1794,6 +1801,72 @@ export const appRouter = router({
         return db.select().from(groupMessages)
           .where(and(eq(groupMessages.groupID, input.groupID), like(groupMessages.text, `%${input.query}%`), isNull(groupMessages.deletedAt)))
           .limit(50);
+      }),
+  }),
+
+  // ─── Expiring Chat Typing State ──────────────────────────────────────────────
+  chatTyping: router({
+    update: publicProcedure
+      .input(z.object({ channelType: z.enum(["dm", "group"]), channelID: z.number(), workerID: z.string(), isTyping: z.boolean() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { chatTypingStates, conversations, groupMembers } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        if (input.channelType === "dm") {
+          const [conversation] = await db.select().from(conversations).where(eq(conversations.id, input.channelID)).limit(1);
+          if (!conversation || (conversation.worker1ID !== input.workerID && conversation.worker2ID !== input.workerID)) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "You do not have access to this conversation" });
+          }
+        } else {
+          const [membership] = await db.select().from(groupMembers)
+            .where(and(eq(groupMembers.groupID, input.channelID), eq(groupMembers.workerID, input.workerID))).limit(1);
+          if (!membership) throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this group" });
+        }
+        if (!input.isTyping) {
+          await db.delete(chatTypingStates).where(and(
+            eq(chatTypingStates.channelType, input.channelType),
+            eq(chatTypingStates.channelID, input.channelID),
+            eq(chatTypingStates.workerID, input.workerID),
+          ));
+          return { isTyping: false };
+        }
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 6500);
+        await db.insert(chatTypingStates).values({
+          channelType: input.channelType,
+          channelID: input.channelID,
+          workerID: input.workerID,
+          expiresAt,
+          updatedAt: now,
+        }).onDuplicateKeyUpdate({ set: { expiresAt, updatedAt: now } });
+        return { isTyping: true, expiresAt };
+      }),
+    get: publicProcedure
+      .input(z.object({ channelType: z.enum(["dm", "group"]), channelID: z.number(), viewerID: z.string() }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { chatTypingStates, conversations, groupMembers } = await import("../drizzle/schema");
+        const { eq, and, gt, ne } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) return [];
+        if (input.channelType === "dm") {
+          const [conversation] = await db.select().from(conversations).where(eq(conversations.id, input.channelID)).limit(1);
+          if (!conversation || (conversation.worker1ID !== input.viewerID && conversation.worker2ID !== input.viewerID)) return [];
+        } else {
+          const [membership] = await db.select().from(groupMembers)
+            .where(and(eq(groupMembers.groupID, input.channelID), eq(groupMembers.workerID, input.viewerID))).limit(1);
+          if (!membership) return [];
+        }
+        return db.select({ workerID: chatTypingStates.workerID, expiresAt: chatTypingStates.expiresAt })
+          .from(chatTypingStates)
+          .where(and(
+            eq(chatTypingStates.channelType, input.channelType),
+            eq(chatTypingStates.channelID, input.channelID),
+            ne(chatTypingStates.workerID, input.viewerID),
+            gt(chatTypingStates.expiresAt, new Date()),
+          ));
       }),
   }),
 

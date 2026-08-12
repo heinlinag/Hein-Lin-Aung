@@ -63,6 +63,7 @@ describe("Messages interface redesign", () => {
     expect(chatSource).toContain("@keyframes chatOnlineRing");
     expect(chatSource).toContain(".chat-online-ring");
     expect(chatSource).toContain("prefers-reduced-motion: reduce");
-    expect(chatSource).toContain('{online && !isGroup && <span className="chat-online-ring"');
+    expect(chatSource).toContain('typing && !isGroup ? <span className="chat-typing-ring"');
+    expect(chatSource).toContain('online && !isGroup && <span className="chat-online-ring"');
   });
 });

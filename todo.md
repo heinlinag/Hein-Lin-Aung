@@ -1483,3 +1483,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Messages Online Status Ring
 - [x] Add an animated online-status ring around active user avatars in Messages
+
+## Messages Typing Indicator
+- [x] Show an expiring real-time typing animation on user avatars in direct and group Messages

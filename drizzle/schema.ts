@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean, index, uniqueIndex } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -369,6 +369,20 @@ export const groupMessages = mysqlTable("groupMessages", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type GroupMessage = typeof groupMessages.$inferSelect;
+
+// Short-lived typing state for direct and group conversations. Expiry prevents stale indicators.
+export const chatTypingStates = mysqlTable("chatTypingStates", {
+  id: int("id").autoincrement().primaryKey(),
+  channelType: mysqlEnum("channelType", ["dm", "group"]).notNull(),
+  channelID: int("channelID").notNull(),
+  workerID: varchar("workerID", { length: 64 }).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  channelWorkerUnique: uniqueIndex("chatTypingStates_channel_worker_unique").on(table.channelType, table.channelID, table.workerID),
+  expiryIndex: index("chatTypingStates_expiry_idx").on(table.expiresAt),
+}));
+export type ChatTypingState = typeof chatTypingStates.$inferSelect;
 
 // Emoji reactions on DM and Group messages
 export const messageReactions = mysqlTable("messageReactions", {

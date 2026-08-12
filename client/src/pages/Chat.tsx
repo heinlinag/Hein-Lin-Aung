@@ -29,10 +29,11 @@ interface ChatAttachment { id: number; messageType: "dm" | "group"; messageID: n
 interface UploadedAttachment { storageKey: string; fileName: string; mimeType: string; sizeBytes: number; }
 interface PendingAttachment { file: File; previewUrl: string | null; }
 interface ConvMessage { id: number; conversationID: number; senderID: string; text: string; replyToID: number | null; deletedAt: Date | null; createdAt: Date; readAt: Date | null; attachment?: ChatAttachment | null; }
-interface Conversation { id: number; worker1ID: string; worker2ID: string; lastMessageAt: Date; createdAt: Date; otherWorker: Worker | null; lastMessage: ConvMessage | null; unreadCount: number; }
+interface Conversation { id: number; worker1ID: string; worker2ID: string; lastMessageAt: Date; createdAt: Date; otherWorker: Worker | null; lastMessage: ConvMessage | null; unreadCount: number; typingWorkerIDs?: string[]; }
 interface GroupMessage { id: number; groupID: number; senderID: string; senderName: string; text: string; replyToID: number | null; deletedAt: Date | null; createdAt: Date; attachment?: ChatAttachment | null; }
 interface Group { id: number; name: string; createdBy: string; lastMessageAt: Date; createdAt: Date; memberCount: number; memberIDs: string[]; lastMessage: GroupMessage | null; }
 interface GroupMember { id: number; groupID: number; workerID: string; joinedAt: Date; worker: Worker | null; }
+interface TypingState { workerID: string; expiresAt: Date; }
 
 // ─── Page-local animations ────────────────────────────────────────────────────
 const chatStyles = `
@@ -42,6 +43,7 @@ const chatStyles = `
 @keyframes chatFadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 @keyframes chatBubble { from{opacity:0;transform:scale(.95) translateY(4px)} to{opacity:1;transform:scale(1) translateY(0)} }
 @keyframes chatOnlineRing { 0%,100%{opacity:.55;transform:scale(.98);box-shadow:0 0 0 0 rgba(52,211,153,.32)} 50%{opacity:1;transform:scale(1.07);box-shadow:0 0 0 5px rgba(52,211,153,0)} }
+@keyframes chatTypingRing { 0%,100%{opacity:.42;transform:scale(.94);box-shadow:0 0 0 0 rgba(129,140,248,.48)} 50%{opacity:1;transform:scale(1.12);box-shadow:0 0 0 7px rgba(129,140,248,0)} }
 .chat-float  { animation: chatFloat  6s ease-in-out infinite }
 .chat-scan   { animation: chatScan   4s linear infinite }
 .chat-pulse  { animation: chatPulse  2s ease-in-out infinite }
@@ -61,7 +63,8 @@ const chatStyles = `
 .chat-send-button { box-shadow:0 10px 24px rgba(79,70,229,.35); }
 .chat-group-send-button { box-shadow:0 10px 24px rgba(13,148,136,.32); }
 .chat-online-ring { position:absolute; inset:-3px; z-index:0; border:2px solid rgba(52,211,153,.92); border-radius:9999px; pointer-events:none; animation:chatOnlineRing 2.1s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .chat-online-ring { animation:none; box-shadow:0 0 0 1px rgba(52,211,153,.3); } }
+.chat-typing-ring { position:absolute; inset:-4px; z-index:0; border:2px solid rgba(129,140,248,.95); border-radius:9999px; pointer-events:none; animation:chatTypingRing 1.1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .chat-online-ring,.chat-typing-ring { animation:none; box-shadow:0 0 0 1px rgba(52,211,153,.3); } }
 @media (max-width: 767px) { .chat-shell { padding:8px; } .chat-mobile-panel { border-radius:22px; border:1px solid rgba(255,255,255,.10); box-shadow:0 18px 48px rgba(2,6,23,.32); } }
 `;
 
@@ -96,6 +99,39 @@ function useHeartbeat(workerID: string) {
     const interval = setInterval(() => heartbeat.mutate({ workerID }), 30000);
     return () => clearInterval(interval);
   }, [workerID]);
+}
+
+// Keeps a short-lived presence record while the worker is actively composing.
+function useTypingPresence({ channelType, channelID, workerID }: { channelType: "dm" | "group"; channelID: number; workerID: string }) {
+  const { mutate: mutateTyping } = trpc.chatTyping.update.useMutation();
+  const { data: typingWorkers = [] } = trpc.chatTyping.get.useQuery(
+    { channelType, channelID, viewerID: workerID },
+    { enabled: !!workerID && !!channelID, refetchInterval: 1500 }
+  );
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSignalRef = useRef(0);
+  const isTypingRef = useRef(false);
+  const stop = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
+    if (!isTypingRef.current || !workerID || !channelID) return;
+    isTypingRef.current = false;
+    mutateTyping({ channelType, channelID, workerID, isTyping: false });
+  }, [channelID, channelType, mutateTyping, workerID]);
+  const signal = useCallback((hasText: boolean) => {
+    if (!hasText) { stop(); return; }
+    if (!workerID || !channelID) return;
+    const now = Date.now();
+    if (!isTypingRef.current || now - lastSignalRef.current > 2400) {
+      isTypingRef.current = true;
+      lastSignalRef.current = now;
+      mutateTyping({ channelType, channelID, workerID, isTyping: true });
+    }
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(stop, 5200);
+  }, [channelID, channelType, mutateTyping, stop, workerID]);
+  useEffect(() => () => stop(), [stop]);
+  return { typingWorkers: typingWorkers as TypingState[], signal, stop };
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -139,7 +175,7 @@ function levelColor(level: string) {
 }
 
 // ─── Avatar with Online Indicator ────────────────────────────────────────────
-function Avatar({ name, size = "md", isGroup = false, online, profilePicture }: { name: string; size?: "sm" | "md" | "lg"; isGroup?: boolean; online?: boolean; profilePicture?: string | null }) {
+function Avatar({ name, size = "md", isGroup = false, online, profilePicture, typing = false }: { name: string; size?: "sm" | "md" | "lg"; isGroup?: boolean; online?: boolean; profilePicture?: string | null; typing?: boolean }) {
   const sz = size === "sm" ? "w-8 h-8 text-xs" : size === "lg" ? "w-12 h-12 text-base" : "w-10 h-10 text-sm";
   const gradients = [
     "from-blue-500 to-indigo-600",
@@ -153,14 +189,14 @@ function Avatar({ name, size = "md", isGroup = false, online, profilePicture }: 
   const grad = isGroup ? "from-teal-500 to-emerald-600" : gradients[name.charCodeAt(0) % gradients.length];
   return (
     <div className="relative flex-shrink-0">
-      {online && !isGroup && <span className="chat-online-ring" aria-hidden="true" />}
+      {typing && !isGroup ? <span className="chat-typing-ring" aria-label={`${name} is typing`} /> : online && !isGroup && <span className="chat-online-ring" aria-hidden="true" />}
       <div className={`relative z-10 ${sz} overflow-hidden bg-gradient-to-br ${grad} rounded-full flex items-center justify-center text-white font-semibold shadow-lg ring-1 ring-white/20`}>
         {profilePicture && !isGroup
           ? <img src={profilePicture} alt={`${name} profile`} className="h-full w-full object-cover" />
           : isGroup ? <Users size={size === "sm" ? 14 : size === "lg" ? 20 : 16} /> : getInitials(name)}
       </div>
       {online !== undefined && !isGroup && (
-        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-950 shadow-sm ${online ? "bg-emerald-400" : "bg-slate-500"}`} />
+        <span className={`absolute bottom-0 right-0 z-20 w-3 h-3 rounded-full border-2 border-slate-950 shadow-sm ${typing ? "bg-indigo-400 animate-pulse" : online ? "bg-emerald-400" : "bg-slate-500"}`} />
       )}
     </div>
   );
@@ -633,6 +669,8 @@ function DMThread({ conv, workerID, workerName, deviceToken, onBack }: { conv: C
     { workerIDs: otherWorkerID ? [otherWorkerID] : [] }, { enabled: !!otherWorkerID, refetchInterval: 15000 }
   );
   const otherOnline = (onlineStatus as Record<string, { online: boolean; lastSeenAt: Date | null }>)[otherWorkerID];
+  const typing = useTypingPresence({ channelType: "dm", channelID: conv.id, workerID });
+  const otherIsTyping = typing.typingWorkers.some(state => state.workerID === otherWorkerID);
   const { data: searchResults = [] } = trpc.chat.searchMessages.useQuery(
     { conversationID: conv.id, query: searchQuery }, { enabled: searchQuery.length >= 2 }
   );
@@ -678,6 +716,7 @@ function DMThread({ conv, workerID, workerName, deviceToken, onBack }: { conv: C
     setReplyTo(null);
     setText("");
     attachment.clear();
+    typing.stop();
   }, [conv.id]);
 
   const handleScroll = () => {
@@ -691,7 +730,7 @@ function DMThread({ conv, workerID, workerName, deviceToken, onBack }: { conv: C
     try {
       const uploadedAttachment = await attachment.upload();
       sendMsg.mutate({ conversationID: conv.id, senderID: workerID, senderName: workerName, text: trimmed, replyToID: replyTo?.id, attachment: uploadedAttachment });
-      setText(""); setReplyTo(null); attachment.clear(); inputRef.current?.focus();
+      typing.stop(); setText(""); setReplyTo(null); attachment.clear(); inputRef.current?.focus();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to upload this attachment.");
     }
@@ -722,14 +761,14 @@ function DMThread({ conv, workerID, workerName, deviceToken, onBack }: { conv: C
         )}
         {isSystemMaintenance
           ? <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm"><BadgeCheck size={18} className="text-white" /></div>
-          : <Avatar name={otherName} online={otherOnline?.online} profilePicture={conv.otherWorker?.profilePicture} />}
+          : <Avatar name={otherName} online={otherOnline?.online} profilePicture={conv.otherWorker?.profilePicture} typing={otherIsTyping} />}
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-white text-sm truncate flex items-center gap-1">
             {otherName}
             {isSystemMaintenance && <BadgeCheck size={13} className="text-blue-400 flex-shrink-0" />}
           </div>
           <div className="text-xs text-slate-400 truncate">
-            {isSystemMaintenance ? "System" : (otherOnline?.online ? <span className="text-emerald-400">online</span> : formatLastSeen(otherOnline?.lastSeenAt))}
+            {isSystemMaintenance ? "System" : otherIsTyping ? <span className="text-indigo-300 font-semibold">typing...</span> : (otherOnline?.online ? <span className="text-emerald-400">online</span> : formatLastSeen(otherOnline?.lastSeenAt))}
           </div>
         </div>
         {!isSystemMaintenance && (
@@ -843,7 +882,7 @@ function DMThread({ conv, workerID, workerName, deviceToken, onBack }: { conv: C
         <AttachmentPicker attachment={attachment.pending} isUploading={attachment.isUploading} uploadProgress={attachment.uploadProgress} onSelect={attachment.selectFile} onRemove={attachment.clear} />
         <div className="flex items-end gap-2">
           <div className="flex-1 bg-white/[0.07] border border-white/10 rounded-3xl px-4 py-2.5 shadow-inner focus-within:border-indigo-400/60 focus-within:bg-white/[0.12] transition-all">
-            <AutoResizeInput inputRef={inputRef} value={text} onChange={setText} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
+            <AutoResizeInput inputRef={inputRef} value={text} onChange={(value) => { setText(value); typing.signal(value.trim().length > 0); }} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
           </div>
           <button onClick={handleSend} disabled={(!text.trim() && !attachment.pending) || attachment.isUploading || sendMsg.isPending}
             className="chat-send-button w-11 h-11 bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center text-white hover:brightness-110 transition-all disabled:opacity-30 flex-shrink-0 self-end">
@@ -876,12 +915,15 @@ function GroupThread({ group, workerID, workerName, deviceToken, onBack, onLeave
 
   const { data: messages = [] } = trpc.groupChat.getMessages.useQuery({ groupID: group.id }, { refetchInterval: 2000 });
   const { data: members = [] } = trpc.groupChat.getMembers.useQuery({ groupID: group.id }, { refetchOnWindowFocus: false });
+  const typing = useTypingPresence({ channelType: "group", channelID: group.id, workerID });
   const msgIDs = (messages as GroupMessage[]).map(m => m.id);
   const { data: reactions = [] } = trpc.reactions.getForMessages.useQuery(
     { messageType: "group", messageIDs: msgIDs }, { enabled: msgIDs.length > 0, refetchInterval: 3000 }
   );
   const memberIDs = useMemo(() => (members as GroupMember[]).map(m => m.workerID), [members]);
   const memberProfileByID = useMemo(() => new Map((members as GroupMember[]).map(member => [member.workerID, member.worker?.profilePicture ?? null])), [members]);
+  const typingMemberIDs = useMemo(() => new Set(typing.typingWorkers.map(state => state.workerID)), [typing.typingWorkers]);
+  const typingMembers = useMemo(() => (members as GroupMember[]).filter(member => typingMemberIDs.has(member.workerID)), [members, typingMemberIDs]);
   const { data: onlineStatus = {} } = trpc.chat.getOnlineStatus.useQuery(
     { workerIDs: memberIDs }, { enabled: memberIDs.length > 0, refetchInterval: 15000 }
   );
@@ -927,7 +969,7 @@ function GroupThread({ group, workerID, workerName, deviceToken, onBack, onLeave
     prevMsgCountRef.current = currentCount;
   }, [messages]);
   useEffect(() => { if (!showScrollBtn) bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-  useEffect(() => { inputRef.current?.focus(); setReplyTo(null); setText(""); attachment.clear(); }, [group.id]);
+  useEffect(() => { inputRef.current?.focus(); setReplyTo(null); setText(""); attachment.clear(); typing.stop(); }, [group.id]);
 
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
@@ -940,7 +982,7 @@ function GroupThread({ group, workerID, workerName, deviceToken, onBack, onLeave
     try {
       const uploadedAttachment = await attachment.upload();
       sendMsg.mutate({ groupID: group.id, senderID: workerID, senderName: workerName, text: trimmed, replyToID: replyTo?.id, attachment: uploadedAttachment });
-      setText(""); setReplyTo(null); attachment.clear(); inputRef.current?.focus();
+      typing.stop(); setText(""); setReplyTo(null); attachment.clear(); inputRef.current?.focus();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to upload this attachment.");
     }
@@ -1033,7 +1075,7 @@ function GroupThread({ group, workerID, workerName, deviceToken, onBack, onLeave
                       {isLast && (
                         msg.senderID === SYSTEM_MAINTENANCE_SENDER_ID
                           ? <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><BadgeCheck size={14} className="text-white" /></div>
-                          : <Avatar name={msg.senderName || "?"} size="sm" profilePicture={memberProfileByID.get(msg.senderID)} />
+                          : <Avatar name={msg.senderName || "?"} size="sm" profilePicture={memberProfileByID.get(msg.senderID)} typing={typingMemberIDs.has(msg.senderID)} />
                       )}
                     </div>
                   ) : null}
@@ -1097,10 +1139,18 @@ function GroupThread({ group, workerID, workerName, deviceToken, onBack, onLeave
 
       {/* Input */}
       <div className="chat-composer px-3 py-2.5 flex flex-col flex-shrink-0 border-t border-white/10">
+        {typingMembers.length > 0 && (
+          <div className="mb-2 flex items-center gap-2 px-1 text-[11px] text-indigo-200">
+            <div className="flex -space-x-1.5">
+              {typingMembers.slice(0, 3).map(member => <Avatar key={member.workerID} name={member.worker?.name || member.workerID} size="sm" profilePicture={member.worker?.profilePicture} typing />)}
+            </div>
+            <span className="truncate font-semibold">{typingMembers.slice(0, 2).map(member => member.worker?.name || member.workerID).join(", ")} {typingMembers.length === 1 ? "is" : "are"} typing...</span>
+          </div>
+        )}
         <AttachmentPicker attachment={attachment.pending} isUploading={attachment.isUploading} uploadProgress={attachment.uploadProgress} onSelect={attachment.selectFile} onRemove={attachment.clear} accent="teal" />
         <div className="flex items-end gap-2">
           <div className="flex-1 bg-white/[0.07] border border-white/10 rounded-3xl px-4 py-2.5 shadow-inner focus-within:border-teal-400/60 focus-within:bg-white/[0.12] transition-all">
-            <AutoResizeInput inputRef={inputRef} value={text} onChange={setText} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
+            <AutoResizeInput inputRef={inputRef} value={text} onChange={(value) => { setText(value); typing.signal(value.trim().length > 0); }} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
           </div>
           <button onClick={handleSend} disabled={(!text.trim() && !attachment.pending) || attachment.isUploading || sendMsg.isPending}
             className="chat-group-send-button w-11 h-11 bg-gradient-to-br from-teal-500 via-emerald-600 to-cyan-600 rounded-2xl flex items-center justify-center text-white hover:brightness-110 transition-all disabled:opacity-30 flex-shrink-0 self-end">
@@ -1257,12 +1307,13 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
             const isSelected = selected?.type === "dm" && selected.conv.id === conv.id;
             const hasUnread = conv.unreadCount > 0;
             const partnerOnline = (onlineStatus as Record<string, { online: boolean }>)[conv.otherWorker?.workerID || ""]?.online;
+            const partnerTyping = !!conv.otherWorker?.workerID && conv.typingWorkerIDs?.includes(conv.otherWorker.workerID);
             return (
               <button key={conv.id} onClick={() => onSelectDM(conv)}
                 className={`chat-list-item w-full flex items-center gap-3 px-4 py-3.5 border-b border-white/5 hover:bg-white/[0.07] transition-colors text-left ${isSelected ? "bg-indigo-500/15 border-l-2 border-l-indigo-400" : ""}`}>
                 {isSystemConv
                   ? <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm"><BadgeCheck size={18} className="text-white" /></div>
-                  : <Avatar name={name} online={partnerOnline} profilePicture={conv.otherWorker?.profilePicture} />}
+                  : <Avatar name={name} online={partnerOnline} profilePicture={conv.otherWorker?.profilePicture} typing={partnerTyping} />}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className={`text-sm truncate ${hasUnread ? "font-semibold text-white" : "font-medium text-slate-300"}`}>{name}</span>
@@ -1272,7 +1323,7 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
                   </div>
                   <div className="flex items-center justify-between mt-0.5">
                     <span className={`text-xs truncate ${hasUnread ? "text-slate-300" : "text-slate-500"}`}>
-                      {conv.lastMessage ? (conv.lastMessage.text ? (conv.lastMessage.senderID === workerID ? `You: ${conv.lastMessage.text}` : conv.lastMessage.text) : "📎 Attachment") : "No messages yet"}
+                      {partnerTyping ? <span className="font-semibold text-indigo-300">typing...</span> : conv.lastMessage ? (conv.lastMessage.text ? (conv.lastMessage.senderID === workerID ? `You: ${conv.lastMessage.text}` : conv.lastMessage.text) : "📎 Attachment") : "No messages yet"}
                     </span>
                     {hasUnread && (
                       <span className="ml-2 bg-gradient-to-br from-indigo-500 to-blue-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 flex-shrink-0 shadow-sm">
