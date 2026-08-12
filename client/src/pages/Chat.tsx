@@ -41,6 +41,7 @@ const chatStyles = `
 @keyframes chatPulse { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.08)} }
 @keyframes chatFadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 @keyframes chatBubble { from{opacity:0;transform:scale(.95) translateY(4px)} to{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes chatOnlineRing { 0%,100%{opacity:.55;transform:scale(.98);box-shadow:0 0 0 0 rgba(52,211,153,.32)} 50%{opacity:1;transform:scale(1.07);box-shadow:0 0 0 5px rgba(52,211,153,0)} }
 .chat-float  { animation: chatFloat  6s ease-in-out infinite }
 .chat-scan   { animation: chatScan   4s linear infinite }
 .chat-pulse  { animation: chatPulse  2s ease-in-out infinite }
@@ -59,6 +60,8 @@ const chatStyles = `
 .chat-composer { background:linear-gradient(90deg,rgba(15,23,42,.98),rgba(17,29,51,.96)); backdrop-filter:blur(22px); box-shadow:0 -12px 30px rgba(2,6,23,.22); }
 .chat-send-button { box-shadow:0 10px 24px rgba(79,70,229,.35); }
 .chat-group-send-button { box-shadow:0 10px 24px rgba(13,148,136,.32); }
+.chat-online-ring { position:absolute; inset:-3px; z-index:0; border:2px solid rgba(52,211,153,.92); border-radius:9999px; pointer-events:none; animation:chatOnlineRing 2.1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .chat-online-ring { animation:none; box-shadow:0 0 0 1px rgba(52,211,153,.3); } }
 @media (max-width: 767px) { .chat-shell { padding:8px; } .chat-mobile-panel { border-radius:22px; border:1px solid rgba(255,255,255,.10); box-shadow:0 18px 48px rgba(2,6,23,.32); } }
 `;
 
@@ -150,7 +153,8 @@ function Avatar({ name, size = "md", isGroup = false, online, profilePicture }: 
   const grad = isGroup ? "from-teal-500 to-emerald-600" : gradients[name.charCodeAt(0) % gradients.length];
   return (
     <div className="relative flex-shrink-0">
-      <div className={`${sz} overflow-hidden bg-gradient-to-br ${grad} rounded-full flex items-center justify-center text-white font-semibold shadow-lg ring-1 ring-white/20`}>
+      {online && !isGroup && <span className="chat-online-ring" aria-hidden="true" />}
+      <div className={`relative z-10 ${sz} overflow-hidden bg-gradient-to-br ${grad} rounded-full flex items-center justify-center text-white font-semibold shadow-lg ring-1 ring-white/20`}>
         {profilePicture && !isGroup
           ? <img src={profilePicture} alt={`${name} profile`} className="h-full w-full object-cover" />
           : isGroup ? <Users size={size === "sm" ? 14 : size === "lg" ? 20 : 16} /> : getInitials(name)}

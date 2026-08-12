@@ -1480,3 +1480,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Messages Profile Pictures
 - [x] Display worker profile pictures in conversation rows and chat headers with initial-avatar fallbacks
+
+## Messages Online Status Ring
+- [x] Add an animated online-status ring around active user avatars in Messages

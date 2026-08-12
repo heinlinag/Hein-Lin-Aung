@@ -58,4 +58,11 @@ describe("Messages interface redesign", () => {
     expect(chatSource).toContain('profilePicture={memberProfileByID.get(msg.senderID)}');
     expect(chatSource).toContain('profilePicture={m.worker?.profilePicture}');
   });
+
+  it("adds a motion-safe animated ring around active user avatars", () => {
+    expect(chatSource).toContain("@keyframes chatOnlineRing");
+    expect(chatSource).toContain(".chat-online-ring");
+    expect(chatSource).toContain("prefers-reduced-motion: reduce");
+    expect(chatSource).toContain('{online && !isGroup && <span className="chat-online-ring"');
+  });
 });
