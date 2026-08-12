@@ -200,6 +200,7 @@ const baseFeatures = [
     title: "Stock History",
     description: "View current stock and out-of-stock orders. Filter by BQ.",
     href: "/stock-history",
+    mobileHidden: true,
     gradient: "linear-gradient(135deg, #10b981, #059669)",
     glowColor: "rgba(16,185,129,0.3)",
     btnLabel: "View Stock",

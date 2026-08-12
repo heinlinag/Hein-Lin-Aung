@@ -1410,3 +1410,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Mobile Bottom Navigation
 - [x] Swap the Stock and Chat tab positions in the mobile bottom navigation
 - [x] Refine mobile bottom navigation spacing, active state, and badge placement
+
+## Mobile Stock Navigation
+- [x] Superseded by corrected requirement — retain the mobile Stock bottom navigation tab
+- [x] Hide the duplicate Stock History Quick Actions card below the sm breakpoint
