@@ -5,6 +5,7 @@
  * smooth scroll with "New messages" floating button, improved empty states
  */
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/contexts/AuthContext";
@@ -548,17 +549,18 @@ function SendAlertButton({ senderID, senderName, recipientID, recipientName }: {
       <button onClick={() => setOpen(true)} className="p-2 hover:bg-white/20 rounded-full transition-colors" title="Send Alert">
         <Bell size={16} />
       </button>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 shadow-2xl p-6 space-y-4"
-            style={{ background: "linear-gradient(135deg,rgba(15,23,42,.97) 0%,rgba(30,41,59,.97) 100%)" }}>
+      {open && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[220] flex min-h-[100dvh] items-center justify-center overflow-y-auto bg-slate-950/90 px-4 py-5 pb-[max(6rem,calc(4.5rem+env(safe-area-inset-bottom)))] backdrop-blur-md" onClick={() => setOpen(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="send-alert-title" onClick={event => event.stopPropagation()}
+            className="relative z-[221] my-auto w-full max-w-sm max-h-[calc(100dvh-8rem)] overflow-y-auto rounded-2xl border border-white/15 bg-slate-950 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.65)] sm:p-6 space-y-4">
+            <div className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500" />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-sm">
                   <Bell size={16} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-sm">Send Alert</h3>
+                  <h3 id="send-alert-title" className="font-bold text-white text-sm">Send Alert</h3>
                   <p className="text-xs text-slate-400">To: {recipientName}</p>
                 </div>
               </div>
@@ -589,7 +591,8 @@ function SendAlertButton({ senderID, senderName, recipientID, recipientName }: {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

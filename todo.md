@@ -1470,3 +1470,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Messages Header Focus
 - [x] Hide the shared application header on the Messages page only
+
+## Messages Send Alert Dialog
+- [x] Fix mobile Send Alert dialog layering so the chat thread cannot overlap it

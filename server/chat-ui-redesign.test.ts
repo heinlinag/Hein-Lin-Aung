@@ -41,4 +41,12 @@ describe("Messages interface redesign", () => {
     expect(layoutSource).toContain("hideAppHeader = false");
     expect(layoutSource).toContain("!hideAppHeader && <header");
   });
+
+  it("renders Send Alert above the mobile chat thread through a document-level portal", () => {
+    expect(chatSource).toContain('import { createPortal } from "react-dom";');
+    expect(chatSource).toContain('createPortal(');
+    expect(chatSource).toContain('z-[220]');
+    expect(chatSource).toContain('document.body');
+    expect(chatSource).toContain('max-h-[calc(100dvh-8rem)]');
+  });
 });
