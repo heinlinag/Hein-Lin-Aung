@@ -16,6 +16,7 @@ import {
   reactivateWorkerAccount,
   setWorkerActiveDevice,
   clearWorkerActiveDevice,
+  INACTIVITY_SUSPENSION_DAYS,
   getAllOrders,
   createOrder,
   getOrderByOrderID,
@@ -218,6 +219,29 @@ export const appRouter = router({
         if (worker.accountStatus !== "suspended") return { success: true, alreadyActive: true };
         await reactivateWorkerAccount(input.workerID);
         return { success: true, alreadyActive: false };
+      }),
+
+    /** Current worker's inactivity status for the dashboard warning. */
+    getAccountStatus: publicProcedure
+      .input(z.object({ workerID: z.string().min(1), deviceToken: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
+        if (!worker.activeDeviceToken || worker.activeDeviceToken !== input.deviceToken) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Your worker session is no longer active. Please sign in again." });
+        }
+
+        const activityDate = worker.lastLoginAt ?? worker.createdAt;
+        const suspensionAt = new Date(activityDate.getTime() + INACTIVITY_SUSPENSION_DAYS * 24 * 60 * 60 * 1000);
+        const daysUntilSuspension = Math.max(0, Math.ceil((suspensionAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+
+        return {
+          accountStatus: worker.accountStatus,
+          lastLoginAt: worker.lastLoginAt,
+          suspendedAt: worker.suspendedAt,
+          suspensionAt,
+          daysUntilSuspension,
+        };
       }),
 
     verify: publicProcedure

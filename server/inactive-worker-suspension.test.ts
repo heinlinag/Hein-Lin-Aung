@@ -12,6 +12,7 @@ describe("daily inactive worker suspension", () => {
   const server = read("server/_core/index.ts");
   const login = read("client/src/pages/Login.tsx");
   const admin = read("client/src/pages/AdminPanel.tsx");
+  const home = read("client/src/pages/Home.tsx");
 
   it("stores suspension state and successful-login activity on worker records", () => {
     expect(schema).toContain('accountStatus: mysqlEnum("accountStatus", ["active", "suspended"])');
@@ -42,5 +43,14 @@ describe("daily inactive worker suspension", () => {
     expect(server).toContain("cronUser.isCron");
     expect(server).toContain("inactiveWorkerSuspensionTaskUid");
     expect(server).toContain("suspendInactiveWorkers()");
+  });
+
+  it("shows an authenticated dashboard warning during the final seven days", () => {
+    expect(routers).toContain("getAccountStatus: publicProcedure");
+    expect(routers).toContain("INACTIVITY_SUSPENSION_DAYS * 24 * 60 * 60 * 1000");
+    expect(routers).toContain("worker.activeDeviceToken !== input.deviceToken");
+    expect(home).toContain("InactivityWarningBanner");
+    expect(home).toContain("daysUntilSuspension <= 7");
+    expect(home).toContain("Sign out and sign in again to keep your account active.");
   });
 });

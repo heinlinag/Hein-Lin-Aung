@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import {
   ClipboardList, Camera, Package, CheckCircle2, Bell, X, ScanLine, ArrowRight,
   Activity, MessageCircle, FlaskConical, Info, Zap, TrendingUp, ArrowDownLeft, ArrowUpRight, RefreshCw,
-  Users, BarChart3, Clock, Sparkles, User, BookOpen, LifeBuoy, CircleHelp,
+  Users, BarChart3, Clock, Sparkles, User, BookOpen, LifeBuoy, CircleHelp, TriangleAlert,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -172,6 +172,61 @@ function NotificationBanner({ onDismiss }: { onDismiss: () => void }) {
   );
 }
 
+// ─── Inactivity Warning Banner ────────────────────────────────────────────────
+function InactivityWarningBanner({
+  daysUntilSuspension,
+  onDismiss,
+  onSignInAgain,
+}: {
+  daysUntilSuspension: number;
+  onDismiss: () => void;
+  onSignInAgain: () => void;
+}) {
+  const isToday = daysUntilSuspension === 0;
+  const timeLabel = isToday
+    ? "today"
+    : `in ${daysUntilSuspension} ${daysUntilSuspension === 1 ? "day" : "days"}`;
+
+  return (
+    <div className="mx-4 lg:mx-8 mt-4 mb-0 max-w-6xl xl:mx-auto home-fade-in" role="status" aria-live="polite">
+      <div className="relative overflow-hidden rounded-2xl"
+        style={{
+          background: "rgba(255,251,235,0.92)",
+          backdropFilter: "blur(16px)",
+          border: "1px solid rgba(245,158,11,0.28)",
+          boxShadow: "0 4px 24px rgba(245,158,11,0.12)",
+        }}>
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
+          style={{ background: "linear-gradient(180deg, #f59e0b, #ea580c)" }} />
+        <div className="flex items-start gap-3 px-4 py-3.5 sm:items-center sm:px-5">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:mt-0"
+            style={{ background: "linear-gradient(135deg, #f59e0b, #ea580c)", boxShadow: "0 4px 12px rgba(245,158,11,0.28)" }}>
+            <TriangleAlert size={17} className="text-white" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-black leading-tight text-amber-950">Account activity reminder</p>
+            <p className="mt-0.5 text-xs font-medium leading-relaxed text-amber-800">
+              Your Employee ID is scheduled for automatic suspension {timeLabel} because no successful sign-in has been recorded recently.
+              <span className="font-bold"> Sign out and sign in again to keep your account active.</span>
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <button onClick={onSignInAgain}
+              className="rounded-xl px-3 py-2 text-xs font-black text-white transition-all active:scale-[0.97]"
+              style={{ background: "linear-gradient(135deg, #d97706, #ea580c)", boxShadow: "0 4px 12px rgba(234,88,12,0.22)" }}>
+              Sign in again
+            </button>
+            <button onClick={onDismiss} aria-label="Dismiss account activity reminder"
+              className="rounded-xl p-2 text-amber-600 transition-colors hover:bg-amber-100 hover:text-amber-800">
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Feature Cards Config ─────────────────────────────────────────────────────
 const baseFeatures = [
   {
@@ -290,7 +345,7 @@ const baseFeatures = [
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function Home() {
   const [, navigate] = useLocation();
-  const { worker } = useAuth();
+  const { worker, logoutWorker } = useAuth();
   usePushNotifications(worker?.workerID ?? null);
   const userLevel = worker?.userLevel ?? "2";
 
@@ -387,6 +442,15 @@ export default function Home() {
   const profilePic = profileQuery.data?.profilePicture ?? null;
   const displayName = profileQuery.data?.displayName ?? worker?.name ?? "";
 
+  const accountStatusQuery = trpc.workers.getAccountStatus.useQuery(
+    { workerID: worker?.workerID ?? "", deviceToken: worker?.deviceToken ?? "" },
+    { enabled: !!worker?.workerID && !!worker?.deviceToken, staleTime: 60_000, refetchInterval: 300_000 }
+  );
+  const daysUntilSuspension = accountStatusQuery.data?.daysUntilSuspension;
+  const isInactivityWarningEligible = accountStatusQuery.data?.accountStatus === "active"
+    && daysUntilSuspension !== undefined
+    && daysUntilSuspension <= 7;
+
   const [showAccessRestricted, setShowAccessRestricted] = useState(false);
 
   const DISMISS_KEY = "notif_banner_dismissed";
@@ -398,6 +462,26 @@ export default function Home() {
     if (!dismissed) setShowNotifBanner(true);
   }, []);
   const dismissBanner = () => { sessionStorage.setItem(DISMISS_KEY, "1"); setShowNotifBanner(false); };
+
+  const inactivityDismissKey = daysUntilSuspension === undefined
+    ? ""
+    : `inactivity_warning_dismissed_${daysUntilSuspension}`;
+  const [showInactivityWarning, setShowInactivityWarning] = useState(false);
+  useEffect(() => {
+    if (!isInactivityWarningEligible || !inactivityDismissKey) {
+      setShowInactivityWarning(false);
+      return;
+    }
+    setShowInactivityWarning(!sessionStorage.getItem(inactivityDismissKey));
+  }, [inactivityDismissKey, isInactivityWarningEligible]);
+  const dismissInactivityWarning = () => {
+    if (inactivityDismissKey) sessionStorage.setItem(inactivityDismissKey, "1");
+    setShowInactivityWarning(false);
+  };
+  const signInAgain = () => {
+    logoutWorker();
+    navigate("/login");
+  };
 
   const getGreeting = () => {
     const h = new Date().getHours();
@@ -556,6 +640,13 @@ export default function Home() {
       <h2 className="sr-only">Stock Management Tools and Features</h2>
       <AnnouncementBanner />
       {showNotifBanner && <NotificationBanner onDismiss={dismissBanner} />}
+      {showInactivityWarning && daysUntilSuspension !== undefined && (
+        <InactivityWarningBanner
+          daysUntilSuspension={daysUntilSuspension}
+          onDismiss={dismissInactivityWarning}
+          onSignInAgain={signInAgain}
+        />
+      )}
 
       {/* ── Stats Row ────────────────────────────────────────────────────── */}
       <div className="px-4 lg:px-8 pt-6 pb-2">
