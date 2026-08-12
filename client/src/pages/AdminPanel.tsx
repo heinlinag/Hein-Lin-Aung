@@ -4,7 +4,7 @@ import { AnnouncementsTab } from "@/components/AnnouncementsTab";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar, Bell, Send, BellRing, Sun, Moon, Monitor, Shield } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, RefreshCw, Loader2, Users, Package, History, ClipboardList, CheckCircle2, XCircle, Clock, FileSpreadsheet, TrendingUp, AlertTriangle, Inbox, Pencil, Zap, LogOut, Megaphone, Wrench, ShieldAlert, Power, Settings2, KeyRound, Eye, EyeOff, CalendarClock, Sparkles, Ban, Calendar, Bell, Send, BellRing, Sun, Moon, Monitor, Shield, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const LOGO_URL = "/manus-storage/gspp_logo_new_2db75f16.png";
@@ -360,6 +360,7 @@ function WorkersTab() {
   const [addError, setAddError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Worker | null>(null);
   const [deleteVerifyPassword, setDeleteVerifyPassword] = useState("");
+  const [profilePreview, setProfilePreview] = useState<Worker | null>(null);
 
   // Edit state
   const [editTarget, setEditTarget] = useState<Worker | null>(null);
@@ -498,13 +499,21 @@ function WorkersTab() {
                     <td className="py-3 pr-4 text-sm font-semibold text-primary">{w.workerID}</td>
                     <td className="py-3 pr-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-black text-white shadow-sm ring-1 ring-white/10">
-                          {w.profilePicture ? (
+                        {w.profilePicture ? (
+                          <button
+                            type="button"
+                            onClick={() => setProfilePreview(w)}
+                            className="flex h-9 w-9 shrink-0 overflow-hidden rounded-xl shadow-sm ring-1 ring-white/10 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-900"
+                            aria-label={`Preview ${w.displayName || w.name} profile image`}
+                            title="View full-size profile image"
+                          >
                             <img src={w.profilePicture} alt={`${w.displayName || w.name} profile`} className="h-full w-full object-cover" />
-                          ) : (
-                            (w.displayName || w.name || "U").slice(0, 1).toUpperCase()
-                          )}
-                        </div>
+                          </button>
+                        ) : (
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-black text-white shadow-sm ring-1 ring-white/10">
+                            {(w.displayName || w.name || "U").slice(0, 1).toUpperCase()}
+                          </div>
+                        )}
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-foreground">{w.displayName || w.name}</p>
                           {w.displayName && w.displayName !== w.name && (
@@ -546,6 +555,45 @@ function WorkersTab() {
             ))}
           </div>
         </>
+      )}
+
+      {/* Full-size worker profile preview */}
+      {profilePreview?.profilePicture && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm"
+          onClick={() => setProfilePreview(null)}
+        >
+          <div
+            className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-slate-900/95 p-4 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${profilePreview.displayName || profilePreview.name} profile image preview`}
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400" />
+            <div className="mb-3 flex items-center justify-between gap-3 pt-1">
+              <div className="min-w-0">
+                <p className="truncate text-base font-black text-white">{profilePreview.displayName || profilePreview.name}</p>
+                <p className="truncate text-xs text-slate-400">{profilePreview.workerID} · {profilePreview.department}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProfilePreview(null)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                aria-label="Close profile image preview"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex min-h-48 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70">
+              <img
+                src={profilePreview.profilePicture}
+                alt={`${profilePreview.displayName || profilePreview.name} profile picture full size`}
+                className="max-h-[70vh] w-auto max-w-full object-contain"
+              />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Add Worker Dialog */}

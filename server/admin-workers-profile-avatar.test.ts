@@ -18,4 +18,12 @@ describe("Admin Workers desktop identity", () => {
     expect(adminPanelSource).toContain('(w.displayName || w.name || "U").slice(0, 1).toUpperCase()');
     expect(adminPanelSource).toContain('{w.displayName || w.name}');
   });
+
+  it("opens a full-size preview only for workers with a stored profile image", () => {
+    expect(adminPanelSource).toContain("const [profilePreview, setProfilePreview] = useState<Worker | null>(null)");
+    expect(adminPanelSource).toContain("onClick={() => setProfilePreview(w)}");
+    expect(adminPanelSource).toContain("{profilePreview?.profilePicture && (");
+    expect(adminPanelSource).toContain("profile picture full size");
+    expect(adminPanelSource).toContain("Close profile image preview");
+  });
 });
