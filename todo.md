@@ -1498,3 +1498,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Admin Role-Based Quick Actions
 - [x] Add role-grouped quick action buttons for workforce, stock operations, communications, and system control
 - [x] Preserve current Admin routes and surface relevant pending-work counts in quick actions
+
+## Admin Control Center Page Structure
+- [x] Build a dedicated Admin Control Center Home Dashboard at /admin
+- [x] Route Workers, Orders, Requests, Messages, Announcements, Notifications, Audit Log, Maintenance, and Settings to singular Admin pages
+- [x] Map /admin/worker to the Worker Session and Management page
+- [x] Update Admin desktop and mobile navigation for the new page-based structure

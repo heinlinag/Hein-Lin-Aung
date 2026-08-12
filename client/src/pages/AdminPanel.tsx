@@ -1961,39 +1961,50 @@ export default function AdminPanel() {
   const [, navigate] = useLocation();
   const params = useParams<{ tab?: string }>();
 
-  type TabId = "workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings" | "notifications" | "audit_log";
+  type TabId = "dashboard" | "workers" | "orders" | "deleted_logs" | "pending_requests" | "contact_messages" | "announcements" | "maintenance" | "settings" | "notifications" | "audit_log";
 
   // Map URL slug → tab id
   const SLUG_TO_TAB: Record<string, TabId> = {
+    dashboard: "dashboard",
+    home: "dashboard",
+    worker: "workers",
     workers: "workers",
+    order: "orders",
     orders: "orders",
+    "deleted-log": "deleted_logs",
     "deleted-logs": "deleted_logs",
+    request: "pending_requests",
     requests: "pending_requests",
+    message: "contact_messages",
     messages: "contact_messages",
+    announcement: "announcements",
     announcements: "announcements",
+    notification: "notifications",
     notifications: "notifications",
+    audit: "audit_log",
     "audit-log": "audit_log",
     maintenance: "maintenance",
     settings: "settings",
   };
   // Map tab id → URL slug
   const TAB_TO_SLUG: Record<TabId, string> = {
-    workers: "workers",
-    orders: "orders",
-    deleted_logs: "deleted-logs",
-    pending_requests: "requests",
-    contact_messages: "messages",
-    announcements: "announcements",
-    notifications: "notifications",
+    dashboard: "",
+    workers: "worker",
+    orders: "order",
+    deleted_logs: "deleted-log",
+    pending_requests: "request",
+    contact_messages: "message",
+    announcements: "announcement",
+    notifications: "notification",
     audit_log: "audit-log",
     maintenance: "maintenance",
-    settings: "settings",
+    settings: "setting",
   };
 
-  const activeTab: TabId = (params.tab && SLUG_TO_TAB[params.tab]) ? SLUG_TO_TAB[params.tab] : "workers";
+  const activeTab: TabId = (params.tab && SLUG_TO_TAB[params.tab]) ? SLUG_TO_TAB[params.tab] : "dashboard";
 
   const setActiveTab = (tab: TabId) => {
-    navigate(`/admin/${TAB_TO_SLUG[tab]}`);
+    navigate(tab === "dashboard" ? "/admin" : `/admin/${TAB_TO_SLUG[tab]}`);
   };
   const maintenanceQuery = trpc.system.getMaintenanceStatus.useQuery(undefined, { refetchInterval: 10000 });
   const scheduleQuery = trpc.system.getScheduledMaintenance.useQuery(undefined, { refetchInterval: 15000 });
@@ -2060,6 +2071,7 @@ export default function AdminPanel() {
   const stats = statsQuery.data;
 
   const tabs = [
+    { id: "dashboard" as const, label: "Dashboard", icon: <Monitor size={16} />, color: "indigo" },
     { id: "workers" as const, label: "Workers", icon: <Users size={16} />, color: "blue" },
     { id: "orders" as const, label: "Orders", icon: <Package size={16} />, color: "green" },
     { id: "deleted_logs" as const, label: "Deleted Logs", icon: <History size={16} />, color: "red" },
@@ -2072,6 +2084,7 @@ export default function AdminPanel() {
     { id: "settings" as const, label: "Settings", icon: <Settings2 size={16} />, color: "slate" },
   ];
   const tabDescriptions: Record<TabId, string> = {
+    dashboard: "A role-based overview of people, stock, approvals and platform operations.",
     workers: "Manage team members, access levels, and active device sessions.",
     orders: "Review live stock records, quantities, and submitted production orders.",
     deleted_logs: "Inspect archived records and approved deletions for accountability.",
@@ -2175,8 +2188,8 @@ export default function AdminPanel() {
             <img src={LOGO_URL} alt="GSPP" className="h-7 w-7 object-contain" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className={`text-base lg:text-lg font-bold tracking-tight ${titleColor}`}>Admin Panel</h1>
-            <p className={`text-[10px] lg:text-xs font-medium ${subtitleColor}`}>System Management & Configuration</p>
+            <h1 className={`text-base lg:text-lg font-bold tracking-tight ${titleColor}`}>{activeTab === "dashboard" ? "Admin Control Center" : activeTabInfo.label}</h1>
+            <p className={`text-[10px] lg:text-xs font-medium ${subtitleColor}`}>{activeTab === "dashboard" ? "Role-based management home" : "Dedicated management page"}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center gap-1.5 rounded-xl px-2.5 py-1.5" style={{ background: "#eef2ff", border: "1px solid #c7d2fe" }}>
@@ -2217,8 +2230,8 @@ export default function AdminPanel() {
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-indigo-700" style={{ background: "#eef2ff", border: "1px solid #c7d2fe" }}>Administrator workspace</span>
               </div>
-              <h1 className="text-2xl lg:text-3xl font-black text-slate-950 leading-tight" style={{ fontFamily: "Lora, serif" }}>Admin Control Center</h1>
-              <p className="text-slate-600 text-sm mt-0.5">People, stock, approvals and system operations in one workspace</p>
+              <h1 className="text-2xl lg:text-3xl font-black text-slate-950 leading-tight" style={{ fontFamily: "Lora, serif" }}>{activeTab === "dashboard" ? "Admin Control Center" : activeTabInfo.label}</h1>
+              <p className="text-slate-600 text-sm mt-0.5">{activeTab === "dashboard" ? "People, stock, approvals and system operations in one workspace" : tabDescriptions[activeTab]}</p>
             </div>
           </div>
         </div>
@@ -2247,6 +2260,7 @@ export default function AdminPanel() {
         </div>
       )}
 
+      {activeTab === "dashboard" && <>
       {/* Stats Grid */}
       <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-5 md:py-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
@@ -2365,6 +2379,7 @@ export default function AdminPanel() {
           </div>
         </div>
       </section>
+      </>}
 
       {/* Tab Navigation */}
       <div className="hidden sm:block max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10">
@@ -2396,8 +2411,8 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      {/* Content */}
-      <main className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-5 md:py-6 pb-[80px] sm:pb-6">
+      {/* Dedicated management page content */}
+      {activeTab !== "dashboard" && <main className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 py-5 md:py-6 pb-[80px] sm:pb-6">
         <div className="admin-light-surface rounded-2xl border p-4 lg:p-6" style={{ background: contentBg, backdropFilter: "blur(12px)", borderColor: contentBorder }}>
           <div className="mb-5 flex flex-col gap-3 border-b border-slate-100 pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
@@ -2410,8 +2425,17 @@ export default function AdminPanel() {
                 <p className="mt-0.5 text-xs text-slate-500">{tabDescriptions[activeTab]}</p>
               </div>
             </div>
-            <div className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 sm:flex">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live management
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab("dashboard")}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+              >
+                <ArrowLeft size={13} /> Control Center
+              </button>
+              <div className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 sm:flex">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live management
+              </div>
             </div>
           </div>
           {activeTab === "workers" && <WorkersTab />}
@@ -2597,7 +2621,7 @@ export default function AdminPanel() {
             </div>
           )}
         </div>
-      </main>
+      </main>}
 
       {/* ── Mobile Bottom Navigation (sm and below only) ─────────────────── */}
       <div className="admin-light-mobile-nav sm:hidden fixed bottom-0 left-0 right-0 z-40" style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid #e2e8f0" }}>
@@ -2623,6 +2647,7 @@ export default function AdminPanel() {
             </div>
             <div className="px-4 pb-4 grid grid-cols-3 gap-2">
               {[
+                { id: "contact_messages" as const, label: "Messages", icon: <Inbox size={20} />, grad: "from-violet-500 to-purple-600" },
                 { id: "deleted_logs" as const, label: "Deleted Logs", icon: <History size={20} />, grad: "from-red-500 to-rose-600" },
                 { id: "announcements" as const, label: "Announcements", icon: <Megaphone size={20} />, grad: "from-indigo-500 to-violet-600" },
                 { id: "notifications" as const, label: "Notifications", icon: <Bell size={20} />, grad: "from-amber-500 to-yellow-600" },
@@ -2657,10 +2682,10 @@ export default function AdminPanel() {
         {/* Primary 5-tab bar */}
         <div className="flex items-stretch h-[68px] pb-[env(safe-area-inset-bottom)]">
           {([
+            { id: "dashboard" as const, label: "Home", icon: <Monitor size={22} /> },
             { id: "workers" as const, label: "Workers", icon: <Users size={22} /> },
             { id: "orders" as const, label: "Orders", icon: <Package size={22} /> },
             { id: "pending_requests" as const, label: "Requests", icon: <ClipboardList size={22} />, badge: (stats?.pendingRequests ?? 0) > 0 ? stats?.pendingRequests : undefined },
-            { id: "contact_messages" as const, label: "Messages", icon: <Inbox size={22} /> },
           ] as const).map((t) => {
             const isActive = activeTab === t.id;
             return (
