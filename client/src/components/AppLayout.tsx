@@ -47,6 +47,7 @@ const MOBILE_MORE_ITEMS: NavItem[] = [
   { href: "/docs",         label: "Documentation", icon: <BookOpen size={19} /> },
   { href: "/help",         label: "Help Center",   icon: <LifeBuoy size={19} /> },
   { href: "/faq",          label: "FAQ",           icon: <CircleHelp size={19} /> },
+  { href: "/status",       label: "System Status", icon: <Activity size={19} /> },
 ];
 
 interface AppLayoutProps {
@@ -593,6 +594,13 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
                 );
               })}
             </div>
+            <button
+              onClick={() => { closeMore(); handleLogout(); }}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-2.5 text-xs font-black text-rose-600 transition-all hover:bg-rose-100 active:scale-[0.99]"
+            >
+              <LogOut size={15} />
+              Logout
+            </button>
           </section>
         </>
       )}

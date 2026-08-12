@@ -16,9 +16,11 @@ describe("Mobile More navigation", () => {
     expect(appLayoutSource).toContain('href: "#more"');
     expect(appLayoutSource).toContain('label: "More"');
     expect(appLayoutSource).toContain("MOBILE_MORE_ITEMS");
-    for (const href of ["/chat", "/user-profile", "/docs", "/help", "/faq"]) {
+    for (const href of ["/chat", "/user-profile", "/docs", "/help", "/faq", "/status"]) {
       expect(appLayoutSource).toContain(`href: "${href}"`);
     }
+    expect(appLayoutSource).toContain("System Status");
+    expect(appLayoutSource).toContain("closeMore(); handleLogout();");
   });
 
   it("hides secondary Quick Actions only below the sm breakpoint", () => {

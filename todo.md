@@ -1421,3 +1421,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Mobile More Drawer Motion
 - [x] Add smooth backdrop fade and spring slide transitions for the mobile More drawer
+
+## Mobile More Drawer Utilities
+- [x] Add System Status to the mobile More drawer
+- [x] Add a secure Logout shortcut at the bottom of the mobile More drawer
