@@ -13,6 +13,7 @@ import {
   MessageCircle, Search, Plus, ArrowLeft, Send,
   X, UserCircle2, MessageSquareDot, Check, CheckCheck,
   Users, LogOut, Crown, Reply, Trash2, ArrowDown, BadgeCheck, Bell,
+  ShieldCheck, Sparkles, Wifi,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,20 @@ const chatStyles = `
 .chat-pulse  { animation: chatPulse  2s ease-in-out infinite }
 .chat-fadeup { animation: chatFadeUp .25s ease both }
 .chat-bubble { animation: chatBubble .18s ease both }
+.chat-shell { position:relative; isolation:isolate; background:linear-gradient(135deg,#070b18 0%,#101334 48%,#071525 100%); }
+.chat-shell::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:.035; background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.55) 3px,rgba(255,255,255,.55) 4px); }
+.chat-sidebar { background:linear-gradient(180deg,rgba(12,19,38,.94),rgba(8,15,30,.94)); }
+.chat-sidebar-head { background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(14,165,233,.06) 55%,rgba(20,184,166,.08)); }
+.chat-list-item { position:relative; overflow:hidden; }
+.chat-list-item::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(90deg,rgba(129,140,248,.08),transparent 62%); opacity:0; transition:opacity .2s ease; }
+.chat-list-item:hover::after { opacity:1; }
+.chat-thread { position:relative; overflow:hidden; background:radial-gradient(circle at 85% 8%,rgba(56,189,248,.10),transparent 30%),radial-gradient(circle at 12% 88%,rgba(99,102,241,.11),transparent 34%),linear-gradient(160deg,#0a0f1e 0%,#0d1b2a 40%,#0a1628 100%); }
+.chat-thread-header { background:linear-gradient(90deg,rgba(15,23,42,.97),rgba(17,31,56,.9)); backdrop-filter:blur(20px); }
+.chat-message-canvas { background:linear-gradient(180deg,rgba(8,15,30,.26),rgba(8,15,30,.05)); }
+.chat-composer { background:linear-gradient(90deg,rgba(15,23,42,.98),rgba(17,29,51,.96)); backdrop-filter:blur(22px); box-shadow:0 -12px 30px rgba(2,6,23,.22); }
+.chat-send-button { box-shadow:0 10px 24px rgba(79,70,229,.35); }
+.chat-group-send-button { box-shadow:0 10px 24px rgba(13,148,136,.32); }
+@media (max-width: 767px) { .chat-shell { padding:8px; } .chat-mobile-panel { border-radius:22px; border:1px solid rgba(255,255,255,.10); box-shadow:0 18px 48px rgba(2,6,23,.32); } }
 `;
 
 // ─── Sound Hook ──────────────────────────────────────────────────────────────
@@ -131,11 +146,11 @@ function Avatar({ name, size = "md", isGroup = false, online }: { name: string; 
   const grad = isGroup ? "from-teal-500 to-emerald-600" : gradients[name.charCodeAt(0) % gradients.length];
   return (
     <div className="relative flex-shrink-0">
-      <div className={`${sz} bg-gradient-to-br ${grad} rounded-full flex items-center justify-center text-white font-semibold shadow-sm`}>
+      <div className={`${sz} bg-gradient-to-br ${grad} rounded-full flex items-center justify-center text-white font-semibold shadow-lg ring-1 ring-white/20`}>
         {isGroup ? <Users size={size === "sm" ? 14 : size === "lg" ? 20 : 16} /> : getInitials(name)}
       </div>
       {online !== undefined && !isGroup && (
-        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-800 ${online ? "bg-emerald-400" : "bg-slate-500"}`} />
+        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-950 shadow-sm ${online ? "bg-emerald-400" : "bg-slate-500"}`} />
       )}
     </div>
   );
@@ -545,10 +560,9 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
   const otherName = isSystemMaintenance ? "Scheduled Maintenance" : (conv.otherWorker?.name || "Unknown");
 
   return (
-    <div className="flex flex-col h-full" style={{ background: threadBg }}>
+    <div className="chat-thread flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 py-3 flex items-center gap-3 flex-shrink-0 border-b border-white/10"
-        style={{ background: "rgba(15,23,42,.9)", backdropFilter: "blur(16px)" }}>
+      <div className="chat-thread-header px-4 py-3.5 flex items-center gap-3 flex-shrink-0 border-b border-white/10">
         {onBack && (
           <button onClick={onBack} className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors flex-shrink-0">
             <ArrowLeft size={16} className="text-slate-300" />
@@ -588,7 +602,7 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
       )}
 
       {/* Messages */}
-      <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-4 py-3 space-y-0.5">
+      <div ref={scrollContainerRef} onScroll={handleScroll} className="chat-message-canvas flex-1 overflow-y-auto px-4 py-4 space-y-0.5">
         {grouped.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-slate-500 py-12">
             <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
@@ -672,13 +686,12 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
       {replyTo && <ReplyPreview text={replyTo.text} senderName={replyTo.senderID === workerID ? "You" : otherName} onCancel={() => setReplyTo(null)} />}
 
       {/* Input */}
-      <div className="px-3 py-2 flex items-end gap-2 flex-shrink-0 border-t border-white/10"
-        style={{ background: "rgba(15,23,42,.9)", backdropFilter: "blur(16px)" }}>
-        <div className="flex-1 bg-white/10 border border-white/10 rounded-3xl px-4 py-2.5 focus-within:border-indigo-400/50 focus-within:bg-white/15 transition-all">
+      <div className="chat-composer px-3 py-3 flex items-end gap-2 flex-shrink-0 border-t border-white/10">
+        <div className="flex-1 bg-white/[0.07] border border-white/10 rounded-3xl px-4 py-2.5 shadow-inner focus-within:border-indigo-400/60 focus-within:bg-white/[0.12] transition-all">
           <AutoResizeInput inputRef={inputRef} value={text} onChange={setText} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
         </div>
         <button onClick={handleSend} disabled={!text.trim()}
-          className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:opacity-90 transition-opacity disabled:opacity-30 flex-shrink-0 self-end">
+          className="chat-send-button w-11 h-11 bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center text-white hover:brightness-110 transition-all disabled:opacity-30 flex-shrink-0 self-end">
           <Send size={17} />
         </button>
       </div>
@@ -784,10 +797,9 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
   const onlineCount = Object.values(onlineStatus as Record<string, { online: boolean }>).filter(s => s.online).length;
 
   return (
-    <div className="flex flex-col h-full" style={{ background: threadBg }}>
+    <div className="chat-thread flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 py-3 flex items-center gap-3 flex-shrink-0 border-b border-white/10"
-        style={{ background: "rgba(15,23,42,.9)", backdropFilter: "blur(16px)" }}>
+      <div className="chat-thread-header px-4 py-3.5 flex items-center gap-3 flex-shrink-0 border-b border-white/10">
         {onBack && (
           <button onClick={onBack} className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors flex-shrink-0">
             <ArrowLeft size={16} className="text-slate-300" />
@@ -822,7 +834,7 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
       )}
 
       {/* Messages */}
-      <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-4 py-3 space-y-0.5">
+      <div ref={scrollContainerRef} onScroll={handleScroll} className="chat-message-canvas flex-1 overflow-y-auto px-4 py-4 space-y-0.5">
         {grouped.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-slate-500 py-12">
             <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
@@ -920,13 +932,12 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
       {replyTo && <ReplyPreview text={replyTo.text} senderName={replyTo.senderID === workerID ? "You" : replyTo.senderName} onCancel={() => setReplyTo(null)} />}
 
       {/* Input */}
-      <div className="px-3 py-2 flex items-end gap-2 flex-shrink-0 border-t border-white/10"
-        style={{ background: "rgba(15,23,42,.9)", backdropFilter: "blur(16px)" }}>
-        <div className="flex-1 bg-white/10 border border-white/10 rounded-3xl px-4 py-2.5 focus-within:border-teal-400/50 focus-within:bg-white/15 transition-all">
+      <div className="chat-composer px-3 py-3 flex items-end gap-2 flex-shrink-0 border-t border-white/10">
+        <div className="flex-1 bg-white/[0.07] border border-white/10 rounded-3xl px-4 py-2.5 shadow-inner focus-within:border-teal-400/60 focus-within:bg-white/[0.12] transition-all">
           <AutoResizeInput inputRef={inputRef} value={text} onChange={setText} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
         </div>
         <button onClick={handleSend} disabled={!text.trim()}
-          className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full flex items-center justify-center text-white shadow-lg hover:opacity-90 transition-opacity disabled:opacity-30 flex-shrink-0 self-end">
+          className="chat-group-send-button w-11 h-11 bg-gradient-to-br from-teal-500 via-emerald-600 to-cyan-600 rounded-2xl flex items-center justify-center text-white hover:brightness-110 transition-all disabled:opacity-30 flex-shrink-0 self-end">
           <Send size={17} />
         </button>
       </div>
@@ -1002,20 +1013,22 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
   );
 
   return (
-    <div className="flex flex-col h-full" style={{ background: "linear-gradient(160deg,#0a0f1e 0%,#0d1b2a 100%)" }}>
+    <div className="chat-sidebar flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-white/10 flex-shrink-0"
-        style={{ background: "rgba(15,23,42,.9)", backdropFilter: "blur(16px)" }}>
+      <div className="chat-sidebar-head px-4 pt-4 pb-3 border-b border-white/10 flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-600 flex items-center justify-center shadow-lg shadow-indigo-950/50">
               <MessageCircle size={14} className="text-white" />
             </div>
-            <span className="font-bold text-white text-sm">Messages</span>
+            <div>
+              <span className="block font-bold text-white text-sm">Messages</span>
+              <span className="flex items-center gap-1 text-[10px] font-medium text-indigo-200/80"><Wifi size={9} className="text-emerald-300" /> Team inbox</span>
+            </div>
           </div>
           <div className="relative">
             <button onClick={() => setShowDropdown(v => !v)}
-              className="w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/30 hover:bg-indigo-500/30 flex items-center justify-center transition-colors" title="New">
+              className="w-8 h-8 rounded-xl bg-indigo-500/25 border border-indigo-300/25 hover:bg-indigo-500/40 flex items-center justify-center transition-colors shadow-lg shadow-indigo-950/30" title="New">
               <Plus size={14} className="text-indigo-300" />
             </button>
             {showDropdown && (
@@ -1037,7 +1050,7 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
           </div>
         </div>
         {/* Tabs */}
-        <div className="flex gap-1 bg-white/5 rounded-xl p-1">
+        <div className="flex gap-1 bg-slate-950/25 border border-white/10 rounded-xl p-1 shadow-inner">
           <button onClick={() => setTab("messages")}
             className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${tab === "messages" ? "bg-indigo-500/30 text-indigo-200 border border-indigo-500/30 shadow-sm" : "text-slate-400 hover:text-slate-300"}`}>
             Messages
@@ -1056,7 +1069,7 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder={tab === "messages" ? "Search conversations" : "Search groups"}
-            className="w-full pl-8 pr-3 py-2 bg-white/8 border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 outline-none focus:border-indigo-400/40 focus:bg-white/12 transition-all" />
+            className="w-full pl-8 pr-3 py-2.5 bg-white/[0.06] border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 outline-none shadow-inner focus:border-indigo-400/50 focus:bg-white/[0.1] transition-all" />
         </div>
       </div>
 
@@ -1079,7 +1092,7 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
             const partnerOnline = (onlineStatus as Record<string, { online: boolean }>)[conv.otherWorker?.workerID || ""]?.online;
             return (
               <button key={conv.id} onClick={() => onSelectDM(conv)}
-                className={`w-full flex items-center gap-3 px-4 py-3 border-b border-white/5 hover:bg-white/8 transition-colors text-left ${isSelected ? "bg-indigo-500/15 border-l-2 border-l-indigo-400" : ""}`}>
+                className={`chat-list-item w-full flex items-center gap-3 px-4 py-3.5 border-b border-white/5 hover:bg-white/[0.07] transition-colors text-left ${isSelected ? "bg-indigo-500/15 border-l-2 border-l-indigo-400" : ""}`}>
                 {isSystemConv
                   ? <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm"><BadgeCheck size={18} className="text-white" /></div>
                   : <Avatar name={name} online={partnerOnline} />}
@@ -1117,7 +1130,7 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
             const isSelected = selected?.type === "group" && selected.group.id === group.id;
             return (
               <button key={group.id} onClick={() => onSelectGroup(group)}
-                className={`w-full flex items-center gap-3 px-4 py-3 border-b border-white/5 hover:bg-white/8 transition-colors text-left ${isSelected ? "bg-teal-500/15 border-l-2 border-l-teal-400" : ""}`}>
+                className={`chat-list-item w-full flex items-center gap-3 px-4 py-3.5 border-b border-white/5 hover:bg-white/[0.07] transition-colors text-left ${isSelected ? "bg-teal-500/15 border-l-2 border-l-teal-400" : ""}`}>
                 <Avatar name={group.name} isGroup />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
@@ -1213,8 +1226,11 @@ export default function Chat() {
         <div className="absolute w-48 h-48 rounded-full opacity-5 chat-float" style={{ background: "radial-gradient(circle,#14b8a6,transparent)", bottom: "20%", right: "15%", animationDelay: "3s" }} />
       </div>
       <div className="relative z-10 text-center">
-        <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-5 mx-auto shadow-xl">
+        <div className="w-24 h-24 rounded-[28px] bg-gradient-to-br from-indigo-500/20 via-blue-500/10 to-cyan-400/10 border border-indigo-300/20 flex items-center justify-center mb-5 mx-auto shadow-xl shadow-indigo-950/30">
           <MessageCircle size={40} className="text-indigo-400 opacity-70" />
+        </div>
+        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-300/15 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-200">
+          <ShieldCheck size={12} /> Connected workspace
         </div>
         <p className="text-lg font-bold text-white mb-1">PP4 Messages</p>
         <p className="text-sm text-slate-400 mb-5">Select a conversation or start a new one</p>
@@ -1228,6 +1244,7 @@ export default function Chat() {
             <Users size={15} /> New Group
           </button>
         </div>
+        <p className="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-slate-500"><Sparkles size={12} className="text-indigo-400" /> Keep stock conversations in one focused place</p>
       </div>
     </div>
   ) : selected.type === "dm" ? (
@@ -1264,9 +1281,9 @@ export default function Chat() {
   return (
     <AppLayout pageTitle="Messages" headerActions={mobileHeaderActions} fullHeight>
       <style>{chatStyles}</style>
-      <div className="h-full flex overflow-hidden" style={{ background: threadBg }}>
+      <div className="chat-shell h-full flex overflow-hidden p-2 md:p-3">
         {/* Desktop/Tablet: Side-by-side */}
-        <div className="hidden md:flex w-full h-full">
+        <div className="hidden md:flex w-full h-full overflow-hidden rounded-[28px] border border-white/10 shadow-2xl shadow-slate-950/40">
           <div className="w-[340px] lg:w-[380px] xl:w-[420px] flex-shrink-0 border-r border-white/10 h-full overflow-hidden">
             <SidebarList {...sidebarProps} />
           </div>
@@ -1276,7 +1293,7 @@ export default function Chat() {
         </div>
 
         {/* Mobile: Single panel */}
-        <div className="flex md:hidden w-full h-full flex-col">
+        <div className="chat-mobile-panel flex md:hidden w-full h-full flex-col overflow-hidden">
           {mobileView === "list" ? (
             <SidebarList {...sidebarProps} />
           ) : selected?.type === "dm" ? (

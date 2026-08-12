@@ -1460,3 +1460,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## QR Scanner Adjustment Receipt
 - [x] Show a transaction-detail success receipt after a balance adjustment completes
+
+## Messages Experience Redesign
+- [x] Redesign the desktop and mobile Messages interface with a polished dark glassmorphism layout
+- [x] Improve conversation discovery, chat header, message bubbles, composer, and empty/loading states
