@@ -41,7 +41,7 @@ function calcBoardFit(prodW: number, prodL: number, jobW: number, jobL: number):
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
   qty: number; bqComment: string; status: "current" | "out_of_stock";
-  submittedBy: string | null; createdAt: Date; outOfStockAt?: Date | null;
+  submittedBy: string | null; createdAt: Date; outOfStockAt?: Date | null; submittedVia?: "manual" | "scanner";
 };
 /** Returns the estimated auto-delete date: outOfStockAt (or createdAt) + 13 months */
 function getAutoDeleteDate(order: Order): Date {
@@ -1150,6 +1150,98 @@ function RefreshButton({ onRefresh, size = 16 }: { onRefresh: () => void; size?:
   );
 }
 
+// ─── Production Order Detail Dialog ───────────────────────────────────────────
+function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => void }) {
+  const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery(
+    { orderId: order.id },
+    { enabled: order.status === "current" },
+  );
+  const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
+  const availableQty = Math.max(0, order.qty - inProcessQty);
+  const isScannerOrder = order.submittedVia === "scanner";
+  const statusColor = order.status === "current" ? "#34d399" : "#fb7185";
+
+  const detailItems = [
+    { label: "Production Order", value: order.orderID, mono: true },
+    { label: "Tracking ID", value: order.trackingId || "N/A", mono: true },
+    { label: "Flute Type", value: order.fluteType },
+    { label: "Board Size", value: `${order.sizeW} × ${order.sizeL} mm`, mono: true },
+    { label: "Current Qty", value: `${order.qty} pcs` },
+    { label: "Submitted By", value: order.submittedBy || "N/A", mono: true },
+    { label: "Added", value: new Date(order.createdAt).toLocaleString() },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/75 p-3 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
+      <div
+        className="max-h-[90vh] w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 bg-slate-900/95 shadow-2xl animate-in zoom-in-95 duration-200"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${order.orderID} order details`}
+        onClick={event => event.stopPropagation()}
+      >
+        <div className="relative overflow-hidden px-5 pb-5 pt-5" style={{ background: "linear-gradient(135deg, #172554, #312e81 55%, #0f766e)" }}>
+          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 85% 15%, #ffffff 0, transparent 27%)" }} />
+          <div className="relative flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white shadow-lg">
+                <Package size={21} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-indigo-200">Production Order Details</p>
+                <h2 className="mt-0.5 truncate text-lg font-black text-white">{order.orderID}</h2>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <span className="rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wide" style={{ background: `${statusColor}22`, border: `1px solid ${statusColor}55`, color: statusColor }}>
+                    {order.status === "current" ? "Current Stock" : "Out of Stock"}
+                  </span>
+                  {isScannerOrder && <span className="rounded-full border border-indigo-300/30 bg-indigo-300/15 px-2 py-0.5 text-[9px] font-black text-indigo-100">AI Scanned</span>}
+                </div>
+              </div>
+            </div>
+            <button type="button" onClick={onClose} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white/80 transition-colors hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/70" aria-label="Close order details">
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-[calc(90vh-145px)] overflow-y-auto p-5">
+          <div className="grid grid-cols-2 gap-2.5">
+            {detailItems.map(item => (
+              <div key={item.label} className="rounded-2xl border border-white/8 bg-white/[0.04] p-3">
+                <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">{item.label}</p>
+                <p className={`mt-1 break-words text-xs font-bold text-white ${item.mono ? "font-mono" : ""}`}>{item.value}</p>
+              </div>
+            ))}
+            {order.status === "current" && (
+              <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.08] p-3">
+                <p className="text-[9px] font-black uppercase tracking-[0.12em] text-emerald-300/70">Available Qty</p>
+                <p className="mt-1 text-xs font-black text-emerald-300">{availableQty} pcs</p>
+                {inProcessQty > 0 && <p className="mt-0.5 text-[9px] font-medium text-emerald-200/60">{inProcessQty} pcs in process</p>}
+              </div>
+            )}
+            {order.status === "out_of_stock" && order.outOfStockAt && (
+              <div className="rounded-2xl border border-rose-400/20 bg-rose-400/[0.08] p-3">
+                <p className="text-[9px] font-black uppercase tracking-[0.12em] text-rose-300/70">Out of Stock Since</p>
+                <p className="mt-1 text-xs font-bold text-rose-200">{new Date(order.outOfStockAt).toLocaleString()}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3 rounded-2xl border border-amber-300/15 bg-amber-300/[0.07] p-3.5">
+            <p className="text-[9px] font-black uppercase tracking-[0.12em] text-amber-200/70">BQ Comment</p>
+            <p className="mt-1.5 break-all font-mono text-xs font-bold leading-relaxed text-amber-100">{order.bqComment}</p>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.035] px-3.5 py-3">
+            <span className="text-[10px] font-bold text-slate-400">Submission method</span>
+            <span className="text-[10px] font-black text-white">{isScannerOrder ? "AI Label Scanner" : "Manual Entry"}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function StockHistory() {
 
   const { worker } = useAuth();
@@ -1161,6 +1253,7 @@ export default function StockHistory() {
   const [searchBQ, setSearchBQ] = useState("");
   const [usedUpdateOrder, setUsedUpdateOrder] = useState<Order | null>(null);
   const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
   const [showDeletePermissionDenied, setShowDeletePermissionDenied] = useState(false);
   const [autoDeleteSort, setAutoDeleteSort] = useState<"asc" | "desc" | null>(null);
   const [autoDeleteFilter, setAutoDeleteFilter] = useState<"all" | "critical" | "warning" | "normal">("all");
@@ -1381,7 +1474,7 @@ export default function StockHistory() {
                   {filtered.map(order => {
                     const isLowStock = activeTab === "current" && order.qty < LOW_STOCK_THRESHOLD;
                     return (
-                    <tr key={order.id} className={`border-b border-border hover:bg-gray-50 transition-colors ${isLowStock ? "bg-orange-50/40" : ""}`}>
+                    <tr key={order.id} onClick={() => setSelectedOrderDetails(order)} className={`cursor-pointer border-b border-border transition-colors hover:bg-indigo-50/60 ${isLowStock ? "bg-orange-50/40" : ""}`}>
                       <td className="py-3 pr-4">
                         <span className={`text-xs px-2 py-1 rounded font-mono font-bold ${
                           order.trackingId 
@@ -1437,22 +1530,25 @@ export default function StockHistory() {
                         <div className="flex items-center gap-2">
                           {activeTab === "current" && (
                             <button
-                              onClick={() => setUsedUpdateOrder(order)}
+                              onClick={event => { event.stopPropagation(); setUsedUpdateOrder(order); }}
                               className={`text-xs px-2.5 py-1 rounded-lg font-semibold hover:opacity-90 whitespace-nowrap ${(userLevel === "1" || userLevel === "1.1") ? "bg-orange-500 text-white" : "bg-primary text-white"}`}
                             >
                               Purchase Order
                             </button>
                           )}
-                          <A4Label
-                            orderId={order.orderID}
-                            trackingId={order.trackingId}
-                            orderQty={order.qty}
-                            masterCard={order.bqComment}
-                            boardSize={`${order.sizeW}×${order.sizeL}`}
-                            fluteType={order.fluteType}
-                            bqComment={order.bqComment}
-                          />
-                          <button onClick={() => {
+                          <div onClick={event => event.stopPropagation()}>
+                            <A4Label
+                              orderId={order.orderID}
+                              trackingId={order.trackingId}
+                              orderQty={order.qty}
+                              masterCard={order.bqComment}
+                              boardSize={`${order.sizeW}×${order.sizeL}`}
+                              fluteType={order.fluteType}
+                              bqComment={order.bqComment}
+                            />
+                          </div>
+                          <button onClick={event => {
+                            event.stopPropagation();
                             if (userLevel === "1") {
                               setShowDeletePermissionDenied(true);
                             } else {
@@ -1474,7 +1570,9 @@ export default function StockHistory() {
               {filtered.map(order => {
                 const isLowStock = activeTab === "current" && order.qty < LOW_STOCK_THRESHOLD;
                 return (
-                <div key={order.id} className="relative rounded-2xl overflow-hidden transition-all duration-200"
+                <div key={order.id} onClick={() => setSelectedOrderDetails(order)} role="button" tabIndex={0}
+                  onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedOrderDetails(order); } }}
+                  className="relative cursor-pointer overflow-hidden rounded-2xl transition-all duration-200 hover:-translate-y-0.5"
                   style={{
                     background: isLowStock ? "linear-gradient(135deg, rgba(255,237,213,0.9), rgba(254,243,199,0.8))" : "rgba(255,255,255,0.9)",
                     backdropFilter: "blur(16px)",
@@ -1497,7 +1595,8 @@ export default function StockHistory() {
                         <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full mt-0.5" style={{ background: "rgba(99,102,241,0.12)", color: "#6366f1", border: "1px solid rgba(99,102,241,0.2)" }}>📷 AI Scanned</span>
                       )}
                     </div>
-                    <button onClick={() => {
+                    <button onClick={event => {
+                      event.stopPropagation();
                       if (userLevel === "1") {
                         setShowDeletePermissionDenied(true);
                       } else {
@@ -1534,7 +1633,7 @@ export default function StockHistory() {
                   })()}
                   {activeTab === "current" && (
                     <button
-                      onClick={() => setUsedUpdateOrder(order)}
+                      onClick={event => { event.stopPropagation(); setUsedUpdateOrder(order); }}
                       className={`w-full text-white rounded-xl py-2.5 text-sm font-semibold hover:opacity-90 flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] ${(userLevel === "1" || userLevel === "1.1") ? "bg-gradient-to-r from-orange-500 to-amber-500" : "gspp-gradient"}`}
                     >
                       <><Zap size={14} /> Purchase Order</>
@@ -1550,6 +1649,7 @@ export default function StockHistory() {
       </main>
 
       {/* Dialogs: Level 1 gets request dialogs, Level 2 gets direct action dialogs */}
+      {selectedOrderDetails && <OrderDetailDialog order={selectedOrderDetails} onClose={() => setSelectedOrderDetails(null)} />}
       {usedUpdateOrder && userLevel === "2" && (
         <UsedUpdateDialog order={usedUpdateOrder} onClose={() => setUsedUpdateOrder(null)} onSuccess={() => setUsedUpdateOrder(null)} />
       )}

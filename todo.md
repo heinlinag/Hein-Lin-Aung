@@ -1441,3 +1441,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Mobile Home Stock Activity
 - [x] Show the latest 10 Stock History input/output activities in the mobile Home footer area
 - [x] Move system status, app version, and copyright below the mobile activity section
+
+## Stock History Order Details
+- [x] Open a complete production-order detail dialog when a Stock History row is selected
