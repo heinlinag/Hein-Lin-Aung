@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useRef, useEffect, useState } from "react";
 import {
   ClipboardList, Package, CheckCircle2, LogOut,
-  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell, FlaskConical, FileText, LifeBuoy, CircleHelp, Camera,
+  User, BookOpen, Activity, ChevronRight, X, Building2, IdCard, Shield, HelpCircle, ScanLine, Home, MessageCircle, Bell, FlaskConical, FileText, LifeBuoy, CircleHelp, Camera, MoreHorizontal,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -41,6 +41,14 @@ const RESOURCE_NAV_ITEMS: NavItem[] = [
   { href: "/faq",            label: "FAQ",               icon: <CircleHelp size={16} /> },
 ];
 
+const MOBILE_MORE_ITEMS: NavItem[] = [
+  { href: "/chat",         label: "Messages",      icon: <MessageCircle size={19} /> },
+  { href: "/user-profile", label: "My Profile",    icon: <User size={19} /> },
+  { href: "/docs",         label: "Documentation", icon: <BookOpen size={19} /> },
+  { href: "/help",         label: "Help Center",   icon: <LifeBuoy size={19} /> },
+  { href: "/faq",          label: "FAQ",           icon: <CircleHelp size={19} /> },
+];
+
 interface AppLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
@@ -72,6 +80,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
   const lv = levelLabel(userLevel);
 
   const [profileOpen, setProfileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   // Fetch profile picture & display name
@@ -160,6 +169,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
   const isActive = (href: string) => location === href;
   const goTo = (href: string) => { setProfileOpen(false); navigate(href); };
+  const isMoreActive = MOBILE_MORE_ITEMS.some(item => location === item.href);
 
   /* ── Profile Dropdown (light style for readability) ─────────────── */
   const ProfileDropdown = () => (
@@ -526,22 +536,62 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
         </main>
       </div>
 
+      {/* ── Mobile More Drawer ───────────────────────────────────── */}
+      {worker && moreOpen && (
+        <>
+          <button
+            aria-label="Close more navigation"
+            onClick={() => setMoreOpen(false)}
+            className="fixed inset-0 z-30 bg-slate-950/25 backdrop-blur-[1px] lg:hidden"
+          />
+          <section className="fixed inset-x-3 bottom-[72px] z-40 overflow-hidden rounded-3xl border border-white/80 bg-white/96 p-3 shadow-[0_14px_44px_rgba(15,23,42,0.2)] backdrop-blur-xl lg:hidden">
+            <div className="flex items-center justify-between px-1.5 pb-2.5">
+              <div>
+                <p className="text-sm font-black text-slate-800">More</p>
+                <p className="text-[10px] font-medium text-slate-400">Quick access to your account and support</p>
+              </div>
+              <button onClick={() => setMoreOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500" aria-label="Close more navigation">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {MOBILE_MORE_ITEMS.map(item => {
+                const active = location === item.href;
+                const badge = item.href === "/chat" ? unreadMsgCount : 0;
+                return (
+                  <button key={item.href} onClick={() => { setMoreOpen(false); navigate(item.href); }}
+                    className={`relative flex min-h-[74px] flex-col items-center justify-center gap-1 rounded-2xl border px-1.5 py-2 text-center transition-all active:scale-[0.98] ${
+                      active ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-slate-100 bg-slate-50 text-slate-600"
+                    }`}>
+                    <span className={`relative flex h-8 w-8 items-center justify-center rounded-xl ${active ? "bg-indigo-100" : "bg-white shadow-sm"}`}>
+                      {item.icon}
+                      {badge > 0 && <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white shadow-sm">{badge > 99 ? "99+" : badge}</span>}
+                    </span>
+                    <span className="line-clamp-2 text-[10px] font-bold leading-tight">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </>
+      )}
+
       {/* ── Mobile Bottom Navigation Bar ──────────────────────────── */}
       {worker && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200/80 bg-white/98 shadow-[0_-5px_20px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-white/98 shadow-[0_-5px_20px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <div className="flex h-[72px] items-stretch pb-[env(safe-area-inset-bottom)] sm:h-16 sm:pb-0">
             {[
               { href: "/",                       icon: <Home size={22} />,          label: "Home",   order: "order-1" },
               { href: "/submit-order/ai-scanner", icon: <Camera size={22} />,        label: "Add",    order: "order-2" },
               { href: "/stock-history",          icon: <Package size={22} />,       label: "Stock",  order: "order-3 sm:order-5" },
               { href: "/notifications",          icon: <Bell size={22} />,          label: "Alerts", order: "order-4", badge: unreadNotifCount },
-              { href: "/chat",                   icon: <MessageCircle size={22} />, label: "Chat",   order: "order-5 sm:order-3", badge: unreadMsgCount },
+              { href: "#more",                   icon: <MoreHorizontal size={23} />, label: "More",  order: "order-5 sm:order-3", isMore: true },
             ].map(item => {
-              const active = location === item.href;
+              const active = item.isMore ? isMoreActive || moreOpen : location === item.href;
               return (
                 <button
                   key={item.href}
-                  onClick={() => navigate(item.href)}
+                  onClick={() => item.isMore ? setMoreOpen(v => !v) : (setMoreOpen(false), navigate(item.href))}
                   className={`${item.order} relative flex flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ${
                     active ? "text-indigo-600" : "text-slate-400 hover:text-slate-600"
                   }`}

@@ -1414,3 +1414,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Mobile Stock Navigation
 - [x] Superseded by corrected requirement — retain the mobile Stock bottom navigation tab
 - [x] Hide the duplicate Stock History Quick Actions card below the sm breakpoint
+
+## Mobile More Navigation
+- [x] Hide Messages, My Profile, Documentation, Help Center, and FAQ Quick Actions below the sm breakpoint
+- [x] Replace the mobile Chat tab with a More drawer containing Messages, My Profile, Documentation, Help Center, and FAQ
