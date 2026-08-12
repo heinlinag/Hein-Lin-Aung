@@ -1406,3 +1406,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Mobile Notification Controls
 - [x] Hide the duplicate mobile header notification bell and retain the bottom Alerts tab
+
+## Mobile Bottom Navigation
+- [x] Swap the Stock and Chat tab positions in the mobile bottom navigation
+- [x] Refine mobile bottom navigation spacing, active state, and badge placement

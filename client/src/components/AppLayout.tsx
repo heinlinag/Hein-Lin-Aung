@@ -528,39 +528,41 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
       {/* ── Mobile Bottom Navigation Bar ──────────────────────────── */}
       {worker && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-gray-200/60 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]">
-          <div className="flex items-stretch h-16">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200/80 bg-white/98 shadow-[0_-5px_20px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="flex h-[72px] items-stretch pb-[env(safe-area-inset-bottom)] sm:h-16 sm:pb-0">
             {[
-              { href: "/",              icon: <Home size={20} />,          label: "Home" },
-              { href: "/submit-order/ai-scanner", icon: <Camera size={20} />, label: "Add" },
-              { href: "/chat",          icon: <MessageCircle size={20} />, label: "Chat",   badge: unreadMsgCount },
-              { href: "/notifications", icon: <Bell size={20} />,          label: "Alerts", badge: unreadNotifCount },
-              { href: "/stock-history", icon: <Package size={20} />,       label: "Stock" },
+              { href: "/",                       icon: <Home size={22} />,          label: "Home",   order: "order-1" },
+              { href: "/submit-order/ai-scanner", icon: <Camera size={22} />,        label: "Add",    order: "order-2" },
+              { href: "/stock-history",          icon: <Package size={22} />,       label: "Stock",  order: "order-3 sm:order-5" },
+              { href: "/notifications",          icon: <Bell size={22} />,          label: "Alerts", order: "order-4", badge: unreadNotifCount },
+              { href: "/chat",                   icon: <MessageCircle size={22} />, label: "Chat",   order: "order-5 sm:order-3", badge: unreadMsgCount },
             ].map(item => {
               const active = location === item.href;
               return (
                 <button
                   key={item.href}
                   onClick={() => navigate(item.href)}
-                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-all duration-200 ${
-                    active ? "text-indigo-600" : "text-gray-400 hover:text-gray-600"
+                  className={`${item.order} relative flex flex-1 flex-col items-center justify-center gap-1 transition-all duration-200 ${
+                    active ? "text-indigo-600" : "text-slate-400 hover:text-slate-600"
                   }`}
                 >
-                  <span className="relative">
+                  <span className={`relative flex h-8 w-9 items-center justify-center rounded-xl transition-all duration-200 ${
+                    active ? "bg-indigo-50 text-indigo-600" : "text-slate-400"
+                  }`}>
                     {item.icon}
                     {item.badge && item.badge > 0 ? (
-                      <span className={`absolute -top-1 -right-1.5 min-w-[15px] h-[15px] text-white text-[8px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm ${
-                        item.href === "/notifications" ? "bg-blue-500" : "bg-red-500"
-                      }`}>
+                      <span className={`absolute -top-1.5 -right-1.5 flex h-[19px] min-w-[19px] items-center justify-center rounded-full px-1 text-[9px] font-black text-white shadow-[0_2px_5px_rgba(15,23,42,0.2)] ${
+                         item.href === "/notifications" ? "bg-blue-500" : "bg-red-500"
+                       }`}>
                         {item.badge > 99 ? "99+" : item.badge}
                       </span>
                     ) : null}
                   </span>
-                  <span className={`text-[10px] font-medium leading-none ${active ? "text-indigo-600" : "text-gray-400"}`}>
+                  <span className={`text-[11px] font-semibold leading-none tracking-[-0.01em] ${active ? "text-indigo-600" : "text-slate-400"}`}>
                     {item.label}
                   </span>
                   {active && (
-                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-500 rounded-full" />
+                    <span className="absolute left-1/2 top-0 h-1 w-10 -translate-x-1/2 rounded-b-full bg-indigo-500 shadow-[0_2px_6px_rgba(99,102,241,0.45)]" />
                   )}
                 </button>
               );
