@@ -565,14 +565,14 @@ export default function QRScanner() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Note <span className="text-slate-600 font-normal normal-case">(optional)</span>
+                  Reason / Note <span className="text-slate-600 font-normal normal-case">(optional)</span>
                 </label>
                 <textarea
                   value={updateNote}
                   onChange={(e) => setUpdateNote(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-400 shadow-sm transition-all duration-200 resize-none"
                   rows={2}
-                  placeholder="Reason for balance update..."
+                  placeholder="Why is this balance being adjusted?"
                 />
               </div>
             </div>

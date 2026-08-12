@@ -16,4 +16,11 @@ describe("QR balance adjustment methods", () => {
   it("submits the correct adjustment source from QR Scanner mode or Manual Input mode", () => {
     expect(scannerSource).toContain('adjustmentMethod: manualInput ? "manual" : "scan"');
   });
+
+  it("persists the optional reason and makes the adjustment form clear about its purpose", () => {
+    expect(schemaSource).toContain('adjustmentNote: text("adjustmentNote")');
+    expect(routerSource).toContain("adjustmentNote: input.note?.trim() || null");
+    expect(scannerSource).toContain("Reason / Note");
+    expect(scannerSource).toContain("Why is this balance being adjusted?");
+  });
 });

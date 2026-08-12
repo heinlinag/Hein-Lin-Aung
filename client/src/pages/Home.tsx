@@ -349,6 +349,7 @@ export default function Home() {
           qty: Math.abs(quantityDelta),
           quantityDelta,
           details: `${source} · ${log.scannedByName}`,
+          reason: log.adjustmentNote?.trim() || null,
           createdAt: log.createdAt,
         };
       }),
@@ -782,6 +783,11 @@ export default function Home() {
                         </span>
                       </div>
                       <p className="mt-0.5 truncate text-[10px] font-medium text-slate-400">{activity.details}</p>
+                      {isAdjustment && (
+                        <p className={`mt-1 line-clamp-2 text-[10px] leading-relaxed ${activity.reason ? "text-slate-500" : "text-slate-400 italic"}`}>
+                          {activity.reason ? `Reason: ${activity.reason}` : "Reason: Not provided"}
+                        </p>
+                      )}
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="text-xs font-black" style={{ color: accent }}>{quantityPrefix}{activity.qty} pcs</p>

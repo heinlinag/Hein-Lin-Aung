@@ -22,6 +22,8 @@ describe("Mobile Home stock activity", () => {
     expect(homeSource).toContain('"QR / Barcode Scan"');
     expect(homeSource).toContain('"Manual Input"');
     expect(homeSource).toContain('const activityLabel = isInput ? "Input" : isAdjustment ? "Adjustment" : "Output"');
+    expect(homeSource).toContain("reason: log.adjustmentNote?.trim() || null");
+    expect(homeSource).toContain('Reason: ${activity.reason}');
   });
 
   it("renders a mobile-only combined Input/Output section limited to the latest ten entries", () => {
