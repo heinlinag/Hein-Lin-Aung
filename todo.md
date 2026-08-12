@@ -1511,3 +1511,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Worker Session Device Details
 - [x] Display active device identifiers, session status, and last activity in the Worker Session view
 - [x] Provide secure Admin controls to revoke a worker's active device session
+
+## Worker Session Sign-In Location
+- [x] Resolve and store IP-based geographical sign-in details for active worker device sessions
+- [x] Display detected country, region/city, and source IP in the Worker Session view

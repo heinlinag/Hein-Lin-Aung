@@ -121,6 +121,7 @@ export async function setWorkerActiveDevice(
   deviceToken: string,
   deviceName: string,
   deviceIP: string,
+  location: { country: string | null; region: string | null; city: string | null } = { country: null, region: null, city: null },
 ): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -129,6 +130,9 @@ export async function setWorkerActiveDevice(
     activeDeviceName: deviceName,
     activeDeviceIP: deviceIP,
     activeLoginAt: new Date(),
+    activeDeviceCountry: location.country,
+    activeDeviceRegion: location.region,
+    activeDeviceCity: location.city,
   }).where(eq(workers.workerID, workerID));
 }
 
@@ -141,6 +145,9 @@ export async function clearWorkerActiveDevice(workerID: string): Promise<void> {
     activeDeviceName: null,
     activeDeviceIP: null,
     activeLoginAt: null,
+    activeDeviceCountry: null,
+    activeDeviceRegion: null,
+    activeDeviceCity: null,
   }).where(eq(workers.workerID, workerID));
 }
 

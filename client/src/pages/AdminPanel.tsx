@@ -174,6 +174,9 @@ type Worker = {
   activeDeviceToken: string | null;
   activeDeviceName: string | null;
   activeDeviceIP: string | null;
+  activeDeviceCountry: string | null;
+  activeDeviceRegion: string | null;
+  activeDeviceCity: string | null;
   activeLoginAt: Date | null;
   lastSeenAt: Date | null;
   createdAt: Date;
@@ -368,6 +371,9 @@ function SwipeableWorkerCard({
             <>
               <p className="mt-1 truncate text-xs font-semibold text-slate-800">{w.activeDeviceName || "Unknown device"}</p>
               <p className="mt-0.5 truncate text-[10px] text-slate-500">{w.activeDeviceIP || "Unknown IP"} · {w.lastSeenAt ? `Last active ${new Date(w.lastSeenAt).toLocaleString()}` : "Session active"}</p>
+              {(w.activeDeviceCity || w.activeDeviceRegion || w.activeDeviceCountry) && (
+                <p className="mt-0.5 truncate text-[10px] font-medium text-indigo-700">Approx. location: {[w.activeDeviceCity, w.activeDeviceRegion, w.activeDeviceCountry].filter(Boolean).join(", ")}</p>
+              )}
               <button type="button" onClick={() => onRevokeDevice(w)} className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-red-600 hover:text-red-700">
                 <Ban size={12} /> Revoke session
               </button>
@@ -592,6 +598,9 @@ function WorkersTab() {
                             <span className="truncate text-xs font-semibold text-slate-800">{w.activeDeviceName || "Unknown device"}</span>
                           </div>
                           <p className="mt-0.5 truncate text-[10px] text-slate-500">{w.activeDeviceIP || "Unknown IP"}</p>
+                          {(w.activeDeviceCity || w.activeDeviceRegion || w.activeDeviceCountry) && (
+                            <p className="mt-0.5 truncate text-[10px] font-medium text-indigo-700">{[w.activeDeviceCity, w.activeDeviceRegion, w.activeDeviceCountry].filter(Boolean).join(", ")}</p>
+                          )}
                         </div>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400"><span className="h-2 w-2 rounded-full bg-slate-300" /> Offline</span>
@@ -691,6 +700,9 @@ function WorkersTab() {
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-sm font-bold text-slate-800">{revokeDeviceTarget.displayName || revokeDeviceTarget.name} · {revokeDeviceTarget.workerID}</p>
               <p className="mt-1 text-xs text-slate-500">{revokeDeviceTarget.activeDeviceName || "Unknown device"} · {revokeDeviceTarget.activeDeviceIP || "Unknown IP"}</p>
+              {(revokeDeviceTarget.activeDeviceCity || revokeDeviceTarget.activeDeviceRegion || revokeDeviceTarget.activeDeviceCountry) && (
+                <p className="mt-1 text-xs font-medium text-indigo-700">Approx. location: {[revokeDeviceTarget.activeDeviceCity, revokeDeviceTarget.activeDeviceRegion, revokeDeviceTarget.activeDeviceCountry].filter(Boolean).join(", ")}</p>
+              )}
               <p className="mt-1 text-xs text-slate-500">Last activity: {revokeDeviceTarget.lastSeenAt ? new Date(revokeDeviceTarget.lastSeenAt).toLocaleString() : "Unavailable"}</p>
             </div>
             <div className="mt-5 flex gap-3">

@@ -28,6 +28,9 @@ export const workers = mysqlTable("workers", {
   activeDeviceName: varchar("activeDeviceName", { length: 256 }),   // human-readable device name
   activeDeviceIP: varchar("activeDeviceIP", { length: 64 }),        // IP address of active session
   activeLoginAt: timestamp("activeLoginAt"),                         // when the active session started
+  activeDeviceCountry: varchar("activeDeviceCountry", { length: 128 }), // approximate IP geolocation country
+  activeDeviceRegion: varchar("activeDeviceRegion", { length: 128 }),   // approximate IP geolocation region/state
+  activeDeviceCity: varchar("activeDeviceCity", { length: 128 }),       // approximate IP geolocation city
   // Profile fields
   profilePicture: text("profilePicture"),             // S3 URL for profile picture
   displayName: varchar("displayName", { length: 128 }), // custom display name (editable, 7-day cooldown)

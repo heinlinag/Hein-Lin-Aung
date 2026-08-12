@@ -46,6 +46,7 @@ import {
 
 import { systemSettings, workers } from "../drizzle/schema";
 import { storagePut } from "./storage";
+import { resolveSignInLocation } from "./ipGeolocation";
 import { eq } from "drizzle-orm";
 
 const chatAttachmentInput = z.object({
@@ -99,7 +100,8 @@ export const appRouter = router({
         const oldDeviceIP = worker.activeDeviceIP ?? "Unknown IP";
         const wasDisplaced = !!worker.activeDeviceToken && worker.activeDeviceToken !== input.deviceToken;
         // Immediately overwrite session — no conflict dialog needed
-        await setWorkerActiveDevice(input.workerID, input.deviceToken, input.deviceName, ip);
+        const signInLocation = await resolveSignInLocation(ip);
+        await setWorkerActiveDevice(input.workerID, input.deviceToken, input.deviceName, ip, signInLocation);
         // Send security alert notification when an existing session was displaced
         if (wasDisplaced) {
           const { createAppNotification } = await import("./db");
@@ -140,7 +142,8 @@ export const appRouter = router({
         const oldDeviceName = worker.activeDeviceName ?? "Unknown Device";
         const oldDeviceIP = worker.activeDeviceIP ?? "Unknown IP";
         const wasForced = input.forceLogout && !!worker.activeDeviceToken && worker.activeDeviceToken !== input.deviceToken;
-        await setWorkerActiveDevice(input.workerID, input.deviceToken, input.deviceName, ip);
+        const signInLocation = await resolveSignInLocation(ip);
+        await setWorkerActiveDevice(input.workerID, input.deviceToken, input.deviceName, ip, signInLocation);
         // Send system alert notification when a session was force-logged-out
         if (wasForced) {
           const { createAppNotification } = await import("./db");
