@@ -55,6 +55,7 @@ interface AppLayoutProps {
   pageTitle?: string;
   headerActions?: React.ReactNode;
   fullHeight?: boolean;
+  hideAppHeader?: boolean;
 }
 
 function levelLabel(level: string) {
@@ -63,7 +64,7 @@ function levelLabel(level: string) {
   return                      { text: "Level 2",   bg: "bg-green-100",  fg: "text-green-700",  badge: "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30", badgeLight: "bg-green-200 text-green-700" };
 }
 
-export default function AppLayout({ children, pageTitle, headerActions, fullHeight }: AppLayoutProps) {
+export default function AppLayout({ children, pageTitle, headerActions, fullHeight, hideAppHeader = false }: AppLayoutProps) {
   const [location, navigate] = useLocation();
   const { worker, logoutWorker } = useAuth();
   // Register push notifications on every page load (uses correct VAPID key from server)
@@ -420,7 +421,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
       {/* ── Main content area ──────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile/Tablet top header */}
-        <header className={`${fullHeight ? "flex" : "lg:hidden"} border-b border-gray-200/60 bg-white/95 backdrop-blur-md sticky top-0 z-20 shadow-sm`}>
+        {!hideAppHeader && <header className={`${fullHeight ? "flex" : "lg:hidden"} border-b border-gray-200/60 bg-white/95 backdrop-blur-md sticky top-0 z-20 shadow-sm`}>
           <div className="px-3 py-2 flex items-center gap-2">
             <button onClick={() => navigate("/")} className="p-1 -ml-1 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center shadow-sm">
@@ -466,7 +467,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               </div>
             )}
           </div>
-        </header>
+        </header>}
 
         {/* Desktop page title bar */}
         {pageTitle && !fullHeight && (

@@ -1437,7 +1437,7 @@ export default function Chat() {
   );
 
   return (
-    <AppLayout pageTitle="Messages" headerActions={mobileHeaderActions} fullHeight>
+    <AppLayout pageTitle="Messages" headerActions={mobileHeaderActions} fullHeight hideAppHeader>
       <style>{chatStyles}</style>
       <div className="chat-shell h-full flex overflow-hidden p-2 md:p-3">
         {/* Desktop/Tablet: Side-by-side */}

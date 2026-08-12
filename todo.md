@@ -1467,3 +1467,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Message Attachments
 - [x] Add secure file attachments with preview, upload progress, and download support to direct and group messages
+
+## Messages Header Focus
+- [x] Hide the shared application header on the Messages page only

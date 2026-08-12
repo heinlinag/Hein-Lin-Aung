@@ -6,6 +6,10 @@ const chatSource = readFileSync(
   resolve(process.cwd(), "client/src/pages/Chat.tsx"),
   "utf8",
 );
+const layoutSource = readFileSync(
+  resolve(process.cwd(), "client/src/components/AppLayout.tsx"),
+  "utf8",
+);
 
 describe("Messages interface redesign", () => {
   it("provides a responsive dark-glass desktop workspace and mobile panel", () => {
@@ -29,5 +33,12 @@ describe("Messages interface redesign", () => {
     expect(chatSource).toContain("chat-composer");
     expect(chatSource).toContain("chat-send-button");
     expect(chatSource).toContain("chat-group-send-button");
+  });
+
+  it("hides only the shared application header for the Messages workspace", () => {
+    expect(chatSource).toContain("<AppLayout pageTitle=\"Messages\" headerActions={mobileHeaderActions} fullHeight hideAppHeader>");
+    expect(layoutSource).toContain("hideAppHeader?: boolean;");
+    expect(layoutSource).toContain("hideAppHeader = false");
+    expect(layoutSource).toContain("!hideAppHeader && <header");
   });
 });
