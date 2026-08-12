@@ -42,7 +42,7 @@ const RESOURCE_NAV_ITEMS: NavItem[] = [
 ];
 
 const MOBILE_MORE_ITEMS: NavItem[] = [
-  { href: "/chat",         label: "Messages",      icon: <MessageCircle size={19} /> },
+  { href: "/notifications", label: "Alerts",        icon: <Bell size={19} /> },
   { href: "/user-profile", label: "My Profile",    icon: <User size={19} /> },
   { href: "/docs",         label: "Documentation", icon: <BookOpen size={19} /> },
   { href: "/help",         label: "Help Center",   icon: <LifeBuoy size={19} /> },
@@ -520,7 +520,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
             <div className="grid grid-cols-3 gap-2">
               {MOBILE_MORE_ITEMS.map((item, index) => {
                 const active = location === item.href;
-                const badge = item.href === "/chat" ? unreadMsgCount : 0;
+                const badge = item.href === "/notifications" ? unreadNotifCount : 0;
                 const isSystemStatus = item.href === "/status";
                 return (
                   <button key={item.href} onClick={() => { closeMore(); navigate(item.href); }}
@@ -582,7 +582,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               { href: "/",                       icon: <Home size={22} />,          label: "Home",   order: "order-1" },
               { href: "/submit-order/ai-scanner", icon: <Camera size={22} />,        label: "Add",    order: "order-2" },
               { href: "/stock-history",          icon: <Package size={22} />,       label: "Stock",  order: "order-3 sm:order-5" },
-              { href: "/notifications",          icon: <Bell size={22} />,          label: "Alerts", order: "order-4", badge: unreadNotifCount },
+              { href: "/chat",                   icon: <MessageCircle size={22} />, label: "Messages", order: "order-4", badge: unreadMsgCount },
               { href: "#more",                   icon: <MoreHorizontal size={23} />, label: "More",  order: "order-5 sm:order-3", isMore: true },
             ].map(item => {
               const active = item.isMore ? isMoreActive || moreOpen : location === item.href;

@@ -1473,3 +1473,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Messages Send Alert Dialog
 - [x] Fix mobile Send Alert dialog layering so the chat thread cannot overlap it
+
+## Mobile Navigation Order
+- [x] Move Messages into the mobile bottom navigation Alerts position
+- [x] Replace the More drawer Messages shortcut with Alerts and retain its notification badge

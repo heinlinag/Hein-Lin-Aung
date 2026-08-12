@@ -12,13 +12,15 @@ const homeSource = readFileSync(
 );
 
 describe("Mobile More navigation", () => {
-  it("replaces the bottom Chat tab with a More control and exposes secondary destinations", () => {
+  it("keeps Alerts in More while exposing Messages directly in the mobile bottom navigation", () => {
     expect(appLayoutSource).toContain('href: "#more"');
     expect(appLayoutSource).toContain('label: "More"');
     expect(appLayoutSource).toContain("MOBILE_MORE_ITEMS");
-    for (const href of ["/chat", "/user-profile", "/docs", "/help", "/faq", "/status"]) {
+    for (const href of ["/notifications", "/user-profile", "/docs", "/help", "/faq", "/status"]) {
       expect(appLayoutSource).toContain(`href: "${href}"`);
     }
+    expect(appLayoutSource).toContain('href: "/chat",                   icon: <MessageCircle size={22} />, label: "Messages", order: "order-4", badge: unreadMsgCount');
+    expect(appLayoutSource).toContain('const badge = item.href === "/notifications" ? unreadNotifCount : 0;');
     expect(appLayoutSource).toContain("System Status");
     expect(appLayoutSource).toContain("closeMore(); handleLogout();");
   });
