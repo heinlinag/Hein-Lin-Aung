@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import {
   ClipboardList, Camera, Package, CheckCircle2, Bell, X, ScanLine, ArrowRight,
-  Activity, MessageCircle, FlaskConical, Info, Zap, TrendingUp,
+  Activity, MessageCircle, FlaskConical, Info, Zap, TrendingUp, ArrowDownLeft, ArrowUpRight,
   Users, BarChart3, Clock, Sparkles, User, BookOpen, LifeBuoy, CircleHelp,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -308,8 +308,40 @@ export default function Home() {
 
   const stockCurrentQuery = trpc.orders.list.useQuery({ status: "current" }, { refetchInterval: 60000 });
   const stockOutQuery = trpc.orders.list.useQuery({ status: "out_of_stock" }, { refetchInterval: 60000 });
+  const stockActivityOrdersQuery = trpc.orders.list.useQuery({}, { refetchInterval: 30000 });
+  const stockActivityUsageQuery = trpc.orders.getUsage.useQuery(undefined, { refetchInterval: 30000 });
   const stockCurrentCount = stockCurrentQuery.data?.length ?? 0;
   const stockOutCount = stockOutQuery.data?.length ?? 0;
+
+  const recentStockActivity = [
+    ...(stockActivityOrdersQuery.data ?? []).map(order => ({
+      id: `input-${order.id}`,
+      type: "input" as const,
+      orderID: order.orderID,
+      qty: order.qty,
+      details: `${order.fluteType} · ${order.sizeW}×${order.sizeL} mm`,
+      createdAt: order.createdAt,
+    })),
+    ...(stockActivityUsageQuery.data ?? []).map(entry => ({
+      id: `output-${entry.id}`,
+      type: "output" as const,
+      orderID: entry.orderID,
+      qty: entry.usedQty,
+      details: entry.purpose === "job" ? `Job ${entry.jobNo ?? "N/A"}` : "Old Stock",
+      createdAt: entry.createdAt,
+    })),
+  ]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 10);
+
+  const formatActivityTime = (timestamp: Date) => {
+    const elapsedMinutes = Math.max(0, Math.floor((Date.now() - new Date(timestamp).getTime()) / 60_000));
+    if (elapsedMinutes < 1) return "Just now";
+    if (elapsedMinutes < 60) return `${elapsedMinutes}m ago`;
+    const elapsedHours = Math.floor(elapsedMinutes / 60);
+    if (elapsedHours < 24) return `${elapsedHours}h ago`;
+    return new Date(timestamp).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+  };
 
   const samplePendingQuery = trpc.customerSamples.list.useQuery({ status: "pending" }, { refetchInterval: 30000 });
   const sampleProgressQuery = trpc.customerSamples.list.useQuery({ status: "progress" }, { refetchInterval: 30000 });
@@ -660,6 +692,88 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* ── Mobile: Recent Stock Input / Output ────────────────────────────── */}
+      <section className="sm:hidden px-4 pb-5" aria-labelledby="recent-stock-activity-title">
+        <div
+          className="overflow-hidden rounded-2xl"
+          style={{
+            background: "rgba(255,255,255,0.86)",
+            backdropFilter: "blur(18px)",
+            border: "1px solid rgba(226,232,240,0.8)",
+            boxShadow: "0 8px 28px rgba(15,23,42,0.06)",
+          }}
+        >
+          <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: "linear-gradient(135deg, #0ea5a6, #14b8a6)" }}>
+                <Activity size={15} className="text-white" />
+              </div>
+              <div>
+                <h2 id="recent-stock-activity-title" className="text-sm font-black text-slate-900">Stock Input / Output</h2>
+                <p className="text-[10px] font-medium text-slate-400">Latest Stock History activity</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/stock-history")}
+              className="rounded-lg px-2 py-1 text-[10px] font-black text-indigo-600 transition-colors hover:bg-indigo-50"
+            >
+              Last 10
+            </button>
+          </div>
+
+          {stockActivityOrdersQuery.isLoading || stockActivityUsageQuery.isLoading ? (
+            <div className="space-y-3 px-4 py-4">
+              {[0, 1, 2].map(index => <div key={index} className="h-10 animate-pulse rounded-xl bg-slate-100" />)}
+            </div>
+          ) : recentStockActivity.length > 0 ? (
+            <div className="divide-y divide-slate-100">
+              {recentStockActivity.map(activity => {
+                const isInput = activity.type === "input";
+                const accent = isInput ? "#0f9f8e" : "#f43f5e";
+                return (
+                  <button
+                    type="button"
+                    key={activity.id}
+                    onClick={() => navigate("/stock-history")}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 active:bg-slate-100"
+                  >
+                    <div
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
+                      style={{ background: isInput ? "rgba(16,185,129,0.12)" : "rgba(244,63,94,0.12)", color: accent }}
+                    >
+                      {isInput ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-xs font-black text-slate-800">{activity.orderID}</p>
+                        <span
+                          className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide"
+                          style={{ background: isInput ? "rgba(16,185,129,0.10)" : "rgba(244,63,94,0.10)", color: accent }}
+                        >
+                          {isInput ? "Input" : "Output"}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 truncate text-[10px] font-medium text-slate-400">{activity.details}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-xs font-black" style={{ color: accent }}>{isInput ? "+" : "−"}{activity.qty} pcs</p>
+                      <p className="mt-0.5 text-[9px] font-medium text-slate-400">{formatActivityTime(activity.createdAt)}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="px-4 py-7 text-center">
+              <Activity size={20} className="mx-auto mb-2 text-slate-300" />
+              <p className="text-xs font-bold text-slate-500">No stock input or output yet</p>
+              <p className="mt-1 text-[10px] text-slate-400">New stock and usage updates will appear here.</p>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* ── System Status Bar ────────────────────────────────────────────── */}
       <div className="px-4 lg:px-8 pb-6">

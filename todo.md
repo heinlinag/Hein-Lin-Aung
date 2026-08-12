@@ -1437,3 +1437,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Admin Workers Desktop Identity
 - [x] Display each worker's profile picture or fallback avatar in the desktop Admin Workers table
 - [x] Open a full-size profile image preview when an Admin clicks a worker photo in the desktop table
+
+## Mobile Home Stock Activity
+- [x] Show the latest 10 Stock History input/output activities in the mobile Home footer area
+- [x] Move system status, app version, and copyright below the mobile activity section
