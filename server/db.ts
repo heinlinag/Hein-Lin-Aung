@@ -130,6 +130,7 @@ export async function setWorkerActiveDevice(
     activeDeviceName: deviceName,
     activeDeviceIP: deviceIP,
     activeLoginAt: new Date(),
+    lastLoginAt: new Date(),
     activeDeviceCountry: location.country,
     activeDeviceRegion: location.region,
     activeDeviceCity: location.city,
@@ -149,6 +150,72 @@ export async function clearWorkerActiveDevice(workerID: string): Promise<void> {
     activeDeviceRegion: null,
     activeDeviceCity: null,
   }).where(eq(workers.workerID, workerID));
+}
+
+export const INACTIVITY_SUSPENSION_DAYS = 30;
+export const INACTIVITY_SUSPENSION_REASON = "Automatically suspended after 30 days without a successful login.";
+
+/** Suspend workers whose successful login is at least 30 days old (or who never signed in). */
+export async function suspendInactiveWorkers(now: Date = new Date()): Promise<{ suspendedCount: number; workerIDs: string[] }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const cutoff = new Date(now.getTime() - INACTIVITY_SUSPENSION_DAYS * 24 * 60 * 60 * 1000);
+  const inactiveWorkers = await db.select().from(workers).where(and(
+    eq(workers.accountStatus, "active"),
+    or(
+      lte(workers.lastLoginAt, cutoff),
+      and(isNull(workers.lastLoginAt), lte(workers.createdAt, cutoff)),
+    ),
+  ));
+
+  for (const worker of inactiveWorkers) {
+    await db.update(workers).set({
+      accountStatus: "suspended",
+      suspendedAt: now,
+      suspensionReason: INACTIVITY_SUSPENSION_REASON,
+      activeDeviceToken: null,
+      activeDeviceName: null,
+      activeDeviceIP: null,
+      activeLoginAt: null,
+      activeDeviceCountry: null,
+      activeDeviceRegion: null,
+      activeDeviceCity: null,
+    }).where(eq(workers.id, worker.id));
+    await createAuditLog({
+      workerID: worker.workerID,
+      workerName: worker.displayName || worker.name,
+      department: worker.department,
+      action: "account_suspended_inactive",
+      oldValue: worker.lastLoginAt ? worker.lastLoginAt.toISOString() : "Never signed in",
+      newValue: INACTIVITY_SUSPENSION_REASON,
+      ipAddress: worker.activeDeviceIP,
+    });
+  }
+  return { suspendedCount: inactiveWorkers.length, workerIDs: inactiveWorkers.map(worker => worker.workerID) };
+}
+
+/** Restore a suspended worker account and grant a new 30-day login window. */
+export async function reactivateWorkerAccount(workerID: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const worker = await getWorkerByWorkerID(workerID);
+  if (!worker) throw new Error("Worker not found");
+  const now = new Date();
+  await db.update(workers).set({
+    accountStatus: "active",
+    suspendedAt: null,
+    suspensionReason: null,
+    lastLoginAt: now,
+  }).where(eq(workers.workerID, workerID));
+  await createAuditLog({
+    workerID: worker.workerID,
+    workerName: worker.displayName || worker.name,
+    department: worker.department,
+    action: "account_reactivated",
+    oldValue: worker.suspensionReason || INACTIVITY_SUSPENSION_REASON,
+    newValue: "Reactivated by Administrator",
+    ipAddress: null,
+  });
 }
 
 // ─── Orders ──────────────────────────────────────────────────────────────────

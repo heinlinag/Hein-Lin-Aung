@@ -193,6 +193,10 @@ type Worker = {
   activeDeviceRegion: string | null;
   activeDeviceCity: string | null;
   activeLoginAt: Date | null;
+  accountStatus: "active" | "suspended";
+  lastLoginAt: Date | null;
+  suspendedAt: Date | null;
+  suspensionReason: string | null;
   lastSeenAt: Date | null;
   createdAt: Date;
 };
@@ -220,11 +224,13 @@ function SwipeableWorkerCard({
   onEdit,
   onDelete,
   onRevokeDevice,
+  onReactivate,
 }: {
   w: Worker;
   onEdit: (w: Worker) => void;
   onDelete: (w: Worker) => void;
   onRevokeDevice: (w: Worker) => void;
+  onReactivate: (w: Worker) => void;
 }) {
   const REVEAL_WIDTH = 130; // px — total width of both action buttons
   const SWIPE_THRESHOLD = 40; // px — minimum drag to trigger reveal
@@ -394,6 +400,16 @@ function SwipeableWorkerCard({
           <span className="text-slate-400 text-xs">User Level</span>
           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${w.userLevel === "1" ? "bg-orange-500/20 text-orange-300 border-orange-500/30" : w.userLevel === "1.1" ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : "bg-green-500/20 text-green-300 border-green-500/30"}`}>Level {w.userLevel}</span>
         </div>
+        <div className="mt-2 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+          <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Account</span>
+          {w.accountStatus === "suspended" ? (
+            <button type="button" onClick={() => onReactivate(w)} className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-800 hover:bg-amber-200">
+              <ShieldAlert size={11} /> Suspended · Reactivate
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black text-emerald-700"><CheckCircle2 size={11} /> Active</span>
+          )}
+        </div>
         <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Active device</span>
@@ -439,6 +455,7 @@ function WorkersTab() {
   const [deleteVerifyPassword, setDeleteVerifyPassword] = useState("");
   const [profilePreview, setProfilePreview] = useState<Worker | null>(null);
   const [revokeDeviceTarget, setRevokeDeviceTarget] = useState<Worker | null>(null);
+  const [reactivateTarget, setReactivateTarget] = useState<Worker | null>(null);
 
   // Edit state
   const [editTarget, setEditTarget] = useState<Worker | null>(null);
@@ -454,6 +471,7 @@ function WorkersTab() {
   const deleteWorker = trpc.workers.delete.useMutation();
   const updateWorker = trpc.workers.update.useMutation();
   const revokeDevice = trpc.workers.revokeDevice.useMutation();
+  const reactivateAccount = trpc.workers.reactivateAccount.useMutation();
 
   const openEdit = (w: Worker) => {
     setEditTarget(w);
@@ -553,6 +571,19 @@ function WorkersTab() {
     }
   };
 
+  const handleReactivateAccount = async () => {
+    if (!reactivateTarget) return;
+    try {
+      const result = await reactivateAccount.mutateAsync({ workerID: reactivateTarget.workerID, adminPassword: getAdminPassword() });
+      toast.success(result.alreadyActive ? "Worker account is already active." : `Account reactivated for ${reactivateTarget.displayName || reactivateTarget.name}.`);
+      utils.workers.list.invalidate();
+      setReactivateTarget(null);
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Failed to reactivate worker account.");
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -585,6 +616,7 @@ function WorkersTab() {
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Name</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Department</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Level</th>
+                  <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Account</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Active Device</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3 pr-4">Last Activity</th>
                   <th className="text-xs font-semibold text-muted-foreground text-left pb-3">Action</th>
@@ -624,6 +656,16 @@ function WorkersTab() {
                     </td>
                     <td className="py-3 pr-4">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.userLevel === "1" ? "bg-orange-100 text-orange-700" : w.userLevel === "1.1" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>Lv.{w.userLevel}</span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      {w.accountStatus === "suspended" ? (
+                        <button onClick={() => setReactivateTarget(w)} className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[10px] font-black text-amber-800 transition-colors hover:bg-amber-200" title="Reactivate suspended account">
+                          <ShieldAlert size={12} /> Suspended
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black text-emerald-700"><CheckCircle2 size={12} /> Active</span>
+                      )}
+                      {w.lastLoginAt && <p className="mt-1 text-[10px] text-slate-500">Login {new Date(w.lastLoginAt).toLocaleDateString()}</p>}
                     </td>
                     <td className="py-3 pr-4">
                       {w.activeDeviceToken ? (
@@ -674,6 +716,7 @@ function WorkersTab() {
                 onEdit={openEdit}
                 onDelete={setDeleteTarget}
                 onRevokeDevice={setRevokeDeviceTarget}
+                onReactivate={setReactivateTarget}
               />
             ))}
           </div>
@@ -748,6 +791,31 @@ function WorkersTab() {
             </div>
           </div>
         </div>
+      )}
+
+      {reactivateTarget && (
+        <StableAdminModalLayer>
+          <div role="dialog" aria-modal="true" aria-label="Reactivate worker account" className="relative my-auto w-full max-w-md rounded-2xl border border-amber-200 bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700"><ShieldAlert size={21} /></div>
+              <div>
+                <h3 className="text-base font-black text-slate-950">Reactivate Employee ID?</h3>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">This restores login access and starts a new 30-day inactivity period. The worker should sign in again after reactivation.</p>
+              </div>
+            </div>
+            <div className="rounded-xl border border-amber-100 bg-amber-50 p-3">
+              <p className="text-sm font-bold text-amber-950">{reactivateTarget.displayName || reactivateTarget.name} · {reactivateTarget.workerID}</p>
+              <p className="mt-1 text-xs text-amber-800">{reactivateTarget.suspensionReason || "Suspended due to prolonged inactivity."}</p>
+              {reactivateTarget.suspendedAt && <p className="mt-1 text-xs text-amber-700">Suspended {new Date(reactivateTarget.suspendedAt).toLocaleString()}</p>}
+            </div>
+            <div className="mt-5 flex gap-3">
+              <button type="button" onClick={() => setReactivateTarget(null)} className="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50">Cancel</button>
+              <button type="button" disabled={reactivateAccount.isPending} onClick={handleReactivateAccount} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60">
+                {reactivateAccount.isPending ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />} Reactivate
+              </button>
+            </div>
+          </div>
+        </StableAdminModalLayer>
       )}
 
       {/* Add Worker Dialog */}

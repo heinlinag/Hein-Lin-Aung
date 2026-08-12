@@ -1528,3 +1528,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Admin Modal Standardization
 - [x] Move Add Worker, Edit Worker, Delete Worker, and Delete Order flows to the stable Used Update modal pattern
 - [x] Verify flicker-free viewport sizing, scrolling, stacking, and action visibility across mobile, tablet, laptop, desktop, and wide desktop
+
+## Inactive Worker Suspension
+- [x] Automatically suspend a worker Employee ID after 30 days without a successful login
+- [x] Block suspended worker login with clear Administrator reactivation guidance
+- [x] Enable secure Admin Panel reactivation and record suspension/reactivation activity
+- [ ] Run the selected daily automatic inactivity evaluation and add regression coverage for the full policy

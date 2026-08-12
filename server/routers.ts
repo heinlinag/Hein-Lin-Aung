@@ -13,6 +13,7 @@ import {
   createWorker,
   deleteWorker,
   updateWorkerById,
+  reactivateWorkerAccount,
   setWorkerActiveDevice,
   clearWorkerActiveDevice,
   getAllOrders,
@@ -91,6 +92,9 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
+        if (worker.accountStatus === "suspended") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This Employee ID is suspended after 30 days without login. Please contact your Administrator to reactivate your account." });
+        }
         const ip = (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
           || ctx.req.socket?.remoteAddress
           || input.deviceIP
@@ -134,6 +138,9 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         const worker = await getWorkerByWorkerID(input.workerID);
         if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
+        if (worker.accountStatus === "suspended") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This Employee ID is suspended after 30 days without login. Please contact your Administrator to reactivate your account." });
+        }
         const ip = (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
           || ctx.req.socket?.remoteAddress
           || input.deviceIP
@@ -195,6 +202,22 @@ export const appRouter = router({
           });
         }
         return { success: true, hadActiveSession };
+      }),
+
+    /** Administrator action: restore an account automatically suspended for inactivity. */
+    reactivateAccount: publicProcedure
+      .input(z.object({ workerID: z.string().min(1), adminPassword: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        const effectivePw = await getEffectiveAdminPassword(db);
+        if (input.adminPassword !== effectivePw) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Invalid admin password" });
+        }
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Employee ID not found" });
+        if (worker.accountStatus !== "suspended") return { success: true, alreadyActive: true };
+        await reactivateWorkerAccount(input.workerID);
+        return { success: true, alreadyActive: false };
       }),
 
     verify: publicProcedure

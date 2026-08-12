@@ -314,6 +314,8 @@ export default function Login() {
     }
   };
 
+  const isSuspendedAccountError = error.toLowerCase().includes("suspended");
+
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col"
       style={{ background: "linear-gradient(135deg, #f8faff 0%, #eef2ff 40%, #f0f7ff 70%, #f5f3ff 100%)" }}>
@@ -486,11 +488,14 @@ export default function Login() {
                 {/* Error */}
                 {error && (
                   <div className="flex items-start gap-3 rounded-2xl px-4 py-3.5 anim-fade-in"
-                    style={{ background: "rgba(254,242,242,0.9)", border: "1px solid rgba(252,165,165,0.5)" }}>
-                    <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
-                      <span className="text-red-500 text-xs font-bold">!</span>
+                    style={{ background: isSuspendedAccountError ? "rgba(255,251,235,0.96)" : "rgba(254,242,242,0.9)", border: isSuspendedAccountError ? "1px solid rgba(251,191,36,0.45)" : "1px solid rgba(252,165,165,0.5)" }}>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${isSuspendedAccountError ? "bg-amber-100" : "bg-red-100"}`}>
+                      {isSuspendedAccountError ? <ShieldAlert size={12} className="text-amber-600" /> : <span className="text-red-500 text-xs font-bold">!</span>}
                     </div>
-                    <p className="text-red-600 text-sm font-medium leading-snug">{error}</p>
+                    <div>
+                      <p className={`text-sm font-bold leading-snug ${isSuspendedAccountError ? "text-amber-800" : "text-red-600"}`}>{error}</p>
+                      {isSuspendedAccountError && <p className="mt-1 text-xs leading-relaxed text-amber-700">Please contact your Administrator to reactivate this Employee ID, then sign in again.</p>}
+                    </div>
                   </div>
                 )}
 

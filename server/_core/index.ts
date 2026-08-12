@@ -8,10 +8,11 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { getDb, getWorkerByWorkerID } from "../db";
+import { getDb, getWorkerByWorkerID, suspendInactiveWorkers } from "../db";
 import { systemSettings } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import multer from "multer";
+import { sdk } from "./sdk";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -229,6 +230,35 @@ async function startServer() {
     } catch (err) {
       console.error("[Scheduled] cleanup-out-of-stock error:", err);
       return res.status(500).json({ error: String(err), stack: String((err as Error).stack), timestamp: new Date().toISOString() });
+    }
+  });
+
+  // ─── Daily Inactive Worker Suspension ──────────────────────────────────────
+  // Heartbeat-only and idempotent: workers inactive for 30+ days are suspended.
+  app.post("/api/scheduled/suspend-inactive-workers", async (req, res) => {
+    try {
+      const cronUser = await sdk.authenticateRequest(req);
+      if (!cronUser.isCron || !cronUser.taskUid) {
+        return res.status(403).json({ error: "cron-only" });
+      }
+      const db = await getDb();
+      if (!db) return res.status(500).json({ error: "DB unavailable", timestamp: new Date().toISOString() });
+      const [schedule] = await db.select().from(systemSettings)
+        .where(eq(systemSettings.key, "inactiveWorkerSuspensionTaskUid")).limit(1);
+      if (!schedule?.value || schedule.value !== cronUser.taskUid) {
+        return res.json({ ok: true, skipped: "orphan-or-unconfigured", taskUid: cronUser.taskUid });
+      }
+      const result = await suspendInactiveWorkers();
+      console.log(`[Scheduled] suspend-inactive-workers: suspended ${result.suspendedCount} worker(s)`);
+      return res.json({ ok: true, ...result, timestamp: new Date().toISOString() });
+    } catch (err) {
+      console.error("[Scheduled] suspend-inactive-workers error:", err);
+      return res.status(500).json({
+        error: String(err),
+        stack: String((err as Error).stack),
+        context: { url: req.originalUrl },
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 

@@ -22,6 +22,10 @@ export const workers = mysqlTable("workers", {
   department: varchar("department", { length: 128 }).notNull(),
   userLevel: mysqlEnum("userLevel", ["1", "1.1", "2"]).default("2").notNull(),
   permissions: text("permissions"), // JSON: { submitOrder, viewStock, nprmModifyOrder, customerSample, qrScanner, viewChat, viewNotifications } — null = not yet configured
+  accountStatus: mysqlEnum("accountStatus", ["active", "suspended"]).notNull().default("active"),
+  lastLoginAt: timestamp("lastLoginAt"), // successful Worker Login access; used by the daily inactivity policy
+  suspendedAt: timestamp("suspendedAt"),
+  suspensionReason: varchar("suspensionReason", { length: 255 }),
   lastSeenAt: timestamp("lastSeenAt"),
   // One-device session tracking
   activeDeviceToken: varchar("activeDeviceToken", { length: 128 }),  // fingerprint of active device
