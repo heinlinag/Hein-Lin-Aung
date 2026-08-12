@@ -5,12 +5,18 @@ import { resolve } from "node:path";
 const source = readFileSync(resolve(process.cwd(), "client/src/pages/AdminPanel.tsx"), "utf8");
 
 describe("Admin mobile modal stability", () => {
-  it("moves the recorded Worker Edit and Used Update dialogs into a document-level stable portal", () => {
+  it("moves all critical Worker and Order dialogs into a document-level stable portal", () => {
     expect(source).toContain('function StableAdminModalLayer');
     expect(source).toContain('createPortal(');
+    expect(source).toContain('aria-label="Add Worker"');
     expect(source).toContain('aria-label="Edit Worker"');
+    expect(source).toContain('aria-label="Delete Worker"');
+    expect(source).toContain('aria-label="Delete Order"');
     expect(source).toContain('aria-label="Used Update"');
+    expect((source.match(/<StableAdminModalLayer>/g) ?? []).length).toBeGreaterThanOrEqual(5);
+    expect(source).toMatch(/\{showAdd && \(\s*<StableAdminModalLayer>/);
     expect(source).toMatch(/\{editTarget && \(\s*<StableAdminModalLayer>/);
+    expect(source).toMatch(/\{deleteTarget && \(\s*<StableAdminModalLayer>/);
     expect(source).toMatch(/\{usedUpdateTarget && \(\s*<StableAdminModalLayer>/);
   });
 
@@ -18,6 +24,7 @@ describe("Admin mobile modal stability", () => {
     expect(source).toContain('z-[500]');
     expect(source).toContain('min-h-[100dvh]');
     expect(source).toContain('max-h-[calc(100dvh-8rem)]');
+    expect(source).toContain('sm:max-w-md');
     expect(source).toContain('translateZ(0)');
   });
 

@@ -1524,3 +1524,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Persistent Worker Edit Modal Flicker
 - [x] Trace and fix the Worker swipe gesture and Edit modal interaction on mobile
 - [x] Add regression coverage for a stable Worker Edit modal after swipe actions
+
+## Admin Modal Standardization
+- [x] Move Add Worker, Edit Worker, Delete Worker, and Delete Order flows to the stable Used Update modal pattern
+- [x] Verify flicker-free viewport sizing, scrolling, stacking, and action visibility across mobile, tablet, laptop, desktop, and wide desktop

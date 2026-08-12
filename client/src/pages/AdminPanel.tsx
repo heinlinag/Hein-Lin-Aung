@@ -752,8 +752,8 @@ function WorkersTab() {
 
       {/* Add Worker Dialog */}
       {showAdd && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="rounded-2xl border shadow-2xl w-full max-w-sm p-6" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+        <StableAdminModalLayer>
+          <div role="dialog" aria-modal="true" aria-label="Add Worker" className="relative my-auto max-h-[calc(100dvh-8rem)] w-full max-w-sm overflow-y-auto rounded-2xl border p-6 shadow-2xl sm:max-w-md" style={{ background: "#fff", borderColor: "#e2e8f0" }}>
             {/* Accent bar */}
             <div className="h-1 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
             <h3 className="font-bold text-white mb-4 flex items-center gap-2"><Plus size={16} className="text-indigo-400" /> Add Worker</h3>
@@ -807,7 +807,7 @@ function WorkersTab() {
               </button>
             </div>
           </div>
-        </div>
+        </StableAdminModalLayer>
       )}
 
       {/* Edit Worker Dialog */}
@@ -884,8 +884,8 @@ function WorkersTab() {
 
       {/* Delete Confirm */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="rounded-2xl border shadow-2xl w-full max-w-sm p-6" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+        <StableAdminModalLayer>
+          <div role="dialog" aria-modal="true" aria-label="Delete Worker" className="relative my-auto max-h-[calc(100dvh-8rem)] w-full max-w-sm overflow-y-auto rounded-2xl border p-6 shadow-2xl sm:max-w-md" style={{ background: "#fff", borderColor: "#e2e8f0" }}>
             {/* Red accent bar */}
             <div className="h-1 bg-gradient-to-r from-red-500 to-rose-600 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
             <div className="flex items-center gap-2 mb-3">
@@ -917,7 +917,7 @@ function WorkersTab() {
               </button>
             </div>
           </div>
-        </div>
+        </StableAdminModalLayer>
       )}
     </div>
   );
@@ -1227,8 +1227,8 @@ function OrdersTab() {
 
       {/* Delete Order Dialog */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="rounded-2xl border shadow-2xl w-full max-w-sm p-6" style={{ background: "rgba(15,23,42,0.95)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.10)" }}>
+        <StableAdminModalLayer>
+          <div role="dialog" aria-modal="true" aria-label="Delete Order" className="relative my-auto max-h-[calc(100dvh-8rem)] w-full max-w-sm overflow-y-auto rounded-2xl border p-6 shadow-2xl sm:max-w-md" style={{ background: "#fff", borderColor: "#e2e8f0" }}>
             <div className="h-1 bg-gradient-to-r from-red-500 to-rose-600 rounded-t-xl -mx-6 -mt-6 mb-5 rounded-tl-2xl rounded-tr-2xl" />
             <div className="flex items-center gap-2 mb-3">
               <div className="w-9 h-9 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
@@ -1257,7 +1257,7 @@ function OrdersTab() {
               </button>
             </div>
           </div>
-        </div>
+        </StableAdminModalLayer>
       )}
 
       {/* Used Update Dialog */}
