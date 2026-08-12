@@ -49,4 +49,13 @@ describe("Messages interface redesign", () => {
     expect(chatSource).toContain('document.body');
     expect(chatSource).toContain('max-h-[calc(100dvh-8rem)]');
   });
+
+  it("uses stored worker profile pictures across Message avatars with initial fallbacks", () => {
+    expect(chatSource).toContain("profilePicture?: string | null");
+    expect(chatSource).toContain('profilePicture && !isGroup');
+    expect(chatSource).toContain('alt={`${name} profile`}');
+    expect(chatSource).toContain('profilePicture={conv.otherWorker?.profilePicture}');
+    expect(chatSource).toContain('profilePicture={memberProfileByID.get(msg.senderID)}');
+    expect(chatSource).toContain('profilePicture={m.worker?.profilePicture}');
+  });
 });

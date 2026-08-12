@@ -24,7 +24,7 @@ const SYSTEM_MAINTENANCE_SENDER_ID = "SYSTEM_MAINTENANCE";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Reaction { id: number; messageType: "dm" | "group"; messageID: number; workerID: string; emoji: string; createdAt: Date; }
-interface Worker { id: number; workerID: string; name: string; department: string; userLevel: string; lastSeenAt?: Date | null; }
+interface Worker { id: number; workerID: string; name: string; department: string; userLevel: string; profilePicture?: string | null; lastSeenAt?: Date | null; }
 interface ChatAttachment { id: number; messageType: "dm" | "group"; messageID: number; fileName: string; mimeType: string; sizeBytes: number; uploadedBy: string; createdAt: Date; }
 interface UploadedAttachment { storageKey: string; fileName: string; mimeType: string; sizeBytes: number; }
 interface PendingAttachment { file: File; previewUrl: string | null; }
@@ -136,7 +136,7 @@ function levelColor(level: string) {
 }
 
 // ─── Avatar with Online Indicator ────────────────────────────────────────────
-function Avatar({ name, size = "md", isGroup = false, online }: { name: string; size?: "sm" | "md" | "lg"; isGroup?: boolean; online?: boolean }) {
+function Avatar({ name, size = "md", isGroup = false, online, profilePicture }: { name: string; size?: "sm" | "md" | "lg"; isGroup?: boolean; online?: boolean; profilePicture?: string | null }) {
   const sz = size === "sm" ? "w-8 h-8 text-xs" : size === "lg" ? "w-12 h-12 text-base" : "w-10 h-10 text-sm";
   const gradients = [
     "from-blue-500 to-indigo-600",
@@ -150,8 +150,10 @@ function Avatar({ name, size = "md", isGroup = false, online }: { name: string; 
   const grad = isGroup ? "from-teal-500 to-emerald-600" : gradients[name.charCodeAt(0) % gradients.length];
   return (
     <div className="relative flex-shrink-0">
-      <div className={`${sz} bg-gradient-to-br ${grad} rounded-full flex items-center justify-center text-white font-semibold shadow-lg ring-1 ring-white/20`}>
-        {isGroup ? <Users size={size === "sm" ? 14 : size === "lg" ? 20 : 16} /> : getInitials(name)}
+      <div className={`${sz} overflow-hidden bg-gradient-to-br ${grad} rounded-full flex items-center justify-center text-white font-semibold shadow-lg ring-1 ring-white/20`}>
+        {profilePicture && !isGroup
+          ? <img src={profilePicture} alt={`${name} profile`} className="h-full w-full object-cover" />
+          : isGroup ? <Users size={size === "sm" ? 14 : size === "lg" ? 20 : 16} /> : getInitials(name)}
       </div>
       {online !== undefined && !isGroup && (
         <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-950 shadow-sm ${online ? "bg-emerald-400" : "bg-slate-500"}`} />
@@ -377,7 +379,7 @@ function NewMessageModal({ workerID, onClose, onSelect }: { workerID: string; on
           return (
             <button key={w.workerID} onClick={() => onSelect(w)}
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition-colors text-left border-b border-white/5 last:border-0">
-              <Avatar name={w.name} size="md" online={status?.online} />
+              <Avatar name={w.name} size="md" online={status?.online} profilePicture={w.profilePicture} />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-white text-sm truncate">{w.name}</div>
                 <div className="text-xs text-slate-400 truncate">{w.workerID} · {w.department}</div>
@@ -453,7 +455,7 @@ function NewGroupModal({ workerID, onClose, onCreate }: { workerID: string; onCl
           return (
             <button key={w.workerID} onClick={() => setSelected(s => isSelected ? s.filter(x => x !== w.workerID) : s.length < 9 ? [...s, w.workerID] : s)}
               className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition-colors text-left border-b border-white/5 last:border-0 ${isSelected ? "bg-teal-500/10" : ""}`}>
-              <Avatar name={w.name} size="sm" />
+              <Avatar name={w.name} size="sm" profilePicture={w.profilePicture} />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-white text-sm truncate">{w.name}</div>
                 <div className="text-xs text-slate-400 truncate">{w.workerID} · {w.department}</div>
@@ -716,7 +718,7 @@ function DMThread({ conv, workerID, workerName, deviceToken, onBack }: { conv: C
         )}
         {isSystemMaintenance
           ? <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm"><BadgeCheck size={18} className="text-white" /></div>
-          : <Avatar name={otherName} online={otherOnline?.online} />}
+          : <Avatar name={otherName} online={otherOnline?.online} profilePicture={conv.otherWorker?.profilePicture} />}
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-white text-sm truncate flex items-center gap-1">
             {otherName}
@@ -875,6 +877,7 @@ function GroupThread({ group, workerID, workerName, deviceToken, onBack, onLeave
     { messageType: "group", messageIDs: msgIDs }, { enabled: msgIDs.length > 0, refetchInterval: 3000 }
   );
   const memberIDs = useMemo(() => (members as GroupMember[]).map(m => m.workerID), [members]);
+  const memberProfileByID = useMemo(() => new Map((members as GroupMember[]).map(member => [member.workerID, member.worker?.profilePicture ?? null])), [members]);
   const { data: onlineStatus = {} } = trpc.chat.getOnlineStatus.useQuery(
     { workerIDs: memberIDs }, { enabled: memberIDs.length > 0, refetchInterval: 15000 }
   );
@@ -1026,7 +1029,7 @@ function GroupThread({ group, workerID, workerName, deviceToken, onBack, onLeave
                       {isLast && (
                         msg.senderID === SYSTEM_MAINTENANCE_SENDER_ID
                           ? <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><BadgeCheck size={14} className="text-white" /></div>
-                          : <Avatar name={msg.senderName || "?"} size="sm" />
+                          : <Avatar name={msg.senderName || "?"} size="sm" profilePicture={memberProfileByID.get(msg.senderID)} />
                       )}
                     </div>
                   ) : null}
@@ -1124,7 +1127,7 @@ function GroupThread({ group, workerID, workerName, deviceToken, onBack, onLeave
               const memberOnline = (onlineStatus as Record<string, { online: boolean }>)[m.workerID]?.online;
               return (
                 <div key={m.workerID} className="flex items-center gap-3 px-4 py-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                  <Avatar name={m.worker?.name || m.workerID} online={memberOnline} />
+                  <Avatar name={m.worker?.name || m.workerID} online={memberOnline} profilePicture={m.worker?.profilePicture} />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-white text-sm truncate">{m.worker?.name || m.workerID}</div>
                     <div className="text-xs text-slate-400 truncate">{m.worker?.department}</div>
@@ -1255,7 +1258,7 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
                 className={`chat-list-item w-full flex items-center gap-3 px-4 py-3.5 border-b border-white/5 hover:bg-white/[0.07] transition-colors text-left ${isSelected ? "bg-indigo-500/15 border-l-2 border-l-indigo-400" : ""}`}>
                 {isSystemConv
                   ? <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm"><BadgeCheck size={18} className="text-white" /></div>
-                  : <Avatar name={name} online={partnerOnline} />}
+                  : <Avatar name={name} online={partnerOnline} profilePicture={conv.otherWorker?.profilePicture} />}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className={`text-sm truncate ${hasUnread ? "font-semibold text-white" : "font-medium text-slate-300"}`}>{name}</span>
