@@ -13,7 +13,7 @@ import {
   MessageCircle, Search, Plus, ArrowLeft, Send,
   X, UserCircle2, MessageSquareDot, Check, CheckCheck,
   Users, LogOut, Crown, Reply, Trash2, ArrowDown, BadgeCheck, Bell,
-  ShieldCheck, Sparkles, Wifi,
+  ShieldCheck, Sparkles, Wifi, Paperclip, FileText, Download, Loader2, Image as ImageIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,9 +24,12 @@ const SYSTEM_MAINTENANCE_SENDER_ID = "SYSTEM_MAINTENANCE";
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Reaction { id: number; messageType: "dm" | "group"; messageID: number; workerID: string; emoji: string; createdAt: Date; }
 interface Worker { id: number; workerID: string; name: string; department: string; userLevel: string; lastSeenAt?: Date | null; }
-interface ConvMessage { id: number; conversationID: number; senderID: string; text: string; replyToID: number | null; deletedAt: Date | null; createdAt: Date; readAt: Date | null; }
+interface ChatAttachment { id: number; messageType: "dm" | "group"; messageID: number; fileName: string; mimeType: string; sizeBytes: number; uploadedBy: string; createdAt: Date; }
+interface UploadedAttachment { storageKey: string; fileName: string; mimeType: string; sizeBytes: number; }
+interface PendingAttachment { file: File; previewUrl: string | null; }
+interface ConvMessage { id: number; conversationID: number; senderID: string; text: string; replyToID: number | null; deletedAt: Date | null; createdAt: Date; readAt: Date | null; attachment?: ChatAttachment | null; }
 interface Conversation { id: number; worker1ID: string; worker2ID: string; lastMessageAt: Date; createdAt: Date; otherWorker: Worker | null; lastMessage: ConvMessage | null; unreadCount: number; }
-interface GroupMessage { id: number; groupID: number; senderID: string; senderName: string; text: string; replyToID: number | null; deletedAt: Date | null; createdAt: Date; }
+interface GroupMessage { id: number; groupID: number; senderID: string; senderName: string; text: string; replyToID: number | null; deletedAt: Date | null; createdAt: Date; attachment?: ChatAttachment | null; }
 interface Group { id: number; name: string; createdBy: string; lastMessageAt: Date; createdAt: Date; memberCount: number; memberIDs: string[]; lastMessage: GroupMessage | null; }
 interface GroupMember { id: number; groupID: number; workerID: string; joinedAt: Date; worker: Worker | null; }
 
@@ -180,6 +183,139 @@ function AutoResizeInput({ value, onChange, onKeyDown, placeholder, maxLength, i
       className="w-full bg-transparent text-sm outline-none text-slate-100 placeholder:text-slate-400 resize-none overflow-hidden leading-[1.4]"
       style={{ minHeight: "20px", maxHeight: "120px" }}
     />
+  );
+}
+
+// ─── Message Attachments ─────────────────────────────────────────────────────
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+const MESSAGE_ATTACHMENT_TYPES = [
+  "image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf", "text/plain", "text/csv",
+  "application/msword", "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+];
+
+function formatFileSize(sizeBytes: number) {
+  if (sizeBytes < 1024) return `${sizeBytes} B`;
+  if (sizeBytes < 1024 * 1024) return `${(sizeBytes / 1024).toFixed(1)} KB`;
+  return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function useMessageAttachment(workerID: string, deviceToken?: string) {
+  const [pending, setPending] = useState<PendingAttachment | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const clear = useCallback(() => {
+    setPending(current => {
+      if (current?.previewUrl) URL.revokeObjectURL(current.previewUrl);
+      return null;
+    });
+    setUploadProgress(0);
+  }, []);
+
+  const selectFile = useCallback((file: File) => {
+    if (!MESSAGE_ATTACHMENT_TYPES.includes(file.type)) {
+      toast.error("Choose an image, PDF, text, CSV, Word, or Excel file.");
+      return;
+    }
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      toast.error("Attachments must be 10 MB or smaller.");
+      return;
+    }
+    setPending(current => {
+      if (current?.previewUrl) URL.revokeObjectURL(current.previewUrl);
+      return { file, previewUrl: file.type.startsWith("image/") ? URL.createObjectURL(file) : null };
+    });
+    setUploadProgress(0);
+  }, []);
+
+  const upload = useCallback(async (): Promise<UploadedAttachment | undefined> => {
+    if (!pending) return undefined;
+    if (!workerID || !deviceToken) throw new Error("Your worker session needs refreshing. Please sign in again.");
+    setIsUploading(true);
+    setUploadProgress(0);
+    try {
+      return await new Promise<UploadedAttachment>((resolve, reject) => {
+        const formData = new FormData();
+        formData.append("file", pending.file);
+        formData.append("workerID", workerID);
+        formData.append("deviceToken", deviceToken);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/chat-upload");
+        xhr.upload.onprogress = event => {
+          if (event.lengthComputable) setUploadProgress(Math.max(1, Math.round((event.loaded / event.total) * 100)));
+        };
+        xhr.onerror = () => reject(new Error("Upload connection failed. Please try again."));
+        xhr.onload = () => {
+          try {
+            const response = JSON.parse(xhr.responseText || "{}");
+            if (xhr.status < 200 || xhr.status >= 300 || !response.attachment) {
+              reject(new Error(response.error || "Unable to upload this attachment."));
+              return;
+            }
+            setUploadProgress(100);
+            resolve(response.attachment as UploadedAttachment);
+          } catch {
+            reject(new Error("Unable to upload this attachment."));
+          }
+        };
+        xhr.send(formData);
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  }, [deviceToken, pending, workerID]);
+
+  return { pending, isUploading, uploadProgress, selectFile, upload, clear };
+}
+
+function AttachmentPicker({ attachment, isUploading, uploadProgress, onSelect, onRemove, accent = "indigo" }: {
+  attachment: PendingAttachment | null; isUploading: boolean; uploadProgress: number; onSelect: (file: File) => void; onRemove: () => void; accent?: "indigo" | "teal";
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const accentClass = accent === "teal" ? "text-teal-300 border-teal-400/25 bg-teal-400/10" : "text-indigo-300 border-indigo-400/25 bg-indigo-400/10";
+  return (
+    <>
+      <input ref={inputRef} type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain,text/csv,.doc,.docx,.xls,.xlsx" onChange={event => {
+        const file = event.target.files?.[0];
+        if (file) onSelect(file);
+        event.currentTarget.value = "";
+      }} />
+      {attachment ? (
+        <div className="mx-3 mb-1 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.055] p-2.5 shadow-inner">
+          {attachment.previewUrl ? <img src={attachment.previewUrl} alt="Selected attachment preview" className="h-11 w-11 rounded-xl object-cover ring-1 ring-white/15" /> : <div className={`flex h-11 w-11 items-center justify-center rounded-xl border ${accentClass}`}><FileText size={20} /></div>}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-bold text-slate-100">{attachment.file.name}</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">{isUploading ? `Uploading ${uploadProgress}%` : formatFileSize(attachment.file.size)}</p>
+            {isUploading && <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/10"><div className={`h-full rounded-full transition-all ${accent === "teal" ? "bg-teal-400" : "bg-indigo-400"}`} style={{ width: `${uploadProgress}%` }} /></div>}
+          </div>
+          <button type="button" onClick={onRemove} disabled={isUploading} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-40" aria-label="Remove attachment"><X size={15} /></button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => inputRef.current?.click()} className="mb-1 ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white/10 hover:text-white" title="Attach a file" aria-label="Attach a file"><Paperclip size={17} /></button>
+      )}
+    </>
+  );
+}
+
+function MessageAttachmentCard({ attachment, workerID }: { attachment: ChatAttachment; workerID: string }) {
+  const { worker } = useAuth();
+  const deviceToken = worker?.deviceToken;
+  const isImage = attachment.mimeType.startsWith("image/");
+  const download = trpc.chat.getAttachmentDownload.useQuery({ attachmentID: attachment.id || 1, workerID, deviceToken: deviceToken || "missing" }, { enabled: false, retry: false });
+  const handleDownload = async () => {
+    if (!deviceToken) { toast.error("Your session needs refreshing. Please sign in again."); return; }
+    const result = await download.refetch();
+    if (!result.data?.url) { toast.error("Unable to prepare the attachment download."); return; }
+    window.open(result.data.url, "_blank", "noopener,noreferrer");
+  };
+  return (
+    <button type="button" onClick={handleDownload} disabled={download.isFetching} className="mt-2 flex w-full items-center gap-2.5 rounded-xl border border-white/15 bg-slate-950/25 p-2.5 text-left transition-colors hover:bg-white/10 disabled:opacity-60">
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-cyan-400/15 text-cyan-200" : "bg-indigo-400/15 text-indigo-200"}`}>{isImage ? <ImageIcon size={17} /> : <FileText size={17} />}</div>
+      <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-slate-100">{attachment.fileName}</p><p className="mt-0.5 text-[10px] text-slate-400">{formatFileSize(attachment.sizeBytes)} · {isImage ? "Image" : "File"}</p></div>
+      {download.isFetching ? <Loader2 size={16} className="animate-spin text-slate-300" /> : <Download size={16} className="text-slate-300" />}
+    </button>
   );
 }
 
@@ -463,10 +599,11 @@ function SendAlertButton({ senderID, senderName, recipientID, recipientName }: {
 const threadBg = "linear-gradient(160deg,#0a0f1e 0%,#0d1b2a 40%,#0a1628 100%)";
 
 // ─── DM Thread ────────────────────────────────────────────────────────────────────────────
-function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; workerID: string; workerName: string; onBack?: () => void }) {
+function DMThread({ conv, workerID, workerName, deviceToken, onBack }: { conv: Conversation; workerID: string; workerName: string; deviceToken?: string; onBack?: () => void }) {
   const [text, setText] = useState("");
   const [emojiPickerMsgID, setEmojiPickerMsgID] = useState<number | null>(null);
   const [replyTo, setReplyTo] = useState<ConvMessage | null>(null);
+  const attachment = useMessageAttachment(workerID, deviceToken);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showScrollBtn, setShowScrollBtn] = useState(false);
@@ -499,7 +636,7 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
       const prev = utils.chat.getMessages.getData({ conversationID: conv.id });
       utils.chat.getMessages.setData({ conversationID: conv.id }, (old) => [
         ...(old || []),
-        { id: Date.now(), conversationID: conv.id, senderID: vars.senderID, text: vars.text, replyToID: vars.replyToID || null, deletedAt: null, createdAt: new Date(), readAt: null },
+        { id: Date.now(), conversationID: conv.id, senderID: vars.senderID, text: vars.text, replyToID: vars.replyToID || null, deletedAt: null, createdAt: new Date(), readAt: null, attachment: vars.attachment ? { id: 0, messageType: "dm", messageID: 0, ...vars.attachment, uploadedBy: vars.senderID, createdAt: new Date() } : null },
       ]);
       return { prev };
     },
@@ -531,6 +668,7 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
     inputRef.current?.focus();
     setReplyTo(null);
     setText("");
+    attachment.clear();
   }, [conv.id]);
 
   const handleScroll = () => {
@@ -538,11 +676,16 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
     setShowScrollBtn(scrollHeight - scrollTop - clientHeight > 100);
   };
-  function handleSend() {
+  async function handleSend() {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    sendMsg.mutate({ conversationID: conv.id, senderID: workerID, senderName: workerName, text: trimmed, replyToID: replyTo?.id });
-    setText(""); setReplyTo(null); inputRef.current?.focus();
+    if (!trimmed && !attachment.pending) return;
+    try {
+      const uploadedAttachment = await attachment.upload();
+      sendMsg.mutate({ conversationID: conv.id, senderID: workerID, senderName: workerName, text: trimmed, replyToID: replyTo?.id, attachment: uploadedAttachment });
+      setText(""); setReplyTo(null); attachment.clear(); inputRef.current?.focus();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to upload this attachment.");
+    }
   }
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
@@ -666,6 +809,7 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
                       <EmojiPicker onSelect={(emoji) => toggleReaction.mutate({ messageType: "dm", messageID: msg.id, workerID, emoji })} onClose={() => setEmojiPickerMsgID(null)} />
                     )}
                     <ReactionBar reactions={msgReactions} workerID={workerID} onToggle={(emoji) => toggleReaction.mutate({ messageType: "dm", messageID: msg.id, workerID, emoji })} />
+                    {msg.attachment && msg.attachment.id > 0 && <MessageAttachmentCard attachment={msg.attachment} workerID={workerID} />}
                   </div>
                 </div>
               );
@@ -686,27 +830,31 @@ function DMThread({ conv, workerID, workerName, onBack }: { conv: Conversation; 
       {replyTo && <ReplyPreview text={replyTo.text} senderName={replyTo.senderID === workerID ? "You" : otherName} onCancel={() => setReplyTo(null)} />}
 
       {/* Input */}
-      <div className="chat-composer px-3 py-3 flex items-end gap-2 flex-shrink-0 border-t border-white/10">
-        <div className="flex-1 bg-white/[0.07] border border-white/10 rounded-3xl px-4 py-2.5 shadow-inner focus-within:border-indigo-400/60 focus-within:bg-white/[0.12] transition-all">
-          <AutoResizeInput inputRef={inputRef} value={text} onChange={setText} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
+      <div className="chat-composer px-3 py-2.5 flex flex-col flex-shrink-0 border-t border-white/10">
+        <AttachmentPicker attachment={attachment.pending} isUploading={attachment.isUploading} uploadProgress={attachment.uploadProgress} onSelect={attachment.selectFile} onRemove={attachment.clear} />
+        <div className="flex items-end gap-2">
+          <div className="flex-1 bg-white/[0.07] border border-white/10 rounded-3xl px-4 py-2.5 shadow-inner focus-within:border-indigo-400/60 focus-within:bg-white/[0.12] transition-all">
+            <AutoResizeInput inputRef={inputRef} value={text} onChange={setText} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
+          </div>
+          <button onClick={handleSend} disabled={(!text.trim() && !attachment.pending) || attachment.isUploading || sendMsg.isPending}
+            className="chat-send-button w-11 h-11 bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center text-white hover:brightness-110 transition-all disabled:opacity-30 flex-shrink-0 self-end">
+            {attachment.isUploading || sendMsg.isPending ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
+          </button>
         </div>
-        <button onClick={handleSend} disabled={!text.trim()}
-          className="chat-send-button w-11 h-11 bg-gradient-to-br from-indigo-500 via-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center text-white hover:brightness-110 transition-all disabled:opacity-30 flex-shrink-0 self-end">
-          <Send size={17} />
-        </button>
       </div>
     </div>
   );
 }
 
 // ─── Group Thread ─────────────────────────────────────────────────────────────
-function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
-  group: Group; workerID: string; workerName: string; onBack?: () => void; onLeave: () => void;
+function GroupThread({ group, workerID, workerName, deviceToken, onBack, onLeave }: {
+  group: Group; workerID: string; workerName: string; deviceToken?: string; onBack?: () => void; onLeave: () => void;
 }) {
   const [text, setText] = useState("");
   const [showMembers, setShowMembers] = useState(false);
   const [emojiPickerMsgID, setEmojiPickerMsgID] = useState<number | null>(null);
   const [replyTo, setReplyTo] = useState<GroupMessage | null>(null);
+  const attachment = useMessageAttachment(workerID, deviceToken);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showScrollBtn, setShowScrollBtn] = useState(false);
@@ -739,7 +887,7 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
       const prev = utils.groupChat.getMessages.getData({ groupID: group.id });
       utils.groupChat.getMessages.setData({ groupID: group.id }, (old) => [
         ...(old || []),
-        { id: Date.now(), groupID: group.id, senderID: vars.senderID, senderName: vars.senderName, text: vars.text, replyToID: vars.replyToID || null, deletedAt: null, createdAt: new Date() },
+        { id: Date.now(), groupID: group.id, senderID: vars.senderID, senderName: vars.senderName, text: vars.text, replyToID: vars.replyToID || null, deletedAt: null, createdAt: new Date(), attachment: vars.attachment ? { id: 0, messageType: "group", messageID: 0, ...vars.attachment, uploadedBy: vars.senderID, createdAt: new Date() } : null },
       ]);
       return { prev };
     },
@@ -769,18 +917,23 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
     prevMsgCountRef.current = currentCount;
   }, [messages]);
   useEffect(() => { if (!showScrollBtn) bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-  useEffect(() => { inputRef.current?.focus(); setReplyTo(null); setText(""); }, [group.id]);
+  useEffect(() => { inputRef.current?.focus(); setReplyTo(null); setText(""); attachment.clear(); }, [group.id]);
 
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
     setShowScrollBtn(scrollHeight - scrollTop - clientHeight > 100);
   };
-  function handleSend() {
+  async function handleSend() {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    sendMsg.mutate({ groupID: group.id, senderID: workerID, senderName: workerName, text: trimmed, replyToID: replyTo?.id });
-    setText(""); setReplyTo(null); inputRef.current?.focus();
+    if (!trimmed && !attachment.pending) return;
+    try {
+      const uploadedAttachment = await attachment.upload();
+      sendMsg.mutate({ groupID: group.id, senderID: workerID, senderName: workerName, text: trimmed, replyToID: replyTo?.id, attachment: uploadedAttachment });
+      setText(""); setReplyTo(null); attachment.clear(); inputRef.current?.focus();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to upload this attachment.");
+    }
   }
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
@@ -912,6 +1065,7 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
                       <EmojiPicker onSelect={(emoji) => toggleReaction.mutate({ messageType: "group", messageID: msg.id, workerID, emoji })} onClose={() => setEmojiPickerMsgID(null)} />
                     )}
                     <ReactionBar reactions={msgReactions} workerID={workerID} onToggle={(emoji) => toggleReaction.mutate({ messageType: "group", messageID: msg.id, workerID, emoji })} />
+                    {msg.attachment && msg.attachment.id > 0 && <MessageAttachmentCard attachment={msg.attachment} workerID={workerID} />}
                   </div>
                 </div>
               );
@@ -932,14 +1086,17 @@ function GroupThread({ group, workerID, workerName, onBack, onLeave }: {
       {replyTo && <ReplyPreview text={replyTo.text} senderName={replyTo.senderID === workerID ? "You" : replyTo.senderName} onCancel={() => setReplyTo(null)} />}
 
       {/* Input */}
-      <div className="chat-composer px-3 py-3 flex items-end gap-2 flex-shrink-0 border-t border-white/10">
-        <div className="flex-1 bg-white/[0.07] border border-white/10 rounded-3xl px-4 py-2.5 shadow-inner focus-within:border-teal-400/60 focus-within:bg-white/[0.12] transition-all">
-          <AutoResizeInput inputRef={inputRef} value={text} onChange={setText} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
+      <div className="chat-composer px-3 py-2.5 flex flex-col flex-shrink-0 border-t border-white/10">
+        <AttachmentPicker attachment={attachment.pending} isUploading={attachment.isUploading} uploadProgress={attachment.uploadProgress} onSelect={attachment.selectFile} onRemove={attachment.clear} accent="teal" />
+        <div className="flex items-end gap-2">
+          <div className="flex-1 bg-white/[0.07] border border-white/10 rounded-3xl px-4 py-2.5 shadow-inner focus-within:border-teal-400/60 focus-within:bg-white/[0.12] transition-all">
+            <AutoResizeInput inputRef={inputRef} value={text} onChange={setText} onKeyDown={handleKey} placeholder="Type a message" maxLength={2000} />
+          </div>
+          <button onClick={handleSend} disabled={(!text.trim() && !attachment.pending) || attachment.isUploading || sendMsg.isPending}
+            className="chat-group-send-button w-11 h-11 bg-gradient-to-br from-teal-500 via-emerald-600 to-cyan-600 rounded-2xl flex items-center justify-center text-white hover:brightness-110 transition-all disabled:opacity-30 flex-shrink-0 self-end">
+            {attachment.isUploading || sendMsg.isPending ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
+          </button>
         </div>
-        <button onClick={handleSend} disabled={!text.trim()}
-          className="chat-group-send-button w-11 h-11 bg-gradient-to-br from-teal-500 via-emerald-600 to-cyan-600 rounded-2xl flex items-center justify-center text-white hover:brightness-110 transition-all disabled:opacity-30 flex-shrink-0 self-end">
-          <Send size={17} />
-        </button>
       </div>
 
       {/* Members modal */}
@@ -1105,7 +1262,7 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
                   </div>
                   <div className="flex items-center justify-between mt-0.5">
                     <span className={`text-xs truncate ${hasUnread ? "text-slate-300" : "text-slate-500"}`}>
-                      {conv.lastMessage ? (conv.lastMessage.senderID === workerID ? `You: ${conv.lastMessage.text}` : conv.lastMessage.text) : "No messages yet"}
+                      {conv.lastMessage ? (conv.lastMessage.text ? (conv.lastMessage.senderID === workerID ? `You: ${conv.lastMessage.text}` : conv.lastMessage.text) : "📎 Attachment") : "No messages yet"}
                     </span>
                     {hasUnread && (
                       <span className="ml-2 bg-gradient-to-br from-indigo-500 to-blue-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 flex-shrink-0 shadow-sm">
@@ -1141,7 +1298,7 @@ function SidebarList({ workerID, tab, setTab, selected, onSelectDM, onSelectGrou
                   </div>
                   <div className="flex items-center justify-between mt-0.5">
                     <span className="text-xs text-slate-500 truncate">
-                      {group.lastMessage ? `${group.lastMessage.senderName}: ${group.lastMessage.text}` : `${group.memberCount} members`}
+                      {group.lastMessage ? (group.lastMessage.text ? `${group.lastMessage.senderName}: ${group.lastMessage.text}` : `${group.lastMessage.senderName}: 📎 Attachment`) : `${group.memberCount} members`}
                     </span>
                     <span className="text-xs text-slate-500 flex-shrink-0 ml-2 flex items-center gap-1">
                       <Users size={10} /> {group.memberCount}
@@ -1171,6 +1328,7 @@ export default function Chat() {
 
   const workerID = worker?.workerID || "";
   const workerName = worker?.name || "";
+  const deviceToken = worker?.deviceToken;
 
   useHeartbeat(workerID);
 
@@ -1248,9 +1406,9 @@ export default function Chat() {
       </div>
     </div>
   ) : selected.type === "dm" ? (
-    <DMThread conv={selected.conv} workerID={workerID} workerName={workerName} />
+    <DMThread conv={selected.conv} workerID={workerID} workerName={workerName} deviceToken={deviceToken} />
   ) : (
-    <GroupThread group={selected.group} workerID={workerID} workerName={workerName} onLeave={handleLeaveGroup} />
+    <GroupThread group={selected.group} workerID={workerID} workerName={workerName} deviceToken={deviceToken} onLeave={handleLeaveGroup} />
   );
 
   const mobileHeaderActions = (
@@ -1297,9 +1455,9 @@ export default function Chat() {
           {mobileView === "list" ? (
             <SidebarList {...sidebarProps} />
           ) : selected?.type === "dm" ? (
-            <DMThread conv={selected.conv} workerID={workerID} workerName={workerName} onBack={() => setMobileView("list")} />
+            <DMThread conv={selected.conv} workerID={workerID} workerName={workerName} deviceToken={deviceToken} onBack={() => setMobileView("list")} />
           ) : selected?.type === "group" ? (
-            <GroupThread group={selected.group} workerID={workerID} workerName={workerName}
+            <GroupThread group={selected.group} workerID={workerID} workerName={workerName} deviceToken={deviceToken}
               onBack={() => setMobileView("list")} onLeave={handleLeaveGroup} />
           ) : null}
         </div>

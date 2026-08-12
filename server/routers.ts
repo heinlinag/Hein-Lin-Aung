@@ -47,6 +47,13 @@ import {
 import { systemSettings, workers } from "../drizzle/schema";
 import { storagePut } from "./storage";
 import { eq } from "drizzle-orm";
+
+const chatAttachmentInput = z.object({
+  storageKey: z.string().min(1).max(512),
+  fileName: z.string().min(1).max(255),
+  mimeType: z.string().min(1).max(128),
+  sizeBytes: z.number().int().positive().max(10 * 1024 * 1024),
+});
 /** Get effective admin password — DB-stored takes precedence over hardcoded default */
 async function getEffectiveAdminPassword(db: Awaited<ReturnType<typeof getDb>>): Promise<string> {
   if (!db) return ADMIN_PASSWORD;
@@ -1323,13 +1330,52 @@ export const appRouter = router({
       .input(z.object({ conversationID: z.number() }))
       .query(async ({ input }) => {
         const { getDb } = await import("./db");
-        const { chatMessages } = await import("../drizzle/schema");
-        const { eq, asc } = await import("drizzle-orm");
+        const { chatMessages, chatAttachments } = await import("../drizzle/schema");
+        const { eq, asc, and, inArray } = await import("drizzle-orm");
         const db = await getDb();
         if (!db) return [];
-        return db.select().from(chatMessages)
+        const messages = await db.select().from(chatMessages)
           .where(eq(chatMessages.conversationID, input.conversationID))
           .orderBy(asc(chatMessages.createdAt)).limit(200);
+        const messageIDs = messages.map(message => message.id);
+        if (!messageIDs.length) return messages;
+        const attachments = await db.select().from(chatAttachments)
+          .where(and(eq(chatAttachments.messageType, "dm"), inArray(chatAttachments.messageID, messageIDs)));
+        const attachmentByMessage = new Map(attachments.map(attachment => [attachment.messageID, attachment]));
+        return messages.map(message => ({ ...message, attachment: attachmentByMessage.get(message.id) ?? null }));
+      }),
+
+    // Returns a short-lived S3 download URL after validating the active worker device and chat membership.
+    getAttachmentDownload: publicProcedure
+      .input(z.object({ attachmentID: z.number().int().positive(), workerID: z.string().min(1), deviceToken: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker || worker.activeDeviceToken !== input.deviceToken) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Your worker session has expired. Please sign in again." });
+        }
+        const { getDb } = await import("./db");
+        const { chatAttachments, chatMessages, conversations, groupMessages, groupMembers } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const { storageGetSignedUrl } = await import("./storage");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        const [attachment] = await db.select().from(chatAttachments).where(eq(chatAttachments.id, input.attachmentID)).limit(1);
+        if (!attachment) throw new TRPCError({ code: "NOT_FOUND", message: "Attachment not found" });
+        if (attachment.messageType === "dm") {
+          const [message] = await db.select().from(chatMessages).where(eq(chatMessages.id, attachment.messageID)).limit(1);
+          if (!message) throw new TRPCError({ code: "NOT_FOUND", message: "Attachment message not found" });
+          const [conversation] = await db.select().from(conversations).where(eq(conversations.id, message.conversationID)).limit(1);
+          if (!conversation || (conversation.worker1ID !== input.workerID && conversation.worker2ID !== input.workerID)) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "You do not have access to this attachment" });
+          }
+        } else {
+          const [message] = await db.select().from(groupMessages).where(eq(groupMessages.id, attachment.messageID)).limit(1);
+          if (!message) throw new TRPCError({ code: "NOT_FOUND", message: "Attachment message not found" });
+          const [membership] = await db.select().from(groupMembers)
+            .where(and(eq(groupMembers.groupID, message.groupID), eq(groupMembers.workerID, input.workerID))).limit(1);
+          if (!membership) throw new TRPCError({ code: "FORBIDDEN", message: "You do not have access to this attachment" });
+        }
+        return { fileName: attachment.fileName, mimeType: attachment.mimeType, url: await storageGetSignedUrl(attachment.storageKey) };
       }),
 
     // Send a DM
@@ -1469,14 +1515,17 @@ export const appRouter = router({
 
     // Send DM with reply support
     sendMessageWithReply: publicProcedure
-      .input(z.object({ conversationID: z.number(), senderID: z.string(), senderName: z.string().optional(), text: z.string().min(1).max(2000), replyToID: z.number().optional() }))
+      .input(z.object({ conversationID: z.number(), senderID: z.string(), senderName: z.string().optional(), text: z.string().max(2000), replyToID: z.number().optional(), attachment: chatAttachmentInput.optional() }).refine(input => input.text.trim().length > 0 || !!input.attachment, { message: "A message or attachment is required" }))
       .mutation(async ({ input }) => {
         const { getDb } = await import("./db");
-        const { chatMessages, conversations } = await import("../drizzle/schema");
+        const { chatMessages, conversations, chatAttachments } = await import("../drizzle/schema");
         const { eq } = await import("drizzle-orm");
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-        await db.insert(chatMessages).values({ conversationID: input.conversationID, senderID: input.senderID, text: input.text, replyToID: input.replyToID || null });
+        const [createdMessage] = await db.insert(chatMessages).values({ conversationID: input.conversationID, senderID: input.senderID, text: input.text, replyToID: input.replyToID || null }).$returningId();
+        if (input.attachment) {
+          await db.insert(chatAttachments).values({ messageType: "dm", messageID: createdMessage.id, ...input.attachment, uploadedBy: input.senderID });
+        }
         await db.update(conversations).set({ lastMessageAt: new Date() }).where(eq(conversations.id, input.conversationID));
         // Push notification to recipient
         try {
@@ -1484,7 +1533,7 @@ export const appRouter = router({
           if (conv) {
             const recipientID = conv.worker1ID === input.senderID ? conv.worker2ID : conv.worker1ID;
             const senderName = input.senderName || input.senderID;
-            const preview = input.text.length > 60 ? input.text.slice(0, 57) + "..." : input.text;
+            const preview = input.text || `📎 ${input.attachment?.fileName || "Attachment"}`;
             await sendPushToWorkers([recipientID], {
               title: `New message from ${senderName}`,
               body: preview,
@@ -1558,13 +1607,19 @@ export const appRouter = router({
       .input(z.object({ groupID: z.number() }))
       .query(async ({ input }) => {
         const { getDb } = await import("./db");
-        const { groupMessages } = await import("../drizzle/schema");
-        const { eq, asc } = await import("drizzle-orm");
+        const { groupMessages, chatAttachments } = await import("../drizzle/schema");
+        const { eq, asc, and, inArray } = await import("drizzle-orm");
         const db = await getDb();
         if (!db) return [];
-        return db.select().from(groupMessages)
+        const messages = await db.select().from(groupMessages)
           .where(eq(groupMessages.groupID, input.groupID))
           .orderBy(asc(groupMessages.createdAt)).limit(200);
+        const messageIDs = messages.map(message => message.id);
+        if (!messageIDs.length) return messages;
+        const attachments = await db.select().from(chatAttachments)
+          .where(and(eq(chatAttachments.messageType, "group"), inArray(chatAttachments.messageID, messageIDs)));
+        const attachmentByMessage = new Map(attachments.map(attachment => [attachment.messageID, attachment]));
+        return messages.map(message => ({ ...message, attachment: attachmentByMessage.get(message.id) ?? null }));
       }),
 
     // Send a group message
@@ -1695,14 +1750,17 @@ export const appRouter = router({
 
     // Send group message with reply support
     sendMessageWithReply: publicProcedure
-      .input(z.object({ groupID: z.number(), senderID: z.string(), senderName: z.string(), text: z.string().min(1).max(2000), replyToID: z.number().optional() }))
+      .input(z.object({ groupID: z.number(), senderID: z.string(), senderName: z.string(), text: z.string().max(2000), replyToID: z.number().optional(), attachment: chatAttachmentInput.optional() }).refine(input => input.text.trim().length > 0 || !!input.attachment, { message: "A message or attachment is required" }))
       .mutation(async ({ input }) => {
         const { getDb } = await import("./db");
-        const { groupMessages, groupChats, groupMembers } = await import("../drizzle/schema");
+        const { groupMessages, groupChats, groupMembers, chatAttachments } = await import("../drizzle/schema");
         const { eq, ne, and } = await import("drizzle-orm");
         const db = await getDb();
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-        await db.insert(groupMessages).values({ groupID: input.groupID, senderID: input.senderID, senderName: input.senderName, text: input.text, replyToID: input.replyToID || null });
+        const [createdMessage] = await db.insert(groupMessages).values({ groupID: input.groupID, senderID: input.senderID, senderName: input.senderName, text: input.text, replyToID: input.replyToID || null }).$returningId();
+        if (input.attachment) {
+          await db.insert(chatAttachments).values({ messageType: "group", messageID: createdMessage.id, ...input.attachment, uploadedBy: input.senderID });
+        }
         await db.update(groupChats).set({ lastMessageAt: new Date() }).where(eq(groupChats.id, input.groupID));
         // Push notification to other group members
         try {
@@ -1710,7 +1768,7 @@ export const appRouter = router({
           const recipientIDs = members.map(m => m.workerID);
           if (recipientIDs.length > 0) {
             const [group] = await db.select().from(groupChats).where(eq(groupChats.id, input.groupID)).limit(1);
-            const preview = input.text.length > 50 ? input.text.slice(0, 47) + "..." : input.text;
+            const preview = input.text || `📎 ${input.attachment?.fileName || "Attachment"}`;
             await sendPushToWorkers(recipientIDs, {
               title: `${input.senderName} in ${group?.name || "Group"}`,
               body: preview,

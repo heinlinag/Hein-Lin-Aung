@@ -324,6 +324,20 @@ export const chatMessages = mysqlTable("chatMessages", {
 });
 export type ChatMessage = typeof chatMessages.$inferSelect;
 
+// Secure chat file metadata — S3 bytes remain in storage; database stores references only.
+export const chatAttachments = mysqlTable("chatAttachments", {
+  id: int("id").autoincrement().primaryKey(),
+  messageType: mysqlEnum("messageType", ["dm", "group"]).notNull(),
+  messageID: int("messageID").notNull(),
+  storageKey: varchar("storageKey", { length: 512 }).notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  mimeType: varchar("mimeType", { length: 128 }).notNull(),
+  sizeBytes: int("sizeBytes").notNull(),
+  uploadedBy: varchar("uploadedBy", { length: 64 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ChatAttachment = typeof chatAttachments.$inferSelect;
+
 // Group chats (max 10 members)
 export const groupChats = mysqlTable("groupChats", {
   id: int("id").autoincrement().primaryKey(),

@@ -129,6 +129,44 @@ async function startServer() {
     }
   });
 
+  // ─── Chat Attachment Upload (multipart, worker-device authenticated) ────────
+  const chatAttachmentMimeTypes = new Set([
+    "image/jpeg", "image/png", "image/webp", "image/gif",
+    "application/pdf", "text/plain", "text/csv",
+    "application/msword", "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ]);
+  const chatUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+  app.post("/api/chat-upload", chatUpload.single("file"), async (req, res) => {
+    try {
+      const workerID = (req.body as Record<string, string>)?.workerID ?? "";
+      const deviceToken = (req.body as Record<string, string>)?.deviceToken ?? "";
+      const session = await verifyScannerWorkerSession(workerID, deviceToken);
+      if (!session.ok) return res.status(401).json(session);
+      if (!req.file) return res.status(400).json({ error: "Choose a file to attach." });
+      if (!chatAttachmentMimeTypes.has(req.file.mimetype)) {
+        return res.status(415).json({ error: "This file type is not supported. Share an image, PDF, text, CSV, Word, or Excel file." });
+      }
+      const safeFileName = (req.file.originalname || "attachment")
+        .replace(/[^a-zA-Z0-9._() -]/g, "_")
+        .slice(0, 180);
+      const { storagePut } = await import("../storage");
+      const stored = await storagePut(`chat-attachments/${workerID}/${Date.now()}-${safeFileName}`, req.file.buffer, req.file.mimetype);
+      return res.json({
+        attachment: {
+          storageKey: stored.key,
+          fileName: safeFileName,
+          mimeType: req.file.mimetype,
+          sizeBytes: req.file.size,
+        },
+      });
+    } catch (err) {
+      console.error("[chat-upload] error:", err);
+      return res.status(500).json({ error: "Unable to upload this attachment. Please try again." });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",
