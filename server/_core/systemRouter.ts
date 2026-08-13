@@ -11,6 +11,7 @@ import { ADMIN_PASSWORD, COOKIE_NAME } from "@shared/const";
 import { createHeartbeatJob, deleteHeartbeatJob, listHeartbeatJobs } from "./heartbeat";
 import { invokeLLM } from "./llm";
 import { parse as parseCookie } from "cookie";
+import { getSitemapCiStatus } from "../githubCiStatus";
 // ─── System broadcast: send maintenance notice to all workers via a system group ───
 const SYSTEM_MAINTENANCE_SENDER_ID = "SYSTEM_MAINTENANCE";
 const SYSTEM_MAINTENANCE_SENDER_NAME = "Scheduled Maintenance";
@@ -88,6 +89,11 @@ let lastResponseTime = 0;
 const responseTimeSamples: number[] = [];
 
 export const systemRouter = router({
+  /** Latest public GitHub Actions result for the Stock Dash Sitemap Validation workflow. */
+  getSitemapCiStatus: publicProcedure
+    .input(z.object({ force: z.boolean().optional() }).optional())
+    .query(({ input }) => getSitemapCiStatus(input?.force ?? false)),
+
   health: publicProcedure
     .input(
       z.object({

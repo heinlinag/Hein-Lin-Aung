@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, type ReactNode } from "react"
 import { createPortal } from "react-dom";
 import { ContactMessagesTab } from "@/components/ContactMessagesTab";
 import { AnnouncementsTab } from "@/components/AnnouncementsTab";
+import { SitemapCiStatusBadge } from "@/components/SitemapCiStatusBadge";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation, useParams } from "wouter";
@@ -2291,6 +2292,11 @@ export default function AdminPanel() {
   // Theme locked to dark glassmorphism permanently
   const statsQuery = trpc.orders.adminStats.useQuery(undefined, { refetchInterval: 30000 });
   const stats = statsQuery.data;
+  const [sitemapCiRefresh, setSitemapCiRefresh] = useState(0);
+  const sitemapCiQuery = trpc.system.getSitemapCiStatus.useQuery(
+    { force: sitemapCiRefresh > 0 },
+    { refetchInterval: 5 * 60 * 1000 },
+  );
 
   const tabs = [
     { id: "dashboard" as const, label: "Dashboard", icon: <Monitor size={16} />, color: "indigo" },
@@ -2516,6 +2522,20 @@ export default function AdminPanel() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 pb-5 md:pb-6">
+        <SitemapCiStatusBadge
+          status={sitemapCiQuery.data?.status}
+          message={sitemapCiQuery.data?.message}
+          updatedAt={sitemapCiQuery.data?.updatedAt}
+          branch={sitemapCiQuery.data?.branch}
+          commit={sitemapCiQuery.data?.commit}
+          workflowUrl={sitemapCiQuery.data?.workflowUrl}
+          runUrl={sitemapCiQuery.data?.runUrl}
+          isLoading={sitemapCiQuery.isLoading || sitemapCiQuery.isFetching}
+          onRefresh={() => setSitemapCiRefresh(value => value + 1)}
+        />
       </div>
 
       {/* Role-Based Quick Actions */}
