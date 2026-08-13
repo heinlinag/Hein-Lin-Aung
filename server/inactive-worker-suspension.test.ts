@@ -15,12 +15,17 @@ describe("daily inactive worker suspension", () => {
   const home = read("client/src/pages/Home.tsx");
   const reminderMigration = read("drizzle/0050_inactivity_push_reminders.sql");
 
-  it("stores suspension state and successful-login activity on worker records", () => {
+  it("bases the suspension policy on verified device activity while retaining login and device records", () => {
     expect(schema).toContain('accountStatus: mysqlEnum("accountStatus", ["active", "suspended"])');
     expect(schema).toContain('lastLoginAt: timestamp("lastLoginAt")');
+    expect(schema).toContain('lastSeenAt: timestamp("lastSeenAt")');
     expect(schema).toContain('suspendedAt: timestamp("suspendedAt")');
     expect(db).toContain("INACTIVITY_SUSPENSION_DAYS = 30");
     expect(db).toContain("lastLoginAt: new Date()");
+    expect(db).toContain("lastSeenAt: new Date()");
+    expect(db).toContain("getWorkerLastActiveAt");
+    expect(db).toContain("lte(workers.lastSeenAt, cutoff)");
+    expect(db).toContain("lastSeenAt: new Date(),");
     expect(db).toContain("suspendInactiveWorkers");
     expect(db).toContain("reactivateWorkerAccount");
   });
@@ -69,6 +74,9 @@ describe("daily inactive worker suspension", () => {
   it("shows an authenticated dashboard warning during the final seven days", () => {
     expect(routers).toContain("getAccountStatus: publicProcedure");
     expect(routers).toContain("INACTIVITY_SUSPENSION_DAYS * 24 * 60 * 60 * 1000");
+    expect(routers).toContain("worker.lastSeenAt ?? worker.lastLoginAt ?? worker.createdAt");
+    expect(routers).toContain("lastActiveAt: activityDate");
+    expect(routers).toContain('worker?.accountStatus === "suspended"');
     expect(routers).toContain("worker.activeDeviceToken !== input.deviceToken");
     expect(home).toContain("InactivityWarningBanner");
     expect(home).toContain("daysUntilSuspension <= 7");
@@ -77,5 +85,10 @@ describe("daily inactive worker suspension", () => {
     expect(home).toContain("3 DAYS LEFT");
     expect(home).toContain("1 DAY LEFT");
     expect(home).toContain("Sign out and sign in again to keep your account active.");
+  });
+
+  it("keeps the last active device details after logout for the 30-day policy record", () => {
+    expect(db).toContain("activeDeviceToken: null,");
+    expect(db).not.toContain("activeDeviceName: null,\n    activeDeviceIP: null,\n    activeLoginAt: null,\n    activeDeviceCountry: null");
   });
 });

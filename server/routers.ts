@@ -232,13 +232,14 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Your worker session is no longer active. Please sign in again." });
         }
 
-        const activityDate = worker.lastLoginAt ?? worker.createdAt;
+        const activityDate = worker.lastSeenAt ?? worker.lastLoginAt ?? worker.createdAt;
         const suspensionAt = new Date(activityDate.getTime() + INACTIVITY_SUSPENSION_DAYS * 24 * 60 * 60 * 1000);
         const daysUntilSuspension = Math.max(0, Math.ceil((suspensionAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
 
         return {
           accountStatus: worker.accountStatus,
           lastLoginAt: worker.lastLoginAt,
+          lastActiveAt: activityDate,
           suspendedAt: worker.suspendedAt,
           suspensionAt,
           daysUntilSuspension,
@@ -1556,8 +1557,11 @@ export const appRouter = router({
         if (!db) return { success: false, displaced: false };
         // Validate device token if provided
         if (input.deviceToken) {
-          const [worker] = await db.select({ activeDeviceToken: workers.activeDeviceToken })
+          const [worker] = await db.select({ activeDeviceToken: workers.activeDeviceToken, accountStatus: workers.accountStatus })
             .from(workers).where(eq(workers.workerID, input.workerID)).limit(1);
+          if (worker?.accountStatus === "suspended") {
+            return { success: false, displaced: true };
+          }
           if (worker && worker.activeDeviceToken && worker.activeDeviceToken !== input.deviceToken) {
             // This device has been displaced by a newer login — signal auto-logout
             return { success: false, displaced: true };

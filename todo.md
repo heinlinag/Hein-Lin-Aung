@@ -1551,8 +1551,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Enable secure Admin Panel reactivation and record suspension/reactivation activity
 - [x] Run the selected daily automatic inactivity evaluation and add regression coverage for the full policy
 - [x] Show a dashboard warning during the final 7 days before automatic inactivity suspension
-- [x] Add elevated dashboard reminder states at 3 days and 1 day before automatic suspension
+- [x] Add elevated dashboard reminder states at 3 days and 1 day before automatic inactivity suspension
 - [x] Send idempotent browser push reminders at the 7-day, 3-day, and 1-day inactivity thresholds
+- [x] Base 30-day suspension and 7/3/1-day reminders on the last active device activity, not only login time
 
 ## English-Only Interface
 - [x] Replace non-English user-facing interface text with English across the web application

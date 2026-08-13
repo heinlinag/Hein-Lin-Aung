@@ -1,6 +1,6 @@
 import { eq, desc, and, or, isNull, isNotNull, lte, inArray, sql as sqlExpr } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory, auditLogs, InsertAuditLog, AuditLog, inactivityReminderDeliveries } from "../drizzle/schema";
+import { InsertUser, users, workers, Worker, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory, auditLogs, InsertAuditLog, AuditLog, inactivityReminderDeliveries } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -131,6 +131,7 @@ export async function setWorkerActiveDevice(
     activeDeviceIP: deviceIP,
     activeLoginAt: new Date(),
     lastLoginAt: new Date(),
+    lastSeenAt: new Date(),
     activeDeviceCountry: location.country,
     activeDeviceRegion: location.region,
     activeDeviceCity: location.city,
@@ -143,17 +144,13 @@ export async function clearWorkerActiveDevice(workerID: string): Promise<void> {
   if (!db) throw new Error("Database not available");
   await db.update(workers).set({
     activeDeviceToken: null,
-    activeDeviceName: null,
-    activeDeviceIP: null,
     activeLoginAt: null,
-    activeDeviceCountry: null,
-    activeDeviceRegion: null,
-    activeDeviceCity: null,
+    lastSeenAt: new Date(),
   }).where(eq(workers.workerID, workerID));
 }
 
 export const INACTIVITY_SUSPENSION_DAYS = 30;
-export const INACTIVITY_SUSPENSION_REASON = "Automatically suspended after 30 days without a successful login.";
+export const INACTIVITY_SUSPENSION_REASON = "Automatically suspended after 30 days without verified device activity.";
 export const INACTIVITY_REMINDER_DAYS = [7, 3, 1] as const;
 
 export type InactivityReminderCandidate = {
@@ -161,6 +158,11 @@ export type InactivityReminderCandidate = {
   daysUntilSuspension: typeof INACTIVITY_REMINDER_DAYS[number];
   activityAt: Date;
 };
+
+/** A worker is active when their latest authenticated device heartbeat is within the policy window. */
+export function getWorkerLastActiveAt(worker: Pick<Worker, "lastSeenAt" | "lastLoginAt" | "createdAt">): Date {
+  return worker.lastSeenAt ?? worker.lastLoginAt ?? worker.createdAt;
+}
 
 /** Find active workers exactly at a configured inactivity-reminder threshold. */
 export async function getInactivityReminderCandidates(now: Date = new Date()): Promise<InactivityReminderCandidate[]> {
@@ -170,7 +172,7 @@ export async function getInactivityReminderCandidates(now: Date = new Date()): P
   const dayMs = 24 * 60 * 60 * 1000;
 
   return activeWorkers.flatMap(worker => {
-    const activityAt = worker.lastLoginAt ?? worker.createdAt;
+    const activityAt = getWorkerLastActiveAt(worker);
     const suspensionAt = activityAt.getTime() + INACTIVITY_SUSPENSION_DAYS * dayMs;
     const daysUntilSuspension = Math.max(0, Math.ceil((suspensionAt - now.getTime()) / dayMs));
     if (!INACTIVITY_REMINDER_DAYS.includes(daysUntilSuspension as typeof INACTIVITY_REMINDER_DAYS[number])) return [];
@@ -254,7 +256,7 @@ export async function getWorkerInactivityHistory(workerID: string, limit = 50): 
     .slice(0, safeLimit);
 }
 
-/** Suspend workers whose successful login is at least 30 days old (or who never signed in). */
+/** Suspend workers whose last verified device activity is at least 30 days old. */
 export async function suspendInactiveWorkers(now: Date = new Date()): Promise<{ suspendedCount: number; workerIDs: string[] }> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -262,8 +264,9 @@ export async function suspendInactiveWorkers(now: Date = new Date()): Promise<{ 
   const inactiveWorkers = await db.select().from(workers).where(and(
     eq(workers.accountStatus, "active"),
     or(
-      lte(workers.lastLoginAt, cutoff),
-      and(isNull(workers.lastLoginAt), lte(workers.createdAt, cutoff)),
+      lte(workers.lastSeenAt, cutoff),
+      and(isNull(workers.lastSeenAt), lte(workers.lastLoginAt, cutoff)),
+      and(isNull(workers.lastSeenAt), isNull(workers.lastLoginAt), lte(workers.createdAt, cutoff)),
     ),
   ));
 
@@ -273,19 +276,14 @@ export async function suspendInactiveWorkers(now: Date = new Date()): Promise<{ 
       suspendedAt: now,
       suspensionReason: INACTIVITY_SUSPENSION_REASON,
       activeDeviceToken: null,
-      activeDeviceName: null,
-      activeDeviceIP: null,
       activeLoginAt: null,
-      activeDeviceCountry: null,
-      activeDeviceRegion: null,
-      activeDeviceCity: null,
     }).where(eq(workers.id, worker.id));
     await createAuditLog({
       workerID: worker.workerID,
       workerName: worker.displayName || worker.name,
       department: worker.department,
       action: "account_suspended_inactive",
-      oldValue: worker.lastLoginAt ? worker.lastLoginAt.toISOString() : "Never signed in",
+      oldValue: getWorkerLastActiveAt(worker).toISOString(),
       newValue: INACTIVITY_SUSPENSION_REASON,
       ipAddress: worker.activeDeviceIP,
     });
@@ -305,6 +303,7 @@ export async function reactivateWorkerAccount(workerID: string): Promise<void> {
     suspendedAt: null,
     suspensionReason: null,
     lastLoginAt: now,
+    lastSeenAt: now,
   }).where(eq(workers.workerID, workerID));
   await createAuditLog({
     workerID: worker.workerID,

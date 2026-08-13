@@ -68,10 +68,10 @@ describe("My Profile account summary", () => {
 
   it("explains the automatic 30-day suspension policy with current account activity", () => {
     expect(profileSource).toContain("Automatic Suspension Policy");
-    expect(profileSource).toContain("Your account will be automatically suspended if no successful sign-in is recorded for 30 days.");
-    expect(profileSource).toContain("If no successful sign-in is recorded for 30 days");
+    expect(profileSource).toContain("Your account will be automatically suspended if no verified device activity is recorded for 30 days.");
+    expect(profileSource).toContain("If no activity is recorded for 30 days");
     expect(profileSource).toContain("trpc.workers.getAccountStatus.useQuery");
-    expect(profileSource).toContain("Last successful sign-in");
+    expect(profileSource).toContain("Last device activity");
     expect(profileSource).toContain("Account activity status");
   });
 

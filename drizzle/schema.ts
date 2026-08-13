@@ -469,6 +469,22 @@ export const customerSamples = mysqlTable("customerSamples", {
 export type CustomerSample = typeof customerSamples.$inferSelect;
 export type InsertCustomerSample = typeof customerSamples.$inferInsert;
 
+// Customer Sample stock movement — written once when a pending sample enters progress.
+export const customerSampleStockMovements = mysqlTable("customerSampleStockMovements", {
+  id: int("id").autoincrement().primaryKey(),
+  sampleId: int("sampleId").notNull(),
+  orderId: int("orderId").notNull(),
+  productionOrderID: varchar("productionOrderID", { length: 64 }).notNull(),
+  customerName: varchar("customerName", { length: 256 }).notNull(),
+  sampleQty: int("sampleQty").notNull(),
+  processedBy: varchar("processedBy", { length: 128 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  sampleUnique: uniqueIndex("customerSampleStockMovements_sample_unique").on(table.sampleId),
+  orderCreatedIndex: index("customerSampleStockMovements_order_created_idx").on(table.orderId, table.createdAt),
+}));
+export type CustomerSampleStockMovement = typeof customerSampleStockMovements.$inferSelect;
+
 // Security Audit Log — records profile/identity changes for security review
 export const auditLogs = mysqlTable("auditLogs", {
   id: int("id").autoincrement().primaryKey(),

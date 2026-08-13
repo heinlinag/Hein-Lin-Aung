@@ -226,7 +226,7 @@ export default function UserProfile() {
   const nameRemaining = daysLeft(profile?.displayNameChangedAt, 7);
   const idRemaining   = daysLeft(profile?.employeeIdChangedAt, 30);
   const daysUntilSuspension = accountStatusQuery.data?.daysUntilSuspension;
-  const lastSuccessfulLogin = accountStatusQuery.data?.lastLoginAt;
+  const lastDeviceActivity = accountStatusQuery.data?.lastActiveAt;
   const isUrgentInactivityWindow = daysUntilSuspension !== undefined && daysUntilSuspension <= 3;
   const isWarningInactivityWindow = daysUntilSuspension !== undefined && daysUntilSuspension <= 7;
   const memberSince = profile?.createdAt
@@ -423,11 +423,11 @@ export default function UserProfile() {
                   <p className="text-sm font-black" style={{ color: "#0f172a" }}>Automatic Suspension Policy</p>
                   <span className="rounded-full px-2 py-0.5 text-[9px] font-black tracking-wide" style={{ background: "#ffffff", border: "1px solid #fde68a", color: "#a16207" }}>30 DAYS</span>
                 </div>
-                <p className="mt-1 text-xs font-semibold leading-relaxed" style={{ color: isUrgentInactivityWindow ? "#be123c" : "#a16207" }}>Your account will be automatically suspended if no successful sign-in is recorded for 30 days.</p>
-                <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "#475569" }}>If no successful sign-in is recorded for 30 days, your Employee ID is automatically suspended. Sign out and sign in again to refresh your account activity.</p>
+                <p className="mt-1 text-xs font-semibold leading-relaxed" style={{ color: isUrgentInactivityWindow ? "#be123c" : "#a16207" }}>Your account will be automatically suspended if no verified device activity is recorded for 30 days.</p>
+                <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "#475569" }}>Keeping the app active on your signed-in device refreshes account activity. If no activity is recorded for 30 days, your Employee ID is automatically suspended.</p>
                 <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <PolicyMetric label="Suspension threshold" value="30 days" icon={<Clock size={13} />} color="#a16207" />
-                  <PolicyMetric label="Last successful sign-in" value={lastSuccessfulLogin ? new Date(lastSuccessfulLogin).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : accountStatusQuery.isLoading ? "Checking…" : "Not available"} icon={<LogIn size={13} />} color="#4f46e5" />
+                  <PolicyMetric label="Last device activity" value={lastDeviceActivity ? new Date(lastDeviceActivity).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : accountStatusQuery.isLoading ? "Checking…" : "Not available"} icon={<LogIn size={13} />} color="#4f46e5" />
                   <PolicyMetric label="Account activity status" value={daysUntilSuspension === undefined ? (accountStatusQuery.isLoading ? "Checking…" : "Active") : daysUntilSuspension === 0 ? "Suspension scheduled today" : `${daysUntilSuspension} days remaining`} icon={<Shield size={13} />} color={isUrgentInactivityWindow ? "#be123c" : isWarningInactivityWindow ? "#a16207" : "#047857"} />
                 </div>
               </div>
