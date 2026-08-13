@@ -83,6 +83,11 @@ describe("Stock History order details", () => {
     expect(stockHistorySource).toContain("if (neededSlitQty > availableQty)");
   });
 
+  it("keeps the insufficient-stock Purchase Order warning above the mobile bottom navigation", () => {
+    expect(stockHistorySource).toContain('role="alert" aria-live="polite"');
+    expect(stockHistorySource).toContain("isNeededSlitInsufficient ? null : (");
+  });
+
   it("hides Added Date from the desktop table while retaining it in Production Order Details", () => {
     expect(stockHistorySource).toContain('{ label: "Added", value: new Date(order.createdAt).toLocaleString() }');
     expect(stockHistorySource).not.toContain('"BQ","Date", activeTab === "out_of_stock"');

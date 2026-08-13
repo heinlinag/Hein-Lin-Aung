@@ -576,7 +576,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
 
       {/* ── Mobile Bottom Navigation Bar ──────────────────────────── */}
       {worker && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-white/98 shadow-[0_-5px_20px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/80 bg-white/98 shadow-[0_-5px_20px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <div className="flex h-[72px] items-stretch pb-[env(safe-area-inset-bottom)] sm:h-16 sm:pb-0">
             {[
               { href: "/",                       icon: <Home size={22} />,          label: "Home",   order: "order-1" },
