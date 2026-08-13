@@ -25,4 +25,9 @@ describe("Stock History order details", () => {
     expect(stockHistorySource).toContain("event.stopPropagation();\n                            if (userLevel === \"1\")");
     expect(stockHistorySource).toContain("Close order details");
   });
+
+  it("labels scanner-created orders as Auto Scanner and manual orders as Manual Entry", () => {
+    expect(stockHistorySource).toContain('order.submittedVia === "scanner"');
+    expect(stockHistorySource).toContain('isScannerOrder ? "Auto Scanner" : "Manual Entry"');
+  });
 });

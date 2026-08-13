@@ -1234,7 +1234,7 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
 
           <div className="mt-3 flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.035] px-3.5 py-3">
             <span className="text-[10px] font-bold text-slate-400">Submission method</span>
-            <span className="text-[10px] font-black text-white">{isScannerOrder ? "AI Label Scanner" : "Manual Entry"}</span>
+            <span className="text-[10px] font-black text-white">{isScannerOrder ? "Auto Scanner" : "Manual Entry"}</span>
           </div>
         </div>
       </div>

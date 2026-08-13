@@ -1390,6 +1390,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## AI Scanner Authentication
 - [x] Diagnose and fix “Please login first” during AI Scanner image upload
 - [x] Add regression coverage for workerID and deviceToken scanner authentication
+- [x] Show Auto Scanner for scanner-created Add Stock NPRM orders and Manual Entry for manual orders
 
 ## AI Scanner Session Health Check
 - [x] Add a lightweight worker session health endpoint for scanner preflight checks
