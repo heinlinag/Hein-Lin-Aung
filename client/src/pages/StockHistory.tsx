@@ -1157,10 +1157,47 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
     { orderId: order.id },
     { enabled: order.status === "current" },
   );
+  const orderActivityUsageQuery = trpc.orders.getUsage.useQuery();
+  const orderActivityAdjustmentsQuery = trpc.orders.getQrScanHistory.useQuery();
   const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
   const availableQty = Math.max(0, order.qty - inProcessQty);
   const isScannerOrder = order.submittedVia === "scanner";
   const statusColor = order.status === "current" ? "#34d399" : "#fb7185";
+
+  const orderActivity = [
+    {
+      id: `input-${order.id}`,
+      type: "input" as const,
+      quantityDelta: order.qty,
+      details: "Initial stock added",
+      reason: null as string | null,
+      createdAt: order.createdAt,
+    },
+    ...(orderActivityUsageQuery.data ?? [])
+      .filter(entry => entry.orderID === order.orderID)
+      .map(entry => ({
+        id: `output-${entry.id}`,
+        type: "output" as const,
+        quantityDelta: -entry.usedQty,
+        details: entry.purpose === "job" ? `Used for Job ${entry.jobNo ?? "N/A"}` : "Old stock cleared",
+        reason: null as string | null,
+        createdAt: entry.createdAt,
+      })),
+    ...(orderActivityAdjustmentsQuery.data ?? [])
+      .filter(log => log.orderId === order.orderID && log.action === "balance_update" && log.oldQty !== null && log.newQty !== null)
+      .map(log => {
+        const quantityDelta = (log.newQty ?? 0) - (log.oldQty ?? 0);
+        const source = log.adjustmentMethod === "scan" ? "QR / Barcode Scan" : "Manual Input";
+        return {
+          id: `adjustment-${log.id}`,
+          type: "adjustment" as const,
+          quantityDelta,
+          details: `Balance adjustment · ${source}`,
+          reason: log.adjustmentNote?.trim() || null,
+          createdAt: log.createdAt,
+        };
+      }),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const detailItems = [
     { label: "Production Order", value: order.orderID, mono: true },
@@ -1237,6 +1274,49 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
             <span className="text-[10px] font-bold text-slate-400">Submission method</span>
             <span className="text-[10px] font-black text-white">{isScannerOrder ? "Auto Scanner" : "Manual Entry"}</span>
           </div>
+
+          <section className="mt-3 overflow-hidden rounded-2xl border border-white/8 bg-white/[0.035]" aria-label="Input and output activity">
+            <div className="flex items-center justify-between border-b border-white/8 px-3.5 py-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.12em] text-indigo-200">Input / Output Activity</p>
+                <p className="mt-0.5 text-[10px] text-slate-400">Stock movement for this production order</p>
+              </div>
+              <span className="rounded-full border border-indigo-300/20 bg-indigo-300/10 px-2 py-0.5 text-[9px] font-black text-indigo-100">{orderActivity.length} events</span>
+            </div>
+
+            {orderActivityUsageQuery.isLoading || orderActivityAdjustmentsQuery.isLoading ? (
+              <div className="space-y-2 p-3.5" aria-label="Loading order activity">
+                {[0, 1].map(index => <div key={index} className="h-12 animate-pulse rounded-xl bg-white/[0.05]" />)}
+              </div>
+            ) : (
+              <div className="divide-y divide-white/7">
+                {orderActivity.map(activity => {
+                  const isInput = activity.quantityDelta >= 0;
+                  const eventLabel = activity.type === "adjustment"
+                    ? `${isInput ? "Input" : "Output"} Adjustment`
+                    : isInput ? "Stock Input" : "Stock Output";
+                  return (
+                    <div key={activity.id} className="flex gap-3 px-3.5 py-3">
+                      <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border text-[9px] font-black ${isInput ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-rose-400/25 bg-rose-400/10 text-rose-300"}`}>
+                        {isInput ? "IN" : "OUT"}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-[11px] font-black text-white">{eventLabel}</p>
+                          <span className={`shrink-0 text-[11px] font-black ${isInput ? "text-emerald-300" : "text-rose-300"}`}>
+                            {isInput ? "+" : "−"}{Math.abs(activity.quantityDelta)} pcs
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[10px] font-medium text-slate-400">{activity.details}</p>
+                        {activity.reason && <p className="mt-1 rounded-lg bg-white/[0.045] px-2 py-1 text-[10px] leading-relaxed text-slate-300">Reason: {activity.reason}</p>}
+                        <p className="mt-1 text-[9px] text-slate-500">{new Date(activity.createdAt).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
       </div>
     </div>

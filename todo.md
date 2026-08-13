@@ -1450,6 +1450,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display Auto Scanner and Manual Entry method badges on Stock History desktop rows and mobile cards
 - [x] Hide Added Date from the desktop Stock History table and retain it in Production Order Details
 - [x] Remove visual Auto Scanner and Manual Entry badges from Stock History rows and mobile cards
+- [x] Display order-specific Input and Output activity in Production Order Details
 
 ## Direct Profile Navigation
 - [x] Remove the desktop and mobile profile quick panel

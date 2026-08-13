@@ -38,6 +38,16 @@ describe("Stock History order details", () => {
     expect(stockHistorySource).not.toContain("<PenLine size={10} />");
   });
 
+  it("shows order-specific Input and Output activity inside Production Order Details", () => {
+    expect(stockHistorySource).toContain("const orderActivityUsageQuery = trpc.orders.getUsage.useQuery()");
+    expect(stockHistorySource).toContain("const orderActivityAdjustmentsQuery = trpc.orders.getQrScanHistory.useQuery()");
+    expect(stockHistorySource).toContain(".filter(entry => entry.orderID === order.orderID)");
+    expect(stockHistorySource).toContain(".filter(log => log.orderId === order.orderID && log.action === \"balance_update\"");
+    expect(stockHistorySource).toContain("Input / Output Activity");
+    expect(stockHistorySource).toContain("Initial stock added");
+    expect(stockHistorySource).toContain("Stock movement for this production order");
+  });
+
   it("hides Added Date from the desktop table while retaining it in Production Order Details", () => {
     expect(stockHistorySource).toContain('{ label: "Added", value: new Date(order.createdAt).toLocaleString() }');
     expect(stockHistorySource).not.toContain('"BQ","Date", activeTab === "out_of_stock"');
