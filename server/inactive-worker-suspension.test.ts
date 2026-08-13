@@ -13,6 +13,7 @@ describe("daily inactive worker suspension", () => {
   const login = read("client/src/pages/Login.tsx");
   const admin = read("client/src/pages/AdminPanel.tsx");
   const home = read("client/src/pages/Home.tsx");
+  const reminderMigration = read("drizzle/0050_inactivity_push_reminders.sql");
 
   it("stores suspension state and successful-login activity on worker records", () => {
     expect(schema).toContain('accountStatus: mysqlEnum("accountStatus", ["active", "suspended"])');
@@ -43,6 +44,19 @@ describe("daily inactive worker suspension", () => {
     expect(server).toContain("cronUser.isCron");
     expect(server).toContain("inactiveWorkerSuspensionTaskUid");
     expect(server).toContain("suspendInactiveWorkers()");
+  });
+
+  it("sends one browser push reminder at each configured inactivity threshold", () => {
+    expect(schema).toContain("inactivityReminderDeliveries");
+    expect(schema).toContain("inactivityReminderDeliveries_worker_threshold_activity_unique");
+    expect(reminderMigration).toContain("CREATE TABLE `inactivityReminderDeliveries`");
+    expect(reminderMigration).toContain("UNIQUE KEY `inactivityReminderDeliveries_worker_threshold_activity_unique`");
+    expect(db).toContain("INACTIVITY_REMINDER_DAYS = [7, 3, 1]");
+    expect(db).toContain("getInactivityReminderCandidates");
+    expect(db).toContain("claimInactivityReminderDelivery");
+    expect(server).toContain("sendPushToWorkers");
+    expect(server).toContain("remindersSent: notified");
+    expect(server).toContain("inactivity-reminder-");
   });
 
   it("shows an authenticated dashboard warning during the final seven days", () => {

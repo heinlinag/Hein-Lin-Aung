@@ -1,6 +1,6 @@
 import { eq, desc, and, or, isNull, isNotNull, lte, inArray, sql as sqlExpr } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory, auditLogs, InsertAuditLog, AuditLog } from "../drizzle/schema";
+import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory, auditLogs, InsertAuditLog, AuditLog, inactivityReminderDeliveries } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -154,6 +154,54 @@ export async function clearWorkerActiveDevice(workerID: string): Promise<void> {
 
 export const INACTIVITY_SUSPENSION_DAYS = 30;
 export const INACTIVITY_SUSPENSION_REASON = "Automatically suspended after 30 days without a successful login.";
+export const INACTIVITY_REMINDER_DAYS = [7, 3, 1] as const;
+
+export type InactivityReminderCandidate = {
+  workerID: string;
+  daysUntilSuspension: typeof INACTIVITY_REMINDER_DAYS[number];
+  activityAt: Date;
+};
+
+/** Find active workers exactly at a configured inactivity-reminder threshold. */
+export async function getInactivityReminderCandidates(now: Date = new Date()): Promise<InactivityReminderCandidate[]> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const activeWorkers = await db.select().from(workers).where(eq(workers.accountStatus, "active"));
+  const dayMs = 24 * 60 * 60 * 1000;
+
+  return activeWorkers.flatMap(worker => {
+    const activityAt = worker.lastLoginAt ?? worker.createdAt;
+    const suspensionAt = activityAt.getTime() + INACTIVITY_SUSPENSION_DAYS * dayMs;
+    const daysUntilSuspension = Math.max(0, Math.ceil((suspensionAt - now.getTime()) / dayMs));
+    if (!INACTIVITY_REMINDER_DAYS.includes(daysUntilSuspension as typeof INACTIVITY_REMINDER_DAYS[number])) return [];
+    return [{
+      workerID: worker.workerID,
+      daysUntilSuspension: daysUntilSuspension as typeof INACTIVITY_REMINDER_DAYS[number],
+      activityAt,
+    }];
+  });
+}
+
+/** Atomically claim a reminder delivery so cron retries cannot send duplicate pushes. */
+export async function claimInactivityReminderDelivery(candidate: InactivityReminderCandidate): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    await db.insert(inactivityReminderDeliveries).values({
+      workerID: candidate.workerID,
+      thresholdDays: candidate.daysUntilSuspension,
+      activityAt: candidate.activityAt,
+    });
+    return true;
+  } catch (error) {
+    const dbError = error as { code?: string; cause?: { code?: string }; message?: string };
+    const isDuplicate = dbError.code === "ER_DUP_ENTRY"
+      || dbError.cause?.code === "ER_DUP_ENTRY"
+      || dbError.message?.includes("Duplicate entry");
+    if (isDuplicate) return false;
+    throw error;
+  }
+}
 
 /** Suspend workers whose successful login is at least 30 days old (or who never signed in). */
 export async function suspendInactiveWorkers(now: Date = new Date()): Promise<{ suspendedCount: number; workerIDs: string[] }> {

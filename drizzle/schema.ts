@@ -164,6 +164,20 @@ export const pushSubscriptions = mysqlTable("pushSubscriptions", {
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
 
+// Inactivity reminder deliveries — prevents duplicate browser pushes when a daily job is retried.
+export const inactivityReminderDeliveries = mysqlTable("inactivityReminderDeliveries", {
+  id: int("id").autoincrement().primaryKey(),
+  workerID: varchar("workerID", { length: 64 }).notNull(),
+  thresholdDays: int("thresholdDays").notNull(),
+  activityAt: timestamp("activityAt").notNull(),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+}, (table) => ({
+  deliveryUnique: uniqueIndex("inactivityReminderDeliveries_worker_threshold_activity_unique").on(table.workerID, table.thresholdDays, table.activityAt),
+  workerIndex: index("inactivityReminderDeliveries_worker_idx").on(table.workerID),
+}));
+export type InactivityReminderDelivery = typeof inactivityReminderDeliveries.$inferSelect;
+export type InsertInactivityReminderDelivery = typeof inactivityReminderDeliveries.$inferInsert;
+
 // QR Scan Log table — records every QR scan event and balance updates
 export const qrScanLog = mysqlTable("qrScanLog", {
   id: int("id").autoincrement().primaryKey(),

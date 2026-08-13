@@ -8,11 +8,12 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { getDb, getWorkerByWorkerID, suspendInactiveWorkers } from "../db";
+import { claimInactivityReminderDelivery, getDb, getInactivityReminderCandidates, getWorkerByWorkerID, suspendInactiveWorkers } from "../db";
 import { systemSettings } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import multer from "multer";
 import { sdk } from "./sdk";
+import { sendPushToWorkers } from "../push";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -234,7 +235,7 @@ async function startServer() {
   });
 
   // ─── Daily Inactive Worker Suspension ──────────────────────────────────────
-  // Heartbeat-only and idempotent: workers inactive for 30+ days are suspended.
+  // Heartbeat-only and idempotent: warns workers at 7/3/1 days, then suspends at 30 days.
   app.post("/api/scheduled/suspend-inactive-workers", async (req, res) => {
     try {
       const cronUser = await sdk.authenticateRequest(req);
@@ -248,9 +249,32 @@ async function startServer() {
       if (!schedule?.value || schedule.value !== cronUser.taskUid) {
         return res.json({ ok: true, skipped: "orphan-or-unconfigured", taskUid: cronUser.taskUid });
       }
+      const reminders = await getInactivityReminderCandidates();
+      const notified: Array<{ workerID: string; daysUntilSuspension: number }> = [];
+      for (const reminder of reminders) {
+        const claimed = await claimInactivityReminderDelivery(reminder);
+        if (!claimed) continue;
+        const isFinalDay = reminder.daysUntilSuspension === 1;
+        const isUrgent = reminder.daysUntilSuspension <= 3;
+        const dayLabel = `${reminder.daysUntilSuspension} ${reminder.daysUntilSuspension === 1 ? "day" : "days"}`;
+        await sendPushToWorkers([reminder.workerID], {
+          title: isFinalDay
+            ? "Action required: account suspension tomorrow"
+            : isUrgent
+              ? "Urgent: account suspension in 3 days"
+              : "Account activity reminder: 7 days remaining",
+          body: `Your Employee ID will be automatically suspended in ${dayLabel} due to inactivity. Sign out and sign in again to keep your account active.`,
+          type: "system",
+          tag: `inactivity-reminder-${reminder.workerID}-${reminder.daysUntilSuspension}`,
+          url: "/",
+          requireInteraction: isUrgent,
+        });
+        notified.push({ workerID: reminder.workerID, daysUntilSuspension: reminder.daysUntilSuspension });
+      }
+
       const result = await suspendInactiveWorkers();
-      console.log(`[Scheduled] suspend-inactive-workers: suspended ${result.suspendedCount} worker(s)`);
-      return res.json({ ok: true, ...result, timestamp: new Date().toISOString() });
+      console.log(`[Scheduled] suspend-inactive-workers: notified ${notified.length} worker(s), suspended ${result.suspendedCount} worker(s)`);
+      return res.json({ ok: true, remindersSent: notified, ...result, timestamp: new Date().toISOString() });
     } catch (err) {
       console.error("[Scheduled] suspend-inactive-workers error:", err);
       return res.status(500).json({
