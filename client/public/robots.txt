@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Private worker, administrator, and operational routes
+Disallow: /login
+Disallow: /admin/
+Disallow: /submit-order
+Disallow: /stock-history
+Disallow: /approval-center
+Disallow: /customer-sample
+Disallow: /qr-scanner
+Disallow: /chat
+Disallow: /notifications
+Disallow: /user-profile
+Disallow: /check.qr/
+
+Sitemap: https://stockdash.click/sitemap.xml

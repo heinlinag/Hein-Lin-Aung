@@ -1561,3 +1561,4 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## SEO Improvements
 - [x] Add a descriptive Home page H2 heading of 80 characters or fewer
 - [x] Update the Home page title and meta description to Stock Dash branding
+- [x] Add sitemap.xml and robots.txt for public search engine indexing
