@@ -696,6 +696,11 @@ export default function Home() {
       </div>
 
       {/* ── Announcement + Notification ──────────────────────────────────── */}
+      <div className="mx-auto max-w-6xl px-4 pt-5 lg:px-8">
+        <h2 id="stock-management-dashboard-heading" className="text-sm font-black tracking-tight text-slate-800 sm:text-base">
+          PP4 Manual Slitter Stock Management Dashboard
+        </h2>
+      </div>
       <h2 className="sr-only">Stock Management Tools and Features</h2>
       <AnnouncementBanner />
       {showNotifBanner && <NotificationBanner onDismiss={dismissBanner} />}

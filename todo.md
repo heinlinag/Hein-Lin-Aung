@@ -1557,3 +1557,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## English-Only Interface
 - [x] Replace non-English user-facing interface text with English across the web application
+
+## SEO Improvements
+- [x] Add a descriptive Home page H2 heading of 80 characters or fewer
