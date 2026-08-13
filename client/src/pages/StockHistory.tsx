@@ -1238,6 +1238,7 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
   const orderActivityUsageQuery = trpc.orders.getUsage.useQuery();
   const orderActivityAdjustmentsQuery = trpc.orders.getQrScanHistory.useQuery();
   const orderActivityRequestsQuery = trpc.pendingRequests.list.useQuery({});
+  const orderActivitySamplesQuery = trpc.customerSamples.getStockMovements.useQuery({ orderId: order.id });
   const isScannerOrder = order.submittedVia === "scanner";
   const statusColor = order.status === "current" ? "#34d399" : "#fb7185";
 
@@ -1314,6 +1315,15 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
           createdAt: log.createdAt,
         };
       }),
+    ...(orderActivitySamplesQuery.data ?? []).map(movement => ({
+      id: `customer-sample-${movement.id}`,
+      type: "output" as const,
+      quantityDelta: -movement.sampleQty,
+      details: `Customer Sample · ${movement.customerName} · ${movement.sampleQty} pcs`,
+      reason: null as string | null,
+      activityStatus: "in_process" as const,
+      createdAt: movement.createdAt,
+    })),
     ...nprmUsageRequests
       .filter(request => request.activityStatus !== "approved" || !matchedApprovedRequestIds.has(request.id))
       .map(request => ({
@@ -1433,7 +1443,7 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
               <span className="rounded-full border border-indigo-300/20 bg-indigo-300/10 px-2 py-0.5 text-[9px] font-black text-indigo-100">{orderActivity.length} events</span>
             </div>
 
-            {orderActivityUsageQuery.isLoading || orderActivityAdjustmentsQuery.isLoading ? (
+            {orderActivityUsageQuery.isLoading || orderActivityAdjustmentsQuery.isLoading || orderActivitySamplesQuery.isLoading ? (
               <div className="space-y-2 p-3.5" aria-label="Loading order activity">
                 {[0, 1].map(index => <div key={index} className="h-12 animate-pulse rounded-xl bg-white/[0.05]" />)}
               </div>

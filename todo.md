@@ -1457,6 +1457,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Use calculated needed-slit quantities for pending NPRM Modify Order activity and Available Qty reservations
 - [x] Hide NPRM Modify Order submission when needed-slit quantity exceeds Available Qty and show an insufficient-stock message
 - [x] Keep the Purchase Order insufficient-stock warning visible above the mobile bottom navigation
+- [x] Display in-progress Customer Sample Request usage in Production Order Activity and the Home Stock Input/Output timeline
 
 ## Direct Profile Navigation
 - [x] Remove the desktop and mobile profile quick panel

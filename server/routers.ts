@@ -44,6 +44,7 @@ import {
   createCustomerSample,
   getCustomerSamples,
   getCustomerSampleById,
+  getCustomerSampleStockMovements,
   updateCustomerSampleStatus,
 } from "./db";
 
@@ -2052,6 +2053,13 @@ export const appRouter = router({
         return getCustomerSampleById(input.id);
       }),
 
+    /** Stock outputs recorded when a Customer Sample enters progress. */
+    getStockMovements: publicProcedure
+      .input(z.object({ orderId: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        return getCustomerSampleStockMovements(input?.orderId);
+      }),
+
     /** Update status: pending → progress, progress → delivery */
     updateStatus: publicProcedure
       .input(z.object({
@@ -2060,8 +2068,8 @@ export const appRouter = router({
         workerName: z.string(),
       }))
       .mutation(async ({ input }) => {
-        await updateCustomerSampleStatus(input.id, input.status, input.workerName);
-        return { ok: true };
+        const result = await updateCustomerSampleStatus(input.id, input.status, input.workerName);
+        return { ok: true, ...result };
       }),
   }),
 

@@ -312,11 +312,13 @@ export default function CustomerSample() {
 
   const handleStatusUpdate = async (id: number, status: "progress" | "delivery") => {
     try {
-      await updateSampleStatus.mutateAsync({ id, status, workerName: worker?.workerID ?? "" });
+      const result = await updateSampleStatus.mutateAsync({ id, status, workerName: worker?.workerID ?? "" });
       await samplesQuery.refetch();
-      toast.success(status === "progress" ? "Sample marked as In Progress!" : "Sample marked as Delivery!");
-    } catch {
-      toast.error("Failed to update status.");
+      toast.success(status === "progress"
+        ? result.stockOutputApplied ? "Sample marked as In Progress. Stock output recorded." : "Sample is already In Progress."
+        : "Sample marked as Delivery!");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to update status.");
     }
   };
 
