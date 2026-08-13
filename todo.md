@@ -1571,6 +1571,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Update all browser page titles to use consistent Stock Dash branding
 - [x] Add smooth navigation feedback and route-specific public Open Graph and description metadata
 - [x] Create a branded Open Graph sharing image and add public-page JSON-LD structured data
+- [x] Add a Stock Dash WebApplication JSON-LD schema to the public Home page
 
 ## Navigation Recovery
 - [x] Improve the custom 404 page with helpful recovery navigation links

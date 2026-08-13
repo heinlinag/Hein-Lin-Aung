@@ -35,7 +35,16 @@ describe("Stock Dash route metadata", () => {
   });
 
   it("provides WebSite and WebPage JSON-LD only for indexable public pages", () => {
-    expect(getStockDashStructuredData("/")?.["@type"]).toBe("WebSite");
+    const homeSchema = getStockDashStructuredData("/")?.["@graph"] as Array<Record<string, unknown>>;
+    expect(homeSchema).toEqual(expect.arrayContaining([
+      expect.objectContaining({ "@type": "WebSite", name: "Stock Dash" }),
+      expect.objectContaining({
+        "@type": "WebApplication",
+        applicationCategory: "BusinessApplication",
+        applicationSubCategory: "Stock Management System",
+        creator: { "@type": "Person", name: "HEiNANN" },
+      }),
+    ]));
     expect(getStockDashStructuredData("/faq")?.["@type"]).toBe("WebPage");
     expect(getStockDashStructuredData("/faq")?.creator).toEqual({ "@type": "Person", name: "HEiNANN" });
     expect(getStockDashStructuredData("/stock-history")).toBeNull();

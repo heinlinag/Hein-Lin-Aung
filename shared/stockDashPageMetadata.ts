@@ -109,14 +109,44 @@ export function getStockDashStructuredData(pathname: string): Record<string, unk
   };
 
   if (metadata.canonicalPath === "/") {
+    const websiteId = `${canonicalUrl}#website`;
+    const webApplicationId = `${canonicalUrl}#webapplication`;
     return {
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "Stock Dash",
-      url: canonicalUrl,
-      description: metadata.description,
-      publisher,
-      creator: { "@type": "Person", name: "HEiNANN" },
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": websiteId,
+          name: "Stock Dash",
+          url: canonicalUrl,
+          description: metadata.description,
+          publisher,
+          creator: { "@type": "Person", name: "HEiNANN" },
+          mainEntity: { "@id": webApplicationId },
+        },
+        {
+          "@type": "WebApplication",
+          "@id": webApplicationId,
+          name: "Stock Dash",
+          applicationCategory: "BusinessApplication",
+          applicationSubCategory: "Stock Management System",
+          operatingSystem: "Web",
+          browserRequirements: "Requires a modern web browser.",
+          url: canonicalUrl,
+          image: STOCK_DASH_OG_IMAGE_URL,
+          description: metadata.description,
+          isPartOf: { "@id": websiteId },
+          publisher,
+          creator: { "@type": "Person", name: "HEiNANN" },
+          featureList: [
+            "Stock management",
+            "Production order tracking",
+            "NPRM Modify Order workflows",
+            "Customer sample requests",
+            "QR stock updates",
+          ],
+        },
+      ],
     };
   }
 
