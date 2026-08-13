@@ -60,11 +60,18 @@ describe("Stock History order details", () => {
   it("reserves NPRM Modify Order usage during pending and in-process states and labels approved output", () => {
     expect(stockHistorySource).toContain("const orderActivityRequestsQuery = trpc.pendingRequests.list.useQuery({})");
     expect(stockHistorySource).toContain("const nprmUsageRequests = (orderActivityRequestsQuery.data ?? []).flatMap");
-    expect(stockHistorySource).toContain("const pendingUsageQty = nprmUsageRequests");
-    expect(stockHistorySource).toContain("const inProcessUsageQty = nprmUsageRequests");
-    expect(stockHistorySource).toContain("const availableQty = Math.max(0, recordedCurrentQty - pendingUsageQty - inProcessUsageQty)");
+    expect(stockHistorySource).toContain("function getOpenNprmUsageQty(requests: readonly ActivityRequest[], orderId: number)");
+    expect(stockHistorySource).toContain("const { pendingUsageQty, inProcessUsageQty } = getOpenNprmUsageQty(orderActivityRequestsQuery.data ?? [], order.id)");
+    expect(stockHistorySource).toContain("const availableQty = calculateProductionOrderAvailableQty(order, orderActivityRequestsQuery.data ?? [])");
     expect(stockHistorySource).toContain("Used for Job ${request.jobNo} · ${request.usageQty} pcs");
     expect(stockHistorySource).toContain('activity.activityStatus === "in_process" ? "In Process" : activity.activityStatus');
+  });
+
+  it("uses the Production Order Details availability calculation in both Purchase Order dialogs", () => {
+    expect(stockHistorySource).toContain("function calculateProductionOrderAvailableQty(order: Order, requests: readonly ActivityRequest[])");
+    expect(stockHistorySource).toContain("const productionOrderAvailableQty = calculateProductionOrderAvailableQty(order, activityRequestsQuery.data ?? [])");
+    expect(stockHistorySource).toContain("const availableQty = calculateProductionOrderAvailableQty(order, activityRequestsQuery.data ?? [])");
+    expect(stockHistorySource).toContain("const newQty = Math.max(0, availableQty - qty)");
   });
 
   it("hides Added Date from the desktop table while retaining it in Production Order Details", () => {

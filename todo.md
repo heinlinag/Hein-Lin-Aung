@@ -1453,6 +1453,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display order-specific Input and Output activity in Production Order Details
 - [x] Show a compact running balance for each movement in Production Order Input and Output Activity
 - [x] Preserve the original Add Stock NPRM input and reflect pending, in-process, and approved NPRM Modify Order usage in activity and Available Qty
+- [x] Use Production Order Details Available Qty logic as the source of truth in Purchase Orders
 
 ## Direct Profile Navigation
 - [x] Remove the desktop and mobile profile quick panel

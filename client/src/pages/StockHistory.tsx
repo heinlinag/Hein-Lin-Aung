@@ -44,6 +44,38 @@ type Order = {
   submittedBy: string | null; createdAt: Date; outOfStockAt?: Date | null; submittedVia?: "manual" | "scanner";
 };
 
+type ActivityRequest = {
+  type: "delete" | "used_update";
+  orderId: number;
+  actionData: string | null;
+  status: "pending" | "approved" | "cancelled";
+  processApprovedQty: number | null;
+};
+
+function getOpenNprmUsageQty(requests: readonly ActivityRequest[], orderId: number) {
+  let pendingUsageQty = 0;
+  let inProcessUsageQty = 0;
+  for (const request of requests) {
+    if (request.type !== "used_update" || request.orderId !== orderId || request.status !== "pending") continue;
+    try {
+      const action = JSON.parse(request.actionData ?? "{}") as { usedQty?: unknown };
+      const requestedQty = typeof action.usedQty === "number" && action.usedQty > 0 ? action.usedQty : 0;
+      if (request.processApprovedQty && request.processApprovedQty > 0) {
+        inProcessUsageQty += request.processApprovedQty;
+      } else {
+        pendingUsageQty += requestedQty;
+      }
+    } catch { /* malformed historical request data is excluded from availability */ }
+  }
+  return { pendingUsageQty, inProcessUsageQty };
+}
+
+function calculateProductionOrderAvailableQty(order: Order, requests: readonly ActivityRequest[]) {
+  const { pendingUsageQty, inProcessUsageQty } = getOpenNprmUsageQty(requests, order.id);
+  const recordedCurrentQty = order.status === "out_of_stock" ? 0 : order.qty;
+  return Math.max(0, recordedCurrentQty - pendingUsageQty - inProcessUsageQty);
+}
+
 /** Returns the estimated auto-delete date: outOfStockAt (or createdAt) + 13 months */
 function getAutoDeleteDate(order: Order): Date {
   const base = order.outOfStockAt ? new Date(order.outOfStockAt) : new Date(order.createdAt);
@@ -127,12 +159,11 @@ function UsedUpdateDialog({ order, onClose, onSuccess }: {
   const notifyAll = trpc.push.sendToAll.useMutation();
   const createNotif = trpc.notifications.create.useMutation();
   const utils = trpc.useUtils();
-  const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery({ orderId: order.id });
-  const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
-  const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
-  const pendingRequestsForOrder = (pendingRequestsQuery.data ?? []).filter((req: any) => req.orderID === order.orderID);
+  const activityRequestsQuery = trpc.pendingRequests.list.useQuery({});
+  const pendingRequestsForOrder = (activityRequestsQuery.data ?? []).filter((req: ActivityRequest) => req.orderId === order.id && req.status === "pending");
   const pendingRequestCount = pendingRequestsForOrder.length;
-  const availableQty = remaining !== null ? remaining : order.qty;
+  const productionOrderAvailableQty = calculateProductionOrderAvailableQty(order, activityRequestsQuery.data ?? []);
+  const availableQty = remaining !== null ? remaining : productionOrderAvailableQty;
 
   const handleJobSubmit = async () => {
     setJobError("");
@@ -438,11 +469,9 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const submitRequest = trpc.pendingRequests.submit.useMutation();
   const notifyAll = trpc.push.sendToAll.useMutation();
   const createNotif = trpc.notifications.create.useMutation();
-  const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery({ orderId: order.id });
-  const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
-  const availableQty = Math.max(0, order.qty - inProcessQty);
-  const pendingRequestsQuery = trpc.pendingRequests.list.useQuery({ status: "pending" });
-  const pendingRequestsForOrder = (pendingRequestsQuery.data ?? []).filter((req: any) => req.orderID === order.orderID);
+  const activityRequestsQuery = trpc.pendingRequests.list.useQuery({});
+  const availableQty = calculateProductionOrderAvailableQty(order, activityRequestsQuery.data ?? []);
+  const pendingRequestsForOrder = (activityRequestsQuery.data ?? []).filter((req: ActivityRequest) => req.orderId === order.id && req.status === "pending");
   const pendingRequestCount = pendingRequestsForOrder.length;
 
   const handleJobRequest = async () => {
@@ -453,7 +482,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
     const qty = parseInt(useQty);
     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
     // Level 1 request: no qty limit (user requests target qty, Level 1.1/2 decide how much to approve)
-    const newQty = order.qty - qty;
+    const newQty = Math.max(0, availableQty - qty);
     try {
       const jobResult = await submitRequest.mutateAsync({
         type: "used_update",
@@ -507,14 +536,14 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
         orderId: order.id,
         orderSnapshot: JSON.stringify(order),
         requestedBy: workerID,
-        actionData: JSON.stringify({ jobNo: null, usedQty: order.qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "old_stock", newQty: 0 }),
+        actionData: JSON.stringify({ jobNo: null, usedQty: availableQty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "old_stock", newQty: 0 }),
       });
       const isOldProcessed = oldResult.autoProcessApproved;
       if (isOldProcessed) {
         toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");
         notifyAll.mutate({
           title: "Old Stock Request In Process",
-          body: `Purchase Order (${order.orderID}) Old Stock clear — ${order.qty} pcs. Auto process-approved. Awaiting Level 2 final approval.`,
+          body: `Purchase Order (${order.orderID}) Old Stock clear — ${availableQty} pcs. Auto process-approved. Awaiting Level 2 final approval.`,
           type: "approval",
           url: "/approval-center",
           tag: "old-stock-" + order.orderID,
@@ -525,7 +554,7 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
         toast.success("Request submitted! Awaiting Level 2 approval.");
         notifyAll.mutate({
           title: "New Old Stock Request",
-          body: `Purchase Order (${order.orderID}) Old Stock clear request — ${order.qty} pcs. Pending Level 2 approval.`,
+          body: `Purchase Order (${order.orderID}) Old Stock clear request — ${availableQty} pcs. Pending Level 2 approval.`,
           type: "approval",
           url: "/approval-center",
           tag: "old-stock-" + order.orderID,
@@ -539,10 +568,10 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
           ? `Purchase Order ${order.orderID} — Old Stock In Process`
           : `Purchase Order ${order.orderID} — Old Stock Request`,
         message: isOldProcessed
-          ? `Purchase Order (${order.orderID}) Old Stock clear request auto process-approved. ${order.qty} pcs awaiting Level 2 final approval.`
-          : `Purchase Order (${order.orderID}) Old Stock clear request submitted by ${workerID}. ${order.qty} pcs pending Level 2 approval.`,
+          ? `Purchase Order (${order.orderID}) Old Stock clear request auto process-approved. ${availableQty} pcs awaiting Level 2 final approval.`
+          : `Purchase Order (${order.orderID}) Old Stock clear request submitted by ${workerID}. ${availableQty} pcs pending Level 2 approval.`,
         orderID: order.orderID,
-        qty: order.qty,
+        qty: availableQty,
         fluteType: order.fluteType,
         workerID,
         trackingId: order.trackingId,
@@ -1190,14 +1219,8 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
       return [];
     }
   });
-  const pendingUsageQty = nprmUsageRequests
-    .filter(request => request.activityStatus === "pending")
-    .reduce((total, request) => total + request.usageQty, 0);
-  const inProcessUsageQty = nprmUsageRequests
-    .filter(request => request.activityStatus === "in_process")
-    .reduce((total, request) => total + request.usageQty, 0);
-  const recordedCurrentQty = order.status === "out_of_stock" ? 0 : order.qty;
-  const availableQty = Math.max(0, recordedCurrentQty - pendingUsageQty - inProcessUsageQty);
+  const { pendingUsageQty, inProcessUsageQty } = getOpenNprmUsageQty(orderActivityRequestsQuery.data ?? [], order.id);
+  const availableQty = calculateProductionOrderAvailableQty(order, orderActivityRequestsQuery.data ?? []);
   const matchedApprovedRequestIds = new Set<number>();
 
   const stockMovementEvents = [
