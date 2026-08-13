@@ -332,6 +332,7 @@ export async function getAllOrders(status?: "current" | "out_of_stock") {
       sizeW: orders.sizeW,
       sizeL: orders.sizeL,
       qty: orders.qty,
+      initialQty: orders.initialQty,
       bqComment: orders.bqComment,
       status: orders.status,
       outOfStockAt: orders.outOfStockAt,

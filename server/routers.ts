@@ -376,6 +376,7 @@ export const appRouter = router({
           sizeW: input.sizeW,
           sizeL: input.sizeL,
           qty: input.qty,
+          initialQty: input.qty,
           bqComment: input.bqComment,
           status: "current",
           submittedBy: input.workerID,

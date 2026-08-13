@@ -48,11 +48,23 @@ describe("Stock History order details", () => {
     expect(stockHistorySource).toContain("Stock movement for this production order");
   });
 
-  it("calculates and displays a compact running balance after each activity movement", () => {
-    expect(stockHistorySource).toContain("const initialInputQty = Math.max(0, recordedCurrentQty - stockMovementEvents.reduce");
+  it("preserves the original Add Stock NPRM quantity and displays a compact running balance", () => {
+    expect(stockHistorySource).toContain("initialQty: number");
+    expect(stockHistorySource).toContain("const originalInputQty = order.initialQty ?? order.qty");
+    expect(stockHistorySource).not.toContain("const initialInputQty = Math.max(0");
     expect(stockHistorySource).toContain("runningBalance: Math.max(0, runningBalance += activity.quantityDelta)");
     expect(stockHistorySource).toContain('title="Balance after this movement"');
     expect(stockHistorySource).toContain("Bal. {activity.runningBalance} pcs");
+  });
+
+  it("reserves NPRM Modify Order usage during pending and in-process states and labels approved output", () => {
+    expect(stockHistorySource).toContain("const orderActivityRequestsQuery = trpc.pendingRequests.list.useQuery({})");
+    expect(stockHistorySource).toContain("const nprmUsageRequests = (orderActivityRequestsQuery.data ?? []).flatMap");
+    expect(stockHistorySource).toContain("const pendingUsageQty = nprmUsageRequests");
+    expect(stockHistorySource).toContain("const inProcessUsageQty = nprmUsageRequests");
+    expect(stockHistorySource).toContain("const availableQty = Math.max(0, recordedCurrentQty - pendingUsageQty - inProcessUsageQty)");
+    expect(stockHistorySource).toContain("Used for Job ${request.jobNo} · ${request.usageQty} pcs");
+    expect(stockHistorySource).toContain('activity.activityStatus === "in_process" ? "In Process" : activity.activityStatus');
   });
 
   it("hides Added Date from the desktop table while retaining it in Production Order Details", () => {

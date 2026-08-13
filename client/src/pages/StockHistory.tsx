@@ -40,7 +40,7 @@ function calcBoardFit(prodW: number, prodL: number, jobW: number, jobL: number):
 
 type Order = {
   id: number; orderID: string; trackingId?: string; fluteType: string; sizeW: number; sizeL: number;
-  qty: number; bqComment: string; status: "current" | "out_of_stock";
+  qty: number; initialQty: number; bqComment: string; status: "current" | "out_of_stock";
   submittedBy: string | null; createdAt: Date; outOfStockAt?: Date | null; submittedVia?: "manual" | "scanner";
 };
 
@@ -1153,28 +1153,76 @@ function RefreshButton({ onRefresh, size = 16 }: { onRefresh: () => void; size?:
 
 // ─── Production Order Detail Dialog ───────────────────────────────────────────
 function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => void }) {
-  const inProcessQtyQuery = trpc.pendingRequests.getInProcessQty.useQuery(
-    { orderId: order.id },
-    { enabled: order.status === "current" },
-  );
   const orderActivityUsageQuery = trpc.orders.getUsage.useQuery();
   const orderActivityAdjustmentsQuery = trpc.orders.getQrScanHistory.useQuery();
-  const inProcessQty = inProcessQtyQuery.data?.inProcessQty ?? 0;
-  const availableQty = Math.max(0, order.qty - inProcessQty);
+  const orderActivityRequestsQuery = trpc.pendingRequests.list.useQuery({});
   const isScannerOrder = order.submittedVia === "scanner";
   const statusColor = order.status === "current" ? "#34d399" : "#fb7185";
+
+  const nprmUsageRequests = (orderActivityRequestsQuery.data ?? []).flatMap(request => {
+    if (request.type !== "used_update" || request.orderId !== order.id || request.status === "cancelled") return [];
+    try {
+      const action = JSON.parse(request.actionData ?? "{}") as { jobNo?: unknown; usedQty?: unknown };
+      const requestedQty = typeof action.usedQty === "number" && action.usedQty > 0 ? action.usedQty : null;
+      if (requestedQty === null) return [];
+      const activityStatus = request.status === "approved"
+        ? "approved" as const
+        : request.processApprovedQty && request.processApprovedQty > 0
+          ? "in_process" as const
+          : "pending" as const;
+      const usageQty = activityStatus === "approved"
+        ? request.approvedQty ?? request.processApprovedQty ?? requestedQty
+        : activityStatus === "in_process"
+          ? request.processApprovedQty ?? requestedQty
+          : requestedQty;
+      return [{
+        id: request.id,
+        jobNo: typeof action.jobNo === "string" && action.jobNo.trim() ? action.jobNo.trim() : "N/A",
+        usageQty,
+        activityStatus,
+        createdAt: activityStatus === "approved"
+          ? request.reviewedAt ?? request.createdAt
+          : activityStatus === "in_process"
+            ? request.processApprovedAt ?? request.createdAt
+            : request.createdAt,
+      }];
+    } catch {
+      return [];
+    }
+  });
+  const pendingUsageQty = nprmUsageRequests
+    .filter(request => request.activityStatus === "pending")
+    .reduce((total, request) => total + request.usageQty, 0);
+  const inProcessUsageQty = nprmUsageRequests
+    .filter(request => request.activityStatus === "in_process")
+    .reduce((total, request) => total + request.usageQty, 0);
+  const recordedCurrentQty = order.status === "out_of_stock" ? 0 : order.qty;
+  const availableQty = Math.max(0, recordedCurrentQty - pendingUsageQty - inProcessUsageQty);
+  const matchedApprovedRequestIds = new Set<number>();
 
   const stockMovementEvents = [
     ...(orderActivityUsageQuery.data ?? [])
       .filter(entry => entry.orderID === order.orderID)
-      .map(entry => ({
-        id: `output-${entry.id}`,
-        type: "output" as const,
-        quantityDelta: -entry.usedQty,
-        details: entry.purpose === "job" ? `Used for Job ${entry.jobNo ?? "N/A"}` : "Old stock cleared",
-        reason: null as string | null,
-        createdAt: entry.createdAt,
-      })),
+      .map(entry => {
+        const matchedApprovedRequest = nprmUsageRequests.find(request =>
+          request.activityStatus === "approved" &&
+          !matchedApprovedRequestIds.has(request.id) &&
+          request.jobNo === (entry.jobNo ?? "N/A") &&
+          request.usageQty === entry.usedQty,
+        );
+        if (matchedApprovedRequest) matchedApprovedRequestIds.add(matchedApprovedRequest.id);
+        return {
+          id: `output-${entry.id}`,
+          type: "output" as const,
+          quantityDelta: -entry.usedQty,
+          details: entry.purpose === "job"
+            ? `Used for Job ${entry.jobNo ?? "N/A"}${matchedApprovedRequest ? ` · ${entry.usedQty} pcs` : ""}`
+            : "Old stock cleared",
+          reason: null as string | null,
+          activityStatus: matchedApprovedRequest?.activityStatus,
+          createdAt: entry.createdAt,
+        };
+      }),
     ...(orderActivityAdjustmentsQuery.data ?? [])
       .filter(log => log.orderId === order.orderID && log.action === "balance_update" && log.oldQty !== null && log.newQty !== null)
       .map(log => {
@@ -1186,20 +1234,32 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
           quantityDelta,
           details: `Balance adjustment · ${source}`,
           reason: log.adjustmentNote?.trim() || null,
+          activityStatus: undefined as "pending" | "in_process" | "approved" | undefined,
           createdAt: log.createdAt,
         };
       }),
+    ...nprmUsageRequests
+      .filter(request => request.activityStatus !== "approved" || !matchedApprovedRequestIds.has(request.id))
+      .map(request => ({
+        id: `nprm-request-${request.id}`,
+        type: "output" as const,
+        quantityDelta: -request.usageQty,
+        details: `Used for Job ${request.jobNo} · ${request.usageQty} pcs`,
+        reason: null as string | null,
+        activityStatus: request.activityStatus,
+        createdAt: request.createdAt,
+      })),
   ];
-  const recordedCurrentQty = order.status === "out_of_stock" ? 0 : order.qty;
-  const initialInputQty = Math.max(0, recordedCurrentQty - stockMovementEvents.reduce((total, event) => total + event.quantityDelta, 0));
+  const originalInputQty = order.initialQty ?? order.qty;
   let runningBalance = 0;
   const orderActivity = [
     {
       id: `input-${order.id}`,
       type: "input" as const,
-      quantityDelta: initialInputQty,
+      quantityDelta: originalInputQty,
       details: "Initial stock added",
       reason: null as string | null,
+      activityStatus: undefined as "pending" | "in_process" | "approved" | undefined,
       createdAt: order.createdAt,
     },
     ...stockMovementEvents,
@@ -1263,7 +1323,11 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
               <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.08] p-3">
                 <p className="text-[9px] font-black uppercase tracking-[0.12em] text-emerald-300/70">Available Qty</p>
                 <p className="mt-1 text-xs font-black text-emerald-300">{availableQty} pcs</p>
-                {inProcessQty > 0 && <p className="mt-0.5 text-[9px] font-medium text-emerald-200/60">{inProcessQty} pcs in process</p>}
+                {(pendingUsageQty > 0 || inProcessUsageQty > 0) && (
+                  <p className="mt-0.5 text-[9px] font-medium text-emerald-200/60">
+                    {[pendingUsageQty > 0 ? `${pendingUsageQty} pcs pending` : null, inProcessUsageQty > 0 ? `${inProcessUsageQty} pcs in process` : null].filter(Boolean).join(" · ")}
+                  </p>
+                )}
               </div>
             )}
             {order.status === "out_of_stock" && order.outOfStockAt && (
@@ -1322,6 +1386,11 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
                           </div>
                         </div>
                         <p className="mt-0.5 text-[10px] font-medium text-slate-400">{activity.details}</p>
+                        {activity.activityStatus && (
+                          <span className={`mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide ${activity.activityStatus === "approved" ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200" : activity.activityStatus === "in_process" ? "border-amber-300/30 bg-amber-300/10 text-amber-200" : "border-sky-300/30 bg-sky-300/10 text-sky-200"}`}>
+                            {activity.activityStatus === "in_process" ? "In Process" : activity.activityStatus}
+                          </span>
+                        )}
                         {activity.reason && <p className="mt-1 rounded-lg bg-white/[0.045] px-2 py-1 text-[10px] leading-relaxed text-slate-300">Reason: {activity.reason}</p>}
                         <p className="mt-1 text-[9px] text-slate-500">{new Date(activity.createdAt).toLocaleString()}</p>
                       </div>

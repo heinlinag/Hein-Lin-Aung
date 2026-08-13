@@ -54,6 +54,7 @@ export const orders = mysqlTable("orders", {
   sizeW: int("sizeW").notNull(),
   sizeL: int("sizeL").notNull(),
   qty: int("qty").notNull(),
+  initialQty: int("initialQty").notNull(), // immutable quantity submitted through Add Stock NPRM
   bqComment: text("bqComment").notNull(),
   status: mysqlEnum("status", ["current", "out_of_stock"]).default("current").notNull(),
   outOfStockAt: timestamp("outOfStockAt"), // set when status changes to out_of_stock
