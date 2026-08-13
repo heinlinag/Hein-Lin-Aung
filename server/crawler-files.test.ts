@@ -6,6 +6,10 @@ const root = path.resolve(import.meta.dirname, "..");
 const publicDir = path.join(root, "client/public");
 const robots = fs.readFileSync(path.join(publicDir, "robots.txt"), "utf8");
 const sitemap = fs.readFileSync(path.join(publicDir, "sitemap.xml"), "utf8");
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as {
+  scripts: Record<string, string>;
+};
+const sitemapGenerator = fs.readFileSync(path.join(root, "scripts/generate-sitemap.mjs"), "utf8");
 
 describe("search crawler files", () => {
   it("publishes a canonical sitemap and excludes private application routes", () => {
@@ -28,10 +32,19 @@ describe("search crawler files", () => {
     expect(sitemap).toContain("https://stockdash.click/faq");
     expect(sitemap).toContain("https://stockdash.click/status");
     expect(sitemap.match(/<url>/g)).toHaveLength(5);
-    expect(sitemap.match(/<lastmod>2026-08-13<\/lastmod>/g)).toHaveLength(5);
+    expect(sitemap.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g)).toHaveLength(5);
     expect(sitemap).not.toContain("https://www.stockdash.click");
     expect(sitemap).not.toContain("/admin");
     expect(sitemap).not.toContain("/stock-history");
     expect(sitemap).not.toContain("/check.qr/");
+  });
+
+  it("regenerates last-modified dates from Documentation and FAQ source history on every build", () => {
+    expect(packageJson.scripts["sitemap:generate"]).toBe("node scripts/generate-sitemap.mjs");
+    expect(packageJson.scripts.prebuild).toBe("pnpm sitemap:generate");
+    expect(sitemapGenerator).toContain('source: "client/src/pages/Documentation.tsx"');
+    expect(sitemapGenerator).toContain('source: "client/src/pages/FAQ.tsx"');
+    expect(sitemapGenerator).toContain('execFileSync("git", ["log", "-1", "--format=%cs", "--", sourcePath]');
+    expect(sitemapGenerator).toContain("mtime.toISOString().slice(0, 10)");
   });
 });

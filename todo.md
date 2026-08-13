@@ -1573,6 +1573,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Create a branded Open Graph sharing image and add public-page JSON-LD structured data
 - [x] Add a Stock Dash WebApplication JSON-LD schema to the public Home page
 - [x] Enhance sitemap.xml and robots.txt with complete public-route and crawler directives
+- [x] Automatically refresh sitemap last-modified dates when Documentation or FAQ content changes
 
 ## Navigation Recovery
 - [x] Improve the custom 404 page with helpful recovery navigation links
