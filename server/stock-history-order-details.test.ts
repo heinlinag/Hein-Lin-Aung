@@ -60,8 +60,10 @@ describe("Stock History order details", () => {
   it("reserves NPRM Modify Order usage during pending and in-process states and labels approved output", () => {
     expect(stockHistorySource).toContain("const orderActivityRequestsQuery = trpc.pendingRequests.list.useQuery({})");
     expect(stockHistorySource).toContain("const nprmUsageRequests = (orderActivityRequestsQuery.data ?? []).flatMap");
-    expect(stockHistorySource).toContain("function getOpenNprmUsageQty(requests: readonly ActivityRequest[], orderId: number)");
-    expect(stockHistorySource).toContain("const { pendingUsageQty, inProcessUsageQty } = getOpenNprmUsageQty(orderActivityRequestsQuery.data ?? [], order.id)");
+    expect(stockHistorySource).toContain("function getNeededSlitQty(order: Order, action: NprmActionData)");
+    expect(stockHistorySource).toContain("return Math.ceil(targetQty / piecesPerSlit)");
+    expect(stockHistorySource).toContain("const neededSlitQty = getNeededSlitQty(order, { purpose: \"job\"");
+    expect(stockHistorySource).toContain("const { pendingUsageQty, inProcessUsageQty } = getOpenNprmUsageQty(order, orderActivityRequestsQuery.data ?? [])");
     expect(stockHistorySource).toContain("const availableQty = calculateProductionOrderAvailableQty(order, orderActivityRequestsQuery.data ?? [])");
     expect(stockHistorySource).toContain("Used for Job ${request.jobNo} · ${request.usageQty} pcs");
     expect(stockHistorySource).toContain('activity.activityStatus === "in_process" ? "In Process" : activity.activityStatus');
@@ -71,7 +73,7 @@ describe("Stock History order details", () => {
     expect(stockHistorySource).toContain("function calculateProductionOrderAvailableQty(order: Order, requests: readonly ActivityRequest[])");
     expect(stockHistorySource).toContain("const productionOrderAvailableQty = calculateProductionOrderAvailableQty(order, activityRequestsQuery.data ?? [])");
     expect(stockHistorySource).toContain("const availableQty = calculateProductionOrderAvailableQty(order, activityRequestsQuery.data ?? [])");
-    expect(stockHistorySource).toContain("const newQty = Math.max(0, availableQty - qty)");
+    expect(stockHistorySource).toContain("const newQty = Math.max(0, availableQty - neededSlitQty)");
   });
 
   it("hides Added Date from the desktop table while retaining it in Production Order Details", () => {

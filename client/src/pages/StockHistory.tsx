@@ -52,18 +52,41 @@ type ActivityRequest = {
   processApprovedQty: number | null;
 };
 
-function getOpenNprmUsageQty(requests: readonly ActivityRequest[], orderId: number) {
+type NprmActionData = {
+  purpose?: unknown;
+  usedQty?: unknown;
+  neededSlitQty?: unknown;
+  boardSizeW?: unknown;
+  boardSizeL?: unknown;
+};
+
+function getNeededSlitQty(order: Order, action: NprmActionData) {
+  const targetQty = typeof action.usedQty === "number" && action.usedQty > 0 ? action.usedQty : 0;
+  if (action.purpose !== "job") return targetQty;
+  if (typeof action.neededSlitQty === "number" && action.neededSlitQty > 0) return action.neededSlitQty;
+
+  const jobWidth = typeof action.boardSizeW === "number" ? action.boardSizeW : 0;
+  const jobLength = typeof action.boardSizeL === "number" ? action.boardSizeL : 0;
+  if (!targetQty || !jobWidth || !jobLength) return targetQty;
+
+  const fit = calcBoardFit(order.sizeW, order.sizeL, jobWidth, jobLength);
+  const piecesPerSlit = fit.piecesW * fit.piecesL;
+  if (fit.statusW === "impossible" || fit.statusL === "impossible" || piecesPerSlit <= 0) return targetQty;
+  return Math.ceil(targetQty / piecesPerSlit);
+}
+
+function getOpenNprmUsageQty(order: Order, requests: readonly ActivityRequest[]) {
   let pendingUsageQty = 0;
   let inProcessUsageQty = 0;
   for (const request of requests) {
-    if (request.type !== "used_update" || request.orderId !== orderId || request.status !== "pending") continue;
+    if (request.type !== "used_update" || request.orderId !== order.id || request.status !== "pending") continue;
     try {
-      const action = JSON.parse(request.actionData ?? "{}") as { usedQty?: unknown };
-      const requestedQty = typeof action.usedQty === "number" && action.usedQty > 0 ? action.usedQty : 0;
+      const action = JSON.parse(request.actionData ?? "{}") as NprmActionData;
+      const neededSlitQty = getNeededSlitQty(order, action);
       if (request.processApprovedQty && request.processApprovedQty > 0) {
         inProcessUsageQty += request.processApprovedQty;
       } else {
-        pendingUsageQty += requestedQty;
+        pendingUsageQty += neededSlitQty;
       }
     } catch { /* malformed historical request data is excluded from availability */ }
   }
@@ -71,7 +94,7 @@ function getOpenNprmUsageQty(requests: readonly ActivityRequest[], orderId: numb
 }
 
 function calculateProductionOrderAvailableQty(order: Order, requests: readonly ActivityRequest[]) {
-  const { pendingUsageQty, inProcessUsageQty } = getOpenNprmUsageQty(requests, order.id);
+  const { pendingUsageQty, inProcessUsageQty } = getOpenNprmUsageQty(order, requests);
   const recordedCurrentQty = order.status === "out_of_stock" ? 0 : order.qty;
   return Math.max(0, recordedCurrentQty - pendingUsageQty - inProcessUsageQty);
 }
@@ -482,14 +505,15 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
     const qty = parseInt(useQty);
     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
     // Level 1 request: no qty limit (user requests target qty, Level 1.1/2 decide how much to approve)
-    const newQty = Math.max(0, availableQty - qty);
+    const neededSlitQty = getNeededSlitQty(order, { purpose: "job", usedQty: qty, boardSizeW: parseInt(boardSizeW), boardSizeL: parseInt(boardSizeL) });
+    const newQty = Math.max(0, availableQty - neededSlitQty);
     try {
       const jobResult = await submitRequest.mutateAsync({
         type: "used_update",
         orderId: order.id,
         orderSnapshot: JSON.stringify(order),
         requestedBy: workerID,
-        actionData: JSON.stringify({ jobNo, usedQty: qty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null }),
+        actionData: JSON.stringify({ jobNo, usedQty: qty, neededSlitQty, orderID: order.orderID, fluteType: order.fluteType, bqComment: order.bqComment, purpose: "job", newQty, masterCard: masterCard || null, boardSizeW: boardSizeW ? parseInt(boardSizeW) : null, boardSizeL: boardSizeL ? parseInt(boardSizeL) : null, scores: scores || null }),
       });
       if (jobResult.autoProcessApproved) {
         toast.success("Request submitted & auto process-approved! Awaiting Level 2 final approval.");
@@ -1191,7 +1215,7 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
   const nprmUsageRequests = (orderActivityRequestsQuery.data ?? []).flatMap(request => {
     if (request.type !== "used_update" || request.orderId !== order.id || request.status === "cancelled") return [];
     try {
-      const action = JSON.parse(request.actionData ?? "{}") as { jobNo?: unknown; usedQty?: unknown };
+      const action = JSON.parse(request.actionData ?? "{}") as NprmActionData & { jobNo?: unknown };
       const requestedQty = typeof action.usedQty === "number" && action.usedQty > 0 ? action.usedQty : null;
       if (requestedQty === null) return [];
       const activityStatus = request.status === "approved"
@@ -1203,7 +1227,7 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
         ? request.approvedQty ?? request.processApprovedQty ?? requestedQty
         : activityStatus === "in_process"
           ? request.processApprovedQty ?? requestedQty
-          : requestedQty;
+          : getNeededSlitQty(order, action);
       return [{
         id: request.id,
         jobNo: typeof action.jobNo === "string" && action.jobNo.trim() ? action.jobNo.trim() : "N/A",
@@ -1219,7 +1243,7 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
       return [];
     }
   });
-  const { pendingUsageQty, inProcessUsageQty } = getOpenNprmUsageQty(orderActivityRequestsQuery.data ?? [], order.id);
+  const { pendingUsageQty, inProcessUsageQty } = getOpenNprmUsageQty(order, orderActivityRequestsQuery.data ?? []);
   const availableQty = calculateProductionOrderAvailableQty(order, orderActivityRequestsQuery.data ?? []);
   const matchedApprovedRequestIds = new Set<number>();
 
