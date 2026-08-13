@@ -351,7 +351,7 @@ export default function Login() {
             <img src={GSPP_LOGO} alt="GSPP" className="h-6 w-6 object-contain" />
           </div>
           <div>
-            <div className="font-bold text-gray-800 text-sm leading-tight">PP4 Manual Slitter</div>
+            <div className="font-bold text-gray-800 text-sm leading-tight">Stock Dash</div>
             <div className="text-[10px] text-gray-400 font-medium tracking-wide">Stock Management System</div>
           </div>
         </div>
@@ -385,7 +385,7 @@ export default function Login() {
               System
             </h1>
             <p className="text-gray-500 text-base leading-relaxed mb-8 max-w-sm">
-              Secure employee authentication portal for PP4 Manual Slitter operations.
+              Secure employee authentication portal for Stock Dash operations.
             </p>
 
             {/* Feature badges */}
@@ -416,7 +416,7 @@ export default function Login() {
             <h1 className="text-2xl font-black text-gray-900 mb-1" style={{ fontFamily: "Lora, serif" }}>
               Login Access
             </h1>
-            <p className="text-gray-500 text-sm">PP4 Manual Slitter · Stock Management</p>
+            <p className="text-gray-500 text-sm">Stock Dash · Stock Management</p>
           </div>
 
           {/* Card */}

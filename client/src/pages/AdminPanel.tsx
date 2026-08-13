@@ -1002,7 +1002,7 @@ function exportToExcel(orders: Order[]) {
     function buildSheet(subset: Order[], sheetLabel: string) {
       const HEADERS = ["No.", "Production Order", "Flute Type", "Width (mm)", "Length (mm)", "Size (W×L)", "Qty (pcs)", "BQ Comment", "Submitted By", "Date Submitted"];
       const rows: (string | number)[][] = [
-        [`PP4 Manual Slitter — Stock History Report`],
+        [`Stock Dash — Stock History Report`],
         [`Sheet: ${sheetLabel}`],
         [`Generated: ${dateStr} ${timeStr}`],
         [`Total Records: ${subset.length}`],

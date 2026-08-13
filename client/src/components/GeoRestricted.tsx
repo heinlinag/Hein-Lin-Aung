@@ -248,7 +248,7 @@ function BlockedScreen({ country, countryCode, retry }: { country: string; count
 
         {/* Footer */}
         <p className="text-center text-[11px] text-slate-600">
-          PP4 Manual Slitter · Stock Management System · Restricted Access
+          Stock Dash · Stock Management System · Restricted Access
         </p>
       </div>
     </div>

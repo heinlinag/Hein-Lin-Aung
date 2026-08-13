@@ -383,7 +383,7 @@ export default function FAQ() {
                   Frequently Asked Questions
                 </h1>
                 <p className="text-white/50 text-sm mt-1.5">
-                  Answers covering all features of PP4 Manual Slitter Stock Management System
+                  Answers covering all features of Stock Dash Management System
                 </p>
               </div>
             </div>

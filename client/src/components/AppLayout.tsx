@@ -239,7 +239,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
             <img src={LOGO_URL} alt="GSPP" className="h-6 w-6 object-contain" />
           </div>
           <div className="min-w-0">
-            <div className="font-bold text-xs text-white leading-tight truncate">PP4 Manual Slitter</div>
+            <div className="font-bold text-xs text-white leading-tight truncate">Stock Dash</div>
             <div className="text-[10px] text-indigo-300/70 leading-tight font-medium">Stock Management</div>
           </div>
           {/* Online indicator */}
@@ -429,7 +429,7 @@ export default function AppLayout({ children, pageTitle, headerActions, fullHeig
               </div>
             </button>
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-xs sm:text-sm text-gray-900 leading-tight truncate">PP4 Manual Slitter</div>
+              <div className="font-bold text-xs sm:text-sm text-gray-900 leading-tight truncate">Stock Dash</div>
               <div className="text-[10px] sm:text-[11px] text-gray-500 leading-tight">Stock Management System</div>
             </div>
             {worker && (

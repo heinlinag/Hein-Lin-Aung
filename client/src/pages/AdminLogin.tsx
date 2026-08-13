@@ -207,7 +207,7 @@ export default function AdminLogin() {
           <img src={GSPP_LOGO} alt="GSPP" className="h-7 w-7 object-contain" />
         </div>
         <div className="flex-1">
-          <div className="font-bold text-white text-sm leading-tight">PP4 Manual Slitter</div>
+          <div className="font-bold text-white text-sm leading-tight">Stock Dash</div>
           <div className="text-[10px] text-slate-400 font-medium">Stock Management System</div>
         </div>
         <div className="flex items-center gap-1.5 rounded-full px-2.5 py-1"

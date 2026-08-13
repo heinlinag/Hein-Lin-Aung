@@ -642,7 +642,7 @@ export default function Home() {
                 </div>
                 <div>
                   <h2 className="text-xl lg:text-2xl font-black text-white leading-tight" style={{ fontFamily: "Lora, serif" }}>
-                    PP4 Manual Slitter
+                    Stock Dash
                   </h2>
                   <p className="text-white/50 text-xs font-medium tracking-wide mt-0.5">Stock Management System</p>
                 </div>
@@ -997,7 +997,7 @@ export default function Home() {
       <footer className="border-t border-gray-100/80 py-4 text-center px-4"
         style={{ background: "rgba(248,250,252,0.5)" }}>
         <p className="text-xs text-gray-400 font-medium">
-          PP4 Manual Slitter Stock Management &copy; {new Date().getFullYear()}
+          Stock Dash Management System &copy; {new Date().getFullYear()}
         </p>
       </footer>
       {/* Access Restricted Dialog */}

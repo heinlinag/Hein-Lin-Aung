@@ -187,7 +187,7 @@ export default function Documentation() {
                   Documentation
                 </h1>
                 <p className="text-white/50 text-sm mt-1.5 max-w-lg">
-                  Complete guides for the PP4 Manual Slitter Stock Management System
+                  Complete guides for the Stock Dash Management System
                 </p>
               </div>
             </div>

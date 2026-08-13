@@ -407,7 +407,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
           <div className="header-left">
             <img src="/manus-storage/gspp_logo_new_2db75f16.png" alt="GSPP" className="logo" />
             <div>
-              <div className="brand-name">PP4 Manual Slitter</div>
+              <div className="brand-name">Stock Dash</div>
               <div className="brand-sub">Stock Management System</div>
             </div>
           </div>
@@ -525,7 +525,7 @@ export const A4Label: React.FC<A4LabelProps> = ({
         {/* FOOTER */}
         <div className="footer">
           <div className="footer-left">
-            <div><strong>PP4 Manual Slitter</strong> · Stock Management System</div>
+            <div><strong>Stock Dash</strong> · Stock Management System</div>
             <div>Generated: {printDate} at {printTime}</div>
           </div>
           <div className="footer-right">

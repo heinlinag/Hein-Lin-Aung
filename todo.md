@@ -1566,5 +1566,8 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Home Layout Refinement
 - [x] Remove the visible “PP4 Manual Slitter Stock Management Dashboard” heading
 
+## Stock Dash Branding
+- [x] Replace all user-facing PP4 Manual Slitter labels with Stock Dash across worker and Admin Panel interfaces
+
 ## Navigation Recovery
 - [x] Improve the custom 404 page with helpful recovery navigation links

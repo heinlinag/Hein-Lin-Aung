@@ -36,7 +36,7 @@ export default function PageHeader({ showBack = true, backHref = "/" }: PageHead
         )}
         <img src={LOGO_URL} alt="GSPP" className="h-8 w-8 object-contain" />
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-gray-900 text-sm leading-tight truncate">PP4 Manual Slitter</div>
+          <div className="font-bold text-gray-900 text-sm leading-tight truncate">Stock Dash</div>
           <div className="text-xs text-gray-400 leading-tight">Stock Management System</div>
         </div>
         {worker && (

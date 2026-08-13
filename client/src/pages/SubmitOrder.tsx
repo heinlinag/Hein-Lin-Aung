@@ -574,7 +574,7 @@ export default function SubmitOrder({ defaultMode }: { defaultMode?: "manual" | 
                       )}
                       <div>
                         <h3 className="font-black text-red-700 text-base leading-tight">Label Rejected</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">This label is not valid for PP4 Manual Slitter.</p>
+                        <p className="text-xs text-gray-500 mt-0.5">This label is not valid for Stock Dash.</p>
                       </div>
                     </div>
                     {/* Validation result section */}
