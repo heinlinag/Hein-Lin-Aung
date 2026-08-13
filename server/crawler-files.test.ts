@@ -10,6 +10,7 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), 
   scripts: Record<string, string>;
 };
 const sitemapGenerator = fs.readFileSync(path.join(root, "scripts/generate-sitemap.mjs"), "utf8");
+const ciWorkflow = fs.readFileSync(path.join(root, ".github/workflows/sitemap-validation.yml"), "utf8");
 
 describe("search crawler files", () => {
   it("publishes a canonical sitemap and excludes private application routes", () => {
@@ -46,5 +47,20 @@ describe("search crawler files", () => {
     expect(sitemapGenerator).toContain('source: "client/src/pages/FAQ.tsx"');
     expect(sitemapGenerator).toContain('execFileSync("git", ["log", "-1", "--format=%cs", "--", sourcePath]');
     expect(sitemapGenerator).toContain("mtime.toISOString().slice(0, 10)");
+  });
+
+  it("runs sitemap validation in repository CI before code is released", () => {
+    expect(packageJson.scripts["validate:sitemap"]).toBe(
+      "pnpm sitemap:generate && pnpm vitest run server/crawler-files.test.ts",
+    );
+    expect(packageJson.scripts["ci:sitemap"]).toBe("pnpm validate:sitemap && pnpm check");
+    expect(ciWorkflow).toContain("name: Sitemap Validation");
+    expect(ciWorkflow).toContain("push:");
+    expect(ciWorkflow).toContain("pull_request:");
+    expect(ciWorkflow).toContain("workflow_dispatch:");
+    expect(ciWorkflow).toContain("actions/checkout@v4");
+    expect(ciWorkflow).toContain("actions/setup-node@v4");
+    expect(ciWorkflow).toContain("pnpm install --frozen-lockfile");
+    expect(ciWorkflow).toContain("pnpm ci:sitemap");
   });
 });

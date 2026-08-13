@@ -1574,6 +1574,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Add a Stock Dash WebApplication JSON-LD schema to the public Home page
 - [x] Enhance sitemap.xml and robots.txt with complete public-route and crawler directives
 - [x] Automatically refresh sitemap last-modified dates when Documentation or FAQ content changes
+- [x] Add automated CI validation for sitemap structure, routes, and last-modified metadata
 
 ## Navigation Recovery
 - [x] Improve the custom 404 page with helpful recovery navigation links

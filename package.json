@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx watch server/_core/index.ts",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
+    "validate:sitemap": "pnpm sitemap:generate && pnpm vitest run server/crawler-files.test.ts",
+    "ci:sitemap": "pnpm validate:sitemap && pnpm check",
     "prebuild": "pnpm sitemap:generate",
     "build": "vite build && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
