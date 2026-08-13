@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock, FlaskConical, Truck, ChevronDown, Copy, Link, ScanLine, PenLine } from "lucide-react";
+import { Search, RefreshCw, Trash2, Loader2, Package, Zap, X, AlertTriangle, Clock, FlaskConical, Truck, ChevronDown, Copy, Link } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -44,21 +44,6 @@ type Order = {
   submittedBy: string | null; createdAt: Date; outOfStockAt?: Date | null; submittedVia?: "manual" | "scanner";
 };
 
-function SubmissionMethodBadge({ submittedVia }: { submittedVia?: "manual" | "scanner" }) {
-  const isScannerOrder = submittedVia === "scanner";
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold"
-      title={isScannerOrder ? "Submitted using Auto Scanner" : "Submitted using Manual Entry"}
-      style={isScannerOrder
-        ? { background: "rgba(99,102,241,0.12)", color: "#4f46e5", border: "1px solid rgba(99,102,241,0.24)" }
-        : { background: "rgba(100,116,139,0.10)", color: "#475569", border: "1px solid rgba(100,116,139,0.20)" }}
-    >
-      {isScannerOrder ? <ScanLine size={10} /> : <PenLine size={10} />}
-      {isScannerOrder ? "Auto Scanner" : "Manual Entry"}
-    </span>
-  );
-}
 /** Returns the estimated auto-delete date: outOfStockAt (or createdAt) + 13 months */
 function getAutoDeleteDate(order: Order): Date {
   const base = order.outOfStockAt ? new Date(order.outOfStockAt) : new Date(order.createdAt);
@@ -1504,7 +1489,6 @@ export default function StockHistory() {
                         <div className="flex items-center gap-1.5">
                           {isLowStock && <AlertTriangle size={13} className="text-orange-500 flex-shrink-0" />}
                           {order.orderID}
-                          <SubmissionMethodBadge submittedVia={order.submittedVia} />
                         </div>
                       </td>
                       <td className="py-3 pr-4">
@@ -1604,7 +1588,6 @@ export default function StockHistory() {
                         <p className="text-base font-bold text-primary">{order.orderID}</p>
                       </div>
                       {isLowStock && <p className="text-xs text-orange-600 font-semibold mt-0.5">⚠ Low Stock</p>}
-                      <div className="mt-1"><SubmissionMethodBadge submittedVia={order.submittedVia} /></div>
                     </div>
                     <button onClick={event => {
                       event.stopPropagation();

@@ -31,11 +31,11 @@ describe("Stock History order details", () => {
     expect(stockHistorySource).toContain('isScannerOrder ? "Auto Scanner" : "Manual Entry"');
   });
 
-  it("renders visual submission-method badges in both desktop rows and mobile cards", () => {
-    expect(stockHistorySource).toContain("function SubmissionMethodBadge");
-    expect(stockHistorySource).toContain("<ScanLine size={10} />");
-    expect(stockHistorySource).toContain("<PenLine size={10} />");
-    expect(stockHistorySource.match(/<SubmissionMethodBadge submittedVia=\{order\.submittedVia\} \/>/g)).toHaveLength(2);
+  it("keeps submission-method text inside Production Order Details without visual row badges", () => {
+    expect(stockHistorySource).toContain('<span className="text-[10px] font-bold text-slate-400">Submission method</span>');
+    expect(stockHistorySource).not.toContain("function SubmissionMethodBadge");
+    expect(stockHistorySource).not.toContain("<ScanLine size={10} />");
+    expect(stockHistorySource).not.toContain("<PenLine size={10} />");
   });
 
   it("hides Added Date from the desktop table while retaining it in Production Order Details", () => {
