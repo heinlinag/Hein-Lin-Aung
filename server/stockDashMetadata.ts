@@ -1,7 +1,8 @@
 import {
   getStockDashCanonicalUrl,
   getStockDashPageMetadata,
-  STOCK_DASH_SITE_URL,
+  getStockDashStructuredData,
+  STOCK_DASH_OG_IMAGE_URL,
 } from "@shared/stockDashPageMetadata";
 
 function escapeHtml(value: string) {
@@ -16,7 +17,10 @@ function escapeHtml(value: string) {
 export function applyStockDashRouteMetadata(template: string, pathname: string) {
   const metadata = getStockDashPageMetadata(pathname);
   const canonicalUrl = getStockDashCanonicalUrl(pathname);
-  const imageUrl = `${STOCK_DASH_SITE_URL}/icon-512.png`;
+  const structuredData = getStockDashStructuredData(pathname);
+  const structuredDataTag = structuredData
+    ? `<script id="stock-dash-json-ld" type="application/ld+json">${JSON.stringify(structuredData).replace(/</g, "\\u003c")}</script>`
+    : "";
   const robots = metadata.indexable ? "index,follow" : "noindex,nofollow";
 
   const replacementTags = [
@@ -28,11 +32,12 @@ export function applyStockDashRouteMetadata(template: string, pathname: string) 
     `<meta property="og:title" content="${escapeHtml(metadata.title)}" />`,
     `<meta property="og:description" content="${escapeHtml(metadata.description)}" />`,
     `<meta property="og:url" content="${escapeHtml(canonicalUrl)}" />`,
-    `<meta property="og:image" content="${imageUrl}" />`,
+    `<meta property="og:image" content="${STOCK_DASH_OG_IMAGE_URL}" />`,
     `<meta name="twitter:card" content="summary" />`,
     `<meta name="twitter:title" content="${escapeHtml(metadata.title)}" />`,
     `<meta name="twitter:description" content="${escapeHtml(metadata.description)}" />`,
-    `<meta name="twitter:image" content="${imageUrl}" />`,
+    `<meta name="twitter:image" content="${STOCK_DASH_OG_IMAGE_URL}" />`,
+    structuredDataTag,
   ].join("\n    ");
 
   return template

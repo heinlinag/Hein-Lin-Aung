@@ -9,6 +9,8 @@ export const STOCK_DASH_SITE_URL = "https://stockdash.click";
 export const STOCK_DASH_DEFAULT_TITLE = "Stock Dash - Stock Management System";
 export const STOCK_DASH_DEFAULT_DESCRIPTION =
   "Stock Dash Management System by HEiNANN. Created by HEiNANN";
+export const STOCK_DASH_OG_IMAGE_URL =
+  "https://stockdash.click/manus-storage/stock-dash-open-graph_5de04bac.png";
 
 const publicPageMetadata: Record<string, Omit<StockDashPageMetadata, "canonicalPath">> = {
   "/": {
@@ -92,4 +94,41 @@ export function getStockDashPageMetadata(pathname: string): StockDashPageMetadat
 export function getStockDashCanonicalUrl(pathname: string) {
   const { canonicalPath } = getStockDashPageMetadata(pathname);
   return `${STOCK_DASH_SITE_URL}${canonicalPath === "/" ? "/" : canonicalPath}`;
+}
+
+export function getStockDashStructuredData(pathname: string): Record<string, unknown> | null {
+  const metadata = getStockDashPageMetadata(pathname);
+  if (!metadata.indexable) return null;
+
+  const canonicalUrl = getStockDashCanonicalUrl(pathname);
+  const publisher = {
+    "@type": "Organization",
+    name: "Stock Dash",
+    url: STOCK_DASH_SITE_URL,
+    logo: STOCK_DASH_OG_IMAGE_URL,
+  };
+
+  if (metadata.canonicalPath === "/") {
+    return {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Stock Dash",
+      url: canonicalUrl,
+      description: metadata.description,
+      publisher,
+      creator: { "@type": "Person", name: "HEiNANN" },
+    };
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: metadata.title,
+    description: metadata.description,
+    url: canonicalUrl,
+    image: STOCK_DASH_OG_IMAGE_URL,
+    isPartOf: { "@type": "WebSite", name: "Stock Dash", url: STOCK_DASH_SITE_URL },
+    publisher,
+    creator: { "@type": "Person", name: "HEiNANN" },
+  };
 }

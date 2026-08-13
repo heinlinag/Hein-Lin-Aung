@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { applyStockDashRouteMetadata } from "./stockDashMetadata";
-import { getStockDashPageMetadata } from "@shared/stockDashPageMetadata";
+import {
+  getStockDashPageMetadata,
+  getStockDashStructuredData,
+  STOCK_DASH_OG_IMAGE_URL,
+} from "@shared/stockDashPageMetadata";
 
 const template = `<!doctype html><html><head><title>Fallback</title><!-- STOCK_DASH_ROUTE_METADATA --></head><body></body></html>`;
 
@@ -21,10 +25,19 @@ describe("Stock Dash route metadata", () => {
     expect(page).toContain('name="description" content="Explore Stock Dash guides');
     expect(page).toContain('rel="canonical" href="https://stockdash.click/docs"');
     expect(page).toContain('name="robots" content="index,follow"');
+    expect(page).toContain(`property="og:image" content="${STOCK_DASH_OG_IMAGE_URL}"`);
+    expect(page).toContain('id="stock-dash-json-ld" type="application/ld+json"');
   });
 
   it("prevents protected routes from being indexed", () => {
     expect(getStockDashPageMetadata("/stock-history").indexable).toBe(false);
     expect(getStockDashPageMetadata("/admin/worker").title).toBe("Admin Panel | Stock Dash");
+  });
+
+  it("provides WebSite and WebPage JSON-LD only for indexable public pages", () => {
+    expect(getStockDashStructuredData("/")?.["@type"]).toBe("WebSite");
+    expect(getStockDashStructuredData("/faq")?.["@type"]).toBe("WebPage");
+    expect(getStockDashStructuredData("/faq")?.creator).toEqual({ "@type": "Person", name: "HEiNANN" });
+    expect(getStockDashStructuredData("/stock-history")).toBeNull();
   });
 });

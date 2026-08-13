@@ -29,7 +29,12 @@ import MaintenancePage from "./pages/Maintenance";
 import AdminLogin from "./pages/AdminLogin";
 import { trpc } from "./lib/trpc";
 import { useAuth } from "./contexts/AuthContext";
-import { getStockDashCanonicalUrl, getStockDashPageMetadata } from "@shared/stockDashPageMetadata";
+import {
+  getStockDashCanonicalUrl,
+  getStockDashPageMetadata,
+  getStockDashStructuredData,
+  STOCK_DASH_OG_IMAGE_URL,
+} from "@shared/stockDashPageMetadata";
 
 function setMetaAttribute(attribute: "name" | "property", key: string, content: string) {
   let element = document.head.querySelector(`meta[${attribute}="${key}"]`) as HTMLMetaElement | null;
@@ -51,6 +56,20 @@ function setCanonicalUrl(href: string) {
   element.href = href;
 }
 
+function setStructuredData(data: Record<string, unknown> | null) {
+  const existing = document.head.querySelector("#stock-dash-json-ld") as HTMLScriptElement | null;
+  if (!data) {
+    existing?.remove();
+    return;
+  }
+
+  const element = existing ?? document.createElement("script");
+  element.id = "stock-dash-json-ld";
+  element.type = "application/ld+json";
+  element.textContent = JSON.stringify(data).replace(/</g, "\\u003c");
+  if (!existing) document.head.appendChild(element);
+}
+
 function BrowserRouteExperience() {
   const [location] = useLocation();
   const previousLocation = useRef(location);
@@ -60,6 +79,7 @@ function BrowserRouteExperience() {
   useEffect(() => {
     const metadata = getStockDashPageMetadata(location);
     const canonicalUrl = getStockDashCanonicalUrl(location);
+    const structuredData = getStockDashStructuredData(location);
     document.title = metadata.title;
     setMetaAttribute("name", "description", metadata.description);
     setMetaAttribute("name", "robots", metadata.indexable ? "index,follow" : "noindex,nofollow");
@@ -68,12 +88,13 @@ function BrowserRouteExperience() {
     setMetaAttribute("property", "og:title", metadata.title);
     setMetaAttribute("property", "og:description", metadata.description);
     setMetaAttribute("property", "og:url", canonicalUrl);
-    setMetaAttribute("property", "og:image", "https://stockdash.click/icon-512.png");
+    setMetaAttribute("property", "og:image", STOCK_DASH_OG_IMAGE_URL);
     setMetaAttribute("name", "twitter:card", "summary");
     setMetaAttribute("name", "twitter:title", metadata.title);
     setMetaAttribute("name", "twitter:description", metadata.description);
-    setMetaAttribute("name", "twitter:image", "https://stockdash.click/icon-512.png");
+    setMetaAttribute("name", "twitter:image", STOCK_DASH_OG_IMAGE_URL);
     setCanonicalUrl(canonicalUrl);
+    setStructuredData(structuredData);
   }, [location]);
 
   useEffect(() => {
