@@ -1,4 +1,4 @@
-import { eq, desc, and, or, isNull, isNotNull, lte, gte, inArray, sql as sqlExpr } from "drizzle-orm";
+import { eq, desc, and, or, isNull, isNotNull, lte, inArray, sql as sqlExpr } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, workers, orders, InsertWorker, InsertOrder, usageHistory, deletedLogs, pendingRequests, approvalActionLog, InsertApprovalActionLog, appNotifications, InsertAppNotification, AppNotification, requestEditHistory, InsertRequestEditHistory, auditLogs, InsertAuditLog, AuditLog, inactivityReminderDeliveries } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -709,7 +709,7 @@ export async function getRequestEditHistory(requestId: number) {
 }
 
 // ─── Customer Samples ─────────────────────────────────────────────────────────
-import { customerSamples, customerSampleStockMovements, InsertCustomerSample, CustomerSample, CustomerSampleStockMovement } from "../drizzle/schema";
+import { customerSamples, InsertCustomerSample, CustomerSample } from "../drizzle/schema";
 
 export async function createCustomerSample(data: InsertCustomerSample): Promise<number> {
   const db = await getDb();
@@ -737,62 +737,22 @@ export async function getCustomerSampleById(id: number): Promise<CustomerSample 
   return rows[0] ?? null;
 }
 
-export async function getCustomerSampleStockMovements(orderId?: number): Promise<CustomerSampleStockMovement[]> {
-  const db = await getDb();
-  if (!db) return [];
-  if (orderId !== undefined) {
-    return db.select().from(customerSampleStockMovements)
-      .where(eq(customerSampleStockMovements.orderId, orderId))
-      .orderBy(desc(customerSampleStockMovements.createdAt));
-  }
-  return db.select().from(customerSampleStockMovements)
-    .orderBy(desc(customerSampleStockMovements.createdAt));
-}
-
 export async function updateCustomerSampleStatus(
   id: number,
   status: "progress" | "delivery",
   workerName: string
-): Promise<{ stockOutputApplied: boolean }> {
+): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const now = new Date();
   if (status === "progress") {
-    return db.transaction(async (tx) => {
-      const rows = await tx.select().from(customerSamples).where(eq(customerSamples.id, id));
-      const sample = rows[0];
-      if (!sample) throw new Error("Customer Sample request not found");
-      if (sample.status === "progress") return { stockOutputApplied: false };
-      if (sample.status !== "pending") throw new Error("Only pending Customer Sample requests can be moved to In Progress");
-
-      const orderRows = await tx.select().from(orders).where(eq(orders.id, sample.orderId));
-      const order = orderRows[0];
-      if (!order || order.qty < sample.sampleQty) {
-        throw new Error("Available Qty is insufficient for this Customer Sample request");
-      }
-
-      await tx.update(customerSamples)
-        .set({ status, progressBy: workerName, progressAt: now })
-        .where(and(eq(customerSamples.id, id), eq(customerSamples.status, "pending")));
-      await tx.update(orders)
-        .set({ qty: sqlExpr`${orders.qty} - ${sample.sampleQty}` })
-        .where(and(eq(orders.id, sample.orderId), gte(orders.qty, sample.sampleQty)));
-      await tx.insert(customerSampleStockMovements).values({
-        sampleId: sample.id,
-        orderId: sample.orderId,
-        productionOrderID: sample.productionOrderID,
-        customerName: sample.customerName,
-        sampleQty: sample.sampleQty,
-        processedBy: workerName,
-        createdAt: now,
-      });
-      return { stockOutputApplied: true };
-    });
+    await db.update(customerSamples)
+      .set({ status, progressBy: workerName, progressAt: now })
+      .where(eq(customerSamples.id, id));
   } else {
     await db.update(customerSamples)
       .set({ status, deliveryBy: workerName, deliveryAt: now })
       .where(eq(customerSamples.id, id));
-    return { stockOutputApplied: false };
   }
 }
 

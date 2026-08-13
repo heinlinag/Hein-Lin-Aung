@@ -425,7 +425,6 @@ export default function Home() {
   const stockActivityOrdersQuery = trpc.orders.list.useQuery({}, { refetchInterval: 30000 });
   const stockActivityUsageQuery = trpc.orders.getUsage.useQuery(undefined, { refetchInterval: 30000 });
   const stockAdjustmentQuery = trpc.orders.getQrScanHistory.useQuery(undefined, { refetchInterval: 30000 });
-  const sampleStockActivityQuery = trpc.customerSamples.getStockMovements.useQuery(undefined, { refetchInterval: 30000 });
   const stockCurrentCount = stockCurrentQuery.data?.length ?? 0;
   const stockOutCount = stockOutQuery.data?.length ?? 0;
 
@@ -434,8 +433,8 @@ export default function Home() {
       id: `input-${order.id}`,
       type: "input" as const,
       orderID: order.orderID,
-      qty: order.initialQty ?? order.qty,
-      quantityDelta: order.initialQty ?? order.qty,
+      qty: order.qty,
+      quantityDelta: order.qty,
       details: `${order.fluteType} · ${order.sizeW}×${order.sizeL} mm`,
       createdAt: order.createdAt,
     })),
@@ -447,15 +446,6 @@ export default function Home() {
       quantityDelta: -entry.usedQty,
       details: entry.purpose === "job" ? `Job ${entry.jobNo ?? "N/A"}` : "Old Stock",
       createdAt: entry.createdAt,
-    })),
-    ...(sampleStockActivityQuery.data ?? []).map(movement => ({
-      id: `sample-output-${movement.id}`,
-      type: "output" as const,
-      orderID: movement.productionOrderID,
-      qty: movement.sampleQty,
-      quantityDelta: -movement.sampleQty,
-      details: `Customer Sample · ${movement.customerName}`,
-      createdAt: movement.createdAt,
     })),
     ...(stockAdjustmentQuery.data ?? [])
       .filter(log => log.action === "balance_update" && log.oldQty !== null && log.newQty !== null)
