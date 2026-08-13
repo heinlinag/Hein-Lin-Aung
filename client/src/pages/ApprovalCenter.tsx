@@ -393,8 +393,8 @@ function RequestCard({
                       </TooltipTrigger>
                       <TooltipContent side="left" className="text-xs max-w-[200px] text-center">
                         {isProcessApproved && req.processApprovedBy
-                          ? <><span className="font-semibold">{req.processApprovedBy}</span> မှ In Process လုပ်ဆောင်နေသောကြောင့် ပြင်ဆင်၍မရပါ</>
-                          : "Pending status တွင်သာ ပြင်ဆင်နိုင်သည်"}
+                          ? <><span className="font-semibold">{req.processApprovedBy}</span> is currently processing this request, so it cannot be edited.</>
+                          : "Only pending requests can be edited."}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

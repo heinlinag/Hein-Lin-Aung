@@ -1539,3 +1539,6 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Show a dashboard warning during the final 7 days before automatic inactivity suspension
 - [x] Add elevated dashboard reminder states at 3 days and 1 day before automatic suspension
 - [x] Send idempotent browser push reminders at the 7-day, 3-day, and 1-day inactivity thresholds
+
+## English-Only Interface
+- [x] Replace non-English user-facing interface text with English across the web application

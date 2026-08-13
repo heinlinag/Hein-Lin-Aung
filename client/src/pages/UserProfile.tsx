@@ -440,7 +440,7 @@ export default function UserProfile() {
                   <span className="rounded-full px-2 py-0.5 text-[9px] font-black tracking-wide" style={{ background: "rgba(251,191,36,0.16)", border: "1px solid rgba(251,191,36,0.28)", color: "#fde68a" }}>30 DAYS</span>
                 </div>
                 <p className="mt-1 text-xs font-medium leading-relaxed" style={{ color: "#fde68a" }}>
-                  သင်သည် ရက် 30 အတွင်း Login မဝင်ရောက်ခဲ့ပါက သင့်အကောင့်သည် Suspended ဖြစ်မည်။
+                  Your account will be automatically suspended if no successful sign-in is recorded for 30 days.
                 </p>
                 <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "rgba(226,232,240,0.92)" }}>
                   If no successful sign-in is recorded for 30 days, your Employee ID is automatically suspended. Sign out and sign in again to refresh your account activity.
