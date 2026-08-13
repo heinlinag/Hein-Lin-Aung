@@ -27,6 +27,15 @@ describe("My Profile account summary", () => {
     expect(profileSource).toContain("grid-cols-2 gap-2.5 sm:grid-cols-4");
   });
 
+  it("uses a cohesive light-mode workspace across profile surfaces and dialogs", () => {
+    expect(profileSource).toContain("Full-page light workspace");
+    expect(profileSource).toContain('background: "linear-gradient(155deg, #f8fafc 0%, #eef2ff 48%, #f8fafc 100%)"');
+    expect(profileSource).toContain('background: "#ffffff", border: "1px solid #e2e8f0"');
+    expect(profileSource).toContain("Account Activity History");
+    expect(profileSource).toContain('border: "1px solid #cbd5e1"');
+    expect(profileSource).toContain('style={{ background: "#f8fafc", color: "#475569", border: "1px solid #e2e8f0" }}');
+  });
+
   it("places the requested core account details inside Account Summary before profile completion", () => {
     const summaryStart = profileSource.indexOf("Account Summary");
     const detailsStart = profileSource.indexOf("Account Details");

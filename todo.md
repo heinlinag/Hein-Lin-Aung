@@ -1458,6 +1458,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display a worker-visible history of inactivity warnings, suspensions, and reactivations in My Profile
 - [x] Display Display Name, Employee ID, Department, Access Level, and Member Since in the Account Summary section
 - [x] Add quick-edit shortcuts for Display Name and Employee ID in Account Summary
+- [x] Rebuild the My Profile page UI as a responsive light-mode experience
 
 ## QR Scanner Mobile Dialog Layout
 - [x] Keep Update Balance dialog actions visible above the mobile bottom navigation
