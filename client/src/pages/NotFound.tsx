@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, Home } from "lucide-react";
+import { Activity, AlertCircle, BookOpen, Home, LifeBuoy } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function NotFound() {
@@ -45,6 +45,24 @@ export default function NotFound() {
               Go Home
             </Button>
           </div>
+
+          <nav aria-label="Helpful recovery links" className="mt-8 border-t border-slate-200 pt-6">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Helpful links</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <Button variant="outline" onClick={() => setLocation("/docs")} className="h-auto justify-start gap-2 border-slate-200 bg-white py-3 text-slate-700 hover:bg-slate-50">
+                <BookOpen className="h-4 w-4 text-indigo-600" />
+                Documentation
+              </Button>
+              <Button variant="outline" onClick={() => setLocation("/help")} className="h-auto justify-start gap-2 border-slate-200 bg-white py-3 text-slate-700 hover:bg-slate-50">
+                <LifeBuoy className="h-4 w-4 text-emerald-600" />
+                Help Center
+              </Button>
+              <Button variant="outline" onClick={() => setLocation("/status")} className="h-auto justify-start gap-2 border-slate-200 bg-white py-3 text-slate-700 hover:bg-slate-50">
+                <Activity className="h-4 w-4 text-sky-600" />
+                System Status
+              </Button>
+            </div>
+          </nav>
         </CardContent>
       </Card>
     </div>
