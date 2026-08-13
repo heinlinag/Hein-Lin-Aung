@@ -1447,6 +1447,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Stock History Order Details
 - [x] Open a complete production-order detail dialog when a Stock History row is selected
+- [x] Display Auto Scanner and Manual Entry method badges on Stock History desktop rows and mobile cards
 
 ## Direct Profile Navigation
 - [x] Remove the desktop and mobile profile quick panel
