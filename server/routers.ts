@@ -17,6 +17,7 @@ import {
   setWorkerActiveDevice,
   clearWorkerActiveDevice,
   INACTIVITY_SUSPENSION_DAYS,
+  getWorkerInactivityHistory,
   getAllOrders,
   createOrder,
   getOrderByOrderID,
@@ -2083,6 +2084,18 @@ export const appRouter = router({
           employeeIdChangedAt: worker.employeeIdChangedAt ?? null,
           createdAt: worker.createdAt,
         };
+      }),
+
+    /** The signed-in worker's own inactivity warnings and account status history. */
+    getInactivityHistory: publicProcedure
+      .input(z.object({ workerID: z.string().min(1), deviceToken: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const worker = await getWorkerByWorkerID(input.workerID);
+        if (!worker) throw new TRPCError({ code: "NOT_FOUND", message: "Worker not found" });
+        if (!worker.activeDeviceToken || worker.activeDeviceToken !== input.deviceToken) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Your worker session is no longer active. Please sign in again." });
+        }
+        return getWorkerInactivityHistory(input.workerID);
       }),
 
     /** Update display name (7-day cooldown) */

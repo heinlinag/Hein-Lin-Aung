@@ -44,4 +44,11 @@ describe("My Profile account summary", () => {
     expect(profileSource).toContain("Last successful sign-in");
     expect(profileSource).toContain("Account activity status");
   });
+
+  it("shows each worker only their own inactivity warnings and account status history", () => {
+    expect(profileSource).toContain("trpc.profile.getInactivityHistory.useQuery");
+    expect(profileSource).toContain("Account Activity History");
+    expect(profileSource).toContain("Past inactivity warnings and account status changes");
+    expect(profileSource).toContain("No inactivity events recorded");
+  });
 });

@@ -59,6 +59,13 @@ describe("daily inactive worker suspension", () => {
     expect(server).toContain("inactivity-reminder-");
   });
 
+  it("exposes only the active worker's own warning, suspension, and reactivation history", () => {
+    expect(db).toContain("getWorkerInactivityHistory");
+    expect(db).toContain('inArray(auditLogs.action, ["account_suspended_inactive", "account_reactivated"])');
+    expect(routers).toContain("getInactivityHistory: publicProcedure");
+    expect(routers).toContain("return getWorkerInactivityHistory(input.workerID)");
+  });
+
   it("shows an authenticated dashboard warning during the final seven days", () => {
     expect(routers).toContain("getAccountStatus: publicProcedure");
     expect(routers).toContain("INACTIVITY_SUSPENSION_DAYS * 24 * 60 * 60 * 1000");

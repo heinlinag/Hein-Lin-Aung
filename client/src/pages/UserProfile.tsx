@@ -13,7 +13,7 @@ import { useState, useRef, useCallback, useMemo } from "react";
 import {
   Camera, User, IdCard, Building2, Shield, Calendar,
   Edit2, Check, X, Clock, AlertTriangle, Loader2, ChevronLeft,
-  PackagePlus, ClipboardCheck, FlaskConical, CalendarDays, ShieldAlert, LogIn,
+  PackagePlus, ClipboardCheck, FlaskConical, CalendarDays, ShieldAlert, LogIn, BellRing, ShieldCheck, History,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -92,6 +92,10 @@ export default function UserProfile() {
   const accountStatusQuery = trpc.workers.getAccountStatus.useQuery(
     { workerID: worker?.workerID ?? "", deviceToken: worker?.deviceToken ?? "" },
     { enabled: !!worker?.workerID && !!worker?.deviceToken, staleTime: 60_000, refetchInterval: 300_000 }
+  );
+  const inactivityHistoryQuery = trpc.profile.getInactivityHistory.useQuery(
+    { workerID: worker?.workerID ?? "", deviceToken: worker?.deviceToken ?? "" },
+    { enabled: !!worker?.workerID && !!worker?.deviceToken, staleTime: 60_000 }
   );
 
   const [editingName, setEditingName] = useState(false);
@@ -458,6 +462,70 @@ export default function UserProfile() {
                   />
                 </div>
               </div>
+            </div>
+          </section>
+
+          {/* ── Account activity history ────────────────────────────── */}
+          <section
+            aria-label="Account activity history"
+            className="relative overflow-hidden rounded-2xl p-4"
+            style={{
+              background: "rgba(15,23,42,0.72)",
+              border: "1px solid rgba(148,163,184,0.18)",
+              backdropFilter: "blur(16px)",
+              boxShadow: "0 16px 40px rgba(15,23,42,0.22)",
+            }}
+          >
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(circle at 0% 100%, rgba(45,212,191,0.12), transparent 45%)" }} />
+            <div className="relative mb-3 flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "linear-gradient(135deg, #0f766e, #0d9488)", boxShadow: "0 6px 16px rgba(13,148,136,0.22)" }}>
+                  <History size={17} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-black" style={{ color: "#ffffff" }}>Account Activity History</p>
+                  <p className="mt-0.5 text-[10px]" style={{ color: "rgba(148,163,184,0.9)" }}>Past inactivity warnings and account status changes</p>
+                </div>
+              </div>
+              <span className="rounded-full px-2 py-1 text-[9px] font-bold" style={{ background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.22)", color: "#99f6e4" }}>PRIVATE</span>
+            </div>
+
+            <div className="relative space-y-2.5">
+              {inactivityHistoryQuery.isLoading ? (
+                <div className="flex items-center gap-2 rounded-xl px-3 py-4" style={{ background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(203,213,225,0.85)" }}>
+                  <Loader2 size={15} className="animate-spin" />
+                  <span className="text-xs font-medium">Loading account activity…</span>
+                </div>
+              ) : (inactivityHistoryQuery.data ?? []).length === 0 ? (
+                <div className="rounded-xl px-3 py-4 text-center" style={{ background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <p className="text-xs font-bold" style={{ color: "#e2e8f0" }}>No inactivity events recorded</p>
+                  <p className="mt-1 text-[10px] leading-relaxed" style={{ color: "rgba(148,163,184,0.9)" }}>Your future browser reminders, account suspensions, and Administrator reactivations will appear here.</p>
+                </div>
+              ) : (
+                (inactivityHistoryQuery.data ?? []).map(event => {
+                  const eventStyle = event.type === "suspended"
+                    ? { icon: <ShieldAlert size={15} />, color: "#fda4af", bg: "rgba(239,68,68,0.12)", border: "rgba(248,113,113,0.24)" }
+                    : event.type === "reactivated"
+                      ? { icon: <ShieldCheck size={15} />, color: "#6ee7b7", bg: "rgba(16,185,129,0.12)", border: "rgba(52,211,153,0.24)" }
+                      : { icon: <BellRing size={15} />, color: "#fde68a", bg: "rgba(245,158,11,0.12)", border: "rgba(251,191,36,0.24)" };
+                  return (
+                    <div key={event.id} className="flex items-start gap-3 rounded-xl p-3" style={{ background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: eventStyle.bg, border: `1px solid ${eventStyle.border}`, color: eventStyle.color }}>
+                        {eventStyle.icon}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-1.5">
+                          <p className="text-xs font-black" style={{ color: "#f8fafc" }}>{event.title}</p>
+                          <span className="text-[9px] font-semibold" style={{ color: "rgba(148,163,184,0.92)" }}>
+                            {new Date(event.occurredAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[10px] leading-relaxed" style={{ color: "rgba(203,213,225,0.84)" }}>{event.description}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </section>
 

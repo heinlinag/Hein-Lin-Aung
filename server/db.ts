@@ -203,6 +203,57 @@ export async function claimInactivityReminderDelivery(candidate: InactivityRemin
   }
 }
 
+export type WorkerInactivityHistoryEvent = {
+  id: string;
+  type: "warning" | "suspended" | "reactivated";
+  title: string;
+  description: string;
+  occurredAt: Date;
+  thresholdDays?: number;
+};
+
+/** Return the worker's own delivered inactivity reminders and account-state changes in one timeline. */
+export async function getWorkerInactivityHistory(workerID: string, limit = 50): Promise<WorkerInactivityHistoryEvent[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const safeLimit = Math.min(Math.max(limit, 1), 100);
+  const [deliveries, audits] = await Promise.all([
+    db.select().from(inactivityReminderDeliveries)
+      .where(eq(inactivityReminderDeliveries.workerID, workerID))
+      .orderBy(desc(inactivityReminderDeliveries.sentAt))
+      .limit(safeLimit),
+    db.select().from(auditLogs)
+      .where(and(
+        eq(auditLogs.workerID, workerID),
+        inArray(auditLogs.action, ["account_suspended_inactive", "account_reactivated"]),
+      ))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(safeLimit),
+  ]);
+
+  return [
+    ...deliveries.map(delivery => ({
+      id: `warning-${delivery.id}`,
+      type: "warning" as const,
+      title: `Inactivity warning: ${delivery.thresholdDays} ${delivery.thresholdDays === 1 ? "day" : "days"} remaining`,
+      description: "A browser reminder was sent before your Employee ID could be automatically suspended.",
+      occurredAt: delivery.sentAt,
+      thresholdDays: delivery.thresholdDays,
+    })),
+    ...audits.map(audit => ({
+      id: `account-${audit.id}`,
+      type: audit.action === "account_suspended_inactive" ? "suspended" as const : "reactivated" as const,
+      title: audit.action === "account_suspended_inactive" ? "Account automatically suspended" : "Account reactivated by Administrator",
+      description: audit.newValue ?? (audit.action === "account_suspended_inactive"
+        ? INACTIVITY_SUSPENSION_REASON
+        : "Your Employee ID was restored by an Administrator."),
+      occurredAt: audit.createdAt,
+    })),
+  ]
+    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+    .slice(0, safeLimit);
+}
+
 /** Suspend workers whose successful login is at least 30 days old (or who never signed in). */
 export async function suspendInactiveWorkers(now: Date = new Date()): Promise<{ suspendedCount: number; workerIDs: string[] }> {
   const db = await getDb();
