@@ -76,6 +76,13 @@ describe("Stock History order details", () => {
     expect(stockHistorySource).toContain("const newQty = Math.max(0, availableQty - neededSlitQty)");
   });
 
+  it("blocks NPRM Modify Order submission when calculated needed-slit quantity exceeds Available Qty", () => {
+    expect(stockHistorySource).toContain("const isNeededSlitInsufficient = neededSlitPreview !== null && neededSlitPreview > availableQty");
+    expect(stockHistorySource).toContain("Available Qty is insufficient for this order.");
+    expect(stockHistorySource).toContain("isNeededSlitInsufficient ? null : (");
+    expect(stockHistorySource).toContain("if (neededSlitQty > availableQty)");
+  });
+
   it("hides Added Date from the desktop table while retaining it in Production Order Details", () => {
     expect(stockHistorySource).toContain('{ label: "Added", value: new Date(order.createdAt).toLocaleString() }');
     expect(stockHistorySource).not.toContain('"BQ","Date", activeTab === "out_of_stock"');

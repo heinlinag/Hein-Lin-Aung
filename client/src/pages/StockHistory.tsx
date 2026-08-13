@@ -496,6 +496,15 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
   const availableQty = calculateProductionOrderAvailableQty(order, activityRequestsQuery.data ?? []);
   const pendingRequestsForOrder = (activityRequestsQuery.data ?? []).filter((req: ActivityRequest) => req.orderId === order.id && req.status === "pending");
   const pendingRequestCount = pendingRequestsForOrder.length;
+  const neededSlitPreview = (() => {
+    const targetQty = parseInt(useQty);
+    const jobWidth = parseInt(boardSizeW);
+    const jobLength = parseInt(boardSizeL);
+    if (!targetQty || targetQty <= 0 || !jobWidth || jobWidth <= 0 || !jobLength || jobLength <= 0) return null;
+    return getNeededSlitQty(order, { purpose: "job", usedQty: targetQty, boardSizeW: jobWidth, boardSizeL: jobLength });
+  })();
+  const isNeededSlitInsufficient = neededSlitPreview !== null && neededSlitPreview > availableQty;
+  const neededSlitShortage = neededSlitPreview === null ? 0 : Math.max(0, neededSlitPreview - availableQty);
 
   const handleJobRequest = async () => {
     setJobError("");
@@ -504,8 +513,12 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
     if (!boardSizeW || !boardSizeL) { setJobError("Board Size (W × L) is required."); return; }
     const qty = parseInt(useQty);
     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
-    // Level 1 request: no qty limit (user requests target qty, Level 1.1/2 decide how much to approve)
     const neededSlitQty = getNeededSlitQty(order, { purpose: "job", usedQty: qty, boardSizeW: parseInt(boardSizeW), boardSizeL: parseInt(boardSizeL) });
+    if (neededSlitQty > availableQty) {
+      setShowJobConfirm(false);
+      setJobError(`Available Qty is insufficient for this order. Needed slit: ${neededSlitQty} pcs; Available Qty: ${availableQty} pcs.`);
+      return;
+    }
     const newQty = Math.max(0, availableQty - neededSlitQty);
     try {
       const jobResult = await submitRequest.mutateAsync({
@@ -734,8 +747,8 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     {userLevel === "1.1" && useQty && parseInt(useQty) > 0 ? (
                       <div className="mt-1.5 flex items-center gap-1.5 bg-purple-50 border border-purple-200 rounded-lg px-2.5 py-1.5">
                         <span className="text-xs text-purple-600 font-semibold">Remaining After:</span>
-                        <span className="text-xs text-purple-800 font-bold">{Math.max(0, availableQty - parseInt(useQty))} pcs</span>
-                        {parseInt(useQty) > availableQty && <span className="text-xs text-destructive font-semibold ml-1">⚠ Exceeds available!</span>}
+                        <span className="text-xs text-purple-800 font-bold">{neededSlitPreview === null ? "—" : `${Math.max(0, availableQty - neededSlitPreview)} pcs`}</span>
+                        {isNeededSlitInsufficient && <span className="text-xs text-destructive font-semibold ml-1">⚠ Insufficient stock</span>}
                       </div>
                     ) : userLevel === "1" ? (
                       <p className="text-xs text-muted-foreground mt-1">This is your target request qty. Stock will be updated only after Level 1.1 processes it.</p>
@@ -759,8 +772,18 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     })()}
                   </div>
                 </div>
+                {isNeededSlitInsufficient && (
+                  <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5" role="alert" aria-live="polite">
+                    <AlertTriangle size={16} className="mt-0.5 shrink-0 text-red-600" />
+                    <div>
+                      <p className="text-xs font-bold text-red-800">Available Qty is insufficient for this order.</p>
+                      <p className="mt-0.5 text-xs text-red-700">Needed slit: {neededSlitPreview} pcs · Available Qty: {availableQty} pcs · Short by: {neededSlitShortage} pcs</p>
+                    </div>
+                  </div>
+                )}
                 {jobError && <p className="text-xs text-destructive">{jobError}</p>}
                 {!showJobConfirm ? (
+                  isNeededSlitInsufficient ? null : (
                   <button onClick={() => {
                     setJobError("");
                     if (!/^\d{8}$/.test(jobNo)) { setJobError("Job No must be exactly 8 digits (e.g. 02123456)."); return; }
@@ -778,10 +801,16 @@ function UsedUpdateRequestDialog({ order, workerID, userLevel, onClose, onSucces
                     }
                     const qty = parseInt(useQty);
                     if (!qty || qty <= 0) { setJobError("Enter a valid quantity."); return; }
+                    const neededSlitQty = getNeededSlitQty(order, { purpose: "job", usedQty: qty, boardSizeW: parseInt(boardSizeW), boardSizeL: parseInt(boardSizeL) });
+                    if (neededSlitQty > availableQty) {
+                      setJobError(`Available Qty is insufficient for this order. Needed slit: ${neededSlitQty} pcs; Available Qty: ${availableQty} pcs.`);
+                      return;
+                    }
                     setShowJobConfirm(true);
                   }} className={`w-full text-white rounded-xl py-3 text-sm font-bold hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-purple-500/25" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-orange-500/25"}`}>
                     <Clock size={14} /> Submit for Approval
                   </button>
+                  )
                 ) : (
                   <div className="space-y-3">
                     <div className={`flex items-center gap-2 rounded-xl p-3 ${userLevel === "1.1" ? "bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200" : "bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200"}`}>
