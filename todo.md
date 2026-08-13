@@ -1575,3 +1575,4 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 
 ## Navigation Recovery
 - [x] Improve the custom 404 page with helpful recovery navigation links
+- [x] Keep only Help Center in the 404 page Helpful Links and remove Documentation and System Status
