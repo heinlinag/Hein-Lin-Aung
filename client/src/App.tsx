@@ -1,7 +1,8 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
+import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -29,6 +30,43 @@ import AdminLogin from "./pages/AdminLogin";
 import { trpc } from "./lib/trpc";
 import { useAuth } from "./contexts/AuthContext";
 
+const STOCK_DASH_DEFAULT_TITLE = "Stock Dash - Stock Management System";
+
+function getBrowserTitle(pathname: string) {
+  if (pathname.startsWith("/check.qr/")) return "Production Order | Stock Dash";
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return "Admin Panel | Stock Dash";
+
+  const titles: Record<string, string> = {
+    "/": STOCK_DASH_DEFAULT_TITLE,
+    "/login": "Login | Stock Dash",
+    "/submit-order": "Add Stock NPRM | Stock Dash",
+    "/submit-order/ai-scanner": "AI Scanner | Stock Dash",
+    "/stock-history": "Stock History | Stock Dash",
+    "/approval-center": "NPRM Modify Order | Stock Dash",
+    "/customer-sample": "Customer Sample | Stock Dash",
+    "/qr-scanner": "QR Scanner | Stock Dash",
+    "/notifications": "Notifications | Stock Dash",
+    "/chat": "Messages | Stock Dash",
+    "/user-profile": "My Profile | Stock Dash",
+    "/docs": "Documentation | Stock Dash",
+    "/help": "Help Center | Stock Dash",
+    "/faq": "FAQ | Stock Dash",
+    "/status": "System Status | Stock Dash",
+    "/404": "Page Not Found | Stock Dash",
+  };
+
+  return titles[pathname] ?? "Page Not Found | Stock Dash";
+}
+
+function BrowserPageTitle() {
+  const [location] = useLocation();
+
+  useEffect(() => {
+    document.title = getBrowserTitle(location);
+  }, [location]);
+
+  return null;
+}
 
 /** Admin route: shows AdminLogin password screen when not authenticated, AdminPanel when authenticated */
 function AdminRoute() {
@@ -162,6 +200,7 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
+            <BrowserPageTitle />
             {/*
               Top-level Switch: public order card routes bypass GeoGuard entirely
               so anyone worldwide can scan a QR code and view order details.
