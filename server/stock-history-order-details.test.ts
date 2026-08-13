@@ -37,4 +37,10 @@ describe("Stock History order details", () => {
     expect(stockHistorySource).toContain("<PenLine size={10} />");
     expect(stockHistorySource.match(/<SubmissionMethodBadge submittedVia=\{order\.submittedVia\} \/>/g)).toHaveLength(2);
   });
+
+  it("hides Added Date from the desktop table while retaining it in Production Order Details", () => {
+    expect(stockHistorySource).toContain('{ label: "Added", value: new Date(order.createdAt).toLocaleString() }');
+    expect(stockHistorySource).not.toContain('"BQ","Date", activeTab === "out_of_stock"');
+    expect(stockHistorySource).not.toContain('<td className="py-3 pr-4 text-xs text-muted-foreground whitespace-nowrap">{new Date(order.createdAt).toLocaleString()}</td>');
+  });
 });

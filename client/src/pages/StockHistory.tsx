@@ -1481,7 +1481,7 @@ export default function StockHistory() {
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-background z-10">
                   <tr className="border-b-2 border-border">
-                    {(["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","BQ","Date", activeTab === "out_of_stock" ? "Auto-Delete" : null,"Actions"].filter(Boolean) as string[]).map(h => (
+                    {(["Tracking ID","Production Order","Flute Type","Size (W×L)","Qty","BQ", activeTab === "out_of_stock" ? "Auto-Delete" : null,"Actions"].filter(Boolean) as string[]).map(h => (
                       <th key={h} className="text-xs font-bold text-muted-foreground uppercase tracking-wide text-left pb-3 pr-4 bg-background">{h}</th>
                     ))}
                   </tr>
@@ -1518,7 +1518,6 @@ export default function StockHistory() {
                       <td className="py-3 pr-4 max-w-[200px]">
                         <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono break-all leading-relaxed">{order.bqComment}</span>
                       </td>
-                      <td className="py-3 pr-4 text-xs text-muted-foreground whitespace-nowrap">{new Date(order.createdAt).toLocaleString()}</td>
                       {activeTab === "out_of_stock" && (() => {
                         const deleteDate = getAutoDeleteDate(order);
                         const urgency = getDeleteUrgency(deleteDate);
