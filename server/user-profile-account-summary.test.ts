@@ -27,6 +27,19 @@ describe("My Profile account summary", () => {
     expect(profileSource).toContain("grid-cols-2 gap-2.5 sm:grid-cols-4");
   });
 
+  it("places the requested core account details inside Account Summary before profile completion", () => {
+    const summaryStart = profileSource.indexOf("Account Summary");
+    const detailsStart = profileSource.indexOf("Account Details");
+    const completionStart = profileSource.indexOf("Profile Completion");
+    expect(detailsStart).toBeGreaterThan(summaryStart);
+    expect(detailsStart).toBeLessThan(completionStart);
+    expect(profileSource).toContain('label="Display Name"');
+    expect(profileSource).toContain('label="Employee ID"');
+    expect(profileSource).toContain('label="Department"');
+    expect(profileSource).toContain('label="Access Level"');
+    expect(profileSource).toContain('label="Member Since"');
+  });
+
   it("shows profile completion progress with actionable prompts for missing details", () => {
     expect(profileSource).toContain("const completionItems = [");
     expect(profileSource).toContain("Profile Completion");

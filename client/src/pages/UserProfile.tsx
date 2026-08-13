@@ -64,6 +64,18 @@ function PolicyMetric({ label, value, icon, color }: { label: string; value: str
   );
 }
 
+function SummaryDetail({ icon, label, value, color, className = "" }: { icon: React.ReactNode; label: string; value: string; color: string; className?: string }) {
+  return (
+    <div className={`min-w-0 rounded-lg px-2.5 py-2 ${className}`} style={{ background: "rgba(15,23,42,0.34)", border: "1px solid rgba(255,255,255,0.07)" }}>
+      <div className="flex items-center gap-1.5" style={{ color }}>
+        {icon}
+        <p className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(203,213,225,0.74)" }}>{label}</p>
+      </div>
+      <p className="mt-1 truncate text-xs font-black" style={{ color }} title={value}>{value}</p>
+    </div>
+  );
+}
+
 export default function UserProfile() {
   const { worker, loginWorker } = useAuth();
   const [, navigate] = useLocation();
@@ -191,6 +203,9 @@ export default function UserProfile() {
   const lastSuccessfulLogin = accountStatusQuery.data?.lastLoginAt;
   const isUrgentInactivityWindow = daysUntilSuspension !== undefined && daysUntilSuspension <= 3;
   const isWarningInactivityWindow = daysUntilSuspension !== undefined && daysUntilSuspension <= 7;
+  const memberSince = profile?.createdAt
+    ? new Date(profile.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })
+    : "—";
   const accountSummaryLoading = submittedOrdersQuery.isLoading || requestsQuery.isLoading || samplesQuery.isLoading;
   const accountStats = useMemo(() => {
     const workerID = profile?.workerID ?? worker.workerID;
@@ -331,6 +346,25 @@ export default function UserProfile() {
               <span className="rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(52,211,153,0.22)", color: "#6ee7b7" }}>
                 Active Account
               </span>
+            </div>
+            <div
+              className="relative mb-4 rounded-xl p-3"
+              style={{ background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black" style={{ color: "#f8fafc" }}>Account Details</p>
+                  <p className="mt-0.5 text-[10px]" style={{ color: "rgba(148,163,184,0.9)" }}>Your profile and membership information</p>
+                </div>
+                <span className="rounded-full px-2 py-1 text-[9px] font-bold" style={{ background: "rgba(129,140,248,0.12)", border: "1px solid rgba(129,140,248,0.22)", color: "#c7d2fe" }}>PROFILE</span>
+              </div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <SummaryDetail icon={<User size={14} />} label="Display Name" value={displayedName} color="#a5b4fc" />
+                <SummaryDetail icon={<IdCard size={14} />} label="Employee ID" value={profile?.workerID ?? worker.workerID} color="#fde68a" />
+                <SummaryDetail icon={<Building2 size={14} />} label="Department" value={profile?.department ?? worker.department} color="#7dd3fc" />
+                <SummaryDetail icon={<Shield size={14} />} label="Access Level" value={lv.text} color="#86efac" />
+                <SummaryDetail icon={<Calendar size={14} />} label="Member Since" value={memberSince} color="#fda4af" className="sm:col-span-2" />
+              </div>
             </div>
             <div
               className="relative mb-4 rounded-xl p-3"
@@ -592,13 +626,7 @@ export default function UserProfile() {
               <ReadOnlyField
                 icon={<Calendar size={16} style={{ color: "#f87171" }} />}
                 label="Member Since"
-                value={
-                  profile?.createdAt
-                    ? new Date(profile.createdAt).toLocaleDateString("en-GB", {
-                        day: "2-digit", month: "long", year: "numeric",
-                      })
-                    : "—"
-                }
+                value={memberSince}
               />
             </div>
           )}
