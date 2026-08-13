@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -29,43 +29,84 @@ import MaintenancePage from "./pages/Maintenance";
 import AdminLogin from "./pages/AdminLogin";
 import { trpc } from "./lib/trpc";
 import { useAuth } from "./contexts/AuthContext";
+import { getStockDashCanonicalUrl, getStockDashPageMetadata } from "@shared/stockDashPageMetadata";
 
-const STOCK_DASH_DEFAULT_TITLE = "Stock Dash - Stock Management System";
-
-function getBrowserTitle(pathname: string) {
-  if (pathname.startsWith("/check.qr/")) return "Production Order | Stock Dash";
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return "Admin Panel | Stock Dash";
-
-  const titles: Record<string, string> = {
-    "/": STOCK_DASH_DEFAULT_TITLE,
-    "/login": "Login | Stock Dash",
-    "/submit-order": "Add Stock NPRM | Stock Dash",
-    "/submit-order/ai-scanner": "AI Scanner | Stock Dash",
-    "/stock-history": "Stock History | Stock Dash",
-    "/approval-center": "NPRM Modify Order | Stock Dash",
-    "/customer-sample": "Customer Sample | Stock Dash",
-    "/qr-scanner": "QR Scanner | Stock Dash",
-    "/notifications": "Notifications | Stock Dash",
-    "/chat": "Messages | Stock Dash",
-    "/user-profile": "My Profile | Stock Dash",
-    "/docs": "Documentation | Stock Dash",
-    "/help": "Help Center | Stock Dash",
-    "/faq": "FAQ | Stock Dash",
-    "/status": "System Status | Stock Dash",
-    "/404": "Page Not Found | Stock Dash",
-  };
-
-  return titles[pathname] ?? "Page Not Found | Stock Dash";
+function setMetaAttribute(attribute: "name" | "property", key: string, content: string) {
+  let element = document.head.querySelector(`meta[${attribute}="${key}"]`) as HTMLMetaElement | null;
+  if (!element) {
+    element = document.createElement("meta");
+    element.setAttribute(attribute, key);
+    document.head.appendChild(element);
+  }
+  element.content = content;
 }
 
-function BrowserPageTitle() {
+function setCanonicalUrl(href: string) {
+  let element = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+  if (!element) {
+    element = document.createElement("link");
+    element.rel = "canonical";
+    document.head.appendChild(element);
+  }
+  element.href = href;
+}
+
+function BrowserRouteExperience() {
   const [location] = useLocation();
+  const previousLocation = useRef(location);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    document.title = getBrowserTitle(location);
+    const metadata = getStockDashPageMetadata(location);
+    const canonicalUrl = getStockDashCanonicalUrl(location);
+    document.title = metadata.title;
+    setMetaAttribute("name", "description", metadata.description);
+    setMetaAttribute("name", "robots", metadata.indexable ? "index,follow" : "noindex,nofollow");
+    setMetaAttribute("property", "og:site_name", "Stock Dash");
+    setMetaAttribute("property", "og:type", "website");
+    setMetaAttribute("property", "og:title", metadata.title);
+    setMetaAttribute("property", "og:description", metadata.description);
+    setMetaAttribute("property", "og:url", canonicalUrl);
+    setMetaAttribute("property", "og:image", "https://stockdash.click/icon-512.png");
+    setMetaAttribute("name", "twitter:card", "summary");
+    setMetaAttribute("name", "twitter:title", metadata.title);
+    setMetaAttribute("name", "twitter:description", metadata.description);
+    setMetaAttribute("name", "twitter:image", "https://stockdash.click/icon-512.png");
+    setCanonicalUrl(canonicalUrl);
   }, [location]);
 
-  return null;
+  useEffect(() => {
+    if (previousLocation.current === location) return;
+    previousLocation.current = location;
+    setIsNavigating(true);
+    setProgress(18);
+    const progressFrame = window.requestAnimationFrame(() => setProgress(78));
+    const completeTimer = window.setTimeout(() => setProgress(100), 220);
+    const hideTimer = window.setTimeout(() => {
+      setIsNavigating(false);
+      setProgress(0);
+    }, 500);
+
+    return () => {
+      window.cancelAnimationFrame(progressFrame);
+      window.clearTimeout(completeTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, [location]);
+
+  return (
+    <div
+      aria-live="polite"
+      aria-label={isNavigating ? "Loading page" : undefined}
+      className={`pointer-events-none fixed inset-x-0 top-0 z-[200] transition-opacity duration-200 ${isNavigating ? "opacity-100" : "opacity-0"}`}
+    >
+      <div
+        className="h-1 bg-gradient-to-r from-cyan-400 via-indigo-500 to-violet-500 shadow-[0_2px_12px_rgba(79,70,229,0.45)] transition-transform duration-300 ease-out"
+        style={{ transform: `scaleX(${progress / 100})`, transformOrigin: "left" }}
+      />
+    </div>
+  );
 }
 
 /** Admin route: shows AdminLogin password screen when not authenticated, AdminPanel when authenticated */
@@ -200,7 +241,7 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
-            <BrowserPageTitle />
+            <BrowserRouteExperience />
             {/*
               Top-level Switch: public order card routes bypass GeoGuard entirely
               so anyone worldwide can scan a QR code and view order details.

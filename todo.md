@@ -1569,6 +1569,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## Stock Dash Branding
 - [x] Replace all user-facing PP4 Manual Slitter labels with Stock Dash across worker and Admin Panel interfaces
 - [x] Update all browser page titles to use consistent Stock Dash branding
+- [x] Add smooth navigation feedback and route-specific public Open Graph and description metadata
 
 ## Navigation Recovery
 - [x] Improve the custom 404 page with helpful recovery navigation links

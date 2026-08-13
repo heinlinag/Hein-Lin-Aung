@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import { getStockDashPageMetadata, STOCK_DASH_DEFAULT_TITLE } from "@shared/stockDashPageMetadata";
 
 const appSource = fs.readFileSync(
   path.resolve(import.meta.dirname, "../client/src/App.tsx"),
@@ -9,12 +10,11 @@ const appSource = fs.readFileSync(
 
 describe("Stock Dash browser page titles", () => {
   it("sets a Stock Dash title for public, worker, admin, and unknown routes", () => {
-    expect(appSource).toContain('const STOCK_DASH_DEFAULT_TITLE = "Stock Dash - Stock Management System"');
-    expect(appSource).toContain('"/stock-history": "Stock History | Stock Dash"');
-    expect(appSource).toContain('"/admin" || pathname.startsWith("/admin/")');
-    expect(appSource).toContain('return "Admin Panel | Stock Dash"');
-    expect(appSource).toContain('if (pathname.startsWith("/check.qr/")) return "Production Order | Stock Dash"');
-    expect(appSource).toContain('return titles[pathname] ?? "Page Not Found | Stock Dash"');
-    expect(appSource).toContain("document.title = getBrowserTitle(location)");
+    expect(STOCK_DASH_DEFAULT_TITLE).toBe("Stock Dash - Stock Management System");
+    expect(getStockDashPageMetadata("/stock-history").title).toBe("Stock History | Stock Dash");
+    expect(getStockDashPageMetadata("/admin/worker").title).toBe("Admin Panel | Stock Dash");
+    expect(getStockDashPageMetadata("/check.qr/PP41308260345B991").title).toBe("Production Order | Stock Dash");
+    expect(getStockDashPageMetadata("/unknown").title).toBe("Page Not Found | Stock Dash");
+    expect(appSource).toContain("document.title = metadata.title");
   });
 });
