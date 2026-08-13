@@ -1,9 +1,12 @@
+# Stock Dash crawler policy
+# Public information pages are crawlable; application, account, and operational routes are excluded.
 User-agent: *
 Allow: /
 
-# Private worker, administrator, and operational routes
-Disallow: /login
+# Application and API routes
+Disallow: /api/
 Disallow: /admin/
+Disallow: /login
 Disallow: /submit-order
 Disallow: /stock-history
 Disallow: /approval-center
@@ -12,6 +15,10 @@ Disallow: /qr-scanner
 Disallow: /chat
 Disallow: /notifications
 Disallow: /user-profile
-Disallow: /check.qr/
 
+# Shared production-order records and error views are not search landing pages.
+Disallow: /check.qr/
+Disallow: /404
+
+# Canonical public sitemap
 Sitemap: https://stockdash.click/sitemap.xml
