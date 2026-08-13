@@ -35,4 +35,13 @@ describe("My Profile account summary", () => {
     expect(profileSource).toContain("Complete now");
     expect(profileSource).toContain("Contact Admin to update");
   });
+
+  it("explains the automatic 30-day suspension policy with current account activity", () => {
+    expect(profileSource).toContain("Automatic Suspension Policy");
+    expect(profileSource).toContain("သင်သည် ရက် 30 အတွင်း Login မဝင်ရောက်ခဲ့ပါက သင့်အကောင့်သည် Suspended ဖြစ်မည်။");
+    expect(profileSource).toContain("If no successful sign-in is recorded for 30 days");
+    expect(profileSource).toContain("trpc.workers.getAccountStatus.useQuery");
+    expect(profileSource).toContain("Last successful sign-in");
+    expect(profileSource).toContain("Account activity status");
+  });
 });

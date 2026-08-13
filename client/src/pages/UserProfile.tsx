@@ -13,7 +13,7 @@ import { useState, useRef, useCallback, useMemo } from "react";
 import {
   Camera, User, IdCard, Building2, Shield, Calendar,
   Edit2, Check, X, Clock, AlertTriangle, Loader2, ChevronLeft,
-  PackagePlus, ClipboardCheck, FlaskConical, CalendarDays,
+  PackagePlus, ClipboardCheck, FlaskConical, CalendarDays, ShieldAlert, LogIn,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
@@ -52,6 +52,18 @@ function levelInfo(level: string) {
   };
 }
 
+function PolicyMetric({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) {
+  return (
+    <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.09)" }}>
+      <div className="flex items-center gap-1.5" style={{ color }}>
+        {icon}
+        <p className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(203,213,225,0.78)" }}>{label}</p>
+      </div>
+      <p className="mt-1 text-xs font-black leading-tight" style={{ color }}>{value}</p>
+    </div>
+  );
+}
+
 export default function UserProfile() {
   const { worker, loginWorker } = useAuth();
   const [, navigate] = useLocation();
@@ -77,6 +89,10 @@ export default function UserProfile() {
     enabled: !!worker?.workerID,
     staleTime: 60_000,
   });
+  const accountStatusQuery = trpc.workers.getAccountStatus.useQuery(
+    { workerID: worker?.workerID ?? "", deviceToken: worker?.deviceToken ?? "" },
+    { enabled: !!worker?.workerID && !!worker?.deviceToken, staleTime: 60_000, refetchInterval: 300_000 }
+  );
 
   const [editingName, setEditingName] = useState(false);
   const [editingId,   setEditingId]   = useState(false);
@@ -167,6 +183,10 @@ export default function UserProfile() {
   const displayedName = profile?.displayName ?? profile?.name ?? worker.name;
   const nameRemaining = daysLeft(profile?.displayNameChangedAt, 7);
   const idRemaining   = daysLeft(profile?.employeeIdChangedAt, 30);
+  const daysUntilSuspension = accountStatusQuery.data?.daysUntilSuspension;
+  const lastSuccessfulLogin = accountStatusQuery.data?.lastLoginAt;
+  const isUrgentInactivityWindow = daysUntilSuspension !== undefined && daysUntilSuspension <= 3;
+  const isWarningInactivityWindow = daysUntilSuspension !== undefined && daysUntilSuspension <= 7;
   const accountSummaryLoading = submittedOrdersQuery.isLoading || requestsQuery.isLoading || samplesQuery.isLoading;
   const accountStats = useMemo(() => {
     const workerID = profile?.workerID ?? worker.workerID;
@@ -375,6 +395,69 @@ export default function UserProfile() {
                   <p className="mt-1 text-[10px] font-semibold" style={{ color: "rgba(148,163,184,0.92)" }}>{stat.label}</p>
                 </div>
               ))}
+            </div>
+          </section>
+
+          {/* ── Automatic suspension policy ─────────────────────────── */}
+          <section
+            aria-label="Automatic suspension policy"
+            className="relative overflow-hidden rounded-2xl p-4"
+            style={{
+              background: isUrgentInactivityWindow
+                ? "linear-gradient(135deg, rgba(127,29,29,0.5), rgba(69,10,10,0.42))"
+                : isWarningInactivityWindow
+                  ? "linear-gradient(135deg, rgba(120,53,15,0.45), rgba(69,26,3,0.36))"
+                  : "linear-gradient(135deg, rgba(30,41,59,0.78), rgba(49,46,129,0.3))",
+              border: isUrgentInactivityWindow
+                ? "1px solid rgba(248,113,113,0.36)"
+                : isWarningInactivityWindow
+                  ? "1px solid rgba(251,191,36,0.34)"
+                  : "1px solid rgba(129,140,248,0.24)",
+              backdropFilter: "blur(16px)",
+              boxShadow: isUrgentInactivityWindow
+                ? "0 16px 40px rgba(127,29,29,0.18)"
+                : "0 16px 40px rgba(15,23,42,0.22)",
+            }}
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: isUrgentInactivityWindow ? "linear-gradient(180deg, #fb7185, #dc2626)" : "linear-gradient(180deg, #fbbf24, #f97316)" }} />
+            <div className="relative flex items-start gap-3 pl-1">
+              <div
+                className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                style={{
+                  background: isUrgentInactivityWindow ? "linear-gradient(135deg, #ef4444, #b91c1c)" : "linear-gradient(135deg, #f59e0b, #ea580c)",
+                  boxShadow: isUrgentInactivityWindow ? "0 6px 16px rgba(239,68,68,0.25)" : "0 6px 16px rgba(245,158,11,0.25)",
+                }}
+              >
+                <ShieldAlert size={19} className="text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-black" style={{ color: "#ffffff" }}>Automatic Suspension Policy</p>
+                  <span className="rounded-full px-2 py-0.5 text-[9px] font-black tracking-wide" style={{ background: "rgba(251,191,36,0.16)", border: "1px solid rgba(251,191,36,0.28)", color: "#fde68a" }}>30 DAYS</span>
+                </div>
+                <p className="mt-1 text-xs font-medium leading-relaxed" style={{ color: "#fde68a" }}>
+                  သင်သည် ရက် 30 အတွင်း Login မဝင်ရောက်ခဲ့ပါက သင့်အကောင့်သည် Suspended ဖြစ်မည်။
+                </p>
+                <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "rgba(226,232,240,0.92)" }}>
+                  If no successful sign-in is recorded for 30 days, your Employee ID is automatically suspended. Sign out and sign in again to refresh your account activity.
+                </p>
+
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <PolicyMetric label="Suspension threshold" value="30 days" icon={<Clock size={13} />} color="#fde68a" />
+                  <PolicyMetric
+                    label="Last successful sign-in"
+                    value={lastSuccessfulLogin ? new Date(lastSuccessfulLogin).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : accountStatusQuery.isLoading ? "Checking…" : "Not available"}
+                    icon={<LogIn size={13} />}
+                    color="#c4b5fd"
+                  />
+                  <PolicyMetric
+                    label="Account activity status"
+                    value={daysUntilSuspension === undefined ? (accountStatusQuery.isLoading ? "Checking…" : "Active") : daysUntilSuspension === 0 ? "Suspension scheduled today" : `${daysUntilSuspension} days remaining`}
+                    icon={<Shield size={13} />}
+                    color={isUrgentInactivityWindow ? "#fda4af" : isWarningInactivityWindow ? "#fde68a" : "#86efac"}
+                  />
+                </div>
+              </div>
             </div>
           </section>
 

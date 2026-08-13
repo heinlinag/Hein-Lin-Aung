@@ -1454,6 +1454,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 ## My Profile Account Summary
 - [x] Display key user account and activity statistics in a responsive account summary card
 - [x] Display profile completion progress and prompts for missing account details
+- [x] Display the 30-day automatic suspension policy and current account activity status in My Profile
 
 ## QR Scanner Mobile Dialog Layout
 - [x] Keep Update Balance dialog actions visible above the mobile bottom navigation
