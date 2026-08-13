@@ -1451,6 +1451,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Hide Added Date from the desktop Stock History table and retain it in Production Order Details
 - [x] Remove visual Auto Scanner and Manual Entry badges from Stock History rows and mobile cards
 - [x] Display order-specific Input and Output activity in Production Order Details
+- [x] Show a compact running balance for each movement in Production Order Input and Output Activity
 
 ## Direct Profile Navigation
 - [x] Remove the desktop and mobile profile quick panel

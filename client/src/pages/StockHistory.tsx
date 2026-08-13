@@ -1164,15 +1164,7 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
   const isScannerOrder = order.submittedVia === "scanner";
   const statusColor = order.status === "current" ? "#34d399" : "#fb7185";
 
-  const orderActivity = [
-    {
-      id: `input-${order.id}`,
-      type: "input" as const,
-      quantityDelta: order.qty,
-      details: "Initial stock added",
-      reason: null as string | null,
-      createdAt: order.createdAt,
-    },
+  const stockMovementEvents = [
     ...(orderActivityUsageQuery.data ?? [])
       .filter(entry => entry.orderID === order.orderID)
       .map(entry => ({
@@ -1197,7 +1189,24 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
           createdAt: log.createdAt,
         };
       }),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  ];
+  const recordedCurrentQty = order.status === "out_of_stock" ? 0 : order.qty;
+  const initialInputQty = Math.max(0, recordedCurrentQty - stockMovementEvents.reduce((total, event) => total + event.quantityDelta, 0));
+  let runningBalance = 0;
+  const orderActivity = [
+    {
+      id: `input-${order.id}`,
+      type: "input" as const,
+      quantityDelta: initialInputQty,
+      details: "Initial stock added",
+      reason: null as string | null,
+      createdAt: order.createdAt,
+    },
+    ...stockMovementEvents,
+  ]
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .map(activity => ({ ...activity, runningBalance: Math.max(0, runningBalance += activity.quantityDelta) }))
+    .reverse();
 
   const detailItems = [
     { label: "Production Order", value: order.orderID, mono: true },
@@ -1303,9 +1312,14 @@ function OrderDetailDialog({ order, onClose }: { order: Order; onClose: () => vo
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <p className="text-[11px] font-black text-white">{eventLabel}</p>
-                          <span className={`shrink-0 text-[11px] font-black ${isInput ? "text-emerald-300" : "text-rose-300"}`}>
-                            {isInput ? "+" : "−"}{Math.abs(activity.quantityDelta)} pcs
-                          </span>
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <span className={`text-[11px] font-black ${isInput ? "text-emerald-300" : "text-rose-300"}`}>
+                              {isInput ? "+" : "−"}{Math.abs(activity.quantityDelta)} pcs
+                            </span>
+                            <span className="rounded-lg border border-white/10 bg-white/[0.055] px-1.5 py-0.5 text-[9px] font-black text-slate-200" title="Balance after this movement">
+                              Bal. {activity.runningBalance} pcs
+                            </span>
+                          </div>
                         </div>
                         <p className="mt-0.5 text-[10px] font-medium text-slate-400">{activity.details}</p>
                         {activity.reason && <p className="mt-1 rounded-lg bg-white/[0.045] px-2 py-1 text-[10px] leading-relaxed text-slate-300">Reason: {activity.reason}</p>}

@@ -48,6 +48,13 @@ describe("Stock History order details", () => {
     expect(stockHistorySource).toContain("Stock movement for this production order");
   });
 
+  it("calculates and displays a compact running balance after each activity movement", () => {
+    expect(stockHistorySource).toContain("const initialInputQty = Math.max(0, recordedCurrentQty - stockMovementEvents.reduce");
+    expect(stockHistorySource).toContain("runningBalance: Math.max(0, runningBalance += activity.quantityDelta)");
+    expect(stockHistorySource).toContain('title="Balance after this movement"');
+    expect(stockHistorySource).toContain("Bal. {activity.runningBalance} pcs");
+  });
+
   it("hides Added Date from the desktop table while retaining it in Production Order Details", () => {
     expect(stockHistorySource).toContain('{ label: "Added", value: new Date(order.createdAt).toLocaleString() }');
     expect(stockHistorySource).not.toContain('"BQ","Date", activeTab === "out_of_stock"');
