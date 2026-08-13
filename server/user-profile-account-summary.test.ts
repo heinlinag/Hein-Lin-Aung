@@ -40,6 +40,14 @@ describe("My Profile account summary", () => {
     expect(profileSource).toContain('label="Member Since"');
   });
 
+  it("provides cooldown-aware quick edit shortcuts for Display Name and Employee ID", () => {
+    expect(profileSource).toContain("Quick edit ${label}");
+    expect(profileSource).toContain("onEdit={startEditName}");
+    expect(profileSource).toContain("editDisabled={nameRemaining > 0}");
+    expect(profileSource).toContain("onEdit={startEditId}");
+    expect(profileSource).toContain("editDisabled={idRemaining > 0}");
+  });
+
   it("shows profile completion progress with actionable prompts for missing details", () => {
     expect(profileSource).toContain("const completionItems = [");
     expect(profileSource).toContain("Profile Completion");

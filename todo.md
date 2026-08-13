@@ -1457,6 +1457,7 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Display the 30-day automatic suspension policy and current account activity status in My Profile
 - [x] Display a worker-visible history of inactivity warnings, suspensions, and reactivations in My Profile
 - [x] Display Display Name, Employee ID, Department, Access Level, and Member Since in the Account Summary section
+- [x] Add quick-edit shortcuts for Display Name and Employee ID in Account Summary
 
 ## QR Scanner Mobile Dialog Layout
 - [x] Keep Update Balance dialog actions visible above the mobile bottom navigation

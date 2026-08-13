@@ -64,12 +64,39 @@ function PolicyMetric({ label, value, icon, color }: { label: string; value: str
   );
 }
 
-function SummaryDetail({ icon, label, value, color, className = "" }: { icon: React.ReactNode; label: string; value: string; color: string; className?: string }) {
+function SummaryDetail({ icon, label, value, color, className = "", onEdit, editDisabled = false, editHint }: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  color: string;
+  className?: string;
+  onEdit?: () => void;
+  editDisabled?: boolean;
+  editHint?: string;
+}) {
   return (
     <div className={`min-w-0 rounded-lg px-2.5 py-2 ${className}`} style={{ background: "rgba(15,23,42,0.34)", border: "1px solid rgba(255,255,255,0.07)" }}>
-      <div className="flex items-center gap-1.5" style={{ color }}>
-        {icon}
-        <p className="text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(203,213,225,0.74)" }}>{label}</p>
+      <div className="flex items-center justify-between gap-1.5">
+        <div className="flex min-w-0 items-center gap-1.5" style={{ color }}>
+          {icon}
+          <p className="truncate text-[9px] font-bold uppercase tracking-wide" style={{ color: "rgba(203,213,225,0.74)" }}>{label}</p>
+        </div>
+        {onEdit && (
+          <button
+            type="button"
+            onClick={editDisabled ? undefined : onEdit}
+            disabled={editDisabled}
+            aria-label={`Quick edit ${label}`}
+            title={editHint ?? `Quick edit ${label}`}
+            className="flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-bold transition-colors"
+            style={editDisabled
+              ? { background: "rgba(51,65,85,0.55)", color: "rgba(148,163,184,0.5)", cursor: "not-allowed" }
+              : { background: "rgba(99,102,241,0.16)", border: "1px solid rgba(129,140,248,0.22)", color: "#c7d2fe" }}
+          >
+            {editDisabled ? <Clock size={10} /> : <Edit2 size={10} />}
+            {editDisabled ? "Locked" : "Edit"}
+          </button>
+        )}
       </div>
       <p className="mt-1 truncate text-xs font-black" style={{ color }} title={value}>{value}</p>
     </div>
@@ -359,8 +386,24 @@ export default function UserProfile() {
                 <span className="rounded-full px-2 py-1 text-[9px] font-bold" style={{ background: "rgba(129,140,248,0.12)", border: "1px solid rgba(129,140,248,0.22)", color: "#c7d2fe" }}>PROFILE</span>
               </div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <SummaryDetail icon={<User size={14} />} label="Display Name" value={displayedName} color="#a5b4fc" />
-                <SummaryDetail icon={<IdCard size={14} />} label="Employee ID" value={profile?.workerID ?? worker.workerID} color="#fde68a" />
+                <SummaryDetail
+                  icon={<User size={14} />}
+                  label="Display Name"
+                  value={displayedName}
+                  color="#a5b4fc"
+                  onEdit={startEditName}
+                  editDisabled={nameRemaining > 0}
+                  editHint={nameRemaining > 0 ? `Display Name available in ${nameRemaining} day(s)` : "Quick edit Display Name"}
+                />
+                <SummaryDetail
+                  icon={<IdCard size={14} />}
+                  label="Employee ID"
+                  value={profile?.workerID ?? worker.workerID}
+                  color="#fde68a"
+                  onEdit={startEditId}
+                  editDisabled={idRemaining > 0}
+                  editHint={idRemaining > 0 ? `Employee ID available in ${idRemaining} day(s)` : "Quick edit Employee ID"}
+                />
                 <SummaryDetail icon={<Building2 size={14} />} label="Department" value={profile?.department ?? worker.department} color="#7dd3fc" />
                 <SummaryDetail icon={<Shield size={14} />} label="Access Level" value={lv.text} color="#86efac" />
                 <SummaryDetail icon={<Calendar size={14} />} label="Member Since" value={memberSince} color="#fda4af" className="sm:col-span-2" />
