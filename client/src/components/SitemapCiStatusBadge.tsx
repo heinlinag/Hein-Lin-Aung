@@ -10,6 +10,7 @@ export function SitemapCiStatusBadge({
   commit,
   workflowUrl,
   runUrl,
+  history,
   isLoading,
   onRefresh,
 }: {
@@ -20,6 +21,15 @@ export function SitemapCiStatusBadge({
   commit?: string | null;
   workflowUrl?: string;
   runUrl?: string | null;
+  history?: Array<{
+    status: "passed" | "failed" | "running";
+    conclusion: string | null;
+    runUrl: string | null;
+    updatedAt: string | null;
+    branch: string | null;
+    commit: string | null;
+    message: string;
+  }>;
   isLoading: boolean;
   onRefresh: () => void;
 }) {
@@ -59,6 +69,54 @@ export function SitemapCiStatusBadge({
           </button>
         </div>
       </div>
+      {status === "failed" && (
+        <div role="alert" className="mt-4 rounded-xl border border-rose-200 bg-white/80 p-3 text-sm text-rose-800">
+          <span className="font-extrabold">Action required.</span> Sitemap validation failed on the latest live check. Review the workflow details, correct the issue, then refresh this panel.
+        </div>
+      )}
+
+      {history && history.length > 0 && (
+        <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white/80">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+            <div>
+              <p className="text-sm font-extrabold text-slate-900">Recent Sitemap CI Runs</p>
+              <p className="mt-0.5 text-xs text-slate-500">The latest ten GitHub Actions runs for the synced Stock Dash branch.</p>
+            </div>
+            <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">{history.length} runs</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-xs">
+              <thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-4 py-2.5 font-bold">Result</th>
+                  <th className="px-4 py-2.5 font-bold">Branch</th>
+                  <th className="px-4 py-2.5 font-bold">Commit</th>
+                  <th className="px-4 py-2.5 font-bold">Updated</th>
+                  <th className="px-4 py-2.5 text-right font-bold">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {history.map((run, index) => {
+                  const runTone = presentation[run.status];
+                  return (
+                    <tr key={`${run.runUrl ?? "run"}-${run.updatedAt ?? index}`}>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${runTone.border} ${runTone.accent}`}>{run.status}</span>
+                      </td>
+                      <td className="px-4 py-3 font-medium">{run.branch ?? "—"}</td>
+                      <td className="px-4 py-3 font-mono text-[11px]">{run.commit ?? "—"}</td>
+                      <td className="px-4 py-3 text-slate-500">{run.updatedAt ? new Date(run.updatedAt).toLocaleString() : "—"}</td>
+                      <td className="px-4 py-3 text-right">
+                        {run.runUrl ? <a href={run.runUrl} target="_blank" rel="noreferrer" className="font-bold text-indigo-700 hover:text-indigo-900">Open</a> : <span className="text-slate-400">—</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

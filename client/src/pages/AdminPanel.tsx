@@ -2533,6 +2533,7 @@ export default function AdminPanel() {
           commit={sitemapCiQuery.data?.commit}
           workflowUrl={sitemapCiQuery.data?.workflowUrl}
           runUrl={sitemapCiQuery.data?.runUrl}
+          history={sitemapCiQuery.data?.history}
           isLoading={sitemapCiQuery.isLoading || sitemapCiQuery.isFetching}
           onRefresh={() => setSitemapCiRefresh(value => value + 1)}
         />

@@ -16,6 +16,16 @@ type GitHubWorkflowRunsResponse = {
 
 export type SitemapCiStatus = "passed" | "failed" | "running" | "awaiting_run" | "not_configured" | "unavailable";
 
+export type SitemapCiHistoryEntry = {
+  status: Extract<SitemapCiStatus, "passed" | "failed" | "running">;
+  conclusion: string | null;
+  runUrl: string | null;
+  updatedAt: string | null;
+  branch: string | null;
+  commit: string | null;
+  message: string;
+};
+
 export type SitemapCiStatusResult = {
   status: SitemapCiStatus;
   workflowConfigured: boolean;
@@ -25,14 +35,38 @@ export type SitemapCiStatusResult = {
   branch: string | null;
   commit: string | null;
   message: string;
+  history: SitemapCiHistoryEntry[];
 };
 
 const workflowUrl = `https://github.com/${SITEMAP_CI_REPOSITORY}/actions/workflows/${SITEMAP_CI_WORKFLOW_FILE}`;
-const GITHUB_API_URL = `https://api.github.com/repos/${SITEMAP_CI_REPOSITORY}/actions/workflows/${SITEMAP_CI_WORKFLOW_FILE}/runs?per_page=1`;
+const GITHUB_API_URL = `https://api.github.com/repos/${SITEMAP_CI_REPOSITORY}/actions/workflows/${SITEMAP_CI_WORKFLOW_FILE}/runs?per_page=10`;
 const CACHE_TTL_MS = 60_000;
 
 let cachedResult: SitemapCiStatusResult | null = null;
 let cachedAt = 0;
+
+function runStatus(run: GitHubWorkflowRun): Extract<SitemapCiStatus, "passed" | "failed" | "running"> {
+  if (run.status !== "completed") return "running";
+  return run.conclusion === "success" ? "passed" : "failed";
+}
+
+export function mapSitemapCiHistoryEntry(run: GitHubWorkflowRun): SitemapCiHistoryEntry {
+  const status = runStatus(run);
+  const conclusion = run.conclusion ?? null;
+  return {
+    status,
+    conclusion,
+    runUrl: run.html_url ?? null,
+    updatedAt: run.updated_at ?? null,
+    branch: run.head_branch ?? null,
+    commit: run.head_sha?.slice(0, 7) ?? null,
+    message: status === "passed"
+      ? "Validation passed successfully."
+      : status === "running"
+        ? "Validation is currently running."
+        : `Validation ${conclusion ?? "did not complete successfully"}.`,
+  };
+}
 
 export function mapSitemapCiWorkflowRun(run?: GitHubWorkflowRun): SitemapCiStatusResult {
   if (!run) {
@@ -45,38 +79,25 @@ export function mapSitemapCiWorkflowRun(run?: GitHubWorkflowRun): SitemapCiStatu
       branch: null,
       commit: null,
       message: "The workflow is ready and awaiting its first repository run.",
+      history: [],
     };
   }
 
-  const shared = {
+  const entry = mapSitemapCiHistoryEntry(run);
+  return {
+    status: entry.status,
     workflowConfigured: true,
     workflowUrl,
-    runUrl: run.html_url ?? null,
-    updatedAt: run.updated_at ?? null,
-    branch: run.head_branch ?? null,
-    commit: run.head_sha?.slice(0, 7) ?? null,
-  };
-
-  if (run.status !== "completed") {
-    return {
-      ...shared,
-      status: "running",
-      message: "Sitemap CI validation is currently running.",
-    };
-  }
-
-  if (run.conclusion === "success") {
-    return {
-      ...shared,
-      status: "passed",
-      message: "Sitemap CI validation passed successfully.",
-    };
-  }
-
-  return {
-    ...shared,
-    status: "failed",
-    message: "The latest Sitemap CI validation requires attention.",
+    runUrl: entry.runUrl,
+    updatedAt: entry.updatedAt,
+    branch: entry.branch,
+    commit: entry.commit,
+    message: entry.status === "passed"
+      ? "Sitemap CI validation passed successfully."
+      : entry.status === "running"
+        ? "Sitemap CI validation is currently running."
+        : "The latest Sitemap CI validation requires attention.",
+    history: [entry],
   };
 }
 
@@ -101,6 +122,7 @@ export async function getSitemapCiStatus(force = false): Promise<SitemapCiStatus
         branch: null,
         commit: null,
         message: "The workflow is awaiting repository sync before its first live CI run.",
+        history: [],
       };
     } else if (!response.ok) {
       cachedResult = {
@@ -112,10 +134,15 @@ export async function getSitemapCiStatus(force = false): Promise<SitemapCiStatus
         branch: null,
         commit: null,
         message: `GitHub CI status is temporarily unavailable (HTTP ${response.status}).`,
+        history: [],
       };
     } else {
       const payload = (await response.json()) as GitHubWorkflowRunsResponse;
-      cachedResult = mapSitemapCiWorkflowRun(payload.workflow_runs?.[0]);
+      const history = (payload.workflow_runs ?? []).map(mapSitemapCiHistoryEntry);
+      cachedResult = {
+        ...mapSitemapCiWorkflowRun(payload.workflow_runs?.[0]),
+        history,
+      };
     }
   } catch {
     cachedResult = {
@@ -127,6 +154,7 @@ export async function getSitemapCiStatus(force = false): Promise<SitemapCiStatus
       branch: null,
       commit: null,
       message: "GitHub CI status could not be reached. Please try again shortly.",
+      history: [],
     };
   }
 

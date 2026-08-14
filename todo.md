@@ -1576,6 +1576,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Automatically refresh sitemap last-modified dates when Documentation or FAQ content changes
 - [x] Add automated CI validation for sitemap structure, routes, and last-modified metadata
 - [x] Add a visual Sitemap CI validation status badge to the Admin dashboard
+- [x] Sync the Stock Dash project code to the selected GitHub repository on the protected stock-dash branch
+- [x] Show administrators a failed Sitemap CI alert when live dashboard refresh detects a failure
+- [x] Display Sitemap CI run history in the Admin dashboard
 
 ## Navigation Recovery
 - [x] Improve the custom 404 page with helpful recovery navigation links
