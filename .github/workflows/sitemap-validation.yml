@@ -34,10 +34,6 @@ jobs:
       
         uses: pnpm/action-setup@v4
         
-        with:
-        
-          version: 10
-          
 
 
       - name: Set up Node.js
@@ -87,8 +83,6 @@ jobs:
             --header "Content-Type: application/json" \
             
             --data "{\"status\":\"${WORKFLOW_CONCLUSION}\",\"runUrl\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\",\"branch\":\"${{ github.ref_name }}\",\"commit\":\"${{ github.sha }}\",\"workflow\":\"Sitemap Validation\"}"
-
-
 
 
 
