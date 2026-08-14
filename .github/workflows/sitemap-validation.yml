@@ -1,0 +1,122 @@
+name: Sitemap Validation
+
+
+
+on:
+
+  push:
+  
+    branches: [stock-dash]
+    
+  pull_request:
+  
+  workflow_dispatch:
+  
+
+
+jobs:
+
+  validate-sitemap:
+  
+    name: Validate Sitemap and SEO Route Metadata
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+    
+      - name: Check out repository
+      
+        uses: actions/checkout@v4
+        
+
+
+      - name: Set up Node.js
+      
+        uses: actions/setup-node@v4
+        
+        with:
+        
+          node-version: 22
+          
+          cache: pnpm
+          
+
+
+      - name: Set up pnpm
+      
+        uses: pnpm/action-setup@v4
+        
+        with:
+        
+          version: 10
+          
+
+
+      - name: Install dependencies
+      
+        run: pnpm install --frozen-lockfile
+        
+
+
+      - name: Generate and validate sitemap
+      
+        run: pnpm ci:sitemap
+        
+
+
+      - name: Notify Stock Dash of CI completion
+      
+        if: always()
+        
+        continue-on-error: true
+        
+        env:
+        
+          CALLBACK_SECRET: ${{ secrets.GITHUB_CI_WEBHOOK_SECRET }}
+          
+          WORKFLOW_CONCLUSION: ${{ job.status }}
+          
+        run: |
+        
+          curl --fail --silent --show-error --retry 2 \
+          
+            --request POST "https://stockdash.click/api/github/sitemap-ci" \
+            
+            --header "Authorization: Bearer ${CALLBACK_SECRET}" \
+            
+            --header "Content-Type: application/json" \
+            
+            --data "{\"status\":\"${WORKFLOW_CONCLUSION}\",\"runUrl\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\",\"branch\":\"${{ github.ref_name }}\",\"commit\":\"${{ github.sha }}\",\"workflow\":\"Sitemap Validation\"}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
