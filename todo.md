@@ -1579,6 +1579,9 @@ To update: Edit `client/src/components/VideoTutorials.tsx` and replace the `vide
 - [x] Sync the Stock Dash project code to the selected GitHub repository on the protected stock-dash branch
 - [x] Show administrators a failed Sitemap CI alert when live dashboard refresh detects a failure
 - [x] Display Sitemap CI run history in the Admin dashboard
+- [ ] Add a WhatsApp click-to-chat shortcut for failed Sitemap CI alerts
+- [ ] Protect the active stock-dash branch and require the Sitemap CI check before merges
+- [ ] Add status, branch, and date filters plus CSV export to the Admin Sitemap CI history table
 
 ## Navigation Recovery
 - [x] Improve the custom 404 page with helpful recovery navigation links

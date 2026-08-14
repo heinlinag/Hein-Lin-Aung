@@ -43,6 +43,11 @@ describe("Admin Sitemap CI status", () => {
     expect(badge).toContain("View workflow");
     expect(badge).toContain("Recent Sitemap CI Runs");
     expect(badge).toContain('role="alert"');
+    expect(badge).toContain("WhatsApp admin");
+    expect(badge).toContain("All results");
+    expect(badge).toContain("All branches");
+    expect(badge).toContain("Export CSV");
+    expect(badge).toContain("stock-dash-sitemap-ci-history.csv");
     expect(adminPanel).toContain("history={sitemapCiQuery.data?.history}");
     expect(adminPanel).toContain("trpc.system.getSitemapCiStatus.useQuery");
   });
